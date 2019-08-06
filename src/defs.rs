@@ -13,9 +13,12 @@ pub enum Color {
 }
 
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 pub const ASCII_EMPTY_SQUARE: char = '.';
 pub const RANK_8: u8 = 7;
+pub const RANK_1: u8 = 0;
 pub const FILE_A: u8 = 0;
+pub const FILE_H: u8 = 7;
 pub const BB_K: usize = 0;
 pub const BB_Q: usize = 1;
 pub const BB_R: usize = 2;
@@ -26,6 +29,19 @@ pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
 pub const CASTLE_BQ: u8 = 8;
+
+pub const CHAR_WK: char = 'K';
+pub const CHAR_WQ: char = 'Q';
+pub const CHAR_WR: char = 'R';
+pub const CHAR_WB: char = 'B';
+pub const CHAR_WN: char = 'N';
+pub const CHAR_WP: char = 'P';
+pub const CHAR_BK: char = 'k';
+pub const CHAR_BQ: char = 'q';
+pub const CHAR_BR: char = 'r';
+pub const CHAR_BB: char = 'b';
+pub const CHAR_BN: char = 'n';
+pub const CHAR_BP: char = 'a';
 
 pub const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 pub const LETTERS: &str = "abcdefgh";

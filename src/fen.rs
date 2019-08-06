@@ -31,7 +31,7 @@ fn part_0(part: &str, board: &mut Board) {
                 rank -= 1;
                 file = 0;
             }
-            _ => assert!(false, "FEN {}: Illegal character found: {}", PART, part),
+            _ => panic!("FEN {}: Illegal character found: {}", PART, part),
         }
         if LIST_OF_PIECES.contains(c) {
             file += 1;
@@ -102,16 +102,14 @@ fn part_3(part: &str, board: &mut Board) {
     if length == 2 {
         const ASCII_VALUE_OF_SMALL_A: i8 = 97;
         const ASCII_VALUE_OF_1: i8 = 49;
-        let mut char_nr = 0;
         let mut file = -1;
         let mut rank = -1;
-        for c in part.chars() {
-            char_nr += 1;
-            if char_nr == 1 && LETTERS.contains(c) {
+        for (char_nr, c) in part.chars().enumerate() {
+            if char_nr == 0 && LETTERS.contains(c) {
                 file = (c as i8) - ASCII_VALUE_OF_SMALL_A;
                 char_ok += 1;
             }
-            if char_nr == 2 && EN_PASSANT_RANKS.contains(c) {
+            if char_nr == 1 && EN_PASSANT_RANKS.contains(c) {
                 rank = (c as i8) - ASCII_VALUE_OF_1;
                 char_ok += 1;
             }
@@ -130,17 +128,14 @@ fn part_4(part: &str, board: &mut Board) {
     let mut is_ok = false;
 
     if length == 1 || length == 2 {
-        match part.parse::<u8>() {
-            Ok(x) => {
-                if x <= 50 {
-                    board.fifty_moves = x;
-                    is_ok = true;
-                }
+        if let Ok(x) = part.parse::<u8>() {
+            if x <= 50 {
+                board.fifty_moves = x;
+                is_ok = true;
             }
-            _ => (),
         }
     }
-    assert_eq!(is_ok, true, "FEN {}: 50-move count: {}", PART, part);
+    assert!(is_ok, "FEN {}: 50-move count: {}", PART, part);
 }
 
 fn part_5(part: &str, board: &mut Board) {
@@ -149,17 +144,14 @@ fn part_5(part: &str, board: &mut Board) {
     let mut is_ok = false;
 
     if length >= 1 || length <= 4 {
-        match part.parse::<u16>() {
-            Ok(x) => {
-                if x <= MAX_FULL_MOVES {
-                    board.full_moves = x;
-                    is_ok = true;
-                }
+        if let Ok(x) = part.parse::<u16>() {
+            if x <= MAX_FULL_MOVES {
+                board.full_moves = x;
+                is_ok = true;
             }
-            _ => (),
         }
     }
-    assert_eq!(is_ok, true, "FEN {}: Full move count: {}", PART, part);
+    assert!(is_ok, "FEN {}: Full move count: {}", PART, part);
 }
 
 pub fn fen_read(fen_string: &str, board: &mut Board) {
@@ -167,6 +159,7 @@ pub fn fen_read(fen_string: &str, board: &mut Board) {
     let fen_parse: [FunctionPointerFenPartHandler; 6] =
         [part_0, part_1, part_2, part_3, part_4, part_5];
 
+    board.reset();
     for x in 0..fen_parse.len() {
         fen_parse[x](&fen_parts[x], board);
     }
