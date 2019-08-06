@@ -2,7 +2,7 @@ use crate::board::*;
 use crate::defs::*;
 
 fn part_0(part: &str, board: &mut Board) {
-    // TODO: assertion for this part.
+    const PART: u8 = 0;
     let mut rank = RANK_8;
     let mut file = FILE_A;
 
@@ -27,10 +27,11 @@ fn part_0(part: &str, board: &mut Board) {
                 }
             }
             SPLITTER => {
+                assert!(file == 8, "FEN {}: Counting incorrect: {}", PART, part);
                 rank -= 1;
                 file = 0;
             }
-            _ => (),
+            _ => assert!(false, "FEN {}: Illegal character found: {}", PART, part),
         }
         if LIST_OF_PIECES.contains(c) {
             file += 1;
