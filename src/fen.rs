@@ -1,4 +1,4 @@
-use crate::board::*;
+use crate::board::Board;
 use crate::defs::*;
 
 fn part_0(part: &str, board: &mut Board) {
@@ -130,7 +130,7 @@ fn part_4(part: &str, board: &mut Board) {
     if length == 1 || length == 2 {
         if let Ok(x) = part.parse::<u8>() {
             if x <= 50 {
-                board.fifty_moves = x;
+                board.halfmove_clock = x;
                 is_ok = true;
             }
         }
@@ -146,7 +146,7 @@ fn part_5(part: &str, board: &mut Board) {
     if length >= 1 || length <= 4 {
         if let Ok(x) = part.parse::<u16>() {
             if x <= MAX_FULL_MOVES {
-                board.full_moves = x;
+                board.fullmove_number = x;
                 is_ok = true;
             }
         }
@@ -154,7 +154,7 @@ fn part_5(part: &str, board: &mut Board) {
     assert!(is_ok, "FEN {}: Full move count: {}", PART, part);
 }
 
-pub fn fen_read(fen_string: &str, board: &mut Board) {
+pub fn read(fen_string: &str, board: &mut Board) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
     let fen_parse: [FunctionPointerFenPartHandler; 6] =
         [part_0, part_1, part_2, part_3, part_4, part_5];

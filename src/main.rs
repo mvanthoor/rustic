@@ -1,16 +1,18 @@
 mod board;
 mod defs;
 mod fen;
+mod print;
 
 use board::Board;
 use defs::*;
-use fen::*;
 
 fn main() {
-    println!();
-    println!("{} {}, by {}", ENGINE, VERSION, AUTHOR);
     let mut board: Board = Default::default();
 
-    fen_read(FEN_START_POSITION, &mut board);
-    board.print();
+    println!();
+    println!("{} {}, by {}", ENGINE, VERSION, AUTHOR);
+
+    fen::read(FEN_START_POSITION, &mut board);
+    print::board(&board);
+    print::bitboard(board.bb_w[BB_R]);
 }

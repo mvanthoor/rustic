@@ -1,10 +1,11 @@
-use crate::Board;
+use crate::board::Board;
 
 pub const ENGINE: &str = "Stainless";
 pub const VERSION: &str = "0.1";
 pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
+pub type AsciiBoard = [char; 64];
 pub type FunctionPointerFenPartHandler = fn(part: &str, board: &mut Board);
 
 pub enum Color {
