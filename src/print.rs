@@ -1,10 +1,10 @@
 use crate::board::Board;
 use crate::defs::*;
 
-fn put_piece_onto_ascii(bitboard: Bitboard, ascii: &mut AsciiBoard, piece: char) {
+fn set_ascii_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
     for (i, square) in ascii.iter_mut().enumerate() {
         if bitboard >> i & 1 == 1 {
-            *square = piece;
+            *square = character;
         }
     }
 }
@@ -14,45 +14,43 @@ fn bitboards_to_ascii(board: &Board, ascii: &mut AsciiBoard) {
     for i in 0..nr_of_bitboards {
         match i {
             BB_K => {
-                put_piece_onto_ascii(board.bb_w[BB_K], ascii, CHAR_WK);
-                put_piece_onto_ascii(board.bb_b[BB_K], ascii, CHAR_BK);
+                set_ascii_square(board.bb_w[BB_K], ascii, CHAR_WK);
+                set_ascii_square(board.bb_b[BB_K], ascii, CHAR_BK);
             }
             BB_Q => {
-                put_piece_onto_ascii(board.bb_w[BB_Q], ascii, CHAR_WQ);
-                put_piece_onto_ascii(board.bb_b[BB_Q], ascii, CHAR_BQ);
+                set_ascii_square(board.bb_w[BB_Q], ascii, CHAR_WQ);
+                set_ascii_square(board.bb_b[BB_Q], ascii, CHAR_BQ);
             }
             BB_R => {
-                put_piece_onto_ascii(board.bb_w[BB_R], ascii, CHAR_WR);
-                put_piece_onto_ascii(board.bb_b[BB_R], ascii, CHAR_BR);
+                set_ascii_square(board.bb_w[BB_R], ascii, CHAR_WR);
+                set_ascii_square(board.bb_b[BB_R], ascii, CHAR_BR);
             }
             BB_B => {
-                put_piece_onto_ascii(board.bb_w[BB_B], ascii, CHAR_WB);
-                put_piece_onto_ascii(board.bb_b[BB_B], ascii, CHAR_BB);
+                set_ascii_square(board.bb_w[BB_B], ascii, CHAR_WB);
+                set_ascii_square(board.bb_b[BB_B], ascii, CHAR_BB);
             }
             BB_N => {
-                put_piece_onto_ascii(board.bb_w[BB_N], ascii, CHAR_WN);
-                put_piece_onto_ascii(board.bb_b[BB_N], ascii, CHAR_BN);
+                set_ascii_square(board.bb_w[BB_N], ascii, CHAR_WN);
+                set_ascii_square(board.bb_b[BB_N], ascii, CHAR_BN);
             }
             BB_P => {
-                put_piece_onto_ascii(board.bb_w[BB_P], ascii, CHAR_WP);
-                put_piece_onto_ascii(board.bb_b[BB_P], ascii, CHAR_BP);
+                set_ascii_square(board.bb_w[BB_P], ascii, CHAR_WP);
+                set_ascii_square(board.bb_b[BB_P], ascii, CHAR_BP);
             }
             _ => (),
         }
     }
 }
 
-pub fn board(board: &Board) {
+fn to_console(ascii_board: &AsciiBoard) {
     let coordinate_alpha: &str = "ABCDEFGH";
-    let mut coordinate_digit = 8;
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    let mut coordinate_digit = NR_OF_FILES;
 
-    bitboards_to_ascii(board, &mut ascii_board);
     println!();
-    for r in (RANK_1..=RANK_8).rev() {
+    for current_rank in (RANK_1..=RANK_8).rev() {
         print!("{}   ", coordinate_digit);
-        for f in FILE_A..=FILE_H {
-            let square = (r * 8 + f) as usize;
+        for current_file in FILE_A..=FILE_H {
+            let square = (current_rank * NR_OF_FILES + current_file) as usize;
             print!("{} ", ascii_board[square]);
         }
         println!();
@@ -66,30 +64,15 @@ pub fn board(board: &Board) {
     println!();
 }
 
-pub fn bitboard(bitboard: Bitboard) {
-    let coordinate_alpha: &str = "ABCDEFGH";
-    let mut coordinate_digit = 8;
+pub fn position(board: &Board) {
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    bitboards_to_ascii(board, &mut ascii_board);
+    to_console(&ascii_board);
+}
 
-    println!();
-    println!("Bitboard");
-    for r in (RANK_1..=RANK_8).rev() {
-        print!("{}   ", coordinate_digit);
-        for f in FILE_A..=FILE_H {
-            let square = (r * 8 + f) as usize;
-            let value = bitboard >> square & 1 == 1;
-            if value {
-                print!("{} ", '1');
-            } else {
-                print!("{} ", ASCII_EMPTY_SQUARE);
-            }
-        }
-        println!();
-        coordinate_digit -= 1;
-    }
-    println!();
-    print!("    ");
-    for c in coordinate_alpha.chars() {
-        print!("{} ", c);
-    }
-    println!();
+pub fn bitboard(bitboard: Bitboard) {
+    const SQUARE_OCCUPIED: char = '1';
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    set_ascii_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
+    to_console(&ascii_board);
 }
