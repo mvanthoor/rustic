@@ -7,7 +7,7 @@ const INVALID_SQUARE: u8 = 255;
 
 pub struct HelperBoard {
     pub mailbox: [u8; MAILBOX_SIZE],
-    pub conversion: [u8; 64],
+    pub real: [u8; 64],
 }
 
 /*
@@ -15,7 +15,7 @@ The Default function creates these helper boards.
 They are temporary, to help generate the bitboard
 move boards.
 
-Mailbox board:
+mailbox to real board:
 
 255 255 255 255 255 255 255 255 255 255     (119)
 255 255 255 255 255 255 255 255 255 255     (109)
@@ -30,23 +30,25 @@ Mailbox board:
 255 255 255 255 255 255 255 255 255 255     (19)
 255 255 255 255 255 255 255 255 255 255     (9)
 
-Conversion board:
+real to mailbox board:
 
-91 92 93 94 95 96 97 98     (63)
-81 82 83 84 85 86 87 88     (55)
-71 72 73 74 75 76 77 78     (47)
-61 62 63 64 65 66 67 68     (39)
-51 52 53 54 55 56 57 58     (31)
-41 42 43 44 45 46 47 48     (23)
-31 32 33 34 35 36 37 38     (15)
-21 22 23 24 25 26 27 28     (7)
+8)  91 92 93 94 95 96 97 98     (63)
+7)  81 82 83 84 85 86 87 88     (55)
+6)  71 72 73 74 75 76 77 78     (47)
+5)  61 62 63 64 65 66 67 68     (39)
+4)  51 52 53 54 55 56 57 58     (31)
+3)  41 42 43 44 45 46 47 48     (23)
+2)  31 32 33 34 35 36 37 38     (15)
+1)  21 22 23 24 25 26 27 28     (7)
+
+    A  B  C  D  E  F  G  H
 */
 
 impl Default for HelperBoard {
     fn default() -> HelperBoard {
         let mut helper_board: HelperBoard = HelperBoard {
             mailbox: [0; MAILBOX_SIZE],
-            conversion: [0; 64],
+            real: [0; 64],
         };
         let mut real_board_square: usize = 0;
 
@@ -57,7 +59,7 @@ impl Default for HelperBoard {
                     helper_board.mailbox[square] = INVALID_SQUARE;
                 } else {
                     helper_board.mailbox[square] = real_board_square as u8;
-                    helper_board.conversion[real_board_square] = square as u8;
+                    helper_board.real[real_board_square] = square as u8;
                     real_board_square += 1;
                 }
             }
@@ -67,6 +69,19 @@ impl Default for HelperBoard {
     }
 }
 
+fn get_king_moves(h: &mut HelperBoard) {
+    let directions: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
+    let mailbox_square = h.real[31] as i8;
+    for d in directions.iter() {
+        let to_square = (mailbox_square + *d) as usize;
+        if h.mailbox[to_square] != INVALID_SQUARE {
+            let real_square = h.mailbox[to_square];
+            println!("Legal square: {}", real_square);
+        }
+    }
+}
+
 pub fn create() {
-    let helper_board: HelperBoard = Default::default();
+    let mut helper_board: HelperBoard = Default::default();
+    get_king_moves(&mut helper_board);
 }
