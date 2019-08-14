@@ -1,3 +1,6 @@
+use crate::defs::*;
+use crate::Board;
+
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
 const MAILBOX_SIZE: usize = (MAILBOX_FILES * MAILBOX_RANKS) as usize;
@@ -69,19 +72,24 @@ impl Default for HelperBoard {
     }
 }
 
-fn get_king_moves(h: &mut HelperBoard) {
-    let directions: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
-    let mailbox_square = h.real[31] as i8;
-    for d in directions.iter() {
-        let to_square = (mailbox_square + *d) as usize;
-        if h.mailbox[to_square] != INVALID_SQUARE {
-            let real_square = h.mailbox[to_square];
-            println!("Legal square: {}", real_square);
+fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &mut HelperBoard) {
+    let nr_of_masks = board.bb_mask[mask].len();
+    for i in 0..nr_of_masks {
+        for d in directions.iter() {
+            let mailbox_square = h.real[i] as i8;
+            let try_square = (mailbox_square + *d) as usize;
+            if h.mailbox[try_square] != INVALID_SQUARE {
+                let legal_square = h.mailbox[try_square];
+                board.bb_mask[mask][i] |= 1 << legal_square;
+            }
         }
     }
 }
 
-pub fn create() {
+pub fn create(board: &mut Board) {
     let mut helper_board: HelperBoard = Default::default();
-    get_king_moves(&mut helper_board);
+    let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
+    let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
+    non_slider(board, MASK_K, directions_king, &mut helper_board);
+    non_slider(board, MASK_N, directions_knight, &mut helper_board);
 }

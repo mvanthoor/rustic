@@ -6,6 +6,7 @@ pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
 pub type AsciiBoard = [char; 64];
+pub type Mask = [Bitboard; 64];
 pub type FunctionPointerFenPartHandler = fn(part: &str, board: &mut Board);
 
 pub enum Color {
@@ -21,12 +22,16 @@ pub const RANK_1: u8 = 0;
 pub const RANK_8: u8 = 7;
 pub const FILE_A: u8 = 0;
 pub const FILE_H: u8 = 7;
+
 pub const BB_K: usize = 0;
 pub const BB_Q: usize = 1;
 pub const BB_R: usize = 2;
 pub const BB_B: usize = 3;
 pub const BB_N: usize = 4;
 pub const BB_P: usize = 5;
+pub const MASK_K: usize = 0;
+pub const MASK_N: usize = 1;
+
 pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
