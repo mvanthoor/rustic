@@ -75,12 +75,30 @@ impl Default for HelperBoard {
 fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &mut HelperBoard) {
     let nr_of_masks = board.bb_mask[mask].len();
     for i in 0..nr_of_masks {
-        for d in directions.iter() {
+        for &d in directions.iter() {
             let mailbox_square = h.real[i] as i8;
-            let try_square = (mailbox_square + *d) as usize;
+            let try_square = (mailbox_square + d) as usize;
             if h.mailbox[try_square] != INVALID_SQUARE {
                 let legal_square = h.mailbox[try_square];
                 board.bb_mask[mask][i] |= 1 << legal_square;
+            }
+        }
+    }
+}
+
+fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &mut HelperBoard) {
+    let nr_of_masks = board.bb_mask[mask].len();
+    for i in 0..nr_of_masks {
+        for &d in directions.iter() {
+            let mut current_mailbox_square = h.real[i] as i8;
+            let mut next_mailbox_square = current_mailbox_square + d;
+            while h.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
+                current_mailbox_square += d;
+                next_mailbox_square += d;
+                if h.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
+                    let add_square = h.mailbox[current_mailbox_square as usize];
+                    board.bb_mask[mask][i] |= 1 << add_square;
+                }
             }
         }
     }
@@ -90,6 +108,8 @@ pub fn create(board: &mut Board) {
     let mut helper_board: HelperBoard = Default::default();
     let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
     let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
+    let directions_rook: [i8; 4] = [-10, -1, 1, 10];
     non_slider(board, MASK_K, directions_king, &mut helper_board);
     non_slider(board, MASK_N, directions_knight, &mut helper_board);
+    slider(board, MASK_R, directions_rook, &mut helper_board);
 }

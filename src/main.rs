@@ -17,5 +17,7 @@ fn main() {
     print::position(&board);
     magics::create(&mut board);
 
-    print::bitboard(board.bb_mask[MASK_N][28]);
+    for i in 0..64 {
+        print::bitboard(board.bb_mask[MASK_R][i]);
+    }
 }
