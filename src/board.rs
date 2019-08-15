@@ -3,7 +3,7 @@ use crate::defs::*;
 pub struct Board {
     pub bb_w: [Bitboard; 6],
     pub bb_b: [Bitboard; 6],
-    pub bb_mask: [Mask; 3],
+    pub bb_mask: [Mask; 4],
     pub turn: Color,
     pub castling: u8,
     pub en_passant: i8,
@@ -16,7 +16,7 @@ impl Default for Board {
         Board {
             bb_w: [0; 6],
             bb_b: [0; 6],
-            bb_mask: [[0; 64]; 3],
+            bb_mask: [[0; 64]; 4],
             turn: Color::WHITE,
             castling: 0,
             en_passant: -1,

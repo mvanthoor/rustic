@@ -1,7 +1,7 @@
 mod board;
 mod defs;
 mod fen;
-mod magics;
+mod masks;
 mod print;
 
 use board::Board;
@@ -15,9 +15,9 @@ fn main() {
 
     fen::read(FEN_START_POSITION, &mut board);
     print::position(&board);
-    magics::create(&mut board);
+    masks::create(&mut board);
 
     for i in 0..64 {
-        print::bitboard(board.bb_mask[MASK_R][i]);
+        print::bitboard(board.bb_mask[MASK_B][i]);
     }
 }

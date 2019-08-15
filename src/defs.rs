@@ -30,8 +30,9 @@ pub const BB_B: usize = 3;
 pub const BB_N: usize = 4;
 pub const BB_P: usize = 5;
 pub const MASK_K: usize = 0;
-pub const MASK_N: usize = 1;
-pub const MASK_R: usize = 2;
+pub const MASK_R: usize = 1;
+pub const MASK_B: usize = 2;
+pub const MASK_N: usize = 3;
 
 pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;

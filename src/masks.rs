@@ -72,7 +72,7 @@ impl Default for HelperBoard {
     }
 }
 
-fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &mut HelperBoard) {
+fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &HelperBoard) {
     let nr_of_masks = board.bb_mask[mask].len();
     for i in 0..nr_of_masks {
         for &d in directions.iter() {
@@ -86,7 +86,7 @@ fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &mut Helpe
     }
 }
 
-fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &mut HelperBoard) {
+fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &HelperBoard) {
     let nr_of_masks = board.bb_mask[mask].len();
     for i in 0..nr_of_masks {
         for &d in directions.iter() {
@@ -105,11 +105,13 @@ fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &mut HelperBoa
 }
 
 pub fn create(board: &mut Board) {
-    let mut helper_board: HelperBoard = Default::default();
+    let helper_board: HelperBoard = Default::default();
     let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
     let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
     let directions_rook: [i8; 4] = [-10, -1, 1, 10];
-    non_slider(board, MASK_K, directions_king, &mut helper_board);
-    non_slider(board, MASK_N, directions_knight, &mut helper_board);
-    slider(board, MASK_R, directions_rook, &mut helper_board);
+    let directions_bishop: [i8; 4] = [-11, -9, 9, 11];
+    non_slider(board, MASK_K, directions_king, &helper_board);
+    non_slider(board, MASK_N, directions_knight, &helper_board);
+    slider(board, MASK_R, directions_rook, &helper_board);
+    slider(board, MASK_B, directions_bishop, &helper_board);
 }
