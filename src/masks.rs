@@ -110,8 +110,8 @@ pub fn create(board: &mut Board) {
     let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
     let directions_rook: [i8; 4] = [-10, -1, 1, 10];
     let directions_bishop: [i8; 4] = [-11, -9, 9, 11];
-    non_slider(board, MASK_K, directions_king, &helper_board);
-    non_slider(board, MASK_N, directions_knight, &helper_board);
-    slider(board, MASK_R, directions_rook, &helper_board);
-    slider(board, MASK_B, directions_bishop, &helper_board);
+    non_slider(board, BB_MASK_K, directions_king, &helper_board);
+    non_slider(board, BB_MASK_N, directions_knight, &helper_board);
+    slider(board, BB_MASK_R, directions_rook, &helper_board);
+    slider(board, BB_MASK_B, directions_bishop, &helper_board);
 }

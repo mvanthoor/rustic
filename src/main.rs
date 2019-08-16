@@ -13,11 +13,9 @@ fn main() {
     println!();
     println!("{} {}, by {}", ENGINE, VERSION, AUTHOR);
 
-    fen::read(FEN_START_POSITION, &mut board);
+    board.create_start_position();
     print::position(&board);
-    masks::create(&mut board);
-
-    for i in 0..64 {
-        print::bitboard(board.bb_mask[MASK_B][i]);
-    }
+    print::bitboard(board.bb_special[BB_SPECIAL_W]);
+    print::bitboard(board.bb_special[BB_SPECIAL_B]);
+    print::bitboard(board.bb_special[BB_SPECIAL_ALL]);
 }

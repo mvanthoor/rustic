@@ -1,6 +1,16 @@
 use crate::board::Board;
 use crate::defs::*;
 
+pub const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
+pub const LETTERS: &str = "abcdefgh";
+pub const EN_PASSANT_RANKS: &str = "36";
+pub const WHITE_OR_BLACK: &str = "wb";
+pub const CASTLE_RIGHTS: &str = "KQkq";
+pub const SPLITTER: char = '/';
+pub const DASH: char = '-';
+pub const SPACE: char = ' ';
+pub const MAX_FULL_MOVES: u16 = 9999;
+
 fn part_0(part: &str, board: &mut Board) {
     const PART: u8 = 0;
     let mut rank = RANK_8;
