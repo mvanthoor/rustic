@@ -5,7 +5,8 @@ use crate::masks;
 pub struct Board {
     pub bb_w: [Bitboard; NR_OF_BB_NORMAL],
     pub bb_b: [Bitboard; NR_OF_BB_NORMAL],
-    pub bb_special: [Bitboard; NR_OF_BB_SPECIAL],
+    pub bb_pieces: [Bitboard; NR_OF_BB_PIECES],
+    pub bb_files: [Bitboard; NR_OF_BB_FILES],
     pub bb_mask: [Mask; NR_OF_BB_MASK],
     pub turn: Color,
     pub castling: u8,
@@ -19,7 +20,8 @@ impl Default for Board {
         Board {
             bb_w: [0; NR_OF_BB_NORMAL],
             bb_b: [0; NR_OF_BB_NORMAL],
-            bb_special: [0; NR_OF_BB_SPECIAL],
+            bb_pieces: [0; NR_OF_BB_PIECES],
+            bb_files: [0; NR_OF_BB_FILES],
             bb_mask: [[0; 64]; NR_OF_BB_MASK],
             turn: Color::WHITE,
             castling: 0,
@@ -31,19 +33,27 @@ impl Default for Board {
 }
 
 impl Board {
-    fn create_special_bitboards(&mut self) {
+    fn create_piece_bitboards(&mut self) {
         for i in 0..NR_OF_BB_NORMAL {
-            self.bb_special[BB_SPECIAL_W] ^= self.bb_w[i];
-            self.bb_special[BB_SPECIAL_B] ^= self.bb_b[i];
+            self.bb_pieces[BB_PIECES_W] ^= self.bb_w[i];
+            self.bb_pieces[BB_PIECES_B] ^= self.bb_b[i];
         }
-        self.bb_special[BB_SPECIAL_ALL] ^= self.bb_special[BB_SPECIAL_W];
-        self.bb_special[BB_SPECIAL_ALL] ^= self.bb_special[BB_SPECIAL_B];
+        self.bb_pieces[BB_PIECES_ALL] ^= self.bb_pieces[BB_PIECES_W] ^ self.bb_pieces[BB_PIECES_B];
+        self.bb_pieces[BB_PIECES_PAWNS] ^= self.bb_w[BB_P] ^ self.bb_b[BB_P];
+    }
+
+    fn create_file_bitboards(&mut self) {
+        let file: u64 = 72_340_172_838_076_673;
+        for i in 0..NR_OF_BB_FILES {
+            self.bb_files[i] = file << i;
+        }
     }
 
     pub fn reset(&mut self) {
         self.bb_w = [0; NR_OF_BB_NORMAL];
         self.bb_b = [0; NR_OF_BB_NORMAL];
-        self.bb_special = [0; NR_OF_BB_SPECIAL];
+        self.bb_pieces = [0; NR_OF_BB_PIECES];
+        self.bb_files = [0; NR_OF_BB_FILES];
         self.bb_mask = [[0; 64]; NR_OF_BB_MASK];
         self.turn = Color::WHITE;
         self.castling = 0;
@@ -55,7 +65,8 @@ impl Board {
     pub fn create_start_position(&mut self) {
         self.reset();
         fen::read(FEN_START_POSITION, self);
-        self.create_special_bitboards();
+        self.create_piece_bitboards();
+        self.create_file_bitboards();
         masks::create(self);
     }
 }
