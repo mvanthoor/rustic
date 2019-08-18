@@ -34,18 +34,19 @@ impl Default for Board {
 
 impl Board {
     fn create_piece_bitboards(&mut self) {
-        for i in 0..NR_OF_BB_NORMAL {
-            self.bb_pieces[BB_PIECES_W] ^= self.bb_w[i];
-            self.bb_pieces[BB_PIECES_B] ^= self.bb_b[i];
+        for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
+            self.bb_pieces[BB_PIECES_W] ^= bb_w;
+            self.bb_pieces[BB_PIECES_B] ^= bb_b;
         }
         self.bb_pieces[BB_PIECES_ALL] ^= self.bb_pieces[BB_PIECES_W] ^ self.bb_pieces[BB_PIECES_B];
         self.bb_pieces[BB_PIECES_PAWNS] ^= self.bb_w[BB_P] ^ self.bb_b[BB_P];
     }
 
     fn create_file_bitboards(&mut self) {
-        let file: u64 = 72_340_172_838_076_673;
-        for i in 0..NR_OF_BB_FILES {
-            self.bb_files[i] = file << i;
+        // Set LSB of each byte to 1 to create file 0.
+        let file: u64 = 0x0101_0101_0101_0101;
+        for (i, f) in self.bb_files.iter_mut().enumerate() {
+            *f = file << i;
         }
     }
 

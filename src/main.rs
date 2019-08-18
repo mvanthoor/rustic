@@ -15,11 +15,8 @@ fn main() {
 
     board.create_start_position();
     print::position(&board);
-    print::bitboard(board.bb_w[BB_P]);
-    print::bitboard(board.bb_b[BB_P]);
-    print::bitboard(board.bb_pieces[BB_PIECES_PAWNS]);
 
-    for i in 0..8 {
-        print::bitboard(board.bb_files[i]);
+    for i in 0..4 {
+        print::bitboard(board.bb_pieces[i]);
     }
 }

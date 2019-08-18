@@ -1,6 +1,7 @@
 use crate::board::Board;
 use crate::defs::*;
 
+pub const NR_OF_FEN_PARTS: usize = 6;
 pub const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 pub const LETTERS: &str = "abcdefgh";
 pub const EN_PASSANT_RANKS: &str = "36";
@@ -168,9 +169,16 @@ pub fn read(fen_string: &str, board: &mut Board) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
     let fen_parse: [FunctionPointerFenPartHandler; 6] =
         [part_0, part_1, part_2, part_3, part_4, part_5];
+    let length = fen_parts.len();
 
     board.reset();
-    for x in 0..fen_parse.len() {
-        fen_parse[x](&fen_parts[x], board);
+    if length == NR_OF_FEN_PARTS {
+        for (i, handle_part) in fen_parse.iter().enumerate() {
+            handle_part(&fen_parts[i], board);
+        }
     }
+    assert!(
+        length == NR_OF_FEN_PARTS,
+        "FEN: Has {} parts instead of {}", length, NR_OF_FEN_PARTS
+    );
 }

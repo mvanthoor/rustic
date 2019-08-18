@@ -1,4 +1,5 @@
 use crate::board::Board;
+use std::ops::RangeInclusive;
 
 pub const ENGINE: &str = "Stainless";
 pub const VERSION: &str = "0.1";
@@ -17,11 +18,13 @@ pub enum Color {
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 pub const ASCII_EMPTY_SQUARE: char = '.';
-pub const NR_OF_FILES: u8 = 8;
 pub const RANK_1: u8 = 0;
 pub const RANK_8: u8 = 7;
 pub const FILE_A: u8 = 0;
 pub const FILE_H: u8 = 7;
+pub const NR_OF_FILES: u8 = 8;
+pub const ALL_RANKS: RangeInclusive<u8> = RANK_1..=RANK_8;
+pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
 
 pub const NR_OF_BB_NORMAL: usize = 6;
 pub const NR_OF_BB_PIECES: usize = 4;

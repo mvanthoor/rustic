@@ -10,32 +10,31 @@ fn set_ascii_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char)
 }
 
 fn bitboards_to_ascii(board: &Board, ascii: &mut AsciiBoard) {
-    let nr_of_bitboards = board.bb_w.len();
-    for i in 0..nr_of_bitboards {
+    for (&bb_w, (i, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
         match i {
             BB_K => {
-                set_ascii_square(board.bb_w[BB_K], ascii, CHAR_WK);
-                set_ascii_square(board.bb_b[BB_K], ascii, CHAR_BK);
+                set_ascii_square(bb_w, ascii, CHAR_WK);
+                set_ascii_square(bb_b, ascii, CHAR_BK);
             }
             BB_Q => {
-                set_ascii_square(board.bb_w[BB_Q], ascii, CHAR_WQ);
-                set_ascii_square(board.bb_b[BB_Q], ascii, CHAR_BQ);
+                set_ascii_square(bb_w, ascii, CHAR_WQ);
+                set_ascii_square(bb_b, ascii, CHAR_BQ);
             }
             BB_R => {
-                set_ascii_square(board.bb_w[BB_R], ascii, CHAR_WR);
-                set_ascii_square(board.bb_b[BB_R], ascii, CHAR_BR);
+                set_ascii_square(bb_w, ascii, CHAR_WR);
+                set_ascii_square(bb_b, ascii, CHAR_BR);
             }
             BB_B => {
-                set_ascii_square(board.bb_w[BB_B], ascii, CHAR_WB);
-                set_ascii_square(board.bb_b[BB_B], ascii, CHAR_BB);
+                set_ascii_square(bb_w, ascii, CHAR_WB);
+                set_ascii_square(bb_b, ascii, CHAR_BB);
             }
             BB_N => {
-                set_ascii_square(board.bb_w[BB_N], ascii, CHAR_WN);
-                set_ascii_square(board.bb_b[BB_N], ascii, CHAR_BN);
+                set_ascii_square(bb_w, ascii, CHAR_WN);
+                set_ascii_square(bb_b, ascii, CHAR_BN);
             }
             BB_P => {
-                set_ascii_square(board.bb_w[BB_P], ascii, CHAR_WP);
-                set_ascii_square(board.bb_b[BB_P], ascii, CHAR_BP);
+                set_ascii_square(bb_w, ascii, CHAR_WP);
+                set_ascii_square(bb_b, ascii, CHAR_BP);
             }
             _ => (),
         }
@@ -47,9 +46,9 @@ fn to_console(ascii_board: &AsciiBoard) {
     let mut coordinate_digit = NR_OF_FILES;
 
     println!();
-    for current_rank in (RANK_1..=RANK_8).rev() {
+    for current_rank in ALL_RANKS.rev() {
         print!("{}   ", coordinate_digit);
-        for current_file in FILE_A..=FILE_H {
+        for current_file in ALL_FILES {
             let square = (current_rank * NR_OF_FILES + current_file) as usize;
             print!("{} ", ascii_board[square]);
         }
