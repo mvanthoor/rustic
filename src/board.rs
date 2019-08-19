@@ -7,7 +7,7 @@ pub struct Board {
     pub bb_b: [Bitboard; NR_OF_BB_NORMAL],
     pub bb_pieces: [Bitboard; NR_OF_BB_PIECES],
     pub bb_files: [Bitboard; NR_OF_BB_FILES],
-    pub bb_mask: [Mask; NR_OF_BB_MASK],
+    pub bb_mask: [Mask; NR_OF_BB_MASKS],
     pub turn: Color,
     pub castling: u8,
     pub en_passant: i8,
@@ -22,7 +22,7 @@ impl Default for Board {
             bb_b: [0; NR_OF_BB_NORMAL],
             bb_pieces: [0; NR_OF_BB_PIECES],
             bb_files: [0; NR_OF_BB_FILES],
-            bb_mask: [[0; 64]; NR_OF_BB_MASK],
+            bb_mask: [[0; 64]; NR_OF_BB_MASKS],
             turn: Color::WHITE,
             castling: 0,
             en_passant: -1,
@@ -55,7 +55,7 @@ impl Board {
         self.bb_b = [0; NR_OF_BB_NORMAL];
         self.bb_pieces = [0; NR_OF_BB_PIECES];
         self.bb_files = [0; NR_OF_BB_FILES];
-        self.bb_mask = [[0; 64]; NR_OF_BB_MASK];
+        self.bb_mask = [[0; 64]; NR_OF_BB_MASKS];
         self.turn = Color::WHITE;
         self.castling = 0;
         self.en_passant = -1;

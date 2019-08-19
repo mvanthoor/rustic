@@ -16,7 +16,8 @@ fn main() {
     board.create_start_position();
     print::position(&board);
 
-    for i in 0..4 {
-        print::bitboard(board.bb_pieces[i]);
+    for i in 0..64 {
+        println!("{}", i);
+        print::bitboard(board.bb_mask[BB_MASK_P_MOVE_W][i]);
     }
 }

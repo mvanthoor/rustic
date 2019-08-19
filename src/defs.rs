@@ -29,7 +29,7 @@ pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
 pub const NR_OF_BB_NORMAL: usize = 6;
 pub const NR_OF_BB_PIECES: usize = 4;
 pub const NR_OF_BB_FILES: usize = 8;
-pub const NR_OF_BB_MASK: usize = 4;
+pub const NR_OF_BB_MASKS: usize = 5;
 pub const BB_K: usize = 0;
 pub const BB_Q: usize = 1;
 pub const BB_R: usize = 2;
@@ -44,6 +44,7 @@ pub const BB_MASK_K: usize = 0;
 pub const BB_MASK_R: usize = 1;
 pub const BB_MASK_B: usize = 2;
 pub const BB_MASK_N: usize = 3;
+pub const BB_MASK_P_MOVE_W: usize = 4;
 
 pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;

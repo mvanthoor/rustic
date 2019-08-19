@@ -104,14 +104,35 @@ fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &HelperBoard) 
     }
 }
 
+fn pawn(board: &mut Board, mask: usize, direction: i8, h: &HelperBoard) {
+    let nr_of_masks = board.bb_mask[mask].len();
+    let d = direction;
+    for i in 8..nr_of_masks - 8 {
+        let current_mailbox_square = h.real[i] as i8;
+        let one_forward = h.mailbox[(current_mailbox_square + d) as usize];
+        board.bb_mask[mask][i] |= 1 << one_forward;
+        if current_mailbox_square >= 31 && current_mailbox_square <= 38 {
+            let two_forward = h.mailbox[(current_mailbox_square + 2 * d) as usize];
+            board.bb_mask[mask][i] |= 1 << two_forward;
+        }
+    }
+}
+
 pub fn create(board: &mut Board) {
     let helper_board: HelperBoard = Default::default();
     let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
     let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
     let directions_rook: [i8; 4] = [-10, -1, 1, 10];
     let directions_bishop: [i8; 4] = [-11, -9, 9, 11];
+    let directions_pawn_move_w: i8 = 10;
     non_slider(board, BB_MASK_K, directions_king, &helper_board);
     non_slider(board, BB_MASK_N, directions_knight, &helper_board);
     slider(board, BB_MASK_R, directions_rook, &helper_board);
     slider(board, BB_MASK_B, directions_bishop, &helper_board);
+    pawn(
+        board,
+        BB_MASK_P_MOVE_W,
+        directions_pawn_move_w,
+        &helper_board,
+    );
 }
