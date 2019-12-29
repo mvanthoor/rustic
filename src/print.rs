@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::defs::*;
+use crate::defines::*;
 
 fn set_ascii_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
     for (i, square) in ascii.iter_mut().enumerate() {
@@ -12,27 +12,27 @@ fn set_ascii_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char)
 fn bitboards_to_ascii(board: &Board, ascii: &mut AsciiBoard) {
     for (&bb_w, (i, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
         match i {
-            BB_K => {
+            KING => {
                 set_ascii_square(bb_w, ascii, CHAR_WK);
                 set_ascii_square(bb_b, ascii, CHAR_BK);
             }
-            BB_Q => {
+            QUEEN => {
                 set_ascii_square(bb_w, ascii, CHAR_WQ);
                 set_ascii_square(bb_b, ascii, CHAR_BQ);
             }
-            BB_R => {
+            ROOK => {
                 set_ascii_square(bb_w, ascii, CHAR_WR);
                 set_ascii_square(bb_b, ascii, CHAR_BR);
             }
-            BB_B => {
+            BISHOP => {
                 set_ascii_square(bb_w, ascii, CHAR_WB);
                 set_ascii_square(bb_b, ascii, CHAR_BB);
             }
-            BB_N => {
+            KNIGHT => {
                 set_ascii_square(bb_w, ascii, CHAR_WN);
                 set_ascii_square(bb_b, ascii, CHAR_BN);
             }
-            BB_P => {
+            PAWN => {
                 set_ascii_square(bb_w, ascii, CHAR_WP);
                 set_ascii_square(bb_b, ascii, CHAR_BP);
             }

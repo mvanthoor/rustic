@@ -1,19 +1,22 @@
 mod board;
-mod defs;
+mod defines;
 mod fen;
-mod masks;
+mod move_boards;
 mod print;
 
 use board::Board;
-use defs::*;
+use defines::*;
+use move_boards::MoveBoard;
 
 fn main() {
     let mut board: Board = Default::default();
+    let mut move_board: MoveBoard = Default::default();
 
     println!();
     println!("{} {}, by {}", ENGINE, VERSION, AUTHOR);
 
-    board.create_start_position();
+    board.initialize();
+    move_board.initialize();
     print::position(&board);
 
     // Test generation of all blockers, iterative
@@ -37,12 +40,14 @@ fn main() {
         }
     }
 
-    for i in 0..super_bit_list.len() {
-        let sb = super_bit_list[i];
-        print!("{}: ", i);
-        for j in 0..sb.len() {
-            print!("{}", sb[j]);
+    /*
+        for i in 0..super_bit_list.len() {
+            let sb = super_bit_list[i];
+            print!("{}: ", i);
+            for j in 0..sb.len() {
+                print!("{}", sb[j]);
+            }
+            println!();
         }
-        println!();
-    }
+    */
 }

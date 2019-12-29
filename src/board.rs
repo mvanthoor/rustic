@@ -1,14 +1,12 @@
-use crate::defs::*;
+use crate::defines::*;
 use crate::fen;
-use crate::masks;
 
 pub struct Board {
-    pub bb_w: [Bitboard; NR_OF_BB_NORMAL],
-    pub bb_b: [Bitboard; NR_OF_BB_NORMAL],
-    pub bb_pieces: [Bitboard; NR_OF_BB_PIECES],
-    pub bb_files: [Bitboard; NR_OF_BB_FILES],
-    pub bb_mask: [Mask; NR_OF_BB_MASKS],
-    pub turn: Color,
+    pub bb_w: [Bitboard; BITBOARDS_PER_SIDE],
+    pub bb_b: [Bitboard; BITBOARDS_PER_SIDE],
+    pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES],
+    pub bb_files: [Bitboard; BITBOARDS_PER_FILE],
+    pub active_color: usize,
     pub castling: u8,
     pub en_passant: i8,
     pub halfmove_clock: u8,
@@ -18,12 +16,11 @@ pub struct Board {
 impl Default for Board {
     fn default() -> Board {
         Board {
-            bb_w: [0; NR_OF_BB_NORMAL],
-            bb_b: [0; NR_OF_BB_NORMAL],
-            bb_pieces: [0; NR_OF_BB_PIECES],
-            bb_files: [0; NR_OF_BB_FILES],
-            bb_mask: [[0; 64]; NR_OF_BB_MASKS],
-            turn: Color::WHITE,
+            bb_w: [0; BITBOARDS_PER_SIDE],
+            bb_b: [0; BITBOARDS_PER_SIDE],
+            bb_pieces: [0; BITBOARDS_FOR_PIECES],
+            bb_files: [0; BITBOARDS_PER_FILE],
+            active_color: WHITE,
             castling: 0,
             en_passant: -1,
             halfmove_clock: 0,
@@ -33,41 +30,52 @@ impl Default for Board {
 }
 
 impl Board {
-    fn create_piece_bitboards(&mut self) {
+    pub fn create_piece_bitboards(&mut self) {
+        // Iterate through all white and black bitboards.
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
-            self.bb_pieces[BB_PIECES_W] ^= bb_w;
-            self.bb_pieces[BB_PIECES_B] ^= bb_b;
+            // Combine all white bitboards into one, having all white pieces,
+            // Also combine all black bitboards into one, having all black pieces
+            self.bb_pieces[WHITE] ^= bb_w;
+            self.bb_pieces[BLACK] ^= bb_b;
         }
-        self.bb_pieces[BB_PIECES_ALL] ^= self.bb_pieces[BB_PIECES_W] ^ self.bb_pieces[BB_PIECES_B];
-        self.bb_pieces[BB_PIECES_PAWNS] ^= self.bb_w[BB_P] ^ self.bb_b[BB_P];
+        // Combine bitboards with white pieces and black pieces into one for all pieces.
+        self.bb_pieces[BOTH] ^= self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK];
     }
 
-    fn create_file_bitboards(&mut self) {
-        // Set LSB of each byte to 1 to create file 0.
-        let file: u64 = 0x0101_0101_0101_0101;
-        for (i, f) in self.bb_files.iter_mut().enumerate() {
-            *f = file << i;
+    pub fn create_file_bitboards(&mut self) {
+        /*
+            Remember: Square A1 is on the lower left corner,
+            but it is the LSB (Least Significant bit) in a
+            64-bit integer, thus at the right hand side when
+            writing the integer as binary.
+            As a result, the bits set for  File A are shifted
+            from RIGHT to LEFT (using <<) inside the integer.
+        */
+
+        // Set the LSB for each of the 8 bytes in the 64-bit integer.
+        // This will mark the A-file.
+        let file_a: u64 = 0x0101_0101_0101_0101;
+
+        // Shift the bits, marking each file.
+        for (i, file) in self.bb_files.iter_mut().enumerate() {
+            *file = file_a << i;
         }
     }
 
     pub fn reset(&mut self) {
-        self.bb_w = [0; NR_OF_BB_NORMAL];
-        self.bb_b = [0; NR_OF_BB_NORMAL];
-        self.bb_pieces = [0; NR_OF_BB_PIECES];
-        self.bb_files = [0; NR_OF_BB_FILES];
-        self.bb_mask = [[0; 64]; NR_OF_BB_MASKS];
-        self.turn = Color::WHITE;
+        self.bb_w = [0; BITBOARDS_PER_SIDE];
+        self.bb_b = [0; BITBOARDS_PER_SIDE];
+        self.bb_pieces = [0; BITBOARDS_FOR_PIECES];
+        self.bb_files = [0; BITBOARDS_PER_FILE];
+        self.active_color = WHITE;
         self.castling = 0;
         self.en_passant = -1;
         self.halfmove_clock = 0;
         self.fullmove_number = 0;
+        self.create_file_bitboards();
     }
 
-    pub fn create_start_position(&mut self) {
-        self.reset();
+    pub fn initialize(&mut self) {
         fen::read(FEN_START_POSITION, self);
-        self.create_piece_bitboards();
-        self.create_file_bitboards();
-        masks::create(self);
     }
 }

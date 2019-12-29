@@ -1,5 +1,5 @@
 [package]
-name = "stainless"
+name = "deadend"
 version = "0.1.0"
 authors = ["Marcel Vanthoor"]
 edition = "2018"

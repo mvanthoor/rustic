@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::defs::*;
+use crate::defines::*;
 
 pub const NR_OF_FEN_PARTS: usize = 6;
 pub const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
@@ -20,18 +20,18 @@ fn part_0(part: &str, board: &mut Board) {
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_b[BB_K] += 1 << square,
-            'q' => board.bb_b[BB_Q] += 1 << square,
-            'r' => board.bb_b[BB_R] += 1 << square,
-            'b' => board.bb_b[BB_B] += 1 << square,
-            'n' => board.bb_b[BB_N] += 1 << square,
-            'p' => board.bb_b[BB_P] += 1 << square,
-            'K' => board.bb_w[BB_K] += 1 << square,
-            'Q' => board.bb_w[BB_Q] += 1 << square,
-            'R' => board.bb_w[BB_R] += 1 << square,
-            'B' => board.bb_w[BB_B] += 1 << square,
-            'N' => board.bb_w[BB_N] += 1 << square,
-            'P' => board.bb_w[BB_P] += 1 << square,
+            'k' => board.bb_b[KING] += 1 << square,
+            'q' => board.bb_b[QUEEN] += 1 << square,
+            'r' => board.bb_b[ROOK] += 1 << square,
+            'b' => board.bb_b[BISHOP] += 1 << square,
+            'n' => board.bb_b[KNIGHT] += 1 << square,
+            'p' => board.bb_b[PAWN] += 1 << square,
+            'K' => board.bb_w[KING] += 1 << square,
+            'Q' => board.bb_w[QUEEN] += 1 << square,
+            'R' => board.bb_w[ROOK] += 1 << square,
+            'B' => board.bb_w[BISHOP] += 1 << square,
+            'N' => board.bb_w[KNIGHT] += 1 << square,
+            'P' => board.bb_w[PAWN] += 1 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
@@ -58,8 +58,8 @@ fn part_1(part: &str, board: &mut Board) {
         if let Some(x) = part.chars().next() {
             step += if WHITE_OR_BLACK.contains(x) { 1 } else { 0 };
             match x {
-                'w' => board.turn = Color::WHITE,
-                'b' => board.turn = Color::BLACK,
+                'w' => board.active_color = WHITE,
+                'b' => board.active_color = BLACK,
                 _ => (),
             }
         }
@@ -167,18 +167,20 @@ fn part_5(part: &str, board: &mut Board) {
 
 pub fn read(fen_string: &str, board: &mut Board) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
-    let fen_parse: [FunctionPointerFenPartHandler; 6] =
-        [part_0, part_1, part_2, part_3, part_4, part_5];
+    let fen_parse: [FenPartHandlers; 6] = [part_0, part_1, part_2, part_3, part_4, part_5];
     let length = fen_parts.len();
 
-    board.reset();
     if length == NR_OF_FEN_PARTS {
+        board.reset();
         for (i, handle_part) in fen_parse.iter().enumerate() {
             handle_part(&fen_parts[i], board);
         }
+        board.create_piece_bitboards();
     }
     assert!(
         length == NR_OF_FEN_PARTS,
-        "FEN: Has {} parts instead of {}", length, NR_OF_FEN_PARTS
+        "FEN: Has {} parts instead of {}",
+        length,
+        NR_OF_FEN_PARTS
     );
 }
