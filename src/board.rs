@@ -2,11 +2,11 @@ use crate::defines::*;
 use crate::fen;
 
 pub struct Board {
-    pub bb_w: [Bitboard; BITBOARDS_PER_SIDE],
-    pub bb_b: [Bitboard; BITBOARDS_PER_SIDE],
-    pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES],
-    pub bb_files: [Bitboard; BITBOARDS_PER_FILE],
-    pub active_color: usize,
+    pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
+    pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
+    pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
+    pub bb_files: [Bitboard; BITBOARDS_PER_FILE as usize],
+    pub active_color: u8,
     pub castling: u8,
     pub en_passant: i8,
     pub halfmove_clock: u8,
@@ -16,10 +16,10 @@ pub struct Board {
 impl Default for Board {
     fn default() -> Board {
         Board {
-            bb_w: [0; BITBOARDS_PER_SIDE],
-            bb_b: [0; BITBOARDS_PER_SIDE],
-            bb_pieces: [0; BITBOARDS_FOR_PIECES],
-            bb_files: [0; BITBOARDS_PER_FILE],
+            bb_w: [0; BITBOARDS_PER_SIDE as usize],
+            bb_b: [0; BITBOARDS_PER_SIDE as usize],
+            bb_pieces: [0; BITBOARDS_FOR_PIECES as usize],
+            bb_files: [0; BITBOARDS_PER_FILE as usize],
             active_color: WHITE,
             castling: 0,
             en_passant: -1,
@@ -31,15 +31,18 @@ impl Default for Board {
 
 impl Board {
     pub fn create_piece_bitboards(&mut self) {
+        let white = WHITE as usize;
+        let black = BLACK as usize;
+        let both = BOTH as usize;
         // Iterate through all white and black bitboards.
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
             // Combine all white bitboards into one, having all white pieces,
             // Also combine all black bitboards into one, having all black pieces
-            self.bb_pieces[WHITE] ^= bb_w;
-            self.bb_pieces[BLACK] ^= bb_b;
+            self.bb_pieces[white] ^= bb_w;
+            self.bb_pieces[black] ^= bb_b;
         }
         // Combine bitboards with white pieces and black pieces into one for all pieces.
-        self.bb_pieces[BOTH] ^= self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK];
+        self.bb_pieces[both] ^= self.bb_pieces[white] ^ self.bb_pieces[black];
     }
 
     pub fn create_file_bitboards(&mut self) {
@@ -63,10 +66,10 @@ impl Board {
     }
 
     pub fn reset(&mut self) {
-        self.bb_w = [0; BITBOARDS_PER_SIDE];
-        self.bb_b = [0; BITBOARDS_PER_SIDE];
-        self.bb_pieces = [0; BITBOARDS_FOR_PIECES];
-        self.bb_files = [0; BITBOARDS_PER_FILE];
+        self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
+        self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
+        self.bb_pieces = [0; BITBOARDS_FOR_PIECES as usize];
+        self.bb_files = [0; BITBOARDS_PER_FILE as usize];
         self.active_color = WHITE;
         self.castling = 0;
         self.en_passant = -1;

@@ -51,7 +51,7 @@ impl Default for HelperBoard {
     fn default() -> HelperBoard {
         let mut helper_board: HelperBoard = HelperBoard {
             mailbox: [0; MAILBOX_SIZE],
-            real: [0; 64],
+            real: [0; NR_OF_SQUARES as usize],
         };
         let mut real_board_square: usize = 0;
 
@@ -79,16 +79,17 @@ pub struct MoveBoard {
 impl Default for MoveBoard {
     fn default() -> MoveBoard {
         MoveBoard {
-            king: [0; NR_OF_SQUARES],
-            knight: [0; NR_OF_SQUARES],
+            king: [0; NR_OF_SQUARES as usize],
+            knight: [0; NR_OF_SQUARES as usize],
         }
     }
 }
 
 impl MoveBoard {
     fn non_slider(&mut self, piece: usize, directions: [i8; 8], helper: &HelperBoard) {
-        for square in 0..NR_OF_SQUARES {
+        for sq in 0..NR_OF_SQUARES {
             for d in directions.iter() {
+                let square = sq as usize;
                 let mailbox_square = helper.real[square] as i8;
                 let try_square = (mailbox_square + d) as usize;
                 if helper.mailbox[try_square] != INVALID_SQUARE {
