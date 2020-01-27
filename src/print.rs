@@ -69,7 +69,6 @@ pub fn position(board: &Board) {
     to_console(&ascii_board);
 }
 
-#[allow(dead_code)]
 pub fn bitboard(bitboard: Bitboard) {
     const SQUARE_OCCUPIED: char = '1';
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];

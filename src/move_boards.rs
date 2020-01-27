@@ -88,7 +88,7 @@ impl Default for MoveBoard {
 }
 
 impl MoveBoard {
-    fn non_slider(&mut self, piece: Piece, directions: [i8; 8], helper: &HelperBoard) {
+    fn non_slider(&mut self, piece: Piece, directions: NonSliderDirections, helper: &HelperBoard) {
         for sq in 0..NR_OF_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
@@ -106,7 +106,7 @@ impl MoveBoard {
         }
     }
 
-    fn slider(&mut self, piece: Piece, directions: [i8; 4], helper: &HelperBoard) {
+    fn slider(&mut self, piece: Piece, directions: SliderDirections, helper: &HelperBoard) {
         for sq in 0..NR_OF_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
@@ -119,7 +119,8 @@ impl MoveBoard {
                         let add_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
                             ROOK => self.tmp_rook[square] |= 1 << add_square,
-                            _ => ()
+                            BISHOP => (),
+                            _ => (),
                         }
                     }
                 }
