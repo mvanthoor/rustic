@@ -114,20 +114,6 @@ impl MoveBoard {
     }
 }
 
-// fn non_slider(board: &mut Board, mask: usize, directions: [i8; 8], h: &HelperBoard) {
-//     let nr_of_masks = board.bb_mask[mask].len();
-//     for i in 0..nr_of_masks {
-//         for &d in directions.iter() {
-//             let mailbox_square = h.real[i] as i8;
-//             let try_square = (mailbox_square + d) as usize;
-//             if h.mailbox[try_square] != INVALID_SQUARE {
-//                 let legal_square = h.mailbox[try_square];
-//                 board.bb_mask[mask][i] |= 1 << legal_square;
-//             }
-//         }
-//     }
-// }
-
 /*
     fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &HelperBoard) {
         let nr_of_masks = board.bb_mask[mask].len();
