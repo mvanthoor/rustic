@@ -18,6 +18,7 @@ fn main() {
     board.initialize();
     move_board.initialize();
     print::position(&board);
+    print::bitboard(move_board.tmp_rook[0]);
 
     // Test generation of all blockers, iterative
     pub type SuperBit = [u8; 8];

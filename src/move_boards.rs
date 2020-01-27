@@ -74,6 +74,7 @@ impl Default for HelperBoard {
 pub struct MoveBoard {
     pub king: NonSliderAttacks,
     pub knight: NonSliderAttacks,
+    pub tmp_rook: SliderMoves,
 }
 
 impl Default for MoveBoard {
@@ -81,12 +82,13 @@ impl Default for MoveBoard {
         MoveBoard {
             king: [0; NR_OF_SQUARES as usize],
             knight: [0; NR_OF_SQUARES as usize],
+            tmp_rook: [0; NR_OF_SQUARES as usize],
         }
     }
 }
 
 impl MoveBoard {
-    fn non_slider(&mut self, piece: usize, directions: [i8; 8], helper: &HelperBoard) {
+    fn non_slider(&mut self, piece: Piece, directions: [i8; 8], helper: &HelperBoard) {
         for sq in 0..NR_OF_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
@@ -104,35 +106,40 @@ impl MoveBoard {
         }
     }
 
-    pub fn initialize(&mut self) {
-        let helper_board: HelperBoard = Default::default();
-        let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
-        let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
-
-        self.non_slider(KING, directions_king, &helper_board);
-        self.non_slider(KNIGHT, directions_knight, &helper_board);
-    }
-}
-
-/*
-    fn slider(board: &mut Board, mask: usize, directions: [i8; 4], h: &HelperBoard) {
-        let nr_of_masks = board.bb_mask[mask].len();
-        for i in 0..nr_of_masks {
-            for &d in directions.iter() {
-                let mut current_mailbox_square = h.real[i] as i8;
+    fn slider(&mut self, piece: Piece, directions: [i8; 4], helper: &HelperBoard) {
+        for sq in 0..NR_OF_SQUARES {
+            for d in directions.iter() {
+                let square = sq as usize;
+                let mut current_mailbox_square = helper.real[square] as i8;
                 let mut next_mailbox_square = current_mailbox_square + d;
-                while h.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
+                while helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
                     current_mailbox_square += d;
                     next_mailbox_square += d;
-                    if h.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
-                        let add_square = h.mailbox[current_mailbox_square as usize];
-                        board.bb_mask[mask][i] |= 1 << add_square;
+                    if helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
+                        let add_square = helper.mailbox[current_mailbox_square as usize];
+                        match piece {
+                            ROOK => self.tmp_rook[square] |= 1 << add_square,
+                            _ => ()
+                        }
                     }
                 }
             }
         }
     }
 
+    pub fn initialize(&mut self) {
+        let helper_board: HelperBoard = Default::default();
+        let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
+        let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
+        let directions_rook: [i8; 4] = [-10, -1, 1, 10];
+
+        self.non_slider(KING, directions_king, &helper_board);
+        self.non_slider(KNIGHT, directions_knight, &helper_board);
+        self.slider(ROOK, directions_rook, &helper_board);
+    }
+}
+
+/*
     fn pawn(board: &mut Board, mask: usize, direction: i8, h: &HelperBoard) {
         let nr_of_masks = board.bb_mask[mask].len();
         let d = direction;

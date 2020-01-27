@@ -10,6 +10,7 @@ pub type Piece = usize;
 pub type Color = u8;
 pub type AsciiBoard = [char; NR_OF_SQUARES as usize];
 pub type NonSliderAttacks = [Bitboard; NR_OF_SQUARES as usize];
+pub type SliderMoves = [Bitboard; NR_OF_SQUARES as usize];
 pub type FenPartHandlers = fn(part: &str, board: &mut Board);
 
 pub const WHITE: Color = 0;
