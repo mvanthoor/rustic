@@ -1,40 +1,40 @@
 use crate::board::Board;
 use crate::defines::*;
 
-fn set_ascii_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
+fn put_character_on_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
     for (i, square) in ascii.iter_mut().enumerate() {
-        if bitboard >> i & 1 == 1 {
+        if (bitboard >> i) & 1 == 1 {
             *square = character;
         }
     }
 }
 
 fn bitboards_to_ascii(board: &Board, ascii: &mut AsciiBoard) {
-    for (&bb_w, (i, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
-        match i {
+    for (&bb_w, (board, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
+        match board {
             KING => {
-                set_ascii_square(bb_w, ascii, CHAR_WK);
-                set_ascii_square(bb_b, ascii, CHAR_BK);
+                put_character_on_square(bb_w, ascii, CHAR_WK);
+                put_character_on_square(bb_b, ascii, CHAR_BK);
             }
             QUEEN => {
-                set_ascii_square(bb_w, ascii, CHAR_WQ);
-                set_ascii_square(bb_b, ascii, CHAR_BQ);
+                put_character_on_square(bb_w, ascii, CHAR_WQ);
+                put_character_on_square(bb_b, ascii, CHAR_BQ);
             }
             ROOK => {
-                set_ascii_square(bb_w, ascii, CHAR_WR);
-                set_ascii_square(bb_b, ascii, CHAR_BR);
+                put_character_on_square(bb_w, ascii, CHAR_WR);
+                put_character_on_square(bb_b, ascii, CHAR_BR);
             }
             BISHOP => {
-                set_ascii_square(bb_w, ascii, CHAR_WB);
-                set_ascii_square(bb_b, ascii, CHAR_BB);
+                put_character_on_square(bb_w, ascii, CHAR_WB);
+                put_character_on_square(bb_b, ascii, CHAR_BB);
             }
             KNIGHT => {
-                set_ascii_square(bb_w, ascii, CHAR_WN);
-                set_ascii_square(bb_b, ascii, CHAR_BN);
+                put_character_on_square(bb_w, ascii, CHAR_WN);
+                put_character_on_square(bb_b, ascii, CHAR_BN);
             }
             PAWN => {
-                set_ascii_square(bb_w, ascii, CHAR_WP);
-                set_ascii_square(bb_b, ascii, CHAR_BP);
+                put_character_on_square(bb_w, ascii, CHAR_WP);
+                put_character_on_square(bb_b, ascii, CHAR_BP);
             }
             _ => (),
         }
@@ -82,6 +82,6 @@ pub fn position(board: &Board, mark_square: Option<u8>) {
 pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     const SQUARE_OCCUPIED: char = '1';
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
-    set_ascii_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
+    put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
     to_console(&ascii_board, mark_square);
 }
