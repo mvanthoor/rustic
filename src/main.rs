@@ -17,8 +17,12 @@ fn main() {
 
     board.initialize();
     move_board.initialize();
-    print::position(&board);
-    print::bitboard(move_board.tmp_rook[0]);
+    print::position(&board, None);
+    for i in 0..64 {
+        let mark = Some(i as u8);
+        println!("{}", i);
+        print::bitboard(move_board.tmp_queen[i as usize], mark);
+    }
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];

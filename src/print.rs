@@ -41,7 +41,7 @@ fn bitboards_to_ascii(board: &Board, ascii: &mut AsciiBoard) {
     }
 }
 
-fn to_console(ascii_board: &AsciiBoard) {
+fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
     let mut coordinate_digit = NR_OF_FILES;
 
@@ -50,7 +50,17 @@ fn to_console(ascii_board: &AsciiBoard) {
         print!("{}   ", coordinate_digit);
         for current_file in ALL_FILES {
             let square = (current_rank * NR_OF_FILES + current_file) as usize;
-            print!("{} ", ascii_board[square]);
+            let character = ascii_board[square];
+            if let Some(m) = mark_square {
+                if m == (square as u8) {
+                    // \x1b[0;35m is magenta
+                    print!("\x1b[0;35m{} \x1b[0m", character);
+                } else {
+                    print!("{} ", character);
+                }
+            } else {
+                print!("{} ", character);
+            }
         }
         println!();
         coordinate_digit -= 1;
@@ -63,15 +73,15 @@ fn to_console(ascii_board: &AsciiBoard) {
     println!();
 }
 
-pub fn position(board: &Board) {
+pub fn position(board: &Board, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
     bitboards_to_ascii(board, &mut ascii_board);
-    to_console(&ascii_board);
+    to_console(&ascii_board, mark_square);
 }
 
-pub fn bitboard(bitboard: Bitboard) {
+pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     const SQUARE_OCCUPIED: char = '1';
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
     set_ascii_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
-    to_console(&ascii_board);
+    to_console(&ascii_board, mark_square);
 }

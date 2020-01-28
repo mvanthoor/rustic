@@ -75,6 +75,8 @@ pub struct MoveBoard {
     pub king: NonSliderAttacks,
     pub knight: NonSliderAttacks,
     pub tmp_rook: SliderMoves,
+    pub tmp_bishop: SliderMoves,
+    pub tmp_queen: SliderMoves,
 }
 
 impl Default for MoveBoard {
@@ -83,6 +85,8 @@ impl Default for MoveBoard {
             king: [0; NR_OF_SQUARES as usize],
             knight: [0; NR_OF_SQUARES as usize],
             tmp_rook: [0; NR_OF_SQUARES as usize],
+            tmp_bishop: [0; NR_OF_SQUARES as usize],
+            tmp_queen: [0; NR_OF_SQUARES as usize],
         }
     }
 }
@@ -95,10 +99,10 @@ impl MoveBoard {
                 let mailbox_square = helper.real[square] as i8;
                 let try_square = (mailbox_square + d) as usize;
                 if helper.mailbox[try_square] != INVALID_SQUARE {
-                    let legal_square = helper.mailbox[try_square];
+                    let valid_square = helper.mailbox[try_square];
                     match piece {
-                        KING => self.king[square] |= 1 << legal_square,
-                        KNIGHT => self.knight[square] |= 1 << legal_square,
+                        KING => self.king[square] |= 1 << valid_square,
+                        KNIGHT => self.knight[square] |= 1 << valid_square,
                         _ => (),
                     }
                 }
@@ -116,10 +120,10 @@ impl MoveBoard {
                     current_mailbox_square += d;
                     next_mailbox_square += d;
                     if helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
-                        let add_square = helper.mailbox[current_mailbox_square as usize];
+                        let valid_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
-                            ROOK => self.tmp_rook[square] |= 1 << add_square,
-                            BISHOP => (),
+                            ROOK => self.tmp_rook[square] |= 1 << valid_square,
+                            BISHOP => self.tmp_bishop[square] |= 1 << valid_square,
                             _ => (),
                         }
                     }
@@ -128,15 +132,25 @@ impl MoveBoard {
         }
     }
 
+    fn slider_queen(&mut self) {
+        for sq in 0..NR_OF_SQUARES {
+            let square = sq as usize;
+            self.tmp_queen[square] = self.tmp_bishop[square] ^ self.tmp_rook[square];
+        }
+    }
+
     pub fn initialize(&mut self) {
         let helper_board: HelperBoard = Default::default();
-        let directions_king: [i8; 8] = [-11, -10, -9, -1, 1, 9, 10, 11];
-        let directions_knight: [i8; 8] = [-21, -19, -12, -8, 8, 12, 19, 21];
-        let directions_rook: [i8; 4] = [-10, -1, 1, 10];
+        let directions_king: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
+        let directions_knight: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
+        let directions_rook: SliderDirections = [-10, -1, 1, 10];
+        let directions_bishop: SliderDirections = [-11, -9, 9, 11];
 
         self.non_slider(KING, directions_king, &helper_board);
         self.non_slider(KNIGHT, directions_knight, &helper_board);
         self.slider(ROOK, directions_rook, &helper_board);
+        self.slider(BISHOP, directions_bishop, &helper_board);
+        self.slider_queen();
     }
 }
 
@@ -155,21 +169,3 @@ impl MoveBoard {
         }
     }
 */
-
-// pub fn create(board: &mut Board) {
-
-// let directions_rook: [i8; 4] = [-10, -1, 1, 10];
-// let directions_bishop: [i8; 4] = [-11, -9, 9, 11];
-// let directions_pawn_move_w: i8 = 10;
-
-// slider(board, BB_MASK_R, directions_rook, &helper_board);
-// slider(board, BB_MASK_B, directions_bishop, &helper_board);
-/*
-    pawn(
-        board,
-        BB_MASK_P_MOVE_W,
-        directions_pawn_move_w,
-        &helper_board,
-    );
-*/
-// }
