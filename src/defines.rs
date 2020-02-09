@@ -32,6 +32,7 @@ pub static SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 ];
 
+#[allow(dead_code)]
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 pub const ASCII_EMPTY_SQUARE: char = '.';
@@ -72,3 +73,5 @@ pub const CHAR_BR: char = 'r';
 pub const CHAR_BB: char = 'b';
 pub const CHAR_BN: char = 'n';
 pub const CHAR_BP: char = 'i';
+
+pub const MAX_MOVES: u8 = 255;

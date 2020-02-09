@@ -1,13 +1,18 @@
 use crate::board::Board;
 use crate::defines::*;
 
+pub struct Move {
+    data: usize,
+    score: u32,
+}
+
 fn next(bitboard: &mut Bitboard) -> u8 {
     let location = bitboard.trailing_zeros();
     *bitboard ^= 1 << location;
     (location as u8)
 }
 
-fn king(board: &Board, side: Side) {
+fn king(board: &Board, side: Side, moves: &mut Vec<Move>) {
     println!("King");
     let mut bitboard = board.piece(KING, side);
     println!("Before: {:b}", bitboard);
@@ -38,9 +43,11 @@ fn pawns(board: &Board, side: Side) {
     }
 }
 
-pub fn generate(board: &Board, side: Side) {
+pub fn generate(board: &Board, side: Side) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::with_capacity(MAX_MOVES as usize);
     println!("Generating moves...");
-    king(board, side);
-    knight(board, side);
-    pawns(board, side);
+    king(board, side, &mut moves);
+    // knight(board, side);
+    // pawns(board, side);
+    moves
 }

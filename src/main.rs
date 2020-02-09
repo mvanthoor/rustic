@@ -13,7 +13,7 @@ fn main() {
     let mut board: Board = Default::default();
     let mut move_board: MoveBoard = Default::default();
 
-    let test_pos: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let test_pos: &str = "1rk5/3R4/8/8/8/4r3/4PKb1/5RN1 w - - 0 1";
     board.initialize(test_pos);
     move_board.initialize();
 
