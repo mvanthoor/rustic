@@ -7,7 +7,7 @@ pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
 pub type Piece = usize;
-pub type Color = u8;
+pub type Side = u8;
 pub type AsciiBoard = [char; NR_OF_SQUARES as usize];
 pub type NonSliderDirections = [i8; 8];
 pub type SliderDirections = [i8; 4];
@@ -15,9 +15,22 @@ pub type NonSliderAttacks = [Bitboard; NR_OF_SQUARES as usize];
 pub type SliderMoves = [Bitboard; NR_OF_SQUARES as usize];
 pub type FenPartHandlers = fn(part: &str, board: &mut Board);
 
-pub const WHITE: Color = 0;
-pub const BLACK: Color = 1;
-pub const BOTH: Color = 2;
+pub const WHITE: Side = 0;
+pub const BLACK: Side = 1;
+pub const BOTH: Side = 2;
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub static SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
+    "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+    "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+    "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+    "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+    "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+    "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+    "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+    "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
+];
 
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
