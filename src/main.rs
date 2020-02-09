@@ -13,13 +13,13 @@ fn main() {
     let mut board: Board = Default::default();
     let mut magics: Magics = Default::default();
 
-    let test_pos: &str = "1rk5/3R4/8/8/8/4r3/4PKb1/5RN1 w - - 0 1";
+    let test_pos: &str = "3r4/2bk4/3PN3/7p/1pP2n2/3p3P/Nn6/KR1B4 w - - 0 1";
     board.initialize(test_pos);
     magics.initialize();
 
     print::engine_info();
     print::position(&board, None);
-    movegen::generate(&board, WHITE, &magics);
+    movegen::generate(&board, BLACK, &magics);
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];

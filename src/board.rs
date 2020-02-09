@@ -20,7 +20,7 @@ impl Default for Board {
             bb_b: [0; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [0; BITBOARDS_FOR_PIECES as usize],
             bb_files: [0; BITBOARDS_PER_FILE as usize],
-            active_color: WHITE,
+            active_color: WHITE as u8,
             castling: 0,
             en_passant: -1,
             halfmove_clock: 0,
@@ -70,7 +70,7 @@ impl Board {
         self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [0; BITBOARDS_FOR_PIECES as usize];
         self.bb_files = [0; BITBOARDS_PER_FILE as usize];
-        self.active_color = WHITE;
+        self.active_color = WHITE as u8;
         self.castling = 0;
         self.en_passant = -1;
         self.halfmove_clock = 0;

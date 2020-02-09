@@ -7,7 +7,7 @@ pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
 pub type Piece = usize;
-pub type Side = u8;
+pub type Side = usize;
 pub type AsciiBoard = [char; NR_OF_SQUARES as usize];
 pub type NonSliderDirections = [i8; 8];
 pub type SliderDirections = [i8; 4];
@@ -21,7 +21,7 @@ pub const BOTH: Side = 2;
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub static SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
+pub const SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
     "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
@@ -74,4 +74,8 @@ pub const CHAR_BB: char = 'b';
 pub const CHAR_BN: char = 'n';
 pub const CHAR_BP: char = 'i';
 
-pub const MAX_MOVES: u8 = 255;
+pub const MOVE_MAX: u8 = 255;
+pub enum MoveType {
+    Quiet,
+    Capture,
+}

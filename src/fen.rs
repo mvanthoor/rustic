@@ -58,8 +58,8 @@ fn part_1(part: &str, board: &mut Board) {
         if let Some(x) = part.chars().next() {
             step += if WHITE_OR_BLACK.contains(x) { 1 } else { 0 };
             match x {
-                'w' => board.active_color = WHITE,
-                'b' => board.active_color = BLACK,
+                'w' => board.active_color = WHITE as u8,
+                'b' => board.active_color = BLACK as u8,
                 _ => (),
             }
         }
