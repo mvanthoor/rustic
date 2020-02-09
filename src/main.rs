@@ -19,7 +19,7 @@ fn main() {
 
     print::engine_info();
     print::position(&board, None);
-    movegen::generate(&board, WHITE);
+    movegen::generate(&board, WHITE, &magics);
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];

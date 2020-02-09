@@ -1,5 +1,6 @@
 use crate::board::Board;
 use crate::defines::*;
+use crate::magics::Magics;
 
 pub struct Move {
     data: usize,
@@ -43,7 +44,7 @@ fn pawns(board: &Board, side: Side) {
     }
 }
 
-pub fn generate(board: &Board, side: Side) -> Vec<Move> {
+pub fn generate(board: &Board, side: Side, magics: &Magics) -> Vec<Move> {
     let mut moves: Vec<Move> = Vec::with_capacity(MAX_MOVES as usize);
     println!("Generating moves...");
     king(board, side, &mut moves);
