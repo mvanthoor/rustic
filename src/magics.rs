@@ -71,7 +71,7 @@ impl Default for HelperBoard {
     }
 }
 
-pub struct MoveBoard {
+pub struct Magics {
     pub king: NonSliderAttacks,
     pub knight: NonSliderAttacks,
     pub tmp_rook: SliderMoves,
@@ -79,9 +79,9 @@ pub struct MoveBoard {
     pub tmp_queen: SliderMoves,
 }
 
-impl Default for MoveBoard {
-    fn default() -> MoveBoard {
-        MoveBoard {
+impl Default for Magics {
+    fn default() -> Magics {
+        Magics {
             king: [0; NR_OF_SQUARES as usize],
             knight: [0; NR_OF_SQUARES as usize],
             tmp_rook: [0; NR_OF_SQUARES as usize],
@@ -91,7 +91,7 @@ impl Default for MoveBoard {
     }
 }
 
-impl MoveBoard {
+impl Magics {
     fn non_slider(&mut self, piece: Piece, directions: NonSliderDirections, helper: &HelperBoard) {
         for sq in 0..NR_OF_SQUARES {
             for d in directions.iter() {
