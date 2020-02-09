@@ -79,9 +79,15 @@ pub fn position(board: &Board, mark_square: Option<u8>) {
     to_console(&ascii_board, mark_square);
 }
 
+#[allow(dead_code)]
 pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     const SQUARE_OCCUPIED: char = '1';
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
     put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
     to_console(&ascii_board, mark_square);
+}
+
+pub fn engine_info() {
+    println!("Engine: {} {}", ENGINE, VERSION);
+    println!("Author: {}", AUTHOR);
 }

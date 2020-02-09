@@ -1,28 +1,23 @@
 mod board;
 mod defines;
 mod fen;
-mod move_boards;
+mod magics;
+mod movegen;
 mod print;
 
 use board::Board;
-use defines::*;
-use move_boards::MoveBoard;
+use magics::MoveBoard;
 
 fn main() {
     let mut board: Board = Default::default();
     let mut move_board: MoveBoard = Default::default();
 
-    println!();
-    println!("{} {}, by {}", ENGINE, VERSION, AUTHOR);
-
     board.initialize();
     move_board.initialize();
+
+    print::engine_info();
     print::position(&board, None);
-    for i in 0..64 {
-        let mark = Some(i as u8);
-        println!("{}", i);
-        print::bitboard(move_board.tmp_queen[i as usize], mark);
-    }
+    movegen::generate();
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];
