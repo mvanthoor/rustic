@@ -6,18 +6,20 @@ mod movegen;
 mod print;
 
 use board::Board;
+use defines::*;
 use magics::MoveBoard;
 
 fn main() {
     let mut board: Board = Default::default();
     let mut move_board: MoveBoard = Default::default();
 
-    board.initialize();
+    let test_pos: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    board.initialize(test_pos);
     move_board.initialize();
 
     print::engine_info();
     print::position(&board, None);
-    movegen::generate();
+    movegen::generate(&board, WHITE);
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];

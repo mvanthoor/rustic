@@ -78,7 +78,17 @@ impl Board {
         self.create_file_bitboards();
     }
 
-    pub fn initialize(&mut self) {
-        fen::read(FEN_START_POSITION, self);
+    pub fn initialize(&mut self, fen: &str) {
+        fen::read(fen, self);
+    }
+
+    pub fn piece(&self, piece: Piece, side: Side) -> Bitboard {
+        debug_assert!(piece <= 5, "Not a piece! : {}", piece);
+        debug_assert!(side == 0 || side == 1, "Not a side! : {}", side);
+        match side {
+            WHITE => self.bb_w[piece],
+            BLACK => self.bb_b[piece],
+            _ => 0,
+        }
     }
 }
