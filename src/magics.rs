@@ -93,7 +93,7 @@ impl Default for Magics {
 
 impl Magics {
     fn non_slider(&mut self, piece: Piece, directions: NonSliderDirections, helper: &HelperBoard) {
-        for sq in 0..NR_OF_SQUARES {
+        for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
                 let mailbox_square = helper.real[square] as i8;
@@ -111,7 +111,7 @@ impl Magics {
     }
 
     fn slider(&mut self, piece: Piece, directions: SliderDirections, helper: &HelperBoard) {
-        for sq in 0..NR_OF_SQUARES {
+        for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
                 let mut current_mailbox_square = helper.real[square] as i8;
@@ -133,7 +133,7 @@ impl Magics {
     }
 
     fn slider_queen(&mut self) {
-        for sq in 0..NR_OF_SQUARES {
+        for sq in ALL_SQUARES {
             let square = sq as usize;
             self.tmp_queen[square] = self.tmp_bishop[square] ^ self.tmp_rook[square];
         }

@@ -44,6 +44,7 @@ pub const NR_OF_SQUARES: u8 = 64;
 pub const NR_OF_FILES: u8 = 8;
 pub const ALL_RANKS: RangeInclusive<u8> = RANK_1..=RANK_8;
 pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
+pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
 pub const BITBOARDS_FOR_PIECES: u8 = 3;
