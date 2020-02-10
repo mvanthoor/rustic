@@ -6,6 +6,7 @@ pub struct Move {
     data: u64,
     score: u32,
 }
+pub type MoveList = Vec<Move>;
 
 fn next(bitboard: &mut Bitboard) -> usize {
     let location = bitboard.trailing_zeros();
@@ -13,7 +14,7 @@ fn next(bitboard: &mut Bitboard) -> usize {
     location as usize
 }
 
-fn add_move(from: u64, to: Bitboard, mtype: MoveType, moves: &mut Vec<Move>) {
+fn add_move(from: u64, to: Bitboard, mtype: MoveType, moves: &mut MoveList) {
     let mut bitboard_to = to;
     match mtype {
         MoveType::Quiet => println!("Quiet"),
@@ -57,8 +58,8 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, moves: &
 //     }
 // }
 
-pub fn generate(board: &Board, side: Side, magics: &Magics) -> Vec<Move> {
-    let mut moves: Vec<Move> = Vec::with_capacity(MOVE_MAX as usize);
+pub fn generate(board: &Board, side: Side, magics: &Magics) -> MoveList {
+    let mut moves: MoveList = Vec::with_capacity(MOVE_MAX as usize);
     println!("Generating moves...");
     println!("King");
     non_slider(KING, board, side, magics, &mut moves);
