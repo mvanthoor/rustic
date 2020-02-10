@@ -31,14 +31,12 @@ impl Default for Board {
 
 impl Board {
     pub fn create_piece_bitboards(&mut self) {
-        let white = WHITE as usize;
-        let black = BLACK as usize;
         // Iterate through all white and black bitboards.
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
             // Combine all white bitboards into one, having all white pieces,
             // Also combine all black bitboards into one, having all black pieces
-            self.bb_pieces[white] ^= bb_w;
-            self.bb_pieces[black] ^= bb_b;
+            self.bb_pieces[WHITE] ^= bb_w;
+            self.bb_pieces[BLACK] ^= bb_b;
         }
     }
 
