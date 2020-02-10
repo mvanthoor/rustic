@@ -39,10 +39,10 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, moves: &
             KNIGHT => magics.knight[from],
             _ => 0,
         };
-        let quiet_to = mask & !board.bb_pieces[BOTH];
+        let quiet_to = mask & !board.occupancy();
         let capture_to = mask & board.bb_pieces[opponent];
         add_move(from as u64, quiet_to, MoveType::Quiet, moves);
-        add_move(from as u64, capture_to, MoveType::Capture, moves)
+        add_move(from as u64, capture_to, MoveType::Capture, moves);
     }
 }
 

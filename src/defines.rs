@@ -17,7 +17,6 @@ pub type FenPartHandlers = fn(part: &str, board: &mut Board);
 
 pub const WHITE: Side = 0;
 pub const BLACK: Side = 1;
-pub const BOTH: Side = 2;
 
 #[rustfmt::skip]
 #[allow(dead_code)]
@@ -47,7 +46,7 @@ pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
 pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
-pub const BITBOARDS_FOR_PIECES: u8 = 3;
+pub const BITBOARDS_FOR_PIECES: u8 = 2;
 pub const BITBOARDS_PER_FILE: u8 = 8;
 
 pub const KING: Piece = 0;

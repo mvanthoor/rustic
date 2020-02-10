@@ -33,7 +33,6 @@ impl Board {
     pub fn create_piece_bitboards(&mut self) {
         let white = WHITE as usize;
         let black = BLACK as usize;
-        let both = BOTH as usize;
         // Iterate through all white and black bitboards.
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
             // Combine all white bitboards into one, having all white pieces,
@@ -41,8 +40,6 @@ impl Board {
             self.bb_pieces[white] ^= bb_w;
             self.bb_pieces[black] ^= bb_b;
         }
-        // Combine bitboards with white pieces and black pieces into one for all pieces.
-        self.bb_pieces[both] ^= self.bb_pieces[white] ^ self.bb_pieces[black];
     }
 
     pub fn create_file_bitboards(&mut self) {
@@ -90,5 +87,9 @@ impl Board {
             BLACK => self.bb_b[piece],
             _ => 0,
         }
+    }
+
+    pub fn occupancy(&self) -> Bitboard {
+        self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
     }
 }
