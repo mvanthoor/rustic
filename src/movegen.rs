@@ -8,10 +8,10 @@ pub struct Move {
 }
 pub type MoveList = Vec<Move>;
 
-fn next(bitboard: &mut Bitboard) -> usize {
+fn next(bitboard: &mut Bitboard) -> u64 {
     let location = bitboard.trailing_zeros();
     *bitboard ^= 1 << location;
-    location as usize
+    location as u64
 }
 
 fn add_move(from: u64, to: Bitboard, mtype: MoveType, moves: &mut MoveList) {
@@ -22,9 +22,17 @@ fn add_move(from: u64, to: Bitboard, mtype: MoveType, moves: &mut MoveList) {
     }
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);
+        moves.push(Move {
+            data: from ^ (to_square << 6),
+            score: 0,
+        });
         println!(
-            "{}{}",
-            SQUARE_NAME[from as usize], SQUARE_NAME[to_square as usize]
+            "{}{} - from {:b}, to {:b}, data: {:b}",
+            SQUARE_NAME[from as usize],
+            SQUARE_NAME[to_square as usize],
+            from,
+            to_square,
+            from ^ (to_square << 6)
         )
     }
 }
@@ -34,7 +42,7 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, moves: &
     let opponent = side ^ 1;
     let mut bitboard = board.piece(piece, side);
     while bitboard > 0 {
-        let from = next(&mut bitboard);
+        let from = next(&mut bitboard) as usize;
         let mask: Bitboard = match piece {
             KING => magics.king[from],
             KNIGHT => magics.knight[from],
