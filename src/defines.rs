@@ -73,9 +73,3 @@ pub const CHAR_BR: char = 'r';
 pub const CHAR_BB: char = 'b';
 pub const CHAR_BN: char = 'n';
 pub const CHAR_BP: char = 'i';
-
-pub const MOVE_MAX: u8 = 255;
-pub enum MoveType {
-    Quiet,
-    Capture,
-}

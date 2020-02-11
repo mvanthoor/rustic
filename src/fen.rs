@@ -1,16 +1,36 @@
 use crate::board::Board;
 use crate::defines::*;
 
-pub const NR_OF_FEN_PARTS: usize = 6;
-pub const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
-pub const LETTERS: &str = "abcdefgh";
-pub const EN_PASSANT_RANKS: &str = "36";
-pub const WHITE_OR_BLACK: &str = "wb";
-pub const CASTLE_RIGHTS: &str = "KQkq";
-pub const SPLITTER: char = '/';
-pub const DASH: char = '-';
-pub const SPACE: char = ' ';
-pub const MAX_FULL_MOVES: u16 = 9999;
+const NR_OF_FEN_PARTS: usize = 6;
+const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
+const LETTERS: &str = "abcdefgh";
+const EN_PASSANT_RANKS: &str = "36";
+const WHITE_OR_BLACK: &str = "wb";
+const CASTLE_RIGHTS: &str = "KQkq";
+const SPLITTER: char = '/';
+const DASH: char = '-';
+const SPACE: char = ' ';
+const MAX_FULL_MOVES: u16 = 9999;
+
+pub fn read(fen_string: &str, board: &mut Board) {
+    let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
+    let fen_parse: [FenPartHandlers; 6] = [part_0, part_1, part_2, part_3, part_4, part_5];
+    let length = fen_parts.len();
+
+    if length == NR_OF_FEN_PARTS {
+        board.reset();
+        for (i, handle_part) in fen_parse.iter().enumerate() {
+            handle_part(&fen_parts[i], board);
+        }
+        board.create_piece_bitboards();
+    }
+    assert!(
+        length == NR_OF_FEN_PARTS,
+        "FEN: Has {} parts instead of {}",
+        length,
+        NR_OF_FEN_PARTS
+    );
+}
 
 fn part_0(part: &str, board: &mut Board) {
     const PART: u8 = 0;
@@ -163,24 +183,4 @@ fn part_5(part: &str, board: &mut Board) {
         }
     }
     assert!(is_ok, "FEN {}: Full move count: {}", PART, part);
-}
-
-pub fn read(fen_string: &str, board: &mut Board) {
-    let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
-    let fen_parse: [FenPartHandlers; 6] = [part_0, part_1, part_2, part_3, part_4, part_5];
-    let length = fen_parts.len();
-
-    if length == NR_OF_FEN_PARTS {
-        board.reset();
-        for (i, handle_part) in fen_parse.iter().enumerate() {
-            handle_part(&fen_parts[i], board);
-        }
-        board.create_piece_bitboards();
-    }
-    assert!(
-        length == NR_OF_FEN_PARTS,
-        "FEN: Has {} parts instead of {}",
-        length,
-        NR_OF_FEN_PARTS
-    );
 }

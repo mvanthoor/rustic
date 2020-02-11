@@ -1,5 +1,29 @@
 use crate::board::Board;
 use crate::defines::*;
+use crate::movegen::MoveList;
+
+pub fn engine_info() {
+    println!();
+    println!("Engine: {} {}", ENGINE, VERSION);
+    println!("Author: {}", AUTHOR);
+}
+
+pub fn position(board: &Board, mark_square: Option<u8>) {
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    bitboards_to_ascii(board, &mut ascii_board);
+    to_console(&ascii_board, mark_square);
+}
+
+#[allow(dead_code)]
+pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
+    const SQUARE_OCCUPIED: char = '1';
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
+    to_console(&ascii_board, mark_square);
+}
+
+#[allow(dead_code)]
+pub fn movelist(moves: &MoveList) {}
 
 fn put_character_on_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
     for (i, square) in ascii.iter_mut().enumerate() {
@@ -71,23 +95,5 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
         print!("{} ", c);
     }
     println!();
-}
-
-pub fn position(board: &Board, mark_square: Option<u8>) {
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
-    bitboards_to_ascii(board, &mut ascii_board);
-    to_console(&ascii_board, mark_square);
-}
-
-#[allow(dead_code)]
-pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
-    const SQUARE_OCCUPIED: char = '1';
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
-    put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
-    to_console(&ascii_board, mark_square);
-}
-
-pub fn engine_info() {
-    println!("Engine: {} {}", ENGINE, VERSION);
-    println!("Author: {}", AUTHOR);
+    println!();
 }

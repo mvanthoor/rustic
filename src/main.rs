@@ -8,10 +8,12 @@ mod print;
 use board::Board;
 use defines::*;
 use magics::Magics;
+use movegen::*;
 
 fn main() {
     let mut board: Board = Default::default();
     let mut magics: Magics = Default::default();
+    let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
     let test_pos: &str = "3r4/2bk4/3PN3/7p/1pP2n2/3p3P/Nn6/KR1B4 w - - 0 1";
     board.initialize(test_pos);
@@ -19,7 +21,9 @@ fn main() {
 
     print::engine_info();
     print::position(&board, None);
-    movegen::generate(&board, BLACK, &magics);
+    movegen::generate(&board, BLACK, &magics, &mut moves);
+
+    println!("Done.");
 
     // Test generation of all blockers, iterative
     // pub type SuperBit = [u8; 8];
