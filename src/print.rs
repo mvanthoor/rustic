@@ -23,7 +23,11 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 }
 
 #[allow(dead_code)]
-pub fn movelist(moves: &MoveList) {}
+pub fn movelist(moves: &MoveList) {
+    for m in moves.iter() {
+        println!("{}{}{}", m.piece(), m.from(), m.to());
+    }
+}
 
 fn put_character_on_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
     for (i, square) in ascii.iter_mut().enumerate() {

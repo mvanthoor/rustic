@@ -22,6 +22,7 @@ fn main() {
     print::engine_info();
     print::position(&board, None);
     movegen::generate(&board, BLACK, &magics, &mut moves);
+    print::movelist(&moves);
 
     println!("Done.");
 
