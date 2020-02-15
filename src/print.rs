@@ -27,10 +27,10 @@ pub fn movelist(moves: &MoveList) {
     for m in moves.iter() {
         println!(
             "{}{}{} ({})",
-            m.piece(),
-            m.from(),
-            m.to(),
-            MTYPE[m.mtype() as usize]
+            PIECE_NAME[m.piece() as usize],
+            SQUARE_NAME[m.from() as usize],
+            SQUARE_NAME[m.to() as usize],
+            MOVE_TYPE[m.move_type() as usize]
         );
     }
 }

@@ -29,7 +29,8 @@ Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 
 pub const MAX_LEGAL_MOVES: u8 = 255;
 pub type MoveList = Vec<Move>;
-pub type MoveType = u8;
+
+type MoveType = u8;
 
 const MT_NORMAL: MoveType = 0;
 const MT_CASTLE: MoveType = 1;
@@ -43,25 +44,19 @@ pub struct Move {
 }
 
 impl Move {
-    pub fn piece(&self) -> &str {
-        let piece = (self.data) & 0x7;
-        debug_assert!(piece <= 5, "Invalid piece.");
-        PIECE_NAME[piece as usize]
+    pub fn piece(&self) -> u8 {
+        ((self.data) & 0x7) as u8
     }
 
-    pub fn from(&self) -> &str {
-        let from = (self.data >> 3) & 0x3F;
-        debug_assert!(from <= 63, "Invalid square.");
-        SQUARE_NAME[from as usize]
+    pub fn from(&self) -> u8 {
+        ((self.data >> 3) & 0x3F) as u8
     }
 
-    pub fn to(&self) -> &str {
-        let to = (self.data >> 9) & 0x3F;
-        debug_assert!(to <= 63, "Invalid square.");
-        SQUARE_NAME[to as usize]
+    pub fn to(&self) -> u8 {
+        ((self.data >> 9) & 0x3F) as u8
     }
 
-    pub fn mtype(&self) -> u8 {
+    pub fn move_type(&self) -> u8 {
         ((self.data >> 15) & 0x7) as u8
     }
 }
