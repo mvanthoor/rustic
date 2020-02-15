@@ -25,7 +25,13 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 #[allow(dead_code)]
 pub fn movelist(moves: &MoveList) {
     for m in moves.iter() {
-        println!("{}{}{}", m.piece(), m.from(), m.to());
+        println!(
+            "{}{}{} ({})",
+            m.piece(),
+            m.from(),
+            m.to(),
+            MTYPE[m.mtype() as usize]
+        );
     }
 }
 

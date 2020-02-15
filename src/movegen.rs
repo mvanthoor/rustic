@@ -2,8 +2,6 @@ use crate::board::Board;
 use crate::defines::*;
 use crate::magics::Magics;
 
-pub const MAX_LEGAL_MOVES: u8 = 255;
-
 /*
 Move format explanation
 
@@ -14,11 +12,12 @@ Field       :   bits     Decimal values
 PIECE       :   3        0-7 (use only 0-5)
 FROM SQUARE :   6        0-63
 TO SQUARE   :   6        0-63
+MOVETYPE    :   3        0-7 (use only 0-4)
 
-Field:  TO          FROM        PIECE
-        111111      111111      111
-ShiftR: 9 bits      3 bits      0 bits
-Value:  0x3F (63)   0x3F (63)   0x7 (7)
+Field:      MOVETYPE    TO          FROM        PIECE
+            111         111111      111111      111
+ShiftR:     15 bits     9 bits      3 bits      0 bits
+& Value:    0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -27,6 +26,16 @@ Get the TO field from "data" by:
 Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
+
+pub const MAX_LEGAL_MOVES: u8 = 255;
+pub type MoveList = Vec<Move>;
+pub type MoveType = u8;
+
+const MT_NORMAL: MoveType = 0;
+const MT_CASTLE: MoveType = 1;
+const MT_CAPTURE: MoveType = 2;
+const MT_ENPASSANT: MoveType = 3;
+const MT_PROMOTION: MoveType = 4;
 
 pub struct Move {
     data: u64,
@@ -37,15 +46,13 @@ impl Move {
     pub fn piece(&self) -> &str {
         let piece = (self.data) & 0x7;
         debug_assert!(piece <= 5, "Invalid piece.");
-        let x = PIECE_NAME[piece as usize];
-        x
+        PIECE_NAME[piece as usize]
     }
 
     pub fn from(&self) -> &str {
         let from = (self.data >> 3) & 0x3F;
         debug_assert!(from <= 63, "Invalid square.");
-        let x = SQUARE_NAME[from as usize];
-        x
+        SQUARE_NAME[from as usize]
     }
 
     pub fn to(&self) -> &str {
@@ -53,15 +60,10 @@ impl Move {
         debug_assert!(to <= 63, "Invalid square.");
         SQUARE_NAME[to as usize]
     }
-}
 
-pub type MoveList = Vec<Move>;
-
-enum MoveType {
-    Normal,
-    Capture,
-    Castle,
-    EnPassant,
+    pub fn mtype(&self) -> u8 {
+        ((self.data >> 15) & 0x7) as u8
+    }
 }
 
 pub fn generate(board: &Board, side: Side, magics: &Magics, moves: &mut MoveList) {
@@ -82,8 +84,8 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, moves: &
         };
         let normal_to = mask & !board.occupancy();
         let capture_to = mask & board.bb_pieces[opponent];
-        add_move(piece, from as u64, normal_to, MoveType::Normal, moves);
-        add_move(piece, from as u64, capture_to, MoveType::Capture, moves);
+        add_move(piece, from as u64, capture_to, MT_CAPTURE, moves);
+        add_move(piece, from as u64, normal_to, MT_NORMAL, moves);
     }
 }
 
@@ -95,15 +97,10 @@ fn next(bitboard: &mut Bitboard) -> u64 {
 
 fn add_move(piece: Piece, from: u64, to: Bitboard, mtype: MoveType, moves: &mut MoveList) {
     let mut bitboard_to = to;
-    match mtype {
-        MoveType::Normal => (),
-        MoveType::Capture => (),
-        _ => (),
-    }
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);
         moves.push(Move {
-            data: (piece as u64) ^ (from << 3) ^ (to_square << 9),
+            data: (piece as u64) ^ (from << 3) ^ (to_square << 9) ^ ((mtype as u64) << 15),
             score: 0,
         });
     }
