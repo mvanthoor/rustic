@@ -5,7 +5,8 @@ pub struct Board {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
-    pub bb_files: [Bitboard; BITBOARDS_PER_FILE as usize],
+    pub bb_files: [Bitboard; BITBOARDS_FOR_FILES as usize],
+    pub bb_ranks: [Bitboard; BITBOARDS_FOR_RANKS as usize],
     pub active_color: u8,
     pub castling: u8,
     pub en_passant: i8,
@@ -19,7 +20,8 @@ impl Default for Board {
             bb_w: [0; BITBOARDS_PER_SIDE as usize],
             bb_b: [0; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [0; BITBOARDS_FOR_PIECES as usize],
-            bb_files: [0; BITBOARDS_PER_FILE as usize],
+            bb_files: [0; BITBOARDS_FOR_FILES as usize],
+            bb_ranks: [0; BITBOARDS_FOR_RANKS as usize],
             active_color: WHITE as u8,
             castling: 0,
             en_passant: -1,
@@ -40,7 +42,7 @@ impl Board {
         }
     }
 
-    pub fn create_file_bitboards(&mut self) {
+    pub fn create_file_and_rank_bitboards(&mut self) {
         /*
             Remember: Square A1 is on the lower left corner,
             but it is the LSB (Least Significant bit) in a
@@ -52,11 +54,18 @@ impl Board {
 
         // Set the LSB for each of the 8 bytes in the 64-bit integer.
         // This will mark the A-file.
-        let file_a: u64 = 0x0101_0101_0101_0101;
+        // Also set the 8 LSB's to mark Rank 1.
+        const FILE_A: u64 = 0x0101_0101_0101_0101;
+        const RANK_1: u64 = 0xFF;
 
-        // Shift the bits, marking each file.
+        // Shift the bits left, marking each file.
         for (i, file) in self.bb_files.iter_mut().enumerate() {
-            *file = file_a << i;
+            *file = FILE_A << i;
+        }
+
+        // Shift the bits upward, marking each rank.
+        for (i, rank) in self.bb_ranks.iter_mut().enumerate() {
+            *rank = RANK_1 << (i * 8);
         }
     }
 
@@ -64,27 +73,30 @@ impl Board {
         self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [0; BITBOARDS_FOR_PIECES as usize];
-        self.bb_files = [0; BITBOARDS_PER_FILE as usize];
         self.active_color = WHITE as u8;
         self.castling = 0;
         self.en_passant = -1;
         self.halfmove_clock = 0;
         self.fullmove_number = 0;
-        self.create_file_bitboards();
     }
 
     pub fn initialize(&mut self, fen: &str) {
+        self.create_file_and_rank_bitboards();
         fen::read(fen, self);
     }
 
-    pub fn piece(&self, piece: Piece, side: Side) -> Bitboard {
-        debug_assert!(piece <= 5, "Not a piece! : {}", piece);
-        debug_assert!(side == 0 || side == 1, "Not a side! : {}", side);
+    pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
+        debug_assert!(piece <= 5, "Not a piece: {}", piece);
+        debug_assert!(side == 0 || side == 1, "Not a side: {}", side);
         match side {
             WHITE => self.bb_w[piece],
             BLACK => self.bb_b[piece],
             _ => 0,
         }
+    }
+
+    pub fn which_piece(&self, square: u8) {
+        println!("Which piece on square {}?", square);
     }
 
     pub fn occupancy(&self) -> Bitboard {

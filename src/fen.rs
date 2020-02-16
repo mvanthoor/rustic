@@ -11,6 +11,7 @@ const SPLITTER: char = '/';
 const DASH: char = '-';
 const SPACE: char = ' ';
 const MAX_FULL_MOVES: u16 = 9999;
+type FenPartHandlers = fn(part: &str, board: &mut Board);
 
 pub fn read(fen_string: &str, board: &mut Board) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
@@ -40,18 +41,18 @@ fn part_0(part: &str, board: &mut Board) {
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_b[KING] += 1 << square,
-            'q' => board.bb_b[QUEEN] += 1 << square,
-            'r' => board.bb_b[ROOK] += 1 << square,
-            'b' => board.bb_b[BISHOP] += 1 << square,
-            'n' => board.bb_b[KNIGHT] += 1 << square,
-            'p' => board.bb_b[PAWN] += 1 << square,
-            'K' => board.bb_w[KING] += 1 << square,
-            'Q' => board.bb_w[QUEEN] += 1 << square,
-            'R' => board.bb_w[ROOK] += 1 << square,
-            'B' => board.bb_w[BISHOP] += 1 << square,
-            'N' => board.bb_w[KNIGHT] += 1 << square,
-            'P' => board.bb_w[PAWN] += 1 << square,
+            'k' => board.bb_b[KING] += 1u64 << square,
+            'q' => board.bb_b[QUEEN] += 1u64 << square,
+            'r' => board.bb_b[ROOK] += 1u64 << square,
+            'b' => board.bb_b[BISHOP] += 1u64 << square,
+            'n' => board.bb_b[KNIGHT] += 1u64 << square,
+            'p' => board.bb_b[PAWN] += 1u64 << square,
+            'K' => board.bb_w[KING] += 1u64 << square,
+            'Q' => board.bb_w[QUEEN] += 1u64 << square,
+            'R' => board.bb_w[ROOK] += 1u64 << square,
+            'B' => board.bb_w[BISHOP] += 1u64 << square,
+            'N' => board.bb_w[KNIGHT] += 1u64 << square,
+            'P' => board.bb_w[PAWN] += 1u64 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;

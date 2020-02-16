@@ -1,4 +1,5 @@
 use crate::defines::*;
+use std::ops::RangeInclusive;
 
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
@@ -6,6 +7,10 @@ const MAILBOX_SIZE: usize = (MAILBOX_FILES * MAILBOX_RANKS) as usize;
 const INVALID_FILES: [u8; 2] = [0, 9];
 const INVALID_RANKS: [u8; 4] = [0, 1, 10, 11];
 const INVALID_SQUARE: u8 = 255;
+
+type SliderDirections = [i8; 4];
+type NonSliderDirections = [i8; 8];
+type MoveMask = [Bitboard; NR_OF_SQUARES as usize];
 
 /*
 The helper board is based on the 10x12 mailbox concept.
@@ -72,27 +77,65 @@ impl Default for HelperBoard {
 }
 
 pub struct Magics {
-    pub king: NonSliderAttacks,
-    pub knight: NonSliderAttacks,
-    pub tmp_rook: SliderMoves,
-    pub tmp_bishop: SliderMoves,
-    pub tmp_queen: SliderMoves,
+    _king_moves: MoveMask,
+    _knight_moves: MoveMask,
+    // _pawn_moves: [MoveMask; 2],
+    pub tmp_rook: MoveMask,
+    pub tmp_bishop: MoveMask,
+    pub tmp_queen: MoveMask,
 }
 
 impl Default for Magics {
     fn default() -> Magics {
+        const EMPTY: Bitboard = 0;
+        const NSQ: usize = NR_OF_SQUARES as usize;
         Magics {
-            king: [0; NR_OF_SQUARES as usize],
-            knight: [0; NR_OF_SQUARES as usize],
-            tmp_rook: [0; NR_OF_SQUARES as usize],
-            tmp_bishop: [0; NR_OF_SQUARES as usize],
-            tmp_queen: [0; NR_OF_SQUARES as usize],
+            _king_moves: [EMPTY; NSQ],
+            _knight_moves: [EMPTY; NSQ],
+            // _pawn_moves: [[EMPTY; NSQ]; 2],
+            tmp_rook: [EMPTY; NSQ],
+            tmp_bishop: [EMPTY; NSQ],
+            tmp_queen: [EMPTY; NSQ],
         }
     }
 }
 
 impl Magics {
-    fn non_slider(&mut self, piece: Piece, directions: NonSliderDirections, helper: &HelperBoard) {
+    pub fn initialize(&mut self) {
+        let helper_board: HelperBoard = Default::default();
+
+        self.non_slider(KING, &helper_board);
+        self.non_slider(KNIGHT, &helper_board);
+        self.slider(ROOK, &helper_board);
+        self.slider(BISHOP, &helper_board);
+        self.slider_queen();
+        // self.pawn_mask_move(WHITE, &helper_board);
+        // self.pawn_mask_move(BLACK, &helper_board);
+    }
+
+    pub fn get_non_slider_moves(&self, piece: Piece, square: u8) -> Bitboard {
+        let s = square as usize;
+        match piece {
+            KING => self._king_moves[s],
+            KNIGHT => self._knight_moves[s],
+            _ => 0,
+        }
+    }
+
+    // pub fn get_pawn_moves(&self, side: Side, square: u8) -> Bitboard {
+    //     self._pawn_moves[side][square as usize]
+    // }
+
+    fn non_slider(&mut self, piece: Piece, helper: &HelperBoard) {
+        debug_assert!(piece == KING || piece == KNIGHT, "Incorrect piece.");
+        const DIRECTIONS_KING: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
+        const DIRECTIONS_KNIGHT: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
+
+        let directions = match piece {
+            KING => DIRECTIONS_KING,
+            KNIGHT => DIRECTIONS_KNIGHT,
+            _ => [0; 8],
+        };
         for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
@@ -101,8 +144,8 @@ impl Magics {
                 if helper.mailbox[try_square] != INVALID_SQUARE {
                     let valid_square = helper.mailbox[try_square];
                     match piece {
-                        KING => self.king[square] |= 1 << valid_square,
-                        KNIGHT => self.knight[square] |= 1 << valid_square,
+                        KING => self._king_moves[square] |= 1u64 << valid_square,
+                        KNIGHT => self._knight_moves[square] |= 1u64 << valid_square,
                         _ => (),
                     }
                 }
@@ -110,7 +153,16 @@ impl Magics {
         }
     }
 
-    fn slider(&mut self, piece: Piece, directions: SliderDirections, helper: &HelperBoard) {
+    fn slider(&mut self, piece: Piece, helper: &HelperBoard) {
+        debug_assert!(piece == ROOK || piece == BISHOP, "Incorrect piece.");
+        const DIRECTIONS_ROOK: SliderDirections = [-10, -1, 1, 10];
+        const DIRECTIONS_BISHOP: SliderDirections = [-11, -9, 9, 11];
+
+        let directions = match piece {
+            ROOK => DIRECTIONS_ROOK,
+            BISHOP => DIRECTIONS_BISHOP,
+            _ => [0; 4],
+        };
         for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
@@ -122,8 +174,8 @@ impl Magics {
                     if helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
                         let valid_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
-                            ROOK => self.tmp_rook[square] |= 1 << valid_square,
-                            BISHOP => self.tmp_bishop[square] |= 1 << valid_square,
+                            ROOK => self.tmp_rook[square] |= 1u64 << valid_square,
+                            BISHOP => self.tmp_bishop[square] |= 1u64 << valid_square,
                             _ => (),
                         }
                     }
@@ -139,33 +191,40 @@ impl Magics {
         }
     }
 
-    pub fn initialize(&mut self) {
-        let helper_board: HelperBoard = Default::default();
-        let directions_king: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
-        let directions_knight: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
-        let directions_rook: SliderDirections = [-10, -1, 1, 10];
-        let directions_bishop: SliderDirections = [-11, -9, 9, 11];
+    // fn pawn_mask_move(&mut self, side: Side, helper: &HelperBoard) {
+    //     debug_assert!(side == 0 || side == 1, "Incorrect side.");
+    //     const MB_WHITE_SECOND_RANK: RangeInclusive<u8> = 31..=38;
+    //     const MB_BLACK_SECOND_RANK: RangeInclusive<u8> = 81..=88;
+    //     let mut direction: i8 = 0;
+    //     let mut second_rank: RangeInclusive<u8> = 0..=0;
 
-        self.non_slider(KING, directions_king, &helper_board);
-        self.non_slider(KNIGHT, directions_knight, &helper_board);
-        self.slider(ROOK, directions_rook, &helper_board);
-        self.slider(BISHOP, directions_bishop, &helper_board);
-        self.slider_queen();
-    }
+    //     // Set the direction and second rank from the viewpoint of white or black.
+    //     match side {
+    //         WHITE => {
+    //             direction = 10;
+    //             second_rank = MB_WHITE_SECOND_RANK;
+    //         }
+    //         BLACK => {
+    //             direction = -10;
+    //             second_rank = MB_BLACK_SECOND_RANK;
+    //         }
+    //         _ => (),
+    //     };
+
+    //     // A pawn will never be on the first rank as it starts on the second.
+    //     // A pawn will never move from the last rank due to promotion to a piece.
+    //     // So, skip the first 8 and last 8 squares when creating pawn move masks.
+    //     const SKIP_FIRST_RANK: u8 = 8;
+    //     const SKIP_LAST_RANK: u8 = 8;
+    //     for square in SKIP_FIRST_RANK..NR_OF_SQUARES - SKIP_LAST_RANK {
+    //         let i = square as usize;
+    //         let current_mailbox_square = helper.real[i] as i8;
+    //         let one_forward = helper.mailbox[(current_mailbox_square + direction) as usize];
+    //         self._pawn_moves[side][i] |= 1u64 << one_forward;
+    //         if second_rank.contains(&(current_mailbox_square as u8)) {
+    //             let two_forward = helper.mailbox[(current_mailbox_square + 2 * direction) as usize];
+    //             self._pawn_moves[side][i] |= 1u64 << two_forward;
+    //         }
+    //     }
+    // }
 }
-
-/*
-    fn pawn(board: &mut Board, mask: usize, direction: i8, h: &HelperBoard) {
-        let nr_of_masks = board.bb_mask[mask].len();
-        let d = direction;
-        for i in 8..nr_of_masks - 8 {
-            let current_mailbox_square = h.real[i] as i8;
-            let one_forward = h.mailbox[(current_mailbox_square + d) as usize];
-            board.bb_mask[mask][i] |= 1 << one_forward;
-            if current_mailbox_square >= 31 && current_mailbox_square <= 38 {
-                let two_forward = h.mailbox[(current_mailbox_square + 2 * d) as usize];
-                board.bb_mask[mask][i] |= 1 << two_forward;
-            }
-        }
-    }
-*/

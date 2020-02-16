@@ -2,6 +2,22 @@ use crate::board::Board;
 use crate::defines::*;
 use crate::movegen::MoveList;
 
+type AsciiBoard = [char; NR_OF_SQUARES as usize];
+
+const ASCII_EMPTY_SQUARE: char = '.';
+const CHAR_WK: char = 'K';
+const CHAR_WQ: char = 'Q';
+const CHAR_WR: char = 'R';
+const CHAR_WB: char = 'B';
+const CHAR_WN: char = 'N';
+const CHAR_WP: char = 'I';
+const CHAR_BK: char = 'k';
+const CHAR_BQ: char = 'q';
+const CHAR_BR: char = 'r';
+const CHAR_BB: char = 'b';
+const CHAR_BN: char = 'n';
+const CHAR_BP: char = 'i';
+
 pub fn engine_info() {
     println!();
     println!("Engine: {} {}", ENGINE, VERSION);
@@ -9,7 +25,7 @@ pub fn engine_info() {
 }
 
 pub fn position(board: &Board, mark_square: Option<u8>) {
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
 }
@@ -30,7 +46,7 @@ pub fn movelist(moves: &MoveList) {
             PIECE_NAME[m.piece() as usize],
             SQUARE_NAME[m.from() as usize],
             SQUARE_NAME[m.to() as usize],
-            MOVE_TYPE[m.move_type() as usize]
+            IS_CAPTURE[m.is_capture() as usize]
         );
     }
 }
