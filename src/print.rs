@@ -18,6 +18,10 @@ const CHAR_BB: char = 'b';
 const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
 
+const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "I", "-"];
+const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "None"];
+// const COLOR_NAME: [&str; 2] = ["White", "black"];
+
 pub fn engine_info() {
     println!();
     println!("Engine: {} {}", ENGINE, VERSION);
@@ -43,10 +47,10 @@ pub fn movelist(moves: &MoveList) {
     for m in moves.iter() {
         println!(
             "{}{}{} ({})",
-            PIECE_NAME[m.piece() as usize],
+            PIECE_CHAR[m.piece() as usize],
             SQUARE_NAME[m.from() as usize],
             SQUARE_NAME[m.to() as usize],
-            IS_CAPTURE[m.is_capture() as usize]
+            PIECE_NAME[m.captured() as usize]
         );
     }
 }

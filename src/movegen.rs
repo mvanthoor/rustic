@@ -13,12 +13,12 @@ Field       :   bits     Decimal values
 PIECE       :   3        0-7 (use only 0-5)
 FROM SQUARE :   6        0-63
 TO SQUARE   :   6        0-63
-CAPTURE     :   1        0-1
+CAPTURE     :   3        0-7
 
 Field:      CAPTURE     TO          FROM        PIECE
-            1           111111      111111      111
+            111         111111      111111      111
 Shift:      15 bits     9 bits      3 bits      0 bits
-& Value:    0x1 (1)     0x3F (63)   0x3F (63)   0x7 (7)
+& Value:    0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -49,8 +49,8 @@ impl Move {
         ((self.data >> 9) & 0x3F) as u8
     }
 
-    pub fn is_capture(&self) -> u8 {
-        ((self.data >> 15) & 0x1) as u8
+    pub fn captured(&self) -> u8 {
+        ((self.data >> 15) & 0x7) as u8
     }
 }
 
@@ -122,20 +122,27 @@ fn next(bitboard: &mut Bitboard) -> u8 {
     location as u8
 }
 
+fn is_capture(board: &Board, side: Side, to_square: u8) -> Piece {
+    let target_square = 1u64 << (to_square as u64);
+    let opponent_pieces = board.bb_pieces[side ^ 1];
+    if target_square & opponent_pieces > 0 {
+        if let Some(cp) = board.which_piece(to_square) {
+            return cp.1;
+        }
+    }
+    PNONE
+}
+
 fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, list: &mut MoveList) {
     let mut bitboard_to = to;
-    let opponent = board.bb_pieces[side ^ 1];
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);
-        let is_capture = ((1u64 << to_square as u64) & opponent) > 0;
-        if is_capture {
-            board.which_piece(to_square);
-        }
+        let capture = is_capture(board, side, to_square);
         list.push(Move {
             data: (piece as u64)
                 ^ ((from as u64) << 3)
                 ^ ((to_square as u64) << 9)
-                ^ ((is_capture as u64) << 15),
+                ^ ((capture as u64) << 15),
             score: 0,
         });
     }

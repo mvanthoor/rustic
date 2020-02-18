@@ -15,17 +15,17 @@ fn main() {
     let mut magics: Magics = Default::default();
     let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
-    // let test_pos: &str = "3r4/2bk4/3PN3/7p/1pP2n2/3p3P/Nn1P1PP1/KR1B4 w - - 0 1";
+    let test_pos: &str = "3r4/2bk4/3PN3/7p/1pP2n2/3p3P/Nn1P1PP1/KR1B4 w - - 0 1";
     // let test_pos: &str = "4k3/ppp3pp/2Pp4/1P2p1p1/P3P2p/8/8/4K3 w - - 0 1";
     // let test_pos: &str = "4k3/8/8/2p1p1Pp/1p1p3P/p2PPP2/PPP2PPP/4K3 w - - 0 1";
-    let test_pos: &str = "k7/8/8/8/2p5/5P2/1r1N4/KB3b2 w - - 0 1";
+    // let test_pos: &str = "k7/8/8/8/2p5/5P2/1r1N4/KB3b2 w - - 0 1";
     board.initialize(test_pos);
     magics.initialize();
 
     print::engine_info();
     print::position(&board, None);
 
-    movegen::generate(&board, WHITE, &magics, &mut moves);
+    movegen::generate(&board, BLACK, &magics, &mut moves);
     print::movelist(&moves);
 
     // for i in 0..64 {

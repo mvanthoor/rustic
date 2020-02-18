@@ -23,8 +23,6 @@ pub const SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 ];
-pub const PIECE_NAME: [&str; 6] = ["K", "Q", "R", "B", "N", ""];
-pub const IS_CAPTURE: [&str; 2] = ["quiet", "capture"];
 
 #[allow(dead_code)]
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -52,6 +50,7 @@ pub const ROOK: Piece = 2;
 pub const BISHOP: Piece = 3;
 pub const KNIGHT: Piece = 4;
 pub const PAWN: Piece = 5;
+pub const PNONE: Piece = 6;
 
 pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
