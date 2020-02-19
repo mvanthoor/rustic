@@ -1,6 +1,6 @@
 [package]
-name = "deadend"
-version = "0.1.0"
+name = "rustic"
+version = "1.0.0"
 authors = ["Marcel Vanthoor"]
 edition = "2018"
 
