@@ -18,7 +18,7 @@ const CHAR_BB: char = 'b';
 const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
 
-const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "I", "-"];
+const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "None"];
 // const COLOR_NAME: [&str; 2] = ["White", "black"];
 

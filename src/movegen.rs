@@ -74,46 +74,25 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
 
 fn pawn(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     debug_assert!(side == 0 || side == 1, "Incorrect side.");
-    let mut pieces = board.get_pieces(PAWN, side);
-    while pieces > 0 {
-        let from = next(&mut pieces) as u8;
-        pawn_normal(from, board, side, list);
+    let rank_4 = board.bb_ranks[RANK_4 as usize];
+    let rank_5 = board.bb_ranks[RANK_5 as usize];
+    let mut pawns = board.get_pieces(PAWN, side);
+    let target: (u64, u64, i8) = if side == WHITE {
+        let one = (pawns << 8) & !board.occupancy();
+        let two = (one << 8) & !board.occupancy() & rank_4;
+        (one, two, 8)
+    } else {
+        let one = (pawns >> 8) & !board.occupancy();
+        let two = (one >> 8) & !board.occupancy() & rank_5;
+        (one, two, -8)
+    };
+    while pawns > 0 {
+        let from = next(&mut pawns) as u8;
+        let moves_1 = target.0 & (1u64 << (from as i8 + target.2) as u64);
+        let moves_2 = target.1 & (1u64 << (from as i8 + target.2 + target.2) as u64);
+        add_move(board, PAWN, side, from as u64, moves_1, list);
+        add_move(board, PAWN, side, from as u64, moves_2, list);
     }
-}
-
-fn pawn_normal(from: u8, board: &Board, side: Side, list: &mut MoveList) {
-    // The following statement will generate the moves, for example:
-    // a2a3, and a2a4. If a3 is blocked, a2a3 will not be generated.
-    // However, a2a4 will still be generated if a4 is not blocked.
-    // Therefore, for a pawn on the second rank, check if the one stop
-    // move is blocked, and if so, remove the second step move if any.
-
-    /*
-        let mut normal_to = normal_move & !board.occupancy();
-
-        // Point of view from either White or Black.
-        let mut on_second_rank = false;
-        let mut one_step: Bitboard = 0;
-        let mut two_step: Bitboard = 0;
-        match side {
-            WHITE => {
-                on_second_rank = ((1u64 << from) & board.bb_ranks[RANK_2 as usize]) > 0;
-                one_step = 1u64 << (from + 8);
-                two_step = 1u64 << (from + 16);
-            }
-            BLACK => {
-                on_second_rank = ((1u64 << from) & board.bb_ranks[RANK_7 as usize]) > 0;
-                one_step = 1u64 << (from - 8);
-                two_step = 1u64 << (from - 16);
-            }
-            _ => (),
-        }
-        let one_step_blocked = one_step & board.occupancy() > 0;
-        if on_second_rank && one_step_blocked {
-            normal_to &= !two_step;
-        }
-        add_move(PAWN, from as u64, normal_to, MT_NORMAL, moves);
-    */
 }
 
 fn next(bitboard: &mut Bitboard) -> u8 {
