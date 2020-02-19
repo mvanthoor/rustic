@@ -95,18 +95,15 @@ impl Board {
         }
     }
 
-    pub fn which_piece(&self, square: u8) -> Option<(Side, Piece)> {
+    pub fn which_piece(&self, square: u8) -> Piece {
         debug_assert!(square < 64, "Not a correct square number: {}", square);
         let inspect = 1u64 << square as u64;
         for (piece, (white, black)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
-            if *white & inspect > 0 {
-                return Some((WHITE, piece));
-            }
-            if *black & inspect > 0 {
-                return Some((BLACK, piece));
+            if (*white & inspect > 0) || (*black & inspect > 0) {
+                return piece;
             }
         }
-        None
+        PNONE
     }
 
     pub fn occupancy(&self) -> Bitboard {

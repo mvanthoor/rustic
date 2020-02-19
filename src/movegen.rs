@@ -126,10 +126,8 @@ fn is_capture(board: &Board, side: Side, to_square: u8) -> Piece {
     let target_square = 1u64 << (to_square as u64);
     let opponent_pieces = board.bb_pieces[side ^ 1];
     if target_square & opponent_pieces > 0 {
-        if let Some(cp) = board.which_piece(to_square) {
-            return cp.1;
-        }
-    }
+        return board.which_piece(to_square);
+    };
     PNONE
 }
 
