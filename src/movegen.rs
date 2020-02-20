@@ -113,17 +113,8 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, li
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
         let promotion = piece == PAWN && board.square_on_rank(to_square, promotion_rank);
-        if !promotion {
-            list.push(Move {
-                data: (piece as u64)
-                    ^ ((from as u64) << 3)
-                    ^ ((to_square as u64) << 9)
-                    ^ ((capture as u64) << 15)
-                    ^ ((PNONE as u64) << 18),
-                score: 0,
-            });
-        }
         if promotion {
+            // Add promotions
             for p in promotion_pieces.iter() {
                 list.push(Move {
                     data: (piece as u64)
@@ -134,6 +125,16 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, li
                     score: 0,
                 });
             }
+        } else {
+            // Add normal move
+            list.push(Move {
+                data: (piece as u64)
+                    ^ ((from as u64) << 3)
+                    ^ ((to_square as u64) << 9)
+                    ^ ((capture as u64) << 15)
+                    ^ ((PNONE as u64) << 18),
+                score: 0,
+            });
         }
     }
 }
