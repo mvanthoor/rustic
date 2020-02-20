@@ -74,22 +74,29 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
 
 fn pawn(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     debug_assert!(side == 0 || side == 1, "Incorrect side.");
-    let rank_4 = board.bb_ranks[RANK_4 as usize];
-    let rank_5 = board.bb_ranks[RANK_5 as usize];
+    let start_rank = if side == WHITE { RANK_2 } else { RANK_7 };
     let mut pawns = board.get_pieces(PAWN, side);
-    let target: (u64, u64, i8) = if side == WHITE {
-        let one = (pawns << 8) & !board.occupancy();
-        let two = (one << 8) & !board.occupancy() & rank_4;
-        (one, two, 8)
+    let all_pawn_pushes: (u64, u64, i8) = if side == WHITE {
+        let one_step = (pawns << 8) & !board.occupancy();
+        let two_step = ((one_step & BB_RANK_3) << 8) & !board.occupancy();
+        (one_step, two_step, 8)
     } else {
-        let one = (pawns >> 8) & !board.occupancy();
-        let two = (one >> 8) & !board.occupancy() & rank_5;
-        (one, two, -8)
+        let one_step = (pawns >> 8) & !board.occupancy();
+        let two_step = ((one_step & BB_RANK_6) >> 8) & !board.occupancy();
+        (one_step, two_step, -8)
     };
     while pawns > 0 {
         let from = next(&mut pawns) as u8;
-        let moves_1 = target.0 & (1u64 << (from as i8 + target.2) as u64);
-        let moves_2 = target.1 & (1u64 << (from as i8 + target.2 + target.2) as u64);
+        let direction = all_pawn_pushes.2;
+        let can_push_twice = board.square_on_rank(from, start_rank);
+        let pushed_one_step = 1u64 << (from as i8 + direction) as u64;
+        let pushed_two_step = if can_push_twice {
+            1u64 << (from as i8 + direction * 2) as u64
+        } else {
+            0
+        };
+        let moves_1 = all_pawn_pushes.0 & pushed_one_step;
+        let moves_2 = all_pawn_pushes.1 & pushed_two_step;
         add_move(board, PAWN, side, from as u64, moves_1, list);
         add_move(board, PAWN, side, from as u64, moves_2, list);
     }
