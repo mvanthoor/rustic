@@ -71,7 +71,7 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
     let mut pieces = board.get_pieces(piece, side);
     while pieces > 0 {
         let from = next(&mut pieces) as u8;
-        let target = magics.get_non_slider_moves(piece, from);
+        let target = magics.get_non_slider_attacks(piece, from);
         let moves = target & !us;
         add_move(board, piece, side, from as u64, moves, list);
     }

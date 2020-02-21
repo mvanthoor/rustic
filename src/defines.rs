@@ -36,6 +36,7 @@ pub const FILE_H: u8 = 7;
 pub const ALL_RANKS: RangeInclusive<u8> = RANK_1..=RANK_8;
 pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
 pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
+pub const PAWN_SQUARES: RangeInclusive<u8> = 8..=55;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
 pub const BITBOARDS_FOR_PIECES: u8 = 2;
@@ -55,7 +56,5 @@ pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
 pub const CASTLE_BQ: u8 = 8;
 
-pub const BB_RANK_1: u64 = 0xFF;
 pub const BB_RANK_4: u64 = 0xFF_00_00_00;
 pub const BB_RANK_5: u64 = 0xFF_00_00_00_00;
-pub const BB_RANK_8: u64 = 0xFF_00_00_00_00_00_00_00;

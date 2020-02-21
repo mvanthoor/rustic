@@ -1,5 +1,4 @@
 use crate::defines::*;
-use std::ops::RangeInclusive;
 
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
@@ -7,14 +6,17 @@ const MAILBOX_SIZE: usize = (MAILBOX_FILES * MAILBOX_RANKS) as usize;
 const INVALID_FILES: [u8; 2] = [0, 9];
 const INVALID_RANKS: [u8; 4] = [0, 1, 10, 11];
 const INVALID_SQUARE: u8 = 255;
+const WHITE_BLACK: usize = 2;
 
 type SliderDirections = [i8; 4];
 type NonSliderDirections = [i8; 8];
+type PawnCaptureDirections = [i8; 2];
+type NonSliderAttacks = [Bitboard; NR_OF_SQUARES as usize];
 type MoveMask = [Bitboard; NR_OF_SQUARES as usize];
 
 /*
 The helper board is based on the 10x12 mailbox concept.
-It is used to help generate the bitboard-based move boards;
+It is used to help generate the bitboard-based attack boards;
 the helper board itself is then discarded and not used
 during play.
 
@@ -77,9 +79,9 @@ impl Default for HelperBoard {
 }
 
 pub struct Magics {
-    _king_moves: MoveMask,
-    _knight_moves: MoveMask,
-    // _pawn_moves: [MoveMask; 2],
+    _king: NonSliderAttacks,
+    _knight: NonSliderAttacks,
+    _pawns: [NonSliderAttacks; WHITE_BLACK],
     pub tmp_rook: MoveMask,
     pub tmp_bishop: MoveMask,
     pub tmp_queen: MoveMask,
@@ -90,9 +92,9 @@ impl Default for Magics {
         const EMPTY: Bitboard = 0;
         const NSQ: usize = NR_OF_SQUARES as usize;
         Magics {
-            _king_moves: [EMPTY; NSQ],
-            _knight_moves: [EMPTY; NSQ],
-            // _pawn_moves: [[EMPTY; NSQ]; 2],
+            _king: [EMPTY; NSQ],
+            _knight: [EMPTY; NSQ],
+            _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
             tmp_rook: [EMPTY; NSQ],
             tmp_bishop: [EMPTY; NSQ],
             tmp_queen: [EMPTY; NSQ],
@@ -106,25 +108,25 @@ impl Magics {
 
         self.non_slider(KING, &helper_board);
         self.non_slider(KNIGHT, &helper_board);
+        self.pawns(&helper_board);
         self.slider(ROOK, &helper_board);
         self.slider(BISHOP, &helper_board);
         self.slider_queen();
-        // self.pawn_mask_move(WHITE, &helper_board);
-        // self.pawn_mask_move(BLACK, &helper_board);
     }
 
-    pub fn get_non_slider_moves(&self, piece: Piece, square: u8) -> Bitboard {
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
         let s = square as usize;
         match piece {
-            KING => self._king_moves[s],
-            KNIGHT => self._knight_moves[s],
+            KING => self._king[s],
+            KNIGHT => self._king[s],
             _ => 0,
         }
     }
 
-    // pub fn get_pawn_moves(&self, side: Side, square: u8) -> Bitboard {
-    //     self._pawn_moves[side][square as usize]
-    // }
+    pub fn get_pawn_captures(&self, side: Side, square: u8) -> Bitboard {
+        debug_assert!(side == WHITE || side == BLACK, "Incorrect side.");
+        self._pawns[side][square as usize]
+    }
 
     fn non_slider(&mut self, piece: Piece, helper: &HelperBoard) {
         debug_assert!(piece == KING || piece == KNIGHT, "Incorrect piece.");
@@ -144,8 +146,8 @@ impl Magics {
                 if helper.mailbox[try_square] != INVALID_SQUARE {
                     let valid_square = helper.mailbox[try_square];
                     match piece {
-                        KING => self._king_moves[square] |= 1u64 << valid_square,
-                        KNIGHT => self._knight_moves[square] |= 1u64 << valid_square,
+                        KING => self._king[square] |= 1u64 << valid_square,
+                        KNIGHT => self._knight[square] |= 1u64 << valid_square,
                         _ => (),
                     }
                 }
@@ -191,40 +193,19 @@ impl Magics {
         }
     }
 
-    // fn pawn_mask_move(&mut self, side: Side, helper: &HelperBoard) {
-    //     debug_assert!(side == 0 || side == 1, "Incorrect side.");
-    //     const MB_WHITE_SECOND_RANK: RangeInclusive<u8> = 31..=38;
-    //     const MB_BLACK_SECOND_RANK: RangeInclusive<u8> = 81..=88;
-    //     let mut direction: i8 = 0;
-    //     let mut second_rank: RangeInclusive<u8> = 0..=0;
+    fn pawns(&mut self, helper: &HelperBoard) {
+        const DIRECTIONS: PawnCaptureDirections = [9, 11];
 
-    //     // Set the direction and second rank from the viewpoint of white or black.
-    //     match side {
-    //         WHITE => {
-    //             direction = 10;
-    //             second_rank = MB_WHITE_SECOND_RANK;
-    //         }
-    //         BLACK => {
-    //             direction = -10;
-    //             second_rank = MB_BLACK_SECOND_RANK;
-    //         }
-    //         _ => (),
-    //     };
-
-    //     // A pawn will never be on the first rank as it starts on the second.
-    //     // A pawn will never move from the last rank due to promotion to a piece.
-    //     // So, skip the first 8 and last 8 squares when creating pawn move masks.
-    //     const SKIP_FIRST_RANK: u8 = 8;
-    //     const SKIP_LAST_RANK: u8 = 8;
-    //     for square in SKIP_FIRST_RANK..NR_OF_SQUARES - SKIP_LAST_RANK {
-    //         let i = square as usize;
-    //         let current_mailbox_square = helper.real[i] as i8;
-    //         let one_forward = helper.mailbox[(current_mailbox_square + direction) as usize];
-    //         self._pawn_moves[side][i] |= 1u64 << one_forward;
-    //         if second_rank.contains(&(current_mailbox_square as u8)) {
-    //             let two_forward = helper.mailbox[(current_mailbox_square + 2 * direction) as usize];
-    //             self._pawn_moves[side][i] |= 1u64 << two_forward;
-    //         }
-    //     }
-    // }
+        for sq in PAWN_SQUARES {
+            for d in DIRECTIONS.iter() {
+                let square = sq as usize;
+                let mailbox_square = helper.real[square] as i8;
+                let try_square_white = (mailbox_square + d) as usize;
+                if helper.mailbox[try_square_white] != INVALID_SQUARE {
+                    let valid_square = helper.mailbox[try_square_white];
+                    self._pawns[WHITE][square] |= 1u64 << valid_square;
+                }
+            }
+        }
+    }
 }

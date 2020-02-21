@@ -26,11 +26,6 @@ fn main() {
     movegen::generate(&board, BLACK, &magics, &mut moves);
     print::movelist(&moves);
 
-    // for i in 0..64 {
-    //     println!("{}", i);
-    //     print::bitboard(magics.pawn_masks[0][i], Some(i as u8))
-    // }
-
     println!("Done.");
 
     // Test generation of all blockers, iterative
