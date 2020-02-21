@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 pub const ENGINE: &str = "Rustic";
-pub const VERSION: &str = "1.0";
+pub const VERSION: &str = "0.1";
 pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
