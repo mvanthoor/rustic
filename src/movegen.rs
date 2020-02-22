@@ -102,9 +102,10 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
         let push = 1u64 << (from as i8 + direction);
         let one_step = push & empty;
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
-        let target = magics.get_pawn_attacks(side, from);
-        let captures = target & opponent_pieces;
-        let ep_capture = target & (1u64 << board.en_passant);
+        let targets = magics.get_pawn_attacks(side, from);
+        let captures = targets & opponent_pieces;
+        let ep_square = if let Some(s) = board.en_passant { s } else { 0 };
+        let ep_capture = targets & (1u64 << ep_square);
         let moves = one_step ^ two_step ^ captures ^ ep_capture;
         add_move(board, PAWN, side, from as u64, moves, list);
     }

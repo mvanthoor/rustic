@@ -132,23 +132,23 @@ fn part_3(part: &str, board: &mut Board) {
     }
 
     if length == 2 {
-        const ASCII_VALUE_OF_SMALL_A: i8 = 97;
-        const ASCII_VALUE_OF_1: i8 = 49;
-        let mut file = -1;
-        let mut rank = -1;
+        const ASCII_VALUE_OF_SMALL_A: u8 = 97;
+        const ASCII_VALUE_OF_1: u8 = 49;
+        let mut file = 0;
+        let mut rank = 0;
         for (char_nr, c) in part.chars().enumerate() {
             if char_nr == 0 && LETTERS.contains(c) {
-                file = (c as i8) - ASCII_VALUE_OF_SMALL_A;
+                file = (c as u8) - ASCII_VALUE_OF_SMALL_A;
                 char_ok += 1;
             }
             if char_nr == 1 && EN_PASSANT_RANKS.contains(c) {
-                rank = (c as i8) - ASCII_VALUE_OF_1;
+                rank = (c as u8) - ASCII_VALUE_OF_1;
                 char_ok += 1;
             }
         }
-        if file != -1 && rank != -1 {
+        if file != 0 && rank != 0 {
             let square_nr = (rank * 8) + file;
-            board.en_passant = square_nr;
+            board.en_passant = Some(square_nr);
         }
     }
     assert_eq!(char_ok, length, "FEN {}: En Passant Target: {}", PART, part);

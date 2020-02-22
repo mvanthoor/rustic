@@ -21,7 +21,9 @@ fn main() {
 
     print::engine_info();
     print::position(&board, None);
-    println!("en_passant: {}", SQUARE_NAME[board.en_passant as usize]);
+    if let Some(s) = board.en_passant {
+        println!("en_passant: {}", s);
+    };
 
     // movegen::generate(&board, WHITE, &magics, &mut moves);
     // print::movelist(&moves);

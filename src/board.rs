@@ -9,7 +9,7 @@ pub struct Board {
     pub bb_ranks: [Bitboard; BITBOARDS_FOR_RANKS as usize],
     pub active_color: u8,
     pub castling: u8,
-    pub en_passant: i8,
+    pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
 }
@@ -24,7 +24,7 @@ impl Default for Board {
             bb_ranks: [0; BITBOARDS_FOR_RANKS as usize],
             active_color: WHITE as u8,
             castling: 0,
-            en_passant: -1,
+            en_passant: None,
             halfmove_clock: 0,
             fullmove_number: 0,
         }
@@ -75,7 +75,7 @@ impl Board {
         self.bb_pieces = [0; BITBOARDS_FOR_PIECES as usize];
         self.active_color = WHITE as u8;
         self.castling = 0;
-        self.en_passant = -1;
+        self.en_passant = None;
         self.halfmove_clock = 0;
         self.fullmove_number = 0;
     }
