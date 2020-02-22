@@ -123,7 +123,7 @@ impl Magics {
 
         match piece {
             KING => self._king[s],
-            KNIGHT => self._king[s],
+            KNIGHT => self._knight[s],
             _ => 0,
         }
     }

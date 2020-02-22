@@ -15,7 +15,7 @@ fn main() {
     let mut magics: Magics = Default::default();
     let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
-    let test_pos: &str = "bB3r1n/PP2P1P1/8/2pp1N2/1p1PP3/p5N1/PPP4P/8 w - - 0 1";
+    let test_pos: &str = "bB3r1n/PP2P1Pk/8/1Kpp1N2/1p1PP3/p5N1/PPP4P/8 w - - 0 1";
     board.initialize(test_pos);
     magics.initialize();
 
@@ -24,8 +24,8 @@ fn main() {
 
     movegen::generate(&board, WHITE, &magics, &mut moves);
     print::movelist(&moves);
-    movegen::generate(&board, BLACK, &magics, &mut moves);
-    print::movelist(&moves);
+    // movegen::generate(&board, BLACK, &magics, &mut moves);
+    // print::movelist(&moves);
 
     println!("Done.");
 

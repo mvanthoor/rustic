@@ -34,41 +34,49 @@ Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 
 const UP: i8 = 8;
 const DOWN: i8 = -8;
+
+enum Shift {
+    Piece = 0,
+    FromSq = 3,
+    ToSq = 9,
+    Capture = 15,
+    Promotion = 18,
+}
+
 pub const MAX_LEGAL_MOVES: u8 = 255;
 pub type MoveList = Vec<Move>;
 
 pub struct Move {
     data: u64,
-    score: u32,
 }
 
 impl Move {
     pub fn piece(&self) -> u8 {
-        ((self.data) & 0x7) as u8
+        ((self.data >> Shift::Piece as u64) & 0x7) as u8
     }
 
     pub fn from(&self) -> u8 {
-        ((self.data >> 3) & 0x3F) as u8
+        ((self.data >> Shift::FromSq as u64) & 0x3F) as u8
     }
 
     pub fn to(&self) -> u8 {
-        ((self.data >> 9) & 0x3F) as u8
+        ((self.data >> Shift::ToSq as u64) & 0x3F) as u8
     }
 
     pub fn captured(&self) -> u8 {
-        ((self.data >> 15) & 0x7) as u8
+        ((self.data >> Shift::Capture as u64) & 0x7) as u8
     }
 
     pub fn promoted(&self) -> u8 {
-        ((self.data >> 18) & 0x7) as u8
+        ((self.data >> Shift::Promotion as u64) & 0x7) as u8
     }
 }
 
 pub fn generate(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     debug_assert!(side == 0 || side == 1, "Incorrect side.");
     list.clear();
-    // non_slider(KING, board, side, magics, list);
-    // non_slider(KNIGHT, board, side, magics, list);
+    non_slider(KING, board, side, magics, list);
+    non_slider(KNIGHT, board, side, magics, list);
     pawns(board, side, magics, list);
 }
 
@@ -92,7 +100,7 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     while pawns > 0 {
         let from = next(&mut pawns) as u8;
         let push = 1u64 << (from as i8 + direction);
-        let one_step = push & !board.occupancy();
+        let one_step = push & empty;
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
         let target = magics.get_pawn_attacks(side, from);
         let captures = target & opponent_pieces;
@@ -124,28 +132,25 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, li
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
         let promotion = piece == PAWN && board.square_on_rank(to_square, promotion_rank);
+        let move_data = (piece as u64)
+            ^ ((from as u64) << Shift::FromSq as u64)
+            ^ ((to_square as u64) << Shift::ToSq as u64)
+            ^ ((capture as u64) << Shift::Capture as u64);
+
+        if !promotion {
+            let m = Move {
+                data: move_data ^ ((PNONE as u64) << Shift::Promotion as u64),
+            };
+            list.push(m);
+        }
+
         if promotion {
-            // Add promotions
-            for p in promotion_pieces.iter() {
-                list.push(Move {
-                    data: (piece as u64)
-                        ^ ((from as u64) << 3)
-                        ^ ((to_square as u64) << 9)
-                        ^ ((capture as u64) << 15)
-                        ^ ((*p as u64) << 18),
-                    score: 0,
-                });
+            for piece in promotion_pieces.iter() {
+                let m = Move {
+                    data: move_data ^ ((*piece as u64) << Shift::Promotion as u64),
+                };
+                list.push(m);
             }
-        } else {
-            // Add normal move
-            list.push(Move {
-                data: (piece as u64)
-                    ^ ((from as u64) << 3)
-                    ^ ((to_square as u64) << 9)
-                    ^ ((capture as u64) << 15)
-                    ^ ((PNONE as u64) << 18),
-                score: 0,
-            });
         }
     }
 }
