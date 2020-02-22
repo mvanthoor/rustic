@@ -1,4 +1,7 @@
-use crate::defines::*;
+use crate::defines::{
+    Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, KING, KNIGHT, NR_OF_SQUARES, PAWN_SQUARES,
+    ROOK, WHITE,
+};
 
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
@@ -91,6 +94,7 @@ impl Default for Magics {
     fn default() -> Magics {
         const EMPTY: Bitboard = 0;
         const NSQ: usize = NR_OF_SQUARES as usize;
+
         Magics {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
@@ -116,6 +120,7 @@ impl Magics {
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
         let s = square as usize;
+
         match piece {
             KING => self._king[s],
             KNIGHT => self._king[s],
@@ -123,7 +128,7 @@ impl Magics {
         }
     }
 
-    pub fn get_pawn_captures(&self, side: Side, square: u8) -> Bitboard {
+    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         debug_assert!(side == WHITE || side == BLACK, "Incorrect side.");
         self._pawns[side][square as usize]
     }
@@ -132,17 +137,18 @@ impl Magics {
         debug_assert!(piece == KING || piece == KNIGHT, "Incorrect piece.");
         const DIRECTIONS_KING: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
         const DIRECTIONS_KNIGHT: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
-
         let directions = match piece {
             KING => DIRECTIONS_KING,
             KNIGHT => DIRECTIONS_KNIGHT,
             _ => [0; 8],
         };
+
         for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
                 let mailbox_square = helper.real[square] as i8;
                 let try_square = (mailbox_square + d) as usize;
+
                 if helper.mailbox[try_square] != INVALID_SQUARE {
                     let valid_square = helper.mailbox[try_square];
                     match piece {
@@ -159,17 +165,18 @@ impl Magics {
         debug_assert!(piece == ROOK || piece == BISHOP, "Incorrect piece.");
         const DIRECTIONS_ROOK: SliderDirections = [-10, -1, 1, 10];
         const DIRECTIONS_BISHOP: SliderDirections = [-11, -9, 9, 11];
-
         let directions = match piece {
             ROOK => DIRECTIONS_ROOK,
             BISHOP => DIRECTIONS_BISHOP,
             _ => [0; 4],
         };
+
         for sq in ALL_SQUARES {
             for d in directions.iter() {
                 let square = sq as usize;
                 let mut current_mailbox_square = helper.real[square] as i8;
                 let mut next_mailbox_square = current_mailbox_square + d;
+
                 while helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
                     current_mailbox_square += d;
                     next_mailbox_square += d;
@@ -201,9 +208,15 @@ impl Magics {
                 let square = sq as usize;
                 let mailbox_square = helper.real[square] as i8;
                 let try_square_white = (mailbox_square + d) as usize;
+                let try_square_black = (mailbox_square + -d) as usize;
+
                 if helper.mailbox[try_square_white] != INVALID_SQUARE {
                     let valid_square = helper.mailbox[try_square_white];
                     self._pawns[WHITE][square] |= 1u64 << valid_square;
+                }
+                if helper.mailbox[try_square_black] != INVALID_SQUARE {
+                    let valid_square = helper.mailbox[try_square_black];
+                    self._pawns[BLACK][square] |= 1u64 << valid_square;
                 }
             }
         }

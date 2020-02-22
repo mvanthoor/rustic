@@ -1,5 +1,8 @@
 use crate::board::Board;
-use crate::defines::*;
+use crate::defines::{
+    Bitboard, Piece, Side, BB_RANK_4, BB_RANK_5, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1,
+    RANK_8, ROOK, WHITE,
+};
 use crate::magics::Magics;
 use crate::print;
 
