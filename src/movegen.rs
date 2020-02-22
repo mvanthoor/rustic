@@ -18,11 +18,12 @@ FROM SQUARE :   6        0-63
 TO SQUARE   :   6        0-63
 CAPTURE     :   3        0-7
 PROMOTION   :   3        0-7
+ENPASSANT   :   1        0-1
 
-Field:      PROMOTION   CAPTURE     TO          FROM        PIECE
-            111         111         111111      111111      111
-Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
-& Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
+Field:      ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
+                        111         111         111111      111111      111
+Shift:      21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
+& Value:    0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -41,6 +42,7 @@ enum Shift {
     ToSq = 9,
     Capture = 15,
     Promotion = 18,
+    EnPassant = 21,
 }
 
 pub const MAX_LEGAL_MOVES: u8 = 255;
@@ -69,6 +71,11 @@ impl Move {
 
     pub fn promoted(&self) -> u8 {
         ((self.data >> Shift::Promotion as u64) & 0x7) as u8
+    }
+
+    pub fn en_passant(&self) -> bool {
+        let ep = ((self.data >> Shift::EnPassant as u64) & 0x1) as u8;
+        return if ep == 1 { true } else { false };
     }
 }
 
@@ -104,7 +111,7 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
         let targets = magics.get_pawn_attacks(side, from);
         let captures = targets & opponent_pieces;
-        let ep_square = if let Some(s) = board.en_passant { s } else { 0 };
+        let ep_square = board.en_passant_square();
         let ep_capture = targets & (1u64 << ep_square);
         let moves = one_step ^ two_step ^ captures ^ ep_capture;
         add_move(board, PAWN, side, from as u64, moves, list);
@@ -134,10 +141,13 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, li
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
         let promotion = piece == PAWN && board.square_on_rank(to_square, promotion_rank);
+        let ep_square = board.en_passant_square();
+        let en_passant = piece == PAWN && (to_square == ep_square);
         let move_data = (piece as u64)
             ^ ((from as u64) << Shift::FromSq as u64)
             ^ ((to_square as u64) << Shift::ToSq as u64)
-            ^ ((capture as u64) << Shift::Capture as u64);
+            ^ ((capture as u64) << Shift::Capture as u64)
+            ^ ((en_passant as u64) << Shift::EnPassant as u64);
 
         if !promotion {
             let m = Move {

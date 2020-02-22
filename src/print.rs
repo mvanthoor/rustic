@@ -49,13 +49,14 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 pub fn movelist(moves: &MoveList) {
     for (i, m) in moves.iter().enumerate() {
         println!(
-            "Move {}: {}{}{} capture: {}, promotion: {}",
+            "Move {}: {}{}{} capture: {}, promotion: {}, ep: {}",
             i + 1,
             PIECE_CHAR[m.piece() as usize],
             SQUARE_NAME[m.from() as usize],
             SQUARE_NAME[m.to() as usize],
             PIECE_NAME[m.captured() as usize],
-            PIECE_NAME[m.promoted() as usize]
+            PIECE_NAME[m.promoted() as usize],
+            m.en_passant()
         );
     }
 }

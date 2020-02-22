@@ -115,4 +115,8 @@ impl Board {
         let end = start + 7;
         (start..=end).contains(&square)
     }
+
+    pub fn en_passant_square(&self) -> u8 {
+        return if let Some(s) = self.en_passant { s } else { 0 };
+    }
 }
