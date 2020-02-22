@@ -21,7 +21,7 @@ PROMOTION   :   3        0-7
 ENPASSANT   :   1        0-1
 
 Field:      ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
-                        111         111         111111      111111      111
+            1           111         111         111111      111111      111
 Shift:      21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
 & Value:    0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
