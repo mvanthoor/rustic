@@ -1,5 +1,8 @@
 use crate::board::Board;
-use crate::defines::*;
+use crate::defines::{
+    Bitboard, ALL_FILES, ALL_RANKS, AUTHOR, BISHOP, ENGINE, KING, KNIGHT, NR_OF_FILES,
+    NR_OF_SQUARES, PAWN, QUEEN, ROOK, SQUARE_NAME, VERSION,
+};
 use crate::movegen::MoveList;
 
 type AsciiBoard = [char; NR_OF_SQUARES as usize];
@@ -19,7 +22,7 @@ const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
 
 const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
-const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "None"];
+const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 // const COLOR_NAME: [&str; 2] = ["White", "black"];
 
 pub fn engine_info() {
@@ -44,9 +47,10 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 
 #[allow(dead_code)]
 pub fn movelist(moves: &MoveList) {
-    for m in moves.iter() {
+    for (i, m) in moves.iter().enumerate() {
         println!(
-            "{}{}{} capture: {}, promotion: {}",
+            "Move {}: {}{}{} capture: {}, promotion: {}",
+            i + 1,
             PIECE_CHAR[m.piece() as usize],
             SQUARE_NAME[m.from() as usize],
             SQUARE_NAME[m.to() as usize],

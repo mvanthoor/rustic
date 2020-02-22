@@ -32,6 +32,8 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
+const UP: i8 = 8;
+const DOWN: i8 = -8;
 pub const MAX_LEGAL_MOVES: u8 = 255;
 pub type MoveList = Vec<Move>;
 
@@ -64,9 +66,10 @@ impl Move {
 
 pub fn generate(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     debug_assert!(side == 0 || side == 1, "Incorrect side.");
-    non_slider(KING, board, side, magics, list);
-    non_slider(KNIGHT, board, side, magics, list);
-    pawn_push(board, side, list);
+    list.clear();
+    // non_slider(KING, board, side, magics, list);
+    // non_slider(KNIGHT, board, side, magics, list);
+    pawns(board, side, magics, list);
 }
 
 fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
@@ -80,16 +83,21 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
     }
 }
 
-fn pawn_push(board: &Board, side: Side, list: &mut MoveList) {
-    let direction = if side == WHITE { 8 } else { -8 };
-    let rank = if side == WHITE { BB_RANK_4 } else { BB_RANK_5 };
+fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
+    let opponent_pieces = board.bb_pieces[side ^ 1];
+    let empty = !board.occupancy();
+    let direction = if side == WHITE { UP } else { DOWN };
+    let fourth = if side == WHITE { BB_RANK_4 } else { BB_RANK_5 };
     let mut pawns = board.get_pieces(PAWN, side);
     while pawns > 0 {
         let from = next(&mut pawns) as u8;
-        let target = 1u64 << (from as i8 + direction);
-        let one_step = target & !board.occupancy();
-        let two_step = one_step.rotate_left((64 + direction) as u32) & !board.occupancy() & rank;
-        add_move(board, PAWN, side, from as u64, one_step ^ two_step, list);
+        let push = 1u64 << (from as i8 + direction);
+        let one_step = push & !board.occupancy();
+        let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
+        let target = magics.get_pawn_attacks(side, from);
+        let captures = target & opponent_pieces;
+        let moves = one_step ^ two_step ^ captures;
+        add_move(board, PAWN, side, from as u64, moves, list);
     }
 }
 
