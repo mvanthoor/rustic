@@ -104,7 +104,8 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
         let target = magics.get_pawn_attacks(side, from);
         let captures = target & opponent_pieces;
-        let moves = one_step ^ two_step ^ captures;
+        let ep_capture = target & (1u64 << board.en_passant);
+        let moves = one_step ^ two_step ^ captures ^ ep_capture;
         add_move(board, PAWN, side, from as u64, moves, list);
     }
 }
