@@ -111,9 +111,12 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
         let targets = magics.get_pawn_attacks(side, from);
         let captures = targets & opponent_pieces;
-        let ep_square = board.en_passant_square();
-        let ep_capture = targets & (1u64 << ep_square);
-        let moves = one_step ^ two_step ^ captures ^ ep_capture;
+        let ep_capture = if let Some(square) = board.en_passant {
+            targets & (1u64 << square)
+        } else {
+            0
+        };
+        let moves = one_step | two_step | captures | ep_capture;
         add_move(board, PAWN, side, from as u64, moves, list);
     }
 }
@@ -141,8 +144,12 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, li
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
         let promotion = piece == PAWN && board.square_on_rank(to_square, promotion_rank);
-        let ep_square = board.en_passant_square();
-        let en_passant = piece == PAWN && (to_square == ep_square);
+        let ep_square = if let Some(square) = board.en_passant {
+            square
+        } else {
+            0
+        };
+        let en_passant = (piece == PAWN) && (ep_square != 0) && (to_square == ep_square);
         let move_data = (piece as u64)
             ^ ((from as u64) << Shift::FromSq as u64)
             ^ ((to_square as u64) << Shift::ToSq as u64)

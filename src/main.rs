@@ -15,7 +15,7 @@ fn main() {
     let mut magics: Magics = Default::default();
     let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
-    let test_pos: &str = "8/8/8/8/2pP4/1P6/8/8 w - d3 0 1";
+    let test_pos: &str = "8/8/8/8/3pP3/8/1p4p1/R6N w - - 0 1";
     board.initialize(test_pos);
     magics.initialize();
 
