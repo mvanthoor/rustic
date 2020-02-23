@@ -91,10 +91,10 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
     let us = board.bb_pieces[side];
     let mut pieces = board.get_pieces(piece, side);
     while pieces > 0 {
-        let from = next(&mut pieces) as u8;
+        let from = next(&mut pieces);
         let target = magics.get_non_slider_attacks(piece, from);
         let moves = target & !us;
-        add_move(board, piece, side, from as u64, moves, list);
+        add_move(board, piece, side, from, moves, list);
     }
 }
 
@@ -105,7 +105,7 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     let fourth = if side == WHITE { BB_RANK_4 } else { BB_RANK_5 };
     let mut pawns = board.get_pieces(PAWN, side);
     while pawns > 0 {
-        let from = next(&mut pawns) as u8;
+        let from = next(&mut pawns);
         let push = 1u64 << (from as i8 + direction);
         let one_step = push & empty;
         let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
@@ -117,7 +117,7 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
             0
         };
         let moves = one_step | two_step | captures | ep_capture;
-        add_move(board, PAWN, side, from as u64, moves, list);
+        add_move(board, PAWN, side, from, moves, list);
     }
 }
 
@@ -136,14 +136,14 @@ fn is_capture(board: &Board, side: Side, to_square: u8) -> Piece {
     PNONE
 }
 
-fn add_move(board: &Board, piece: Piece, side: Side, from: u64, to: Bitboard, list: &mut MoveList) {
+fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, list: &mut MoveList) {
     let mut bitboard_to = to;
     let promotion_rank = if side == WHITE { RANK_8 } else { RANK_1 };
     let promotion_pieces: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
-        let promotion = piece == PAWN && board.square_on_rank(to_square, promotion_rank);
+        let promotion = (piece == PAWN) && board.square_on_rank(to_square, promotion_rank);
         let ep_square = if let Some(square) = board.en_passant {
             square
         } else {
