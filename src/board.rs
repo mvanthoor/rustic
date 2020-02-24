@@ -1,4 +1,7 @@
-use crate::defines::*;
+use crate::defines::{
+    Bitboard, Piece, Side, BITBOARDS_FOR_FILES, BITBOARDS_FOR_PIECES, BITBOARDS_FOR_RANKS,
+    BITBOARDS_PER_SIDE, BLACK, PNONE, WHITE,
+};
 use crate::fen;
 
 pub struct Board {

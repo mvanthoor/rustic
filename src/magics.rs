@@ -10,13 +10,16 @@ const INVALID_FILES: [u8; 2] = [0, 9];
 const INVALID_RANKS: [u8; 4] = [0, 1, 10, 11];
 const INVALID_SQUARE: u8 = 255;
 const WHITE_BLACK: usize = 2;
-const RAYS: u8 = 4;
+const NR_OF_RAYS: usize = 4;
+const EMPTY: Bitboard = 0;
+const NSQ: usize = NR_OF_SQUARES as usize;
 
 type SliderDirections = [i8; 4];
 type NonSliderDirections = [i8; 8];
 type PawnCaptureDirections = [i8; 2];
-type NonSliderAttacks = [Bitboard; NR_OF_SQUARES as usize];
-type MoveMask = [Bitboard; NR_OF_SQUARES as usize];
+type NonSliderAttacks = [Bitboard; NSQ];
+type MoveMask = [Bitboard; NSQ];
+type SquaresInRays = [i8; NR_OF_RAYS];
 
 /*
 The helper board is based on the 10x12 mailbox concept.
@@ -53,16 +56,16 @@ real to mailbox board:
     A  B  C  D  E  F  G  H
 */
 
-pub struct HelperBoard {
+struct HelperBoard {
     pub mailbox: [u8; MAILBOX_SIZE],
-    pub real: [u8; 64],
+    pub real: [u8; NSQ],
 }
 
 impl Default for HelperBoard {
     fn default() -> HelperBoard {
         let mut helper_board: HelperBoard = HelperBoard {
             mailbox: [0; MAILBOX_SIZE],
-            real: [0; NR_OF_SQUARES as usize],
+            real: [0; NSQ],
         };
         let mut real_board_square: usize = 0;
 
@@ -82,31 +85,36 @@ impl Default for HelperBoard {
     }
 }
 
+struct SliderInfo {
+    pub _rook_move_masks: MoveMask,
+    pub _bishop_move_masks: MoveMask,
+    pub _rook_squares_in_ray: [SquaresInRays; NSQ],
+    pub _bishop_squares_in_ray: [SquaresInRays; NSQ],
+}
+
+impl Default for SliderInfo {
+    fn default() -> SliderInfo {
+        SliderInfo {
+            _rook_move_masks: [EMPTY; NSQ],
+            _bishop_move_masks: [EMPTY; NSQ],
+            _rook_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
+            _bishop_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
+        }
+    }
+}
+
 pub struct Magics {
     _king: NonSliderAttacks,
     _knight: NonSliderAttacks,
     _pawns: [NonSliderAttacks; WHITE_BLACK],
-    pub tmp_rook: MoveMask,
-    pub tmp_bishop: MoveMask,
-    pub tmp_queen: MoveMask,
-    pub tmp_rook_squares_in_ray: [[i8; RAYS as usize]; NR_OF_SQUARES as usize],
-    pub tmp_bishop_squares_in_ray: [[i8; RAYS as usize]; NR_OF_SQUARES as usize],
 }
 
 impl Default for Magics {
     fn default() -> Magics {
-        const EMPTY: Bitboard = 0;
-        const NSQ: usize = NR_OF_SQUARES as usize;
-
         Magics {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
-            tmp_rook: [EMPTY; NSQ],
-            tmp_bishop: [EMPTY; NSQ],
-            tmp_queen: [EMPTY; NSQ],
-            tmp_rook_squares_in_ray: [[0; RAYS as usize]; NSQ],
-            tmp_bishop_squares_in_ray: [[0; RAYS as usize]; NSQ],
         }
     }
 }
@@ -114,13 +122,13 @@ impl Default for Magics {
 impl Magics {
     pub fn initialize(&mut self) {
         let helper_board: HelperBoard = Default::default();
+        let mut slider_info: SliderInfo = Default::default();
 
-        self.non_slider(KING, &helper_board);
-        self.non_slider(KNIGHT, &helper_board);
-        self.pawns(&helper_board);
-        self.slider(ROOK, &helper_board);
-        self.slider(BISHOP, &helper_board);
-        self.slider_queen();
+        self.init_non_slider_attacks(KING, &helper_board);
+        self.init_non_slider_attacks(KNIGHT, &helper_board);
+        self.init_pawn_attacks(&helper_board);
+        self.calc_slider_info(ROOK, &mut slider_info, &helper_board);
+        self.calc_slider_info(BISHOP, &mut slider_info, &helper_board);
     }
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
@@ -138,7 +146,7 @@ impl Magics {
         self._pawns[side][square as usize]
     }
 
-    fn non_slider(&mut self, piece: Piece, helper: &HelperBoard) {
+    fn init_non_slider_attacks(&mut self, piece: Piece, helper: &HelperBoard) {
         debug_assert!(piece == KING || piece == KNIGHT, "Incorrect piece.");
         const DIRECTIONS_KING: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
         const DIRECTIONS_KNIGHT: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
@@ -166,7 +174,29 @@ impl Magics {
         }
     }
 
-    fn slider(&mut self, piece: Piece, helper: &HelperBoard) {
+    fn init_pawn_attacks(&mut self, helper: &HelperBoard) {
+        const DIRECTIONS: PawnCaptureDirections = [9, 11];
+        for sq in PAWN_SQUARES {
+            for d in DIRECTIONS.iter() {
+                let square = sq as usize;
+                let mailbox_square = helper.real[square] as i8;
+                let try_square_white = (mailbox_square + d) as usize;
+                let try_square_black = (mailbox_square + -d) as usize;
+
+                if helper.mailbox[try_square_white] != INVALID_SQUARE {
+                    let valid_square = helper.mailbox[try_square_white];
+                    self._pawns[WHITE][square] |= 1u64 << valid_square;
+                }
+
+                if helper.mailbox[try_square_black] != INVALID_SQUARE {
+                    let valid_square = helper.mailbox[try_square_black];
+                    self._pawns[BLACK][square] |= 1u64 << valid_square;
+                }
+            }
+        }
+    }
+
+    fn calc_slider_info(&mut self, piece: Piece, info: &mut SliderInfo, helper: &HelperBoard) {
         debug_assert!(piece == ROOK || piece == BISHOP, "Incorrect piece.");
         const DIRECTIONS_ROOK: SliderDirections = [10, 1, -10, -1];
         const DIRECTIONS_BISHOP: SliderDirections = [11, -9, -11, 9];
@@ -189,45 +219,16 @@ impl Magics {
                         let valid_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
                             ROOK => {
-                                self.tmp_rook[square] |= 1u64 << valid_square;
-                                self.tmp_rook_squares_in_ray[square][i] += 1;
+                                info._rook_move_masks[square] |= 1u64 << valid_square;
+                                info._rook_squares_in_ray[square][i] += 1;
                             }
                             BISHOP => {
-                                self.tmp_bishop[square] |= 1u64 << valid_square;
-                                self.tmp_bishop_squares_in_ray[square][i] += 1;
+                                info._bishop_move_masks[square] |= 1u64 << valid_square;
+                                info._bishop_squares_in_ray[square][i] += 1;
                             }
                             _ => (),
                         }
                     }
-                }
-            }
-        }
-    }
-
-    fn slider_queen(&mut self) {
-        for sq in ALL_SQUARES {
-            let square = sq as usize;
-            self.tmp_queen[square] = self.tmp_bishop[square] ^ self.tmp_rook[square];
-        }
-    }
-
-    fn pawns(&mut self, helper: &HelperBoard) {
-        const DIRECTIONS: PawnCaptureDirections = [9, 11];
-
-        for sq in PAWN_SQUARES {
-            for d in DIRECTIONS.iter() {
-                let square = sq as usize;
-                let mailbox_square = helper.real[square] as i8;
-                let try_square_white = (mailbox_square + d) as usize;
-                let try_square_black = (mailbox_square + -d) as usize;
-
-                if helper.mailbox[try_square_white] != INVALID_SQUARE {
-                    let valid_square = helper.mailbox[try_square_white];
-                    self._pawns[WHITE][square] |= 1u64 << valid_square;
-                }
-                if helper.mailbox[try_square_black] != INVALID_SQUARE {
-                    let valid_square = helper.mailbox[try_square_black];
-                    self._pawns[BLACK][square] |= 1u64 << valid_square;
                 }
             }
         }

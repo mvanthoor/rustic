@@ -29,11 +29,15 @@ pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 pub const NR_OF_SQUARES: u8 = 64;
 pub const NR_OF_FILES: u8 = 8;
-pub const RANK_1: u8 = 0;
-pub const RANK_8: u8 = 7;
+pub enum Ranks {
+    R1 = 0,
+    R4 = 3,
+    R5 = 4,
+    R8 = 7,
+}
 pub const FILE_A: u8 = 0;
 pub const FILE_H: u8 = 7;
-pub const ALL_RANKS: RangeInclusive<u8> = RANK_1..=RANK_8;
+pub const ALL_RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);
 pub const ALL_FILES: RangeInclusive<u8> = FILE_A..=FILE_H;
 pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
 pub const PAWN_SQUARES: RangeInclusive<u8> = 8..=55;
@@ -55,6 +59,3 @@ pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
 pub const CASTLE_BQ: u8 = 8;
-
-pub const BB_RANK_4: u64 = 0xFF_00_00_00;
-pub const BB_RANK_5: u64 = 0xFF_00_00_00_00;

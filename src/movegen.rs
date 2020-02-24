@@ -1,10 +1,8 @@
 use crate::board::Board;
 use crate::defines::{
-    Bitboard, Piece, Side, BB_RANK_4, BB_RANK_5, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1,
-    RANK_8, ROOK, WHITE,
+    Bitboard, Piece, Ranks, Side, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, ROOK, WHITE,
 };
 use crate::magics::Magics;
-use crate::print;
 
 /*
 Move format explanation
@@ -102,7 +100,9 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
     let opponent_pieces = board.bb_pieces[side ^ 1];
     let empty = !board.occupancy();
     let direction = if side == WHITE { UP } else { DOWN };
-    let fourth = if side == WHITE { BB_RANK_4 } else { BB_RANK_5 };
+    let bb_rank_4 = board.bb_ranks[Ranks::R4 as usize];
+    let bb_rank_5 = board.bb_ranks[Ranks::R5 as usize];
+    let fourth = if side == WHITE { bb_rank_4 } else { bb_rank_5 };
     let mut pawns = board.get_pieces(PAWN, side);
     while pawns > 0 {
         let from = next(&mut pawns);
@@ -138,7 +138,9 @@ fn is_capture(board: &Board, side: Side, to_square: u8) -> Piece {
 
 fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, list: &mut MoveList) {
     let mut bitboard_to = to;
-    let promotion_rank = if side == WHITE { RANK_8 } else { RANK_1 };
+    let rank_8 = Ranks::R8 as u8;
+    let rank_1 = Ranks::R1 as u8;
+    let promotion_rank = if side == WHITE { rank_8 } else { rank_1 };
     let promotion_pieces: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);

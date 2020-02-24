@@ -1,5 +1,8 @@
 use crate::board::Board;
-use crate::defines::*;
+use crate::defines::{
+    Ranks, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN,
+    QUEEN, ROOK, WHITE,
+};
 
 const NR_OF_FEN_PARTS: usize = 6;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
@@ -35,7 +38,7 @@ pub fn read(fen_string: &str, board: &mut Board) {
 
 fn part_0(part: &str, board: &mut Board) {
     const PART: u8 = 0;
-    let mut rank = RANK_8;
+    let mut rank = Ranks::R8 as u8;
     let mut file = FILE_A;
 
     for c in part.chars() {
