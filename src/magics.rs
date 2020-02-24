@@ -10,6 +10,7 @@ const INVALID_FILES: [u8; 2] = [0, 9];
 const INVALID_RANKS: [u8; 4] = [0, 1, 10, 11];
 const INVALID_SQUARE: u8 = 255;
 const WHITE_BLACK: usize = 2;
+const RAYS: u8 = 4;
 
 type SliderDirections = [i8; 4];
 type NonSliderDirections = [i8; 8];
@@ -88,6 +89,8 @@ pub struct Magics {
     pub tmp_rook: MoveMask,
     pub tmp_bishop: MoveMask,
     pub tmp_queen: MoveMask,
+    pub tmp_rook_squares_in_ray: [[i8; RAYS as usize]; NR_OF_SQUARES as usize],
+    pub tmp_bishop_squares_in_ray: [[i8; RAYS as usize]; NR_OF_SQUARES as usize],
 }
 
 impl Default for Magics {
@@ -102,6 +105,8 @@ impl Default for Magics {
             tmp_rook: [EMPTY; NSQ],
             tmp_bishop: [EMPTY; NSQ],
             tmp_queen: [EMPTY; NSQ],
+            tmp_rook_squares_in_ray: [[0; RAYS as usize]; NSQ],
+            tmp_bishop_squares_in_ray: [[0; RAYS as usize]; NSQ],
         }
     }
 }
@@ -163,8 +168,8 @@ impl Magics {
 
     fn slider(&mut self, piece: Piece, helper: &HelperBoard) {
         debug_assert!(piece == ROOK || piece == BISHOP, "Incorrect piece.");
-        const DIRECTIONS_ROOK: SliderDirections = [-10, -1, 1, 10];
-        const DIRECTIONS_BISHOP: SliderDirections = [-11, -9, 9, 11];
+        const DIRECTIONS_ROOK: SliderDirections = [10, 1, -10, -1];
+        const DIRECTIONS_BISHOP: SliderDirections = [11, -9, -11, 9];
         let directions = match piece {
             ROOK => DIRECTIONS_ROOK,
             BISHOP => DIRECTIONS_BISHOP,
@@ -172,7 +177,7 @@ impl Magics {
         };
 
         for sq in ALL_SQUARES {
-            for d in directions.iter() {
+            for (i, d) in directions.iter().enumerate() {
                 let square = sq as usize;
                 let mut current_mailbox_square = helper.real[square] as i8;
                 let mut next_mailbox_square = current_mailbox_square + d;
@@ -183,8 +188,14 @@ impl Magics {
                     if helper.mailbox[next_mailbox_square as usize] != INVALID_SQUARE {
                         let valid_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
-                            ROOK => self.tmp_rook[square] |= 1u64 << valid_square,
-                            BISHOP => self.tmp_bishop[square] |= 1u64 << valid_square,
+                            ROOK => {
+                                self.tmp_rook[square] |= 1u64 << valid_square;
+                                self.tmp_rook_squares_in_ray[square][i] += 1;
+                            }
+                            BISHOP => {
+                                self.tmp_bishop[square] |= 1u64 << valid_square;
+                                self.tmp_bishop_squares_in_ray[square][i] += 1;
+                            }
                             _ => (),
                         }
                     }

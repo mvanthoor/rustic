@@ -27,8 +27,8 @@ fn main() {
 
     // movegen::generate(&board, WHITE, &magics, &mut moves);
     // print::movelist(&moves);
-    movegen::generate(&board, BLACK, &magics, &mut moves);
-    print::movelist(&moves);
+    // movegen::generate(&board, BLACK, &magics, &mut moves);
+    // print::movelist(&moves);
 
     println!("Done.");
 
