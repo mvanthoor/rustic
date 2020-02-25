@@ -19,7 +19,7 @@ type NonSliderDirections = [i8; 8];
 type PawnCaptureDirections = [i8; 2];
 type NonSliderAttacks = [Bitboard; NSQ];
 type MoveMask = [Bitboard; NSQ];
-type SquaresInRays = [i8; NR_OF_RAYS];
+type SquaresInRays = [u8; NR_OF_RAYS];
 
 /*
 The helper board is based on the 10x12 mailbox concept.
@@ -87,18 +87,22 @@ impl Default for HelperBoard {
 
 struct SliderInfo {
     pub _rook_move_masks: MoveMask,
-    pub _bishop_move_masks: MoveMask,
     pub _rook_squares_in_ray: [SquaresInRays; NSQ],
+    pub _rook_permutations_count: [u32; NSQ],
+    pub _bishop_move_masks: MoveMask,
     pub _bishop_squares_in_ray: [SquaresInRays; NSQ],
+    pub _bishop_permutations_count: [u32; NSQ],
 }
 
 impl Default for SliderInfo {
     fn default() -> SliderInfo {
         SliderInfo {
             _rook_move_masks: [EMPTY; NSQ],
-            _bishop_move_masks: [EMPTY; NSQ],
             _rook_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
+            _rook_permutations_count: [0; NSQ],
+            _bishop_move_masks: [EMPTY; NSQ],
             _bishop_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
+            _bishop_permutations_count: [0; NSQ],
         }
     }
 }
@@ -129,6 +133,7 @@ impl Magics {
         self.init_pawn_attacks(&helper_board);
         self.calc_slider_info(ROOK, &mut slider_info, &helper_board);
         self.calc_slider_info(BISHOP, &mut slider_info, &helper_board);
+        self.count_permutations(&mut slider_info);
     }
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
@@ -231,6 +236,21 @@ impl Magics {
                     }
                 }
             }
+        }
+    }
+
+    fn count_permutations(&self, info: &mut SliderInfo) {
+        for s in ALL_SQUARES {
+            let mut rook_bits = 0;
+            let mut bishop_bits = 0;
+            let square = s as usize;
+            for r in 0..NR_OF_RAYS {
+                let ray = r as usize;
+                rook_bits += info._rook_squares_in_ray[square][ray];
+                bishop_bits += info._bishop_squares_in_ray[square][ray];
+            }
+            info._rook_permutations_count[square] = 2u32.pow(rook_bits as u32);
+            info._bishop_permutations_count[square] = 2u32.pow(bishop_bits as u32);
         }
     }
 }
