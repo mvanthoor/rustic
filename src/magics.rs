@@ -14,11 +14,15 @@ const NR_OF_RAYS: usize = 4;
 const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
 
+// This is a total sum of all rook or bishop blocker permutations per square.
+const ROOK_TABLE_SIZE: u32 = 102400;
+const BISHOP_TABLE_SIZE: u32 = 5248;
+
 type SliderDirections = [i8; 4];
 type NonSliderDirections = [i8; 8];
 type PawnCaptureDirections = [i8; 2];
 type NonSliderAttacks = [Bitboard; NSQ];
-type MoveMask = [Bitboard; NSQ];
+type BlockerMask = [Bitboard; NSQ];
 type SquaresInRays = [u8; NR_OF_RAYS];
 
 /*
@@ -86,21 +90,22 @@ impl Default for HelperBoard {
 }
 
 struct SliderInfo {
-    pub _rook_move_masks: MoveMask,
     pub _rook_squares_in_ray: [SquaresInRays; NSQ],
     pub _rook_permutations_count: [u32; NSQ],
-    pub _bishop_move_masks: MoveMask,
     pub _bishop_squares_in_ray: [SquaresInRays; NSQ],
     pub _bishop_permutations_count: [u32; NSQ],
 }
 
+// _rook_permutations_count: Rook blocker permutations per square
+// _bishop_permutations_count: Bishop blocker permutations per square
+// The total of each of these determines the size of the attack tables.
+// Rook total permutations of all squares should be: 102400.
+// Bishop total permutations of all squares should be: 5248.
 impl Default for SliderInfo {
     fn default() -> SliderInfo {
         SliderInfo {
-            _rook_move_masks: [EMPTY; NSQ],
             _rook_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
             _rook_permutations_count: [0; NSQ],
-            _bishop_move_masks: [EMPTY; NSQ],
             _bishop_squares_in_ray: [[0; NR_OF_RAYS]; NSQ],
             _bishop_permutations_count: [0; NSQ],
         }
@@ -111,6 +116,10 @@ pub struct Magics {
     _king: NonSliderAttacks,
     _knight: NonSliderAttacks,
     _pawns: [NonSliderAttacks; WHITE_BLACK],
+    _rook_blocker_mask: BlockerMask,
+    _bishop_blocker_mask: BlockerMask,
+    _rook_attacks: [Bitboard; ROOK_TABLE_SIZE as usize],
+    _bishop_attacks: [Bitboard; BISHOP_TABLE_SIZE as usize],
 }
 
 impl Default for Magics {
@@ -119,6 +128,10 @@ impl Default for Magics {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
+            _rook_blocker_mask: [EMPTY; NSQ],
+            _bishop_blocker_mask: [EMPTY; NSQ],
+            _rook_attacks: [0; ROOK_TABLE_SIZE as usize],
+            _bishop_attacks: [0; BISHOP_TABLE_SIZE as usize],
         }
     }
 }
@@ -133,7 +146,7 @@ impl Magics {
         self.init_pawn_attacks(&helper_board);
         self.calc_slider_info(ROOK, &mut slider_info, &helper_board);
         self.calc_slider_info(BISHOP, &mut slider_info, &helper_board);
-        self.count_permutations(&mut slider_info);
+        self.permutations_count(&mut slider_info);
     }
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
@@ -224,11 +237,11 @@ impl Magics {
                         let valid_square = helper.mailbox[current_mailbox_square as usize];
                         match piece {
                             ROOK => {
-                                info._rook_move_masks[square] |= 1u64 << valid_square;
+                                self._rook_blocker_mask[square] |= 1u64 << valid_square;
                                 info._rook_squares_in_ray[square][i] += 1;
                             }
                             BISHOP => {
-                                info._bishop_move_masks[square] |= 1u64 << valid_square;
+                                self._bishop_blocker_mask[square] |= 1u64 << valid_square;
                                 info._bishop_squares_in_ray[square][i] += 1;
                             }
                             _ => (),
@@ -239,7 +252,7 @@ impl Magics {
         }
     }
 
-    fn count_permutations(&self, info: &mut SliderInfo) {
+    fn permutations_count(&self, info: &mut SliderInfo) {
         for s in ALL_SQUARES {
             let mut rook_bits = 0;
             let mut bishop_bits = 0;
