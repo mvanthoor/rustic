@@ -144,8 +144,8 @@ impl Magics {
         self.init_non_slider_attacks(KING, &helper_board);
         self.init_non_slider_attacks(KNIGHT, &helper_board);
         self.init_pawn_attacks(&helper_board);
-        self.calc_slider_info(ROOK, &mut slider_info, &helper_board);
-        self.calc_slider_info(BISHOP, &mut slider_info, &helper_board);
+        self.create_blocker_mask(ROOK, &mut slider_info, &helper_board);
+        self.create_blocker_mask(BISHOP, &mut slider_info, &helper_board);
         self.permutations_count(&mut slider_info);
     }
 
@@ -214,7 +214,7 @@ impl Magics {
         }
     }
 
-    fn calc_slider_info(&mut self, piece: Piece, info: &mut SliderInfo, helper: &HelperBoard) {
+    fn create_blocker_mask(&mut self, piece: Piece, info: &mut SliderInfo, helper: &HelperBoard) {
         debug_assert!(piece == ROOK || piece == BISHOP, "Incorrect piece.");
         const DIRECTIONS_ROOK: SliderDirections = [10, 1, -10, -1];
         const DIRECTIONS_BISHOP: SliderDirections = [11, -9, -11, 9];
