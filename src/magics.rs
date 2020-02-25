@@ -147,6 +147,7 @@ impl Magics {
         self.create_blocker_mask(ROOK, &mut slider_info, &helper_board);
         self.create_blocker_mask(BISHOP, &mut slider_info, &helper_board);
         self.permutations_count(&mut slider_info);
+        self.permutations_test(&slider_info);
     }
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
@@ -266,4 +267,6 @@ impl Magics {
             info._bishop_permutations_count[square] = 2u32.pow(bishop_bits as u32);
         }
     }
+
+    fn permutations_test(&mut self, info: &SliderInfo) {}
 }
