@@ -2,6 +2,7 @@ use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, KING, KNIGHT, NR_OF_SQUARES, PAWN_SQUARES,
     ROOK, WHITE,
 };
+use crate::print;
 
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
@@ -268,5 +269,25 @@ impl Magics {
         }
     }
 
-    fn permutations_test(&mut self, info: &SliderInfo) {}
+    fn permutations_test(&mut self, info: &SliderInfo) {
+        let count = info._rook_squares_in_ray[0][0];
+        let permutations = 2u8.pow(count as u32);
+        let mut store: Vec<Bitboard> = Vec::new();
+        for i in 0..permutations {
+            let current_permutation = i;
+            let mut bitboard: Bitboard = 0;
+            for j in 0..count {
+                let bit_to_set_in_ray = (j + 1) * 8;
+                let bit_from_permutation = (current_permutation >> j) & 1u8;
+                println!("Permutation: {} - {}", i, bit_from_permutation);
+                bitboard |= (bit_from_permutation as u64) << (bit_to_set_in_ray as u64);
+            }
+            store.push(bitboard);
+        }
+
+        for i in 0..store.len() {
+            println!("{}", i);
+            print::bitboard(store[i], None);
+        }
+    }
 }
