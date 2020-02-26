@@ -1,8 +1,9 @@
 use crate::defines::{
-    Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, KING, KNIGHT, NR_OF_SQUARES, PAWN_SQUARES,
-    ROOK, WHITE,
+    Bitboard, Files, Piece, Ranks, Side, ALL_SQUARES, BISHOP, BLACK, KING, KNIGHT, NR_OF_SQUARES,
+    PAWN_SQUARES, ROOK, WHITE,
 };
 use crate::print;
+use crate::utils::{create_bb_files, create_bb_ranks};
 
 const MAILBOX_FILES: u8 = 10;
 const MAILBOX_RANKS: u8 = 12;
@@ -140,10 +141,12 @@ impl Default for Magics {
 impl Magics {
     pub fn initialize(&mut self) {
         let helper_board: HelperBoard = Default::default();
+        let files = create_bb_files();
+        let ranks = create_bb_ranks();
         let mut slider_info: SliderInfo = Default::default();
 
-        self.init_non_slider_attacks(KING, &helper_board);
-        self.init_non_slider_attacks(KNIGHT, &helper_board);
+        self.init_king(&files, &ranks);
+        // self.init_knight(&files, &ranks);
         self.init_pawn_attacks(&helper_board);
         self.create_blocker_mask(ROOK, &mut slider_info, &helper_board);
         self.create_blocker_mask(BISHOP, &mut slider_info, &helper_board);
@@ -166,31 +169,23 @@ impl Magics {
         self._pawns[side][square as usize]
     }
 
-    fn init_non_slider_attacks(&mut self, piece: Piece, helper: &HelperBoard) {
-        debug_assert!(piece == KING || piece == KNIGHT, "Incorrect piece.");
-        const DIRECTIONS_KING: NonSliderDirections = [-11, -10, -9, -1, 1, 9, 10, 11];
-        const DIRECTIONS_KNIGHT: NonSliderDirections = [-21, -19, -12, -8, 8, 12, 19, 21];
-        let directions = match piece {
-            KING => DIRECTIONS_KING,
-            KNIGHT => DIRECTIONS_KNIGHT,
-            _ => [0; 8],
-        };
+    fn init_king(&mut self, files: &[Bitboard; 8], ranks: &[Bitboard; 8]) {
+        let one = Ranks::R1 as usize;
+        let eight = Ranks::R8 as usize;
+        let a = Files::Fa as usize;
+        let h = Files::Fh as usize;
 
         for sq in ALL_SQUARES {
-            for d in directions.iter() {
-                let square = sq as usize;
-                let mailbox_square = helper.real[square] as i8;
-                let try_square = (mailbox_square + d) as usize;
-
-                if helper.mailbox[try_square] != INVALID_SQUARE {
-                    let valid_square = helper.mailbox[try_square];
-                    match piece {
-                        KING => self._king[square] |= 1u64 << valid_square,
-                        KNIGHT => self._knight[square] |= 1u64 << valid_square,
-                        _ => (),
-                    }
-                }
-            }
+            let square = 1u64 << sq;
+            let moves = (square & !files[a] & !ranks[eight]) << 7
+                | (square & !ranks[eight]) << 8
+                | (square & !files[h] & !ranks[eight]) << 9
+                | (square & !files[h]) << 1
+                | (square & !files[h] & !ranks[one]) >> 7
+                | (square & !ranks[one]) >> 8
+                | (square & !files[a] & !ranks[one]) >> 9
+                | (square & !files[a]) >> 1;
+            self._king[sq as usize] = moves;
         }
     }
 

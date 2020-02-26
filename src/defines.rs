@@ -35,6 +35,10 @@ pub enum Ranks {
     R5 = 4,
     R8 = 7,
 }
+pub enum Files {
+    Fa = 0,
+    Fh = 7,
+}
 pub const FILE_A: u8 = 0;
 pub const FILE_H: u8 = 7;
 pub const ALL_RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);

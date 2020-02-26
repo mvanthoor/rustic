@@ -10,6 +10,7 @@ use board::Board;
 use defines::*;
 use magics::Magics;
 use movegen::*;
+use utils::*;
 
 fn main() {
     let mut board: Board = Default::default();
@@ -20,20 +21,12 @@ fn main() {
     board.initialize(test_pos);
     magics.initialize();
 
-    for i in 0..=7 {
-        print::bitboard(board.bb_ranks[i], None);
+    for i in ALL_SQUARES {
+        print::bitboard(magics.get_non_slider_attacks(KING, i), Some(i));
     }
-
-    for i in 0..=7 {
-        print::bitboard(board.bb_files[i], None);
-    }
-
-    // for i in ALL_SQUARES {
-    //     print::bitboard(magics.get_non_slider_attacks(KING, i), Some(i));
-    // }
 
     print::engine_info();
-    print::position(&board, None);
+    // print::position(&board, None);
 
     movegen::generate(&board, WHITE, &magics, &mut moves);
     print::movelist(&moves);
