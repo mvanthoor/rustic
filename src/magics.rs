@@ -1,8 +1,7 @@
 use crate::defines::{
-    Bitboard, Files, Piece, Ranks, Side, ALL_SQUARES, BISHOP, BLACK, KING, KNIGHT, NR_OF_SQUARES,
-    PAWN_SQUARES, ROOK, WHITE,
+    Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING,
+    KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
-use crate::print;
 use crate::utils::{create_bb_files, create_bb_ranks};
 
 const MAILBOX_FILES: u8 = 10;
@@ -21,7 +20,6 @@ const ROOK_TABLE_SIZE: u32 = 102400;
 const BISHOP_TABLE_SIZE: u32 = 5248;
 
 type SliderDirections = [i8; 4];
-type NonSliderDirections = [i8; 8];
 type PawnCaptureDirections = [i8; 2];
 type NonSliderAttacks = [Bitboard; NSQ];
 type BlockerMask = [Bitboard; NSQ];
@@ -146,7 +144,7 @@ impl Magics {
         let mut slider_info: SliderInfo = Default::default();
 
         self.init_king(&files, &ranks);
-        // self.init_knight(&files, &ranks);
+        self.init_knight(&files, &ranks);
         self.init_pawn_attacks(&helper_board);
         self.create_blocker_mask(ROOK, &mut slider_info, &helper_board);
         self.create_blocker_mask(BISHOP, &mut slider_info, &helper_board);
@@ -170,22 +168,32 @@ impl Magics {
     }
 
     fn init_king(&mut self, files: &[Bitboard; 8], ranks: &[Bitboard; 8]) {
-        let one = Ranks::R1 as usize;
-        let eight = Ranks::R8 as usize;
-        let a = Files::Fa as usize;
-        let h = Files::Fh as usize;
-
         for sq in ALL_SQUARES {
             let square = 1u64 << sq;
-            let moves = (square & !files[a] & !ranks[eight]) << 7
-                | (square & !ranks[eight]) << 8
-                | (square & !files[h] & !ranks[eight]) << 9
-                | (square & !files[h]) << 1
-                | (square & !files[h] & !ranks[one]) >> 7
-                | (square & !ranks[one]) >> 8
-                | (square & !files[a] & !ranks[one]) >> 9
-                | (square & !files[a]) >> 1;
+            let moves = (square & !files[FILE_A] & !ranks[RANK_8]) << 7
+                | (square & !ranks[RANK_8]) << 8
+                | (square & !files[FILE_H] & !ranks[RANK_8]) << 9
+                | (square & !files[FILE_H]) << 1
+                | (square & !files[FILE_H] & !ranks[RANK_1]) >> 7
+                | (square & !ranks[RANK_1]) >> 8
+                | (square & !files[FILE_A] & !ranks[RANK_1]) >> 9
+                | (square & !files[FILE_A]) >> 1;
             self._king[sq as usize] = moves;
+        }
+    }
+
+    fn init_knight(&mut self, files: &[Bitboard; 8], ranks: &[Bitboard; 8]) {
+        for sq in ALL_SQUARES {
+            let square = 1u64 << sq;
+            let moves = (square & !ranks[RANK_8] & !ranks[RANK_7] & !files[FILE_A]) << 15
+                | (square & !ranks[RANK_8] & !ranks[RANK_7] & !files[FILE_H]) << 17
+                | (square & !files[FILE_A] & !files[FILE_B] & !ranks[RANK_8]) << 6
+                | (square & !files[FILE_G] & !files[FILE_H] & !ranks[RANK_8]) << 10
+                | (square & !ranks[RANK_1] & !ranks[RANK_2] & !files[FILE_A]) >> 17
+                | (square & !ranks[RANK_1] & !ranks[RANK_2] & !files[FILE_H]) >> 15
+                | (square & !files[FILE_A] & !files[FILE_B] & !ranks[RANK_1]) >> 10
+                | (square & !files[FILE_G] & !files[FILE_H] & !ranks[RANK_1]) >> 6;
+            self._knight[sq as usize] = moves;
         }
     }
 
