@@ -44,8 +44,8 @@ pub const PAWN_SQUARES: RangeInclusive<u8> = 8..=55;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
 pub const BITBOARDS_FOR_PIECES: u8 = 2;
-pub const BITBOARDS_FOR_FILES: u8 = 8;
-pub const BITBOARDS_FOR_RANKS: u8 = 8;
+pub const BB_FOR_FILES: u8 = 8;
+pub const BB_FOR_RANKS: u8 = 8;
 
 pub const KING: Piece = 0;
 pub const QUEEN: Piece = 1;

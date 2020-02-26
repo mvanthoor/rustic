@@ -279,15 +279,9 @@ impl Magics {
             for j in 0..count {
                 let bit_to_set_in_ray = (j + 1) * 8;
                 let bit_from_permutation = (current_permutation >> j) & 1u8;
-                println!("Permutation: {} - {}", i, bit_from_permutation);
                 bitboard |= (bit_from_permutation as u64) << (bit_to_set_in_ray as u64);
             }
             store.push(bitboard);
-        }
-
-        for i in 0..store.len() {
-            println!("{}", i);
-            print::bitboard(store[i], None);
         }
     }
 }
