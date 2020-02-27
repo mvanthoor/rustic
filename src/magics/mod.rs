@@ -1,8 +1,12 @@
+mod masks;
+
 use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING, KNIGHT,
     NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, WHITE,
 };
+use crate::print;
 use crate::utils::{create_bb_files, create_bb_ranks};
+use masks::create_rook_mask;
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
@@ -36,6 +40,7 @@ impl Magics {
         self.init_king(&files, &ranks);
         self.init_knight(&files, &ranks);
         self.init_pawns(&files);
+        self.init_magics();
     }
 
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
@@ -87,6 +92,14 @@ impl Magics {
             let b = (square & !files[FILE_A]) >> 9 | (square & !files[FILE_H]) >> 7;
             self._pawns[WHITE][sq as usize] = w;
             self._pawns[BLACK][sq as usize] = b;
+        }
+    }
+
+    fn init_magics(&mut self) {
+        for sq in ALL_SQUARES {
+            let bb = create_rook_mask(sq);
+            println!("square: {}", sq);
+            print::bitboard(bb, Some(sq));
         }
     }
 }

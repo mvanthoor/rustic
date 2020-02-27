@@ -4,6 +4,7 @@ use crate::defines::{
     RANK_8, ROOK, WHITE,
 };
 use crate::magics::Magics;
+use crate::utils::square_on_rank;
 
 /*
 Move format explanation
@@ -151,7 +152,7 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
     while bitboard_to > 0 {
         let to_square = next(&mut bitboard_to);
         let capture = is_capture(board, side, to_square);
-        let promotion = (piece == PAWN) && board.square_on_rank(to_square, promotion_rank);
+        let promotion = (piece == PAWN) && square_on_rank(to_square, promotion_rank);
         let ep_square = if let Some(square) = board.en_passant {
             square
         } else {

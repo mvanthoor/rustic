@@ -1,4 +1,4 @@
-use crate::defines::Bitboard;
+use crate::defines::*;
 
 pub fn create_bb_files() -> [Bitboard; 8] {
     // 0x0101_0101_0101_0101 is bits set for A1, A2...
@@ -16,4 +16,16 @@ pub fn create_bb_ranks() -> [Bitboard; 8] {
         *rank = 0xFF << (i * 8);
     }
     bb_ranks
+}
+
+pub fn square_on_file_rank(square: u8) -> (u8, u8) {
+    let file = square % 8; // square mod 8
+    let rank = square / 8; // square div 8
+    (file, rank)
+}
+
+pub fn square_on_rank(square: u8, rank: u8) -> bool {
+    let start = (rank) * 8;
+    let end = start + 7;
+    (start..=end).contains(&square)
 }

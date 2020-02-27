@@ -87,10 +87,4 @@ impl Board {
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
     }
-
-    pub fn square_on_rank(&self, square: u8, rank: u8) -> bool {
-        let start = (rank) * 8;
-        let end = start + 7;
-        (start..=end).contains(&square)
-    }
 }
