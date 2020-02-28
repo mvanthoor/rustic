@@ -6,7 +6,7 @@ use crate::defines::{
 };
 use crate::print;
 use crate::utils::{create_bb_files, create_bb_ranks};
-use masks::create_rook_mask;
+use masks::{create_bishop_mask, create_rook_mask};
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
@@ -96,10 +96,17 @@ impl Magics {
     }
 
     fn init_magics(&mut self) {
-        for sq in ALL_SQUARES {
-            let bb = create_rook_mask(sq);
-            println!("square: {}", sq);
-            print::bitboard(bb, Some(sq));
-        }
+        // for sq in ALL_SQUARES {
+        //     let bb = create_rook_mask(sq);
+        //     println!("square: {}", sq);
+        //     print::bitboard(bb, Some(sq));
+        // }
+        // for sq in ALL_SQUARES {
+        //     let bb = create_bishop_mask(sq);
+        //     println!("square: {}", sq);
+        //     print::bitboard(bb, Some(sq));
+        // }
+        // let bb = create_bishop_mask(0);
+        // print::bitboard(bb, Some(0));
     }
 }

@@ -10,6 +10,7 @@ use board::Board;
 use defines::*;
 use magics::Magics;
 use movegen::*;
+use utils::*;
 
 fn main() {
     let mut board: Board = Default::default();
@@ -21,12 +22,18 @@ fn main() {
     magics.initialize();
 
     print::engine_info();
-    print::position(&board, None);
+    // print::position(&board, None);
 
-    movegen::generate(&board, WHITE, &magics, &mut moves);
-    print::movelist(&moves);
-    movegen::generate(&board, BLACK, &magics, &mut moves);
-    print::movelist(&moves);
+    // movegen::generate(&board, WHITE, &magics, &mut moves);
+    // print::movelist(&moves);
+    // movegen::generate(&board, BLACK, &magics, &mut moves);
+    // print::movelist(&moves);
+
+    let diagonals = create_bb_diagonals();
+
+    for d in diagonals.iter() {
+        print::bitboard(*d, None);
+    }
 
     println!("Done.");
 }
