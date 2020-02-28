@@ -1,5 +1,5 @@
 use crate::defines::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
-use crate::utils::{create_bb_files, create_bb_ranks, square_on_file_rank, Location};
+use crate::utils::*;
 
 /**
  * Explanation of create_rook mask, step by step.
@@ -25,14 +25,15 @@ pub fn create_rook_mask(square: u8) -> Bitboard {
 }
 
 pub fn create_bishop_mask(square: u8) -> Bitboard {
-    // let location = square_on_file_rank(square);
-    // let bb_files = create_bb_files();
-    // let bb_ranks = create_bb_ranks();
-    // let bb_edges = edges_without_piece(location);
-    // let bb_bishop_square = 1u64 << square;
-    // let mut bb_current = bb_bishop_square;
-    // let mut bb_mask: Bitboard = 0;
-    0
+    let location = square_on_file_rank(square);
+    let bb_edges = edges_without_piece(location);
+    let bb_up_left = create_bb_ray(0, square, Direction::UpLeft);
+    let bb_up_right = create_bb_ray(0, square, Direction::UpRight);
+    let bb_down_right = create_bb_ray(0, square, Direction::DownRight);
+    let bb_down_left = create_bb_ray(0, square, Direction::DownLeft);
+    let final_result = (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges;
+
+    final_result
 }
 
 fn edges_without_piece(location: Location) -> Bitboard {

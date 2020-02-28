@@ -3,10 +3,17 @@ use crate::defines::*;
 // Piece location: (file, rank)
 pub type Location = (u8, u8);
 
-const UP: bool = true;
-const ACROSS: bool = false;
-const NORMAL: bool = true;
-const ANTI: bool = false;
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+    UpLeft,
+    UpRight,
+    DownRight,
+    DownLeft,
+}
 
 pub fn create_bb_files() -> [Bitboard; 8] {
     // 0x0101_0101_0101_0101 is bits set for A1, A2...
@@ -38,32 +45,98 @@ pub fn square_on_rank(square: u8, rank: u8) -> bool {
     (start..=end).contains(&square)
 }
 
-pub fn create_bb_diagonals() -> [Bitboard; 15] {
-    let mut bb_diagonals: [Bitboard; 15] = [0; 15];
-    let mut list: Vec<Bitboard> = Vec::new();
-
-    diagonals(RANK_1 as u8, RANK_8 as u8, UP, &mut list);
-    diagonals(FILE_B as u8, FILE_H as u8, ACROSS, &mut list);
-
-    for (i, d) in list.iter().enumerate() {
-        bb_diagonals[i] = *d;
-    }
-    bb_diagonals
-}
-
-pub fn diagonals(start: u8, end: u8, direction: bool, diagonals: &mut Vec<Bitboard>) {
-    for x in start..=end {
-        let current_square = if direction == UP {
-            1u64 << (x * 8) // Up the ranks
-        } else {
-            1u64 << x // Across the files
+// TODO: Test ray block with piece, for every direction
+pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitboard {
+    let mut file: i8 = square_on_file_rank(square).0 as i8;
+    let mut rank: i8 = square_on_file_rank(square).1 as i8;
+    let mut bb_square = 1u64 << square;
+    let mut bitboard = 0;
+    let mut done = false;
+    while !done {
+        done = true;
+        match direction {
+            Direction::Up => {
+                if rank != (RANK_8 as i8) {
+                    bb_square <<= 8;
+                    bitboard ^= bb_square;
+                    rank += 1;
+                    done = (rank > RANK_8 as i8) || (bb_square & bb_in) > 0;
+                }
+            }
+            Direction::Right => {
+                if file != (FILE_H as i8) {
+                    bb_square <<= 1;
+                    bitboard ^= bb_square;
+                    file += 1;
+                    done = (file > FILE_H as i8) || (bb_square & bb_in) > 0;
+                }
+            }
+            Direction::Down => {
+                if rank != (RANK_1 as i8) {
+                    bb_square >>= 8;
+                    bitboard ^= bb_square;
+                    rank -= 1;
+                    done = (rank < RANK_1 as i8) || (bb_square & bb_in) > 0;
+                }
+            }
+            Direction::Left => {
+                if file != (FILE_A as i8) {
+                    bb_square >>= 1;
+                    bitboard ^= bb_square;
+                    file -= 1;
+                    done = (file < FILE_A as i8) || (bb_square & bb_in) > 0;
+                }
+            }
+            #[rustfmt::skip]
+            Direction::UpLeft => {
+                if rank != (RANK_8 as i8) && file != (FILE_A as i8) {
+                    bb_square <<= 7;
+                    bitboard ^= bb_square;
+                    rank += 1;
+                    file -= 1;
+                    done = (rank > RANK_8 as i8)
+                        || (file < FILE_A as i8)
+                        || (bb_square & bb_in) > 0;
+                }
+            },
+            #[rustfmt::skip]
+            Direction::UpRight => {
+                if rank != (RANK_8 as i8) && file != (FILE_H as i8) {
+                    bb_square <<= 9;
+                    bitboard ^= bb_square;
+                    rank += 1;
+                    file += 1;
+                    done = (rank > RANK_8 as i8)
+                        || (file > FILE_H as i8)
+                        || (bb_square & bb_in) > 0;
+                }
+            },
+            #[rustfmt::skip]
+            Direction::DownRight => {
+                if rank != (RANK_1 as i8) && file != (FILE_H as i8) {
+                    bb_square >>= 7;
+                    bitboard ^= bb_square;
+                    rank -= 1;
+                    file += 1;
+                    done = (rank < RANK_1 as i8)
+                        || (file > FILE_H as i8)
+                        || (bb_square & bb_in) > 0;
+                }
+            },
+            #[rustfmt::skip]
+            Direction::DownLeft => {
+                if rank != (RANK_1 as i8) && file != (FILE_A as i8) {
+                    bb_square >>= 9;
+                    bitboard ^= bb_square;
+                    rank -= 1;
+                    file -= 1;
+                    done =
+                        (rank < RANK_1 as i8)
+                        || (file < FILE_A as i8)
+                        || (bb_square & bb_in) > 0;
+                }
+            },
         };
-        let steps_to_take = 7 - x;
-        let mut bitboard = 0;
-        for step in 0..=steps_to_take {
-            let landing_square = current_square << (9 * step);
-            bitboard ^= landing_square;
-        }
-        diagonals.push(bitboard);
     }
+    bitboard
 }

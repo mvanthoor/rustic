@@ -96,17 +96,17 @@ impl Magics {
     }
 
     fn init_magics(&mut self) {
-        // for sq in ALL_SQUARES {
-        //     let bb = create_rook_mask(sq);
-        //     println!("square: {}", sq);
-        //     print::bitboard(bb, Some(sq));
+        // TODO: Implement magics
+        // for i in ALL_SQUARES {
+        //     println!("square: {}", i);
+        //     let x = create_rook_mask(i);
+        //     print::bitboard(x, Some(i));
         // }
-        // for sq in ALL_SQUARES {
-        //     let bb = create_bishop_mask(sq);
-        //     println!("square: {}", sq);
-        //     print::bitboard(bb, Some(sq));
+
+        // for i in ALL_SQUARES {
+        //     println!("square: {}", i);
+        //     let x = create_bishop_mask(i);
+        //     print::bitboard(x, Some(i));
         // }
-        // let bb = create_bishop_mask(0);
-        // print::bitboard(bb, Some(0));
     }
 }

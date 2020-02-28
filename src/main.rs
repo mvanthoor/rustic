@@ -29,11 +29,5 @@ fn main() {
     // movegen::generate(&board, BLACK, &magics, &mut moves);
     // print::movelist(&moves);
 
-    let diagonals = create_bb_diagonals();
-
-    for d in diagonals.iter() {
-        print::bitboard(*d, None);
-    }
-
     println!("Done.");
 }
