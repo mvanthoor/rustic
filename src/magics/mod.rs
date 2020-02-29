@@ -1,3 +1,6 @@
+// TODO: Add comments
+// TODO: Check for consistency
+
 mod masks;
 
 use crate::defines::{
@@ -97,16 +100,16 @@ impl Magics {
 
     fn init_magics(&mut self) {
         // TODO: Implement magics
-        // for i in ALL_SQUARES {
-        //     println!("square: {}", i);
-        //     let x = create_rook_mask(i);
-        //     print::bitboard(x, Some(i));
-        // }
+        for i in ALL_SQUARES {
+            println!("square: {}", i);
+            let x = create_rook_mask(i);
+            print::bitboard(x, Some(i));
+        }
 
-        // for i in ALL_SQUARES {
-        //     println!("square: {}", i);
-        //     let x = create_bishop_mask(i);
-        //     print::bitboard(x, Some(i));
-        // }
+        for i in ALL_SQUARES {
+            println!("square: {}", i);
+            let x = create_bishop_mask(i);
+            print::bitboard(x, Some(i));
+        }
     }
 }

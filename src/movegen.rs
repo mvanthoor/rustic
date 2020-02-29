@@ -1,3 +1,17 @@
+// TODO: Check (again) for consistency
+
+/**
+ * The movegen.rs module is the part of the engine that generates chess moves to be searched
+ * and evaluate later, in the search and evaluation modules of the program. Note that the move
+ * generator is pseudo-legal: that means that it generates all possible moves, regardless if
+ * they leave the king in check after that move. The reason is twofold:
+ *
+ * 1. This speeds up move generation, as _MOST_ moves will be legal. Checking every move for
+ * legality would greatly slow down the move generation process.
+ * 2. The search might decide to focus only on a subset of moves and discard the rest. Those
+ * discarded moves will not be executed or evaluated. If legality checking had been done on
+ * those moves, that time would have been wasted.
+ */
 use crate::board::Board;
 use crate::defines::{
     Bitboard, Piece, Side, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5,
@@ -33,9 +47,11 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
-const UP: i8 = 8;
-const DOWN: i8 = -8;
-
+/**
+ * "Shift" is an enumeration containing the offsets of the
+ * data fields within the u64 integer containing the
+ * the information about a move.
+ */
 enum Shift {
     Piece = 0,
     FromSq = 3,
@@ -45,6 +61,7 @@ enum Shift {
     EnPassant = 21,
 }
 
+/** This part defines the movelist, and the move and its functions */
 pub const MAX_LEGAL_MOVES: u8 = 255;
 pub type MoveList = Vec<Move>;
 
@@ -79,69 +96,122 @@ impl Move {
     }
 }
 
+/**
+ * This function actually generates the moves, using private functions.
+ * It takes the following parameters:
+ *
+ * board: a reference to the board/position
+ * side: the side to move
+ * magics: a reference to "Magics", providing the attack capabilities of each piece.
+ *         (Magics are precalculated moves for each piece on each square, so the move
+ *          generator does not have to calculate this over and aover again.)
+ * list: a mutable reference to a list that will contain the moves.
+ *
+*/
 pub fn generate(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
-    debug_assert!(side == 0 || side == 1, "Incorrect side.");
     list.clear();
     non_slider(KING, board, side, magics, list);
     non_slider(KNIGHT, board, side, magics, list);
     pawns(board, side, magics, list);
 }
 
+/**
+ * Generates moves for non-sliding pieces: King and Knight.
+ * Basically:
+ * - It gets the "from" square.
+ * - It gets all the targets for the piece from the magics.
+ * - The piece can move to all squares that do not contain our own pieces.
+ * - Add those moves to the move list.
+ */
 fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
-    let us = board.bb_pieces[side];
-    let mut pieces = board.get_pieces(piece, side);
-    while pieces > 0 {
-        let from = next(&mut pieces);
-        let target = magics.get_non_slider_attacks(piece, from);
-        let moves = target & !us;
-        add_move(board, piece, side, from, moves, list);
+    let bb_us = board.bb_pieces[side];
+    let mut bb_pieces = board.get_pieces(piece, side);
+    while bb_pieces > 0 {
+        let from = next(&mut bb_pieces);
+        let bb_target = magics.get_non_slider_attacks(piece, from);
+        let bb_moves = bb_target & !bb_us;
+        add_move(board, piece, side, from, bb_moves, list);
     }
 }
 
+/**
+ * Pawns are a bit more complicated, because their attacks and moves are different,
+ * but also because they have en-passant and promotion capabilities.
+ * It works as such:
+ * - Get the "from" square for each pawn.
+ * - Push the pawn forward one rank.
+ * - If the destination square is empty, "one_step" contains a move. Otherwise, it's 0.
+ * - Two_step is a pawn moving two steps. It contains a move if:
+ *      * One_step also contains a move
+ *      * The next rank is empty
+ *      * and the next rank is the fourth (from either WHITE or BLACK's point of view).
+ * Then the capture moves are generated; same way as the king/knight moves.
+ * An en_passant capture is generated, if the en_passant square in the board position is set,
+ * and if the pawn currently being investigated has this square as an attack target.
+ * Combine all the moves, and add them to the move list. The add_move function will take care
+ * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
+ */
 fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
-    let opponent_pieces = board.bb_pieces[side ^ 1];
-    let empty = !board.occupancy();
-    let direction = if side == WHITE { UP } else { DOWN };
-    let fourth = if side == WHITE {
+    // Direction is Up or Down depending on white or black
+    let direction = if side == WHITE { 8 } else { -8 };
+    let bb_opponent_pieces = board.bb_pieces[side ^ 1];
+    let bb_empty = !board.occupancy();
+    let bb_fourth = if side == WHITE {
         board.bb_ranks[RANK_4]
     } else {
         board.bb_ranks[RANK_5]
     };
-    let mut pawns = board.get_pieces(PAWN, side);
-    while pawns > 0 {
-        let from = next(&mut pawns);
-        let push = 1u64 << (from as i8 + direction);
-        let one_step = push & empty;
-        let two_step = one_step.rotate_left((64 + direction) as u32) & empty & fourth;
-        let targets = magics.get_pawn_attacks(side, from);
-        let captures = targets & opponent_pieces;
-        let ep_capture = if let Some(square) = board.en_passant {
-            targets & (1u64 << square)
+    let mut bb_pawns = board.get_pieces(PAWN, side);
+    while bb_pawns > 0 {
+        let from = next(&mut bb_pawns);
+        let bb_push = 1u64 << (from as i8 + direction);
+        let bb_one_step = bb_push & bb_empty;
+        let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
+        let bb_targets = magics.get_pawn_attacks(side, from);
+        let bb_captures = bb_targets & bb_opponent_pieces;
+        let bb_ep_capture = if let Some(ep) = board.en_passant {
+            bb_targets & (1u64 << ep)
         } else {
             0
         };
-        let moves = one_step | two_step | captures | ep_capture;
+        let moves = bb_one_step | bb_two_step | bb_captures | bb_ep_capture;
         add_move(board, PAWN, side, from, moves, list);
     }
 }
 
+/**
+ * Get the next set bit from a bitboard.
+ * This is used to get the square locations of each piece.
+ * For example, the PAWNS bitboard could have 8 bits set.
+ * This function returns the index (= square) from that bitboard,
+ * and then removes the bit. All pieces/squares (whatver is in
+ * the bitboard) have been handled when the bitboard becomes 0.
+ * */
 fn next(bitboard: &mut Bitboard) -> u8 {
     let location = bitboard.trailing_zeros();
     *bitboard ^= 1u64 << location;
     location as u8
 }
 
-fn is_capture(board: &Board, side: Side, to_square: u8) -> Piece {
-    let target_square = 1u64 << (to_square as u64);
-    let opponent_pieces = board.bb_pieces[side ^ 1];
-    if target_square & opponent_pieces > 0 {
+/** Determine if the move is a capture; this is the case if there's an opponent piece on the
+ * target square of the moving piece. If so, return which piece is on the target square. If
+ * there is no piece, PNONE (no piece) will will be returned.
+ */
+fn captured_piece(board: &Board, side: Side, to_square: u8) -> Piece {
+    let bb_target_square = 1u64 << (to_square as u64);
+    let bb_opponent_pieces = board.bb_pieces[side ^ 1];
+    if bb_target_square & bb_opponent_pieces > 0 {
         return board.which_piece(to_square);
     };
     PNONE
 }
 
+/** Adds moves and the data belonging to those moves to a move list.
+ * This function also takes care of promotions, by adding four moves
+ * to the list instead of one; one move for each promotion possibility.
+*/
 fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, list: &mut MoveList) {
-    let mut bitboard_to = to;
+    let mut bb_to = to;
     let promotion_rank = if side == WHITE {
         RANK_8 as u8
     } else {
@@ -149,9 +219,9 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
     };
     let promotion_pieces: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
 
-    while bitboard_to > 0 {
-        let to_square = next(&mut bitboard_to);
-        let capture = is_capture(board, side, to_square);
+    while bb_to > 0 {
+        let to_square = next(&mut bb_to);
+        let capture = captured_piece(board, side, to_square);
         let promotion = (piece == PAWN) && square_on_rank(to_square, promotion_rank);
         let ep_square = if let Some(square) = board.en_passant {
             square

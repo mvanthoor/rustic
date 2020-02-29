@@ -1,3 +1,6 @@
+// TODO: Add comments
+// TODO: Check for consistency
+
 use crate::defines::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, PNONE, WHITE,

@@ -1,3 +1,6 @@
+// TODO: Add comments
+// TODO: Check for consistency
+
 use crate::defines::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
 use crate::utils::*;
 

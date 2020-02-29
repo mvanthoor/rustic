@@ -21,13 +21,15 @@ fn main() {
     board.initialize(test_pos);
     magics.initialize();
 
-    print::engine_info();
-    // print::position(&board, None);
+    engine_info();
+    print::position(&board, None);
 
-    // movegen::generate(&board, WHITE, &magics, &mut moves);
-    // print::movelist(&moves);
-    // movegen::generate(&board, BLACK, &magics, &mut moves);
-    // print::movelist(&moves);
+    movegen::generate(&board, WHITE, &magics, &mut moves);
+    print::movelist(&moves);
+    movegen::generate(&board, BLACK, &magics, &mut moves);
+    print::movelist(&moves);
+
+    print::bitboard(0x0101_0101_0101_0101, None);
 
     println!("Done.");
 }

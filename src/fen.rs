@@ -1,3 +1,6 @@
+// TODO: Add comments
+// TODO: Check for consistency
+
 use crate::board::Board;
 use crate::defines::{
     BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN, QUEEN,
