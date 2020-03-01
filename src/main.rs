@@ -25,11 +25,11 @@ fn main() {
 
     print::position(&board, None);
 
-    movegen::generate(&board, WHITE, &magics, &mut moves);
-    print::movelist(&moves);
-    println!("...");
-    movegen::generate(&board, BLACK, &magics, &mut moves);
-    print::movelist(&moves);
+    // movegen::generate(&board, WHITE, &magics, &mut moves);
+    // print::movelist(&moves);
+    // println!("...");
+    // movegen::generate(&board, BLACK, &magics, &mut moves);
+    // print::movelist(&moves);
 
     // let blocker = (1u64 << 26) | (1u64 << 52) | (1u64 << 29) | (1u64 << 42) | (1u64 << 11);
 
