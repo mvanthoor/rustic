@@ -22,14 +22,29 @@ fn main() {
     magics.initialize();
 
     engine_info();
+
     print::position(&board, None);
 
     movegen::generate(&board, WHITE, &magics, &mut moves);
     print::movelist(&moves);
+    println!("...");
     movegen::generate(&board, BLACK, &magics, &mut moves);
     print::movelist(&moves);
 
-    print::bitboard(0x0101_0101_0101_0101, None);
+    // let blocker = (1u64 << 26) | (1u64 << 52) | (1u64 << 29) | (1u64 << 42) | (1u64 << 11);
+
+    // for i in ALL_SQUARES {
+    //     println!("square: {}", i);
+    //     print::bitboard(blocker, Some(i));
+
+    //     let a = create_bb_ray(blocker, i, Direction::Up);
+    //     let b = create_bb_ray(blocker, i, Direction::Right);
+    //     let c = create_bb_ray(blocker, i, Direction::Down);
+    //     let d = create_bb_ray(blocker, i, Direction::Left);
+    //     let bb = a | b | c | d;
+
+    //     print::bitboard(bb, Some(i));
+    // }
 
     println!("Done.");
 }

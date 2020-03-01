@@ -1,5 +1,3 @@
-// TODO: Check (again) for consistency
-
 /**
  * The print.rs module is used to print information such as the current position,
  * and the contents of bitboards to the screen. This is mainly useful for debugging,
@@ -40,7 +38,8 @@ pub fn position(board: &Board, mark_square: Option<u8>) {
     to_console(&ascii_board, mark_square);
 }
 
-/** Prints a given bitboard to the screen.
+/**
+ * Prints a given bitboard to the screen.
  * Optionally, one square in the bitboard can be marked by a color.
  */
 #[allow(dead_code)]
@@ -68,7 +67,8 @@ pub fn movelist(moves: &MoveList) {
     }
 }
 
-/** Private function: when creating a board to print, this function creates an
+/**
+ * Private function: when creating a board to print, this function creates an
  * ASCII board out of the bitboards contained in the 'board' parameter.
  */
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
@@ -104,15 +104,16 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
 }
 
 //** This function actually puts the correct character into the ASCII board. */
-fn put_character_on_square(bitboard: Bitboard, ascii: &mut AsciiBoard, character: char) {
-    for (i, square) in ascii.iter_mut().enumerate() {
+fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, character: char) {
+    for (i, square) in ascii_board.iter_mut().enumerate() {
         if (bitboard >> i) & 1 == 1 {
             *square = character;
         }
     }
 }
 
-/** After creating the ASCII board, it can be printed using this function.
+/**
+ * After creating the ASCII board, it can be printed using this function.
  * Optionally, one square on the board can be marked by a color.
  */
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {

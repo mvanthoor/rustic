@@ -1,7 +1,12 @@
+/**
+ * defines.rs holds all the definitions that are needed throughout the program.
+ * If there are definitions that are needed only inside a single module, those
+ * can be found within that module.
+*/
 use std::ops::RangeInclusive;
 
 pub const ENGINE: &str = "Rustic";
-pub const VERSION: &str = "0.1";
+pub const VERSION: &str = "Alpha 1";
 pub const AUTHOR: &str = "Marcel Vanthoor";
 
 pub type Bitboard = u64;
@@ -29,7 +34,6 @@ pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 pub const NR_OF_SQUARES: u8 = 64;
 pub const NR_OF_FILES: u8 = 8;
-pub const NR_OF_RANKS: u8 = 8;
 
 pub const RANK_1: usize = 0;
 pub const RANK_2: usize = 1;

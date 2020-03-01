@@ -1,5 +1,3 @@
-// TODO: Check (again) for consistency
-
 /**
  * The movegen.rs module is the part of the engine that generates chess moves to be searched
  * and evaluate later, in the search and evaluation modules of the program. Note that the move
@@ -97,7 +95,7 @@ impl Move {
 }
 
 /**
- * This function actually generates the moves, using private functions.
+ * This function actually generates the moves, using private functions in this module.
  * It takes the following parameters:
  *
  * board: a reference to the board/position
@@ -230,14 +228,14 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
         };
         let en_passant = (piece == PAWN) && (ep_square != 0) && (to_square == ep_square);
         let move_data = (piece as u64)
-            ^ ((from as u64) << Shift::FromSq as u64)
-            ^ ((to_square as u64) << Shift::ToSq as u64)
-            ^ ((capture as u64) << Shift::Capture as u64)
-            ^ ((en_passant as u64) << Shift::EnPassant as u64);
+            | ((from as u64) << Shift::FromSq as u64)
+            | ((to_square as u64) << Shift::ToSq as u64)
+            | ((capture as u64) << Shift::Capture as u64)
+            | ((en_passant as u64) << Shift::EnPassant as u64);
 
         if !promotion {
             let m = Move {
-                data: move_data ^ ((PNONE as u64) << Shift::Promotion as u64),
+                data: move_data | ((PNONE as u64) << Shift::Promotion as u64),
             };
             list.push(m);
         }
@@ -245,7 +243,7 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
         if promotion {
             for piece in promotion_pieces.iter() {
                 let m = Move {
-                    data: move_data ^ ((*piece as u64) << Shift::Promotion as u64),
+                    data: move_data | ((*piece as u64) << Shift::Promotion as u64),
                 };
                 list.push(m);
             }

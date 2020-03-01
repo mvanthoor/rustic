@@ -1,12 +1,19 @@
-// TODO: Add comments
-// TODO: Check for consistency
-
+/**
+ * board.rs holds Rustic's board representation and functions associated with it.
+ * Rustic uses bitboards. This means there will be at least 6 bitboards for each side;
+ * one bitboard per piece type per side.
+ * In addition, there are also bitboards containing all white pieces, all black pieces
+ * (so it isn't necessary to loop through the bitboards all the time), and bitboards masking
+ * files or ranks. Later, more bitboards (diagonals, for exmple) may be added.
+ * All other things making up a chess position such as color, castling rights, e_passant
+ * and others, will also be in this struct.
+*/
 use crate::defines::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, PNONE, WHITE,
 };
 use crate::fen;
-use crate::utils::*;
+use crate::utils::{create_bb_files, create_bb_ranks};
 
 pub struct Board {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
@@ -39,16 +46,18 @@ impl Default for Board {
 }
 
 impl Board {
+    /**
+     * This function iterates through all the white and black bitboards
+     * to create the bitboard holding all of the pieces of that color.
+     */
     pub fn create_piece_bitboards(&mut self) {
-        // Iterate through all white and black bitboards.
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
-            // Combine all white bitboards into one, having all white pieces,
-            // Also combine all black bitboards into one, having all black pieces
-            self.bb_pieces[WHITE] ^= bb_w;
-            self.bb_pieces[BLACK] ^= bb_b;
+            self.bb_pieces[WHITE] |= bb_w;
+            self.bb_pieces[BLACK] |= bb_b;
         }
     }
 
+    /** Reset the board. */
     pub fn reset(&mut self) {
         self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
@@ -60,12 +69,15 @@ impl Board {
         self.fullmove_number = 0;
     }
 
+    /** Initialize the board. */
     pub fn initialize(&mut self, fen: &str) {
         fen::read(fen, self);
         self.bb_files = create_bb_files();
         self.bb_ranks = create_bb_ranks();
+        self.create_piece_bitboards();
     }
 
+    /** Get the pieces of a certain type, for one of the sides. */
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
         debug_assert!(piece <= 5, "Not a piece: {}", piece);
         debug_assert!(side == 0 || side == 1, "Not a side: {}", side);
@@ -76,6 +88,7 @@ impl Board {
         }
     }
 
+    /** Return which piece is on a given square, or return PNONE (no piece) */
     pub fn which_piece(&self, square: u8) -> Piece {
         debug_assert!(square < 64, "Not a correct square number: {}", square);
         let inspect = 1u64 << square as u64;
@@ -87,6 +100,7 @@ impl Board {
         PNONE
     }
 
+    /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
     }

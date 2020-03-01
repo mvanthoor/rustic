@@ -1,12 +1,18 @@
-// TODO: Add comments
-// TODO: Check for consistency
-
+/**
+ * fen.rs is the FEN-reader module. It takes an FEN-string, and reads it into the board.
+ * Note that the FEN-reader will not accept FEN-strings with illegal syntax. If it encounters
+ * illegal syntax, it'll abort the program because the board state would be undefined.
+ * The reader *does* accept FEN-strings with board positions that are impossible in normal
+ * chess, such as having two kings, 9 pawns, 10 queens, or both kings in check at the same time.
+ * It is not the purpose of the FEN-reader to check position legality, so it doesn't.
+*/
 use crate::board::Board;
 use crate::defines::{
     BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN, QUEEN,
     RANK_8, ROOK, WHITE,
 };
 
+/** Definitions used by the FEN-reader */
 const NR_OF_FEN_PARTS: usize = 6;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const LETTERS: &str = "abcdefgh";
@@ -19,6 +25,13 @@ const SPACE: char = ' ';
 const MAX_FULL_MOVES: u16 = 9999;
 type FenPartHandlers = fn(part: &str, board: &mut Board);
 
+/** This is the only public function. It uses private functions to split up the parsing
+ * of the FEN string. It works as follows:
+ *      - First, the FEN-string is split up into parts.
+ *      - Then, fen_parse loads all the private functions for parsing each part.
+ *      - The number of parts is determined.
+ *      - If the number of parts is correct, each part will be parsed by its own function.
+*/
 pub fn read(fen_string: &str, board: &mut Board) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
     let fen_parse: [FenPartHandlers; 6] = [part_0, part_1, part_2, part_3, part_4, part_5];
@@ -29,7 +42,6 @@ pub fn read(fen_string: &str, board: &mut Board) {
         for (i, handle_part) in fen_parse.iter().enumerate() {
             handle_part(&fen_parts[i], board);
         }
-        board.create_piece_bitboards();
     }
     assert!(
         length == NR_OF_FEN_PARTS,
@@ -39,6 +51,7 @@ pub fn read(fen_string: &str, board: &mut Board) {
     );
 }
 
+/** Part 0: Parsing piece setup. Put each piece into its respective bitboard. */
 fn part_0(part: &str, board: &mut Board) {
     const PART: u8 = 0;
     let mut rank = RANK_8 as u8;
@@ -77,6 +90,7 @@ fn part_0(part: &str, board: &mut Board) {
     }
 }
 
+/** Part 1: Parse color to move: White or Black */
 fn part_1(part: &str, board: &mut Board) {
     const PART: u8 = 1;
     let mut step = if part.len() == 1 { 1 } else { 0 };
@@ -94,6 +108,7 @@ fn part_1(part: &str, board: &mut Board) {
     assert_eq!(step, 2, "FEN {}: Must be 'w' or 'b'. {}", PART, part);
 }
 
+/** Part 2: Parse castling rights. */
 fn part_2(part: &str, board: &mut Board) {
     const PART: u8 = 2;
     let length = part.len();
@@ -124,6 +139,11 @@ fn part_2(part: &str, board: &mut Board) {
     assert_eq!(char_ok, length, "FEN {}: Castling rights: {}", PART, part);
 }
 
+/**
+ * Parse en-passant square. This is either an algebraic square, or a dash.
+ * If a square is found, it'll be converted into a square number and put into
+ * the board representation. Otherwise, None will be entered.
+ */
 fn part_3(part: &str, board: &mut Board) {
     const PART: u8 = 3;
     let length = part.len();
@@ -160,6 +180,7 @@ fn part_3(part: &str, board: &mut Board) {
     assert_eq!(char_ok, length, "FEN {}: En Passant Target: {}", PART, part);
 }
 
+/** Half-move clock: parse number of moves since last capture or pawn push. */
 fn part_4(part: &str, board: &mut Board) {
     const PART: u8 = 4;
     let length = part.len();
@@ -176,6 +197,7 @@ fn part_4(part: &str, board: &mut Board) {
     assert!(is_ok, "FEN {}: 50-move count: {}", PART, part);
 }
 
+//** Parse number of moves made in the game. */
 fn part_5(part: &str, board: &mut Board) {
     const PART: u8 = 5;
     let length = part.len();

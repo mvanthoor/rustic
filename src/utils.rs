@@ -1,6 +1,12 @@
-// Add more comments (header)
-// TODO: Check (again) for consistency
-
+/**
+ * Utils.rs contains functions that will be useful in different parts of the program.
+ * For exmple, the create_bb_ray function can be used to:
+ *      - Generate masks for use in magic bitboards
+ *      - Generate attack boards for use in magic bitboards
+ *      - Create diagonal masks, to complement create_bb_files() an create_bb_ranks().
+ * This file will also contain functions that are needed but don't fit anywhere else,
+ * such as engine_info(), which prints information to the screen at startup.
+ */
 use crate::defines::{Bitboard, AUTHOR, ENGINE, FILE_A, FILE_H, RANK_1, RANK_8, VERSION};
 
 /** Prints information about the engine to the screen. */
@@ -44,7 +50,6 @@ pub enum Direction {
  * And so on up to and including the H-file.
 */
 pub fn create_bb_files() -> [Bitboard; 8] {
-    // 0x0101_0101_0101_0101 is bits set for A1, A2...
     let mut bb_files: [Bitboard; 8] = [0; 8];
     for (i, file) in bb_files.iter_mut().enumerate() {
         *file = 0x0101_0101_0101_0101 << i;
@@ -58,7 +63,6 @@ pub fn create_bb_files() -> [Bitboard; 8] {
  * it shifts upward by 8 bits, masking each of the ranks.
  */
 pub fn create_bb_ranks() -> [Bitboard; 8] {
-    // 0xFF is all bits set for Rank 1; entire first byte of u64.
     let mut bb_ranks: [Bitboard; 8] = [0; 8];
     for (i, rank) in bb_ranks.iter_mut().enumerate() {
         *rank = 0xFF << (i * 8);
@@ -97,15 +101,14 @@ pub fn square_on_rank(square: u8, rank: u8) -> bool {
  *
  * Basically, the function starts on the given square and then keeps looping,
  * only executing one of the eight match blocks; the one matching the given
- * direction. (As such, it always only executes one of the match blocks.)
+ * direction. Thus, in one loop, it will only use one match block.
  * If starting on square 28 (E4) in direction UP, it will iterate over the
- * Direction::UP block until done.
+ * Direction::Up block until done.
  *
  * The ray ends, when bb_square either passes over the edge of the board, or hits
  * a set bit (piece) in bb_in. A piece/square in bb_in will be *included* in the ray,
  * because the ray can 'see' it.
  */
-// TODO: Test ray block with piece, for every direction
 pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitboard {
     let mut file = square_on_file_rank(square).0 as i8;
     let mut rank = square_on_file_rank(square).1 as i8;
@@ -118,7 +121,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::Up => {
                 if rank != (RANK_8 as i8) {
                     bb_square <<= 8;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank += 1;
                     done = (rank > RANK_8 as i8) || (bb_square & bb_in) > 0;
                 }
@@ -126,7 +129,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::Right => {
                 if file != (FILE_H as i8) {
                     bb_square <<= 1;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     file += 1;
                     done = (file > FILE_H as i8) || (bb_square & bb_in) > 0;
                 }
@@ -134,7 +137,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::Down => {
                 if rank != (RANK_1 as i8) {
                     bb_square >>= 8;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank -= 1;
                     done = (rank < RANK_1 as i8) || (bb_square & bb_in) > 0;
                 }
@@ -142,7 +145,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::Left => {
                 if file != (FILE_A as i8) {
                     bb_square >>= 1;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     file -= 1;
                     done = (file < FILE_A as i8) || (bb_square & bb_in) > 0;
                 }
@@ -151,7 +154,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::UpLeft => {
                 if rank != (RANK_8 as i8) && file != (FILE_A as i8) {
                     bb_square <<= 7;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank += 1;
                     file -= 1;
                     done = (rank > RANK_8 as i8)
@@ -163,7 +166,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::UpRight => {
                 if rank != (RANK_8 as i8) && file != (FILE_H as i8) {
                     bb_square <<= 9;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank += 1;
                     file += 1;
                     done = (rank > RANK_8 as i8)
@@ -175,7 +178,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::DownRight => {
                 if rank != (RANK_1 as i8) && file != (FILE_H as i8) {
                     bb_square >>= 7;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank -= 1;
                     file += 1;
                     done = (rank < RANK_1 as i8)
@@ -187,7 +190,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitbo
             Direction::DownLeft => {
                 if rank != (RANK_1 as i8) && file != (FILE_A as i8) {
                     bb_square >>= 9;
-                    bb_ray ^= bb_square;
+                    bb_ray |= bb_square;
                     rank -= 1;
                     file -= 1;
                     done =
