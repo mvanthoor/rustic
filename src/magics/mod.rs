@@ -12,13 +12,14 @@ extern crate rand;
 
 use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING, KNIGHT,
-    NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, WHITE,
+    NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, SQUARE_NAME, WHITE,
 };
 use crate::print;
 use crate::utils::{create_bb_files, create_bb_ranks};
-use attacks::create_rook_attacks;
+use attacks::{create_blocker_boards, create_rook_attack_boards};
 use masks::{create_bishop_mask, create_rook_mask};
-use rand::Rng;
+use rand::prelude::ThreadRng;
+use rand::*;
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
@@ -29,7 +30,8 @@ const MAX_PERMUTATIONS: usize = 4096;
 const ROOK_TABLE_SIZE: usize = 102400;
 // const BISHOP_TABLE_SIZE: u32 = 5248;
 
-type Attacks = [Option<Bitboard>; MAX_PERMUTATIONS];
+type Blockers = [Bitboard; MAX_PERMUTATIONS];
+type Attacks = [Bitboard; MAX_PERMUTATIONS];
 
 #[derive(Copy, Clone)]
 pub struct SliderInfo {
@@ -165,26 +167,53 @@ impl Magics {
      */
     fn init_magics(&mut self) {
         // TODO: Implement magics
-
-        let mut rng = rand::thread_rng();
-
         for sq in ALL_SQUARES {
-            if sq == 63 {
-                let mask = create_rook_mask(sq);
-                let attack_boards = create_rook_attacks(mask, sq);
-                self._rook_info[sq as usize].mask = mask;
-                self._rook_info[sq as usize].shift = (64 - mask.count_ones()) as u8;
-            }
-        }
-
-        let d: u64 = 5;
-        let mut n: u64 = 0;
-        loop {
-            println!("value: {}", n);
-            n = n.wrapping_sub(d) & d;
-            if n == 0 {
-                break;
-            }
+            let mask = create_rook_mask(sq);
+            let bits = mask.count_ones();
+            let permutations = 2u64.pow(bits);
+            let blocker_boards = create_blocker_boards(mask);
+            let attack_boards = create_rook_attack_boards(blocker_boards, sq);
+            self._rook_info[sq as usize].mask = mask;
+            self._rook_info[sq as usize].shift = (64 - bits) as u8;
+            self.find_magics(sq, blocker_boards, attack_boards, permutations);
         }
     }
+
+    fn find_magics(&mut self, square: u8, blockers: Blockers, attacks: Attacks, count: u64) {
+        let sq = square as usize;
+        let shift = self._rook_info[sq].shift;
+        let mut found = false;
+        let mut magic: u64 = 0;
+        let mut rng = rand::thread_rng();
+
+        while !found {
+            magic = random_uint64_fewbits(&mut rng);
+            found = true;
+            for i in 0..count {
+                let blocker_board = blockers[i as usize];
+                let index = (blocker_board.wrapping_mul(magic) >> shift) as usize;
+                if self._rook[index] == EMPTY {
+                    self._rook[index] = attacks[i as usize];
+                } else {
+                    self._rook = [EMPTY; ROOK_TABLE_SIZE];
+                    found = false;
+                    break;
+                }
+            }
+        }
+        println!("Magic found: {} - {}", SQUARE_NAME[sq], magic);
+        // print::bitboard(magic, None);
+    }
+}
+
+fn random_uint64_fewbits(x: &mut ThreadRng) -> u64 {
+    return random_uint64(x) & random_uint64(x) & random_uint64(x);
+}
+
+fn random_uint64(x: &mut ThreadRng) -> u64 {
+    let u1 = x.gen::<u64>() & 0xFFFF;
+    let u2 = x.gen::<u64>() & 0xFFFF;
+    let u3 = x.gen::<u64>() & 0xFFFF;
+    let u4 = x.gen::<u64>() & 0xFFFF;
+    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
 }

@@ -21,9 +21,9 @@ fn main() {
     board.initialize(test_pos);
     magics.initialize();
 
-    engine_info();
+    // engine_info();
 
-    print::position(&board, None);
+    // print::position(&board, None);
 
     // movegen::generate(&board, WHITE, &magics, &mut moves);
     // print::movelist(&moves);
