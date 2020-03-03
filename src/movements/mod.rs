@@ -30,16 +30,16 @@ type BlockerBoards = [Bitboard; MAX_PERMUTATIONS];
 type AttackBoards = [Bitboard; MAX_PERMUTATIONS];
 
 #[derive(Copy, Clone)]
-pub struct SliderInfo {
+pub struct Magics {
     mask: Bitboard,
     shift: u8,
     magic: u64,
     offset: u32,
 }
 
-impl Default for SliderInfo {
-    fn default() -> SliderInfo {
-        SliderInfo {
+impl Default for Magics {
+    fn default() -> Magics {
+        Magics {
             mask: 0,
             shift: 0,
             magic: 0,
@@ -48,7 +48,7 @@ impl Default for SliderInfo {
     }
 }
 
-impl SliderInfo {
+impl Magics {
     fn index(square: u8) {}
 }
 
@@ -59,32 +59,32 @@ impl SliderInfo {
  * respective attack table and return it. These tables and info are initialized in the
  * init_magics() function.
 */
-pub struct Magics {
+pub struct Movements {
     _king: [Bitboard; NSQ],
     _knight: [Bitboard; NSQ],
     _pawns: [[Bitboard; NSQ]; WHITE_BLACK],
     _rook: [Bitboard; ROOK_TABLE_SIZE],
-    _rook_info: [SliderInfo; NSQ],
+    _rook_magics: [Magics; NSQ],
     _bishop: [Bitboard; BISHOP_TABLE_SIZE],
-    _bishop_info: [SliderInfo; NSQ],
+    _bishop_magics: [Magics; NSQ],
 }
 
-impl Default for Magics {
-    fn default() -> Magics {
-        let slider_info: SliderInfo = Default::default();
-        Magics {
+impl Default for Movements {
+    fn default() -> Movements {
+        let magics: Magics = Default::default();
+        Movements {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
             _rook: [EMPTY; ROOK_TABLE_SIZE],
-            _rook_info: [slider_info; NSQ],
+            _rook_magics: [magics; NSQ],
             _bishop: [EMPTY; BISHOP_TABLE_SIZE],
-            _bishop_info: [slider_info; NSQ],
+            _bishop_magics: [magics; NSQ],
         }
     }
 }
 
-impl Magics {
+impl Movements {
     pub fn initialize(&mut self) {
         let files = create_bb_files();
         let ranks = create_bb_ranks();
@@ -187,8 +187,8 @@ impl Magics {
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
             let attack_boards = create_rook_attack_boards(sq, blocker_boards, permutations);
-            self._rook_info[sq as usize].mask = mask;
-            self._rook_info[sq as usize].shift = (64 - bits) as u8;
+            self._rook_magics[sq as usize].mask = mask;
+            self._rook_magics[sq as usize].shift = (64 - bits) as u8;
         }
 
         for sq in ALL_SQUARES {
@@ -197,8 +197,8 @@ impl Magics {
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
             let attack_boards = create_bishop_attack_boards(sq, blocker_boards, permutations);
-            self._bishop_info[sq as usize].mask = mask;
-            self._bishop_info[sq as usize].shift = (64 - bits) as u8;
+            self._bishop_magics[sq as usize].mask = mask;
+            self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
         }
     }
 }

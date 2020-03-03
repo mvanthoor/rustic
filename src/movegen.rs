@@ -15,7 +15,7 @@ use crate::defines::{
     Bitboard, Piece, Side, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5,
     RANK_8, ROOK, WHITE,
 };
-use crate::magics::Magics;
+use crate::movements::Movements;
 use crate::utils::square_on_rank;
 
 /*
@@ -100,33 +100,33 @@ impl Move {
  *
  * board: a reference to the board/position
  * side: the side to move
- * magics: a reference to "Magics", providing the attack capabilities of each piece.
- *         (Magics are precalculated moves for each piece on each square, so the move
- *          generator does not have to calculate this over and aover again.)
+ * movement: The movement database, which provides all possible piece movements on all squares.
+ *          It uses precalculated moves for each piece on each square, so the move
+ *          generator does not have to calculate this over and aover again.
  * list: a mutable reference to a list that will contain the moves.
  *
 */
-pub fn generate(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
+pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     list.clear();
-    non_slider(KING, board, side, magics, list);
-    non_slider(KNIGHT, board, side, magics, list);
-    pawns(board, side, magics, list);
+    non_slider(KING, board, side, movement, list);
+    non_slider(KNIGHT, board, side, movement, list);
+    pawns(board, side, movement, list);
 }
 
 /**
  * Generates moves for non-sliding pieces: King and Knight.
  * Basically:
  * - It gets the "from" square.
- * - It gets all the targets for the piece from the magics.
+ * - It gets all the targets for the piece from the Movements database.
  * - The piece can move to all squares that do not contain our own pieces.
  * - Add those moves to the move list.
  */
-fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
+fn non_slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     let bb_us = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
     while bb_pieces > 0 {
         let from = next(&mut bb_pieces);
-        let bb_target = magics.get_non_slider_attacks(piece, from);
+        let bb_target = movement.get_non_slider_attacks(piece, from);
         let bb_moves = bb_target & !bb_us;
         add_move(board, piece, side, from, bb_moves, list);
     }
@@ -149,7 +149,7 @@ fn non_slider(piece: Piece, board: &Board, side: Side, magics: &Magics, list: &m
  * Combine all the moves, and add them to the move list. The add_move function will take care
  * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
  */
-fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
+fn pawns(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     // Direction is Up or Down depending on white or black
     let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
@@ -165,7 +165,7 @@ fn pawns(board: &Board, side: Side, magics: &Magics, list: &mut MoveList) {
         let bb_push = 1u64 << (from as i8 + direction);
         let bb_one_step = bb_push & bb_empty;
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
-        let bb_targets = magics.get_pawn_attacks(side, from);
+        let bb_targets = movement.get_pawn_attacks(side, from);
         let bb_captures = bb_targets & bb_opponent_pieces;
         let bb_ep_capture = if let Some(ep) = board.en_passant {
             bb_targets & (1u64 << ep)
