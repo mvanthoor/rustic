@@ -6,32 +6,28 @@
  * combination of blockers for the sliders) are calculated at the start of the engine, which
  * saves tremendous amounts of time in the move generator.
  */
-mod attacks;
+mod blockatt;
 mod masks;
 extern crate rand;
 
 use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING, KNIGHT,
-    NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, SQUARE_NAME, WHITE,
+    NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, WHITE,
 };
-use crate::print;
 use crate::utils::{create_bb_files, create_bb_ranks};
-use attacks::{create_blocker_boards, create_rook_attack_boards};
+use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
 use masks::{create_bishop_mask, create_rook_mask};
-use rand::prelude::ThreadRng;
-use rand::*;
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
 
-// This is a total sum of all rook or bishop blocker permutations per square.
-const MAX_PERMUTATIONS: usize = 4096;
-const ROOK_TABLE_SIZE: usize = 102400;
-// const BISHOP_TABLE_SIZE: u32 = 5248;
+const MAX_PERMUTATIONS: usize = 4096; // Maximum number of blocker boards at once (Rook A1)
+const ROOK_TABLE_SIZE: usize = 102400; // Total permutations of all rook blocker boards.
+const BISHOP_TABLE_SIZE: usize = 5248; // Total permutations of all bishop blocker boards.
 
-type Blockers = [Bitboard; MAX_PERMUTATIONS];
-type Attacks = [Bitboard; MAX_PERMUTATIONS];
+type BlockerBoards = [Bitboard; MAX_PERMUTATIONS];
+type AttackBoards = [Bitboard; MAX_PERMUTATIONS];
 
 #[derive(Copy, Clone)]
 pub struct SliderInfo {
@@ -52,8 +48,16 @@ impl Default for SliderInfo {
     }
 }
 
+impl SliderInfo {
+    fn index(square: u8) {}
+}
+
 /**
  * The struct "Magics" will hold all of the attack tables for each piece on each square.
+ * The _rook and _bishop arrays hold the attack tables for the sliders. _rook_info and
+ * _bishop_info hold the magic information, to get the correct attack board from the
+ * respective attack table and return it. These tables and info are initialized in the
+ * init_magics() function.
 */
 pub struct Magics {
     _king: [Bitboard; NSQ],
@@ -61,6 +65,8 @@ pub struct Magics {
     _pawns: [[Bitboard; NSQ]; WHITE_BLACK],
     _rook: [Bitboard; ROOK_TABLE_SIZE],
     _rook_info: [SliderInfo; NSQ],
+    _bishop: [Bitboard; BISHOP_TABLE_SIZE],
+    _bishop_info: [SliderInfo; NSQ],
 }
 
 impl Default for Magics {
@@ -72,12 +78,13 @@ impl Default for Magics {
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
             _rook: [EMPTY; ROOK_TABLE_SIZE],
             _rook_info: [slider_info; NSQ],
+            _bishop: [EMPTY; BISHOP_TABLE_SIZE],
+            _bishop_info: [slider_info; NSQ],
         }
     }
 }
 
 impl Magics {
-    /** Initialize all of the attack tables for each piece on each square. */
     pub fn initialize(&mut self) {
         let files = create_bb_files();
         let ranks = create_bb_ranks();
@@ -104,8 +111,7 @@ impl Magics {
 
     /**
      * Generate all the possible king moves for each square.
-     * Exampe:
-     * Generate a bitboard for the square the king is on.
+     * Exampe: Generate a bitboard for the square the king is on.
      * Generate a move to Up-Left, if the king is not on the A file, and not on the last rank.
      * Generate a move to Up, if the king is not on the last rank.
      * ... and so on. All the moves are combined in the bb_move bitboard.
@@ -127,8 +133,10 @@ impl Magics {
     }
 
     /**
-     * Generate all the possible knight moves for each square.
-     * Works exactly the same as the king move generation.
+     * Generate all the possible knight moves for each square. Works
+     * exactly the same as the king move generation, but obviously,
+     * it uses the directions and file/rank restrictions for a knight
+     * instead of those for the king.
      */
     fn init_knight(&mut self, files: &[Bitboard; 8], ranks: &[Bitboard; 8]) {
         for sq in ALL_SQUARES {
@@ -163,57 +171,34 @@ impl Magics {
     /** This is the main part of the module: it generates all the "magic" numbers and
      * bitboards for every slider, on every square, for every blocker setup.
      * A blocker is a piece that is "in the way", causing the slider to not be able to
-     * 'see' beyond that piece..
+     * 'see' beyond that piece.
+     * The first part initializes magics for the rook.
+     * The second part initializes magics for the bishop.
+     * This way of initializatoin is not the absolute fastest, as it could have been
+     * done all in one loop, and without extra functions. This is not a problem.
+     * Initialization is only done once, at program startup, and so it does not have any impact
+     * on the performance of the engine. Because this is quite a difficult subject to wrap one's
+     * head around, and speed is unimportant in this case, clarity is preferable over cleverness.
      */
     fn init_magics(&mut self) {
-        // TODO: Implement magics
         for sq in ALL_SQUARES {
             let mask = create_rook_mask(sq);
             let bits = mask.count_ones();
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
-            let attack_boards = create_rook_attack_boards(blocker_boards, sq);
+            let attack_boards = create_rook_attack_boards(sq, blocker_boards, permutations);
             self._rook_info[sq as usize].mask = mask;
             self._rook_info[sq as usize].shift = (64 - bits) as u8;
-            self.find_magics(sq, blocker_boards, attack_boards, permutations);
+        }
+
+        for sq in ALL_SQUARES {
+            let mask = create_bishop_mask(sq);
+            let bits = mask.count_ones();
+            let permutations = 2u64.pow(bits);
+            let blocker_boards = create_blocker_boards(mask);
+            let attack_boards = create_bishop_attack_boards(sq, blocker_boards, permutations);
+            self._bishop_info[sq as usize].mask = mask;
+            self._bishop_info[sq as usize].shift = (64 - bits) as u8;
         }
     }
-
-    fn find_magics(&mut self, square: u8, blockers: Blockers, attacks: Attacks, count: u64) {
-        let sq = square as usize;
-        let shift = self._rook_info[sq].shift;
-        let mut found = false;
-        let mut magic: u64 = 0;
-        let mut rng = rand::thread_rng();
-
-        while !found {
-            magic = random_uint64_fewbits(&mut rng);
-            found = true;
-            for i in 0..count {
-                let blocker_board = blockers[i as usize];
-                let index = (blocker_board.wrapping_mul(magic) >> shift) as usize;
-                if self._rook[index] == EMPTY {
-                    self._rook[index] = attacks[i as usize];
-                } else {
-                    self._rook = [EMPTY; ROOK_TABLE_SIZE];
-                    found = false;
-                    break;
-                }
-            }
-        }
-        println!("Magic found: {} - {}", SQUARE_NAME[sq], magic);
-        // print::bitboard(magic, None);
-    }
-}
-
-fn random_uint64_fewbits(x: &mut ThreadRng) -> u64 {
-    return random_uint64(x) & random_uint64(x) & random_uint64(x);
-}
-
-fn random_uint64(x: &mut ThreadRng) -> u64 {
-    let u1 = x.gen::<u64>() & 0xFFFF;
-    let u2 = x.gen::<u64>() & 0xFFFF;
-    let u3 = x.gen::<u64>() & 0xFFFF;
-    let u4 = x.gen::<u64>() & 0xFFFF;
-    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
 }
