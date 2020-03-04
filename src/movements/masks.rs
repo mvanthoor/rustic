@@ -30,9 +30,8 @@ pub fn create_rook_mask(square: u8) -> Bitboard {
     let bb_rook_square = 1u64 << square;
     let bb_edges = edges_without_piece(location);
     let bb_mask = bb_files[location.0 as usize] | bb_ranks[location.1 as usize];
-    let final_result = bb_mask & !bb_edges & !bb_rook_square;
 
-    final_result
+    bb_mask & !bb_edges & !bb_rook_square
 }
 
 /**
@@ -51,9 +50,8 @@ pub fn create_bishop_mask(square: u8) -> Bitboard {
     let bb_up_right = create_bb_ray(0, square, Direction::UpRight);
     let bb_down_right = create_bb_ray(0, square, Direction::DownRight);
     let bb_down_left = create_bb_ray(0, square, Direction::DownLeft);
-    let final_result = (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges;
 
-    final_result
+    (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges
 }
 
 /**
@@ -66,10 +64,9 @@ fn edges_without_piece(location: Location) -> Bitboard {
     let bb_ranks = create_bb_ranks();
     let bb_piece_file = bb_files[location.0 as usize];
     let bb_piece_rank = bb_ranks[location.1 as usize];
-    let bb_edges = (bb_files[FILE_A] & !bb_piece_file)
+
+    (bb_files[FILE_A] & !bb_piece_file)
         | (bb_files[FILE_H] & !bb_piece_file)
         | (bb_ranks[RANK_1] & !bb_piece_rank)
-        | (bb_ranks[RANK_8] & !bb_piece_rank);
-
-    bb_edges
+        | (bb_ranks[RANK_8] & !bb_piece_rank)
 }

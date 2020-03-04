@@ -3,7 +3,7 @@
  * It generates all possible blocker boards for a given mask,
  * rook attack boards, and bishop attack boards.
 */
-use super::{AttackBoards, BlockerBoards, EMPTY, MAX_PERMUTATIONS};
+use super::{AttackBoards, BlockerBoards};
 use crate::defines::Bitboard;
 use crate::utils::{create_bb_ray, Direction};
 
@@ -17,14 +17,14 @@ use crate::utils::{create_bb_ray, Direction};
 */
 pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
     let d: Bitboard = mask;
-    let mut bb_blocker_boards: BlockerBoards = [EMPTY; MAX_PERMUTATIONS];
+    let mut bb_blocker_boards: BlockerBoards = Vec::new();
     let mut n: Bitboard = 0;
     let mut i = 0;
 
     // Carry-Rippler
     // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
     loop {
-        bb_blocker_boards[i] = n;
+        bb_blocker_boards.push(n);
         n = n.wrapping_sub(d) & d;
         i += 1;
         if n == 0 {
@@ -41,32 +41,30 @@ pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
  * belonging to that blocker board. The 'length' parameter is the length of the given
  * array of blocker boards.
 */
-pub fn create_rook_attack_boards(sq: u8, blockers: BlockerBoards, length: u64) -> AttackBoards {
-    let mut bb_attack_boards: AttackBoards = [EMPTY; MAX_PERMUTATIONS];
+pub fn create_rook_attack_boards(sq: u8, blockers: BlockerBoards) -> AttackBoards {
+    let mut bb_attack_boards: AttackBoards = Vec::new();
 
-    for i in 0..length {
-        let index = i as usize;
-        let bb_attacks = create_bb_ray(blockers[index], sq, Direction::Up)
-            | create_bb_ray(blockers[index], sq, Direction::Right)
-            | create_bb_ray(blockers[index], sq, Direction::Down)
-            | create_bb_ray(blockers[index], sq, Direction::Left);
-        bb_attack_boards[index] = bb_attacks;
+    for b in blockers.iter() {
+        let bb_attacks = create_bb_ray(*b, sq, Direction::Up)
+            | create_bb_ray(*b, sq, Direction::Right)
+            | create_bb_ray(*b, sq, Direction::Down)
+            | create_bb_ray(*b, sq, Direction::Left);
+        bb_attack_boards.push(bb_attacks);
     }
 
     bb_attack_boards
 }
 
 /* Same as the function above, but for the bishop. */
-pub fn create_bishop_attack_boards(sq: u8, blockers: BlockerBoards, length: u64) -> AttackBoards {
-    let mut bb_attack_boards: AttackBoards = [EMPTY; MAX_PERMUTATIONS];
+pub fn create_bishop_attack_boards(sq: u8, blockers: BlockerBoards) -> AttackBoards {
+    let mut bb_attack_boards: AttackBoards = Vec::new();
 
-    for i in 0..length {
-        let index = i as usize;
-        let bb_attacks = create_bb_ray(blockers[index], sq, Direction::UpLeft)
-            | create_bb_ray(blockers[index], sq, Direction::UpRight)
-            | create_bb_ray(blockers[index], sq, Direction::DownRight)
-            | create_bb_ray(blockers[index], sq, Direction::DownLeft);
-        bb_attack_boards[index] = bb_attacks;
+    for b in blockers.iter() {
+        let bb_attacks = create_bb_ray(*b, sq, Direction::UpLeft)
+            | create_bb_ray(*b, sq, Direction::UpRight)
+            | create_bb_ray(*b, sq, Direction::DownRight)
+            | create_bb_ray(*b, sq, Direction::DownLeft);
+        bb_attack_boards.push(bb_attacks);
     }
 
     bb_attack_boards

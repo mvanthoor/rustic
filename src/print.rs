@@ -10,7 +10,7 @@ use crate::defines::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
     ROOK, SQUARE_NAME,
 };
-use crate::movegen::MoveList;
+use crate::movegen::Move;
 
 type AsciiBoard = [char; NR_OF_SQUARES as usize];
 
@@ -52,7 +52,7 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 
 /** Prints a given movelist to the screen. */
 #[allow(dead_code)]
-pub fn movelist(moves: &MoveList) {
+pub fn movelist(moves: &[Move]) {
     for (i, m) in moves.iter().enumerate() {
         println!(
             "Move {}: {}{}{} capture: {}, promotion: {}, ep: {}",

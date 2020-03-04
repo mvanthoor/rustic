@@ -22,12 +22,11 @@ const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
 
-const MAX_PERMUTATIONS: usize = 4096; // Maximum number of blocker boards at once (Rook A1)
 const ROOK_TABLE_SIZE: usize = 102400; // Total permutations of all rook blocker boards.
 const BISHOP_TABLE_SIZE: usize = 5248; // Total permutations of all bishop blocker boards.
 
-type BlockerBoards = [Bitboard; MAX_PERMUTATIONS];
-type AttackBoards = [Bitboard; MAX_PERMUTATIONS];
+type BlockerBoards = Vec<Bitboard>;
+type AttackBoards = Vec<Bitboard>;
 
 #[derive(Copy, Clone)]
 pub struct Magics {
@@ -186,7 +185,7 @@ impl Movements {
             let bits = mask.count_ones();
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
-            let attack_boards = create_rook_attack_boards(sq, blocker_boards, permutations);
+            let attack_boards = create_rook_attack_boards(sq, blocker_boards);
             self._rook_magics[sq as usize].mask = mask;
             self._rook_magics[sq as usize].shift = (64 - bits) as u8;
         }
@@ -196,7 +195,7 @@ impl Movements {
             let bits = mask.count_ones();
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
-            let attack_boards = create_bishop_attack_boards(sq, blocker_boards, permutations);
+            let attack_boards = create_bishop_attack_boards(sq, blocker_boards);
             self._bishop_magics[sq as usize].mask = mask;
             self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
         }
