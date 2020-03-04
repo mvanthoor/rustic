@@ -7,6 +7,7 @@
  * saves tremendous amounts of time in the move generator.
  */
 mod blockatt;
+mod magics;
 mod masks;
 extern crate rand;
 
@@ -16,40 +17,17 @@ use crate::defines::{
 };
 use crate::utils::{create_bb_files, create_bb_ranks};
 use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
+use magics::*;
 use masks::{create_bishop_mask, create_rook_mask};
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
-
 const ROOK_TABLE_SIZE: usize = 102400; // Total permutations of all rook blocker boards.
 const BISHOP_TABLE_SIZE: usize = 5248; // Total permutations of all bishop blocker boards.
 
 type BlockerBoards = Vec<Bitboard>;
 type AttackBoards = Vec<Bitboard>;
-
-#[derive(Copy, Clone)]
-pub struct Magics {
-    mask: Bitboard,
-    shift: u8,
-    magic: u64,
-    offset: u32,
-}
-
-impl Default for Magics {
-    fn default() -> Magics {
-        Magics {
-            mask: 0,
-            shift: 0,
-            magic: 0,
-            offset: 0,
-        }
-    }
-}
-
-impl Magics {
-    fn index(square: u8) {}
-}
 
 /**
  * The struct "Magics" will hold all of the attack tables for each piece on each square.
@@ -186,8 +164,8 @@ impl Movements {
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
             let attack_boards = create_rook_attack_boards(sq, blocker_boards);
-            self._rook_magics[sq as usize].mask = mask;
-            self._rook_magics[sq as usize].shift = (64 - bits) as u8;
+            // self._rook_magics[sq as usize].mask = mask;
+            // self._rook_magics[sq as usize].shift = (64 - bits) as u8;
         }
 
         for sq in ALL_SQUARES {
@@ -196,8 +174,8 @@ impl Movements {
             let permutations = 2u64.pow(bits);
             let blocker_boards = create_blocker_boards(mask);
             let attack_boards = create_bishop_attack_boards(sq, blocker_boards);
-            self._bishop_magics[sq as usize].mask = mask;
-            self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
+            // self._bishop_magics[sq as usize].mask = mask;
+            // self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
         }
     }
 }
