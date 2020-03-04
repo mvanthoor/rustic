@@ -32,6 +32,7 @@ const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 
 /** Prints the current position to the screen. */
+#[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
     bitboards_to_ascii(board, &mut ascii_board);
@@ -71,6 +72,7 @@ pub fn movelist(moves: &[Move]) {
  * Private function: when creating a board to print, this function creates an
  * ASCII board out of the bitboards contained in the 'board' parameter.
  */
+#[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
     for (&bb_w, (board, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
         match board {
@@ -104,6 +106,7 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
 }
 
 //** This function actually puts the correct character into the ASCII board. */
+#[allow(dead_code)]
 fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, character: char) {
     for (i, square) in ascii_board.iter_mut().enumerate() {
         if (bitboard >> i) & 1 == 1 {
@@ -116,6 +119,7 @@ fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, cha
  * After creating the ASCII board, it can be printed using this function.
  * Optionally, one square on the board can be marked by a color.
  */
+#[allow(dead_code)]
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
     let mut coordinate_digit = NR_OF_FILES;

@@ -12,8 +12,8 @@ mod masks;
 extern crate rand;
 
 use crate::defines::{
-    Bitboard, Piece, Side, ALL_SQUARES, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING, KNIGHT,
-    NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, WHITE,
+    Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING,
+    KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 use crate::utils::{create_bb_files, create_bb_ranks};
 use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
@@ -159,23 +159,17 @@ impl Movements {
      */
     fn init_magics(&mut self) {
         for sq in ALL_SQUARES {
-            let mask = create_rook_mask(sq);
-            let bits = mask.count_ones();
-            let permutations = 2u64.pow(bits);
-            let blocker_boards = create_blocker_boards(mask);
-            let attack_boards = create_rook_attack_boards(sq, blocker_boards);
-            // self._rook_magics[sq as usize].mask = mask;
-            // self._rook_magics[sq as usize].shift = (64 - bits) as u8;
+            find_magics(sq, ROOK);
         }
 
-        for sq in ALL_SQUARES {
-            let mask = create_bishop_mask(sq);
-            let bits = mask.count_ones();
-            let permutations = 2u64.pow(bits);
-            let blocker_boards = create_blocker_boards(mask);
-            let attack_boards = create_bishop_attack_boards(sq, blocker_boards);
-            // self._bishop_magics[sq as usize].mask = mask;
-            // self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
-        }
+        // for sq in ALL_SQUARES {
+        // let mask = create_bishop_mask(sq);
+        // let bits = mask.count_ones();
+        // let permutations = 2u64.pow(bits);
+        // let blocker_boards = create_blocker_boards(mask);
+        // let attack_boards = create_bishop_attack_boards(sq, blocker_boards);
+        // self._bishop_magics[sq as usize].mask = mask;
+        // self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
+        // }
     }
 }

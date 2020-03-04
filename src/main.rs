@@ -21,15 +21,15 @@ fn main() {
     board.initialize(test_pos);
     movements.initialize();
 
-    engine_info();
+    // engine_info();
 
-    print::position(&board, None);
+    // print::position(&board, None);
 
-    movegen::generate(&board, WHITE, &movements, &mut moves);
-    print::movelist(&moves);
-    println!("...");
-    movegen::generate(&board, BLACK, &movements, &mut moves);
-    print::movelist(&moves);
+    // movegen::generate(&board, WHITE, &movements, &mut moves);
+    // print::movelist(&moves);
+    // println!("...");
+    // movegen::generate(&board, BLACK, &movements, &mut moves);
+    // print::movelist(&moves);
 
     println!("Done.");
 }

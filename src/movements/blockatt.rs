@@ -41,7 +41,7 @@ pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
  * belonging to that blocker board. The 'length' parameter is the length of the given
  * array of blocker boards.
 */
-pub fn create_rook_attack_boards(sq: u8, blockers: BlockerBoards) -> AttackBoards {
+pub fn create_rook_attack_boards(sq: u8, blockers: &BlockerBoards) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
@@ -56,7 +56,7 @@ pub fn create_rook_attack_boards(sq: u8, blockers: BlockerBoards) -> AttackBoard
 }
 
 /* Same as the function above, but for the bishop. */
-pub fn create_bishop_attack_boards(sq: u8, blockers: BlockerBoards) -> AttackBoards {
+pub fn create_bishop_attack_boards(sq: u8, blockers: &BlockerBoards) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
