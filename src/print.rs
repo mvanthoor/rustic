@@ -11,6 +11,7 @@ use crate::defines::{
     ROOK, SQUARE_NAME,
 };
 use crate::movegen::Move;
+use crate::movements::magics::Magics;
 
 type AsciiBoard = [char; NR_OF_SQUARES as usize];
 
@@ -151,4 +152,34 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     }
     println!();
     println!();
+}
+
+#[allow(dead_code)]
+pub fn found_magic(
+    sq: u8,
+    m: Magics,
+    offset: u64,
+    permutations: u64,
+    low: usize,
+    high: usize,
+    attempts: u64,
+) {
+    // Found a magic number. Print it.
+    println!(
+        "Magic found for {} - {}, start: {} end: {}, low: {} high: {}, attempts: {}",
+        SQUARE_NAME[sq as usize],
+        m.magic,
+        offset,
+        offset + permutations - 1,
+        low,
+        high,
+        attempts
+    );
+}
+
+#[allow(dead_code)]
+pub fn magic_the_gathering_finished(total: u64, expected: usize) {
+    println!("Total permutations: {}", total);
+    println!("Expected permutations: {}", expected);
+    println!("Finished.");
 }

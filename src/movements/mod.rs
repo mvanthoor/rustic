@@ -7,7 +7,7 @@
  * saves tremendous amounts of time in the move generator.
  */
 mod blockatt;
-mod magics;
+pub mod magics;
 mod masks;
 extern crate rand;
 
@@ -158,18 +158,6 @@ impl Movements {
      * head around, and speed is unimportant in this case, clarity is preferable over cleverness.
      */
     fn init_magics(&mut self) {
-        for sq in ALL_SQUARES {
-            find_magics(sq, ROOK);
-        }
-
-        // for sq in ALL_SQUARES {
-        // let mask = create_bishop_mask(sq);
-        // let bits = mask.count_ones();
-        // let permutations = 2u64.pow(bits);
-        // let blocker_boards = create_blocker_boards(mask);
-        // let attack_boards = create_bishop_attack_boards(sq, blocker_boards);
-        // self._bishop_magics[sq as usize].mask = mask;
-        // self._bishop_magics[sq as usize].shift = (64 - bits) as u8;
-        // }
+        find_magics(ROOK);
     }
 }
