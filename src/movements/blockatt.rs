@@ -19,14 +19,12 @@ pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
     let d: Bitboard = mask;
     let mut bb_blocker_boards: BlockerBoards = Vec::new();
     let mut n: Bitboard = 0;
-    let mut i = 0;
 
     // Carry-Rippler
     // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
     loop {
         bb_blocker_boards.push(n);
         n = n.wrapping_sub(d) & d;
-        i += 1;
         if n == 0 {
             break;
         }
@@ -41,7 +39,7 @@ pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
  * belonging to that blocker board. The 'length' parameter is the length of the given
  * array of blocker boards.
 */
-pub fn create_rook_attack_boards(sq: u8, blockers: &BlockerBoards) -> AttackBoards {
+pub fn create_rook_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
@@ -56,7 +54,7 @@ pub fn create_rook_attack_boards(sq: u8, blockers: &BlockerBoards) -> AttackBoar
 }
 
 /* Same as the function above, but for the bishop. */
-pub fn create_bishop_attack_boards(sq: u8, blockers: &BlockerBoards) -> AttackBoards {
+pub fn create_bishop_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {

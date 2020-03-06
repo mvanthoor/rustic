@@ -16,15 +16,13 @@ use crate::defines::{
     KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 use crate::utils::{create_bb_files, create_bb_ranks};
-use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
 use magics::*;
-use masks::{create_bishop_mask, create_rook_mask};
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
-const ROOK_TABLE_SIZE: usize = 102400; // Total permutations of all rook blocker boards.
-const BISHOP_TABLE_SIZE: usize = 5248; // Total permutations of all bishop blocker boards.
+const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
+const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
 type BlockerBoards = Vec<Bitboard>;
 type AttackBoards = Vec<Bitboard>;
@@ -158,6 +156,8 @@ impl Movements {
      * head around, and speed is unimportant in this case, clarity is preferable over cleverness.
      */
     fn init_magics(&mut self) {
+        // TODO: Turn rook and bishop attack tables from arrays into vectors.
         find_magics(ROOK);
+        find_magics(BISHOP);
     }
 }

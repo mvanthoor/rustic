@@ -1,14 +1,25 @@
-// TODO: Some more comments.
-extern crate rand;
-
-use super::blockatt::{create_blocker_boards, create_rook_attack_boards};
-use super::masks::create_rook_mask;
-use super::{EMPTY, ROOK_TABLE_SIZE};
-use crate::defines::{Bitboard, Piece, ALL_SQUARES, BISHOP, ROOK, SQUARE_NAME};
+/**
+ * This module provicdes "Magics", for working with sliding pieces in the move generator.
+*/
+extern crate rand; // Random number generator for creating magics.
+use super::blockatt::{
+    create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
+};
+use super::masks::{create_bishop_mask, create_rook_mask};
+use super::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
+use crate::defines::{Bitboard, Piece, ALL_SQUARES, BISHOP, ROOK};
 use crate::print;
+use crate::print::PIECE_NAME;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
+/**
+ * Magics contain the following data:
+ * mask: A Rook or Bishop mask for the square the magic belongs to.
+ * shift: This number is needed to create the magic index. It's "64 - (nr. of bits set 1 in mask)"
+ * offset: this is the offset in the attack table, where the attacks for the magic's square begin.
+ * magic: the magic number itself, used to create the index.
+*/
 #[derive(Copy, Clone)]
 pub struct Magics {
     pub mask: Bitboard,
@@ -28,6 +39,35 @@ impl Default for Magics {
     }
 }
 
+/**
+ * get_index() is the actual function that gets the magic index into the attack table.
+ * The attack table is a perfect hash. This means the following.
+ * - A rook on A1 has 7 squares vertical and 7 squares horizontal movement.
+ * - This is a total of 14 bits. However, if there are no pieces on A2-A6, or B1-G1, the rook
+ *      can always see A8 and H1. This means that if there are no blockers on the file or rank,
+ *      the rook can 'see' the square at the edge of the board. Therefore, the bits marking the
+ *      edge of a ray are not counted. Thus, the rook on A1 has actually 12 bits set.
+ * - These bits along the rank and file denote the possible position of blocking pieces.
+ * - For 12 bits, there are 4096 possible configuration of blockers (2 to the power of 12).
+ * - Thus, square A1 has 4096 blocker boards.
+ * - The get_index() function receives a board occupancy when called.
+ * - occupancy * self.mask (the mask for the piece on the square the magic belongs to) yields
+ *      a blocker board.
+ * - Each blocker board (configuration of blockers) goes with one attack board (the squares the)
+ *      piece can actually attack). This attack board is in the attack table.
+ * - The formula calculates WHERE in the attack table the blocker board is:
+ *      (blockerboard * magic number) >> (64 - bits in mask) + offset
+ * - For the rook on A1 the outcome will be an index of 0 - 4095:
+ *      0 - 4095 because of 4096 possible blocker (and thus, attack board) permutations
+ *      0 for offset, because A1 is the first square.
+ * - So the index for a rook on B1 will start at 4096, and so on.
+ * - The "magic number" is called magic, because it generates a UNIQUE index for each each
+ *      attack board in the attack table, without any collisions; so the entire table is exactly
+ *      filled. Therefore it's called a perfect hash.
+ * - Finding the magics is a process of just trying random numbers, with the formula below, over
+ * and over again until a number is found that generates unique indexes for all of the permutations
+ * of blockers of the piece on a particular square. See the explanation for find_magics().
+ */
 impl Magics {
     pub fn get_index(&self, occupancy: Bitboard) -> usize {
         let blockerboard = occupancy & self.mask;
@@ -36,32 +76,38 @@ impl Magics {
 }
 
 /*
-    Explanation for fail_low and fail_high:
-    Only try and add if the spot in the table is empty.
-    First check if the index is actually legal.
-    Can't be smaller than the table's current offset,
-    because it would overwrite earlier entries. It can't
-    be higher than offset+permutations-1, because it would
-    be skipping table entries. If this happens, there is an
-    error somewhere in this function, or in get_index().
+    TODO: even more comments here.
+    Finding magic numbers step by step.
+    fail_low and fail_high: check if the generated index is within the expected offset.
+    If this is not the case, there's a bug somewhere in this code, or in get_index().
 */
 pub fn find_magics(piece: Piece) {
-    assert!(piece == ROOK || piece == BISHOP, "Illegal piece: {}", piece);
-    let mut rook_table: [Bitboard; ROOK_TABLE_SIZE] = [0; ROOK_TABLE_SIZE];
+    assert!(piece == ROOK || piece == BISHOP, "Illegal piece: {}", 0);
+    let is_rook = piece == ROOK;
+    let mut rook_table: Vec<Bitboard> = vec![EMPTY; ROOK_TABLE_SIZE];
+    let mut bishop_table: Vec<Bitboard> = vec![EMPTY; BISHOP_TABLE_SIZE];
     let mut random = SmallRng::from_entropy();
     let mut offset = 0;
     let mut total_permutations = 0;
 
+    println!("Finding magics for: {}", PIECE_NAME[piece]);
     for sq in ALL_SQUARES {
-        let mask = create_rook_mask(sq);
+        let mask = if is_rook {
+            create_rook_mask(sq)
+        } else {
+            create_bishop_mask(sq)
+        };
         let bits = mask.count_ones(); // Number of set bits in the mask
         let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
-        let blocker_boards = create_blocker_boards(mask); // All blocker boards for this mask.
-        let attack_boards = create_rook_attack_boards(sq, &blocker_boards); // All attack boards.
+        let end = offset + permutations - 1; // End point in the attack table.
+        let blocker_boards = create_blocker_boards(mask);
+        let attack_boards = if is_rook {
+            create_rook_attack_boards(sq, &blocker_boards)
+        } else {
+            create_bishop_attack_boards(sq, &blocker_boards)
+        };
         let mut try_this: Magics = Default::default(); // New magic
         let mut found = false; // While loop breaker if magic works;
-        let mut low: usize = offset as usize; // Track the lowest generated magic index.
-        let mut high: usize = offset as usize; // Track the highest generated magic index.
         let mut attempts = 0; // Track needed attempts to find the magic.
 
         // Set up the new magic.
@@ -73,31 +119,35 @@ pub fn find_magics(piece: Piece) {
             attempts += 1; // Next attempt to find magic.
             found = true; // Assume this new magic will work.
             try_this.magic = random.gen::<u64>() & random.gen::<u64>() & random.gen::<u64>();
-            for i in 0..=(permutations - 1) {
-                let next = i as usize; // Get the next blocker/attack board
-                let index = try_this.get_index(blocker_boards[next]); // Magical index...
-                if rook_table[index] == EMPTY {
-                    let fail_low = index < offset as usize;
-                    let fail_high = index > offset as usize + permutations as usize - 1;
-                    if fail_low || fail_high {
-                        panic!("Illegal index: {}", index);
-                    }
-                    rook_table[index] = attack_boards[next];
-                    low = if index < low { index } else { low };
-                    high = if index > high { index } else { high };
+            for i in 0..permutations {
+                let next = i as usize;
+                let index = try_this.get_index(blocker_boards[next]);
+                let table: &mut [Bitboard] = if is_rook {
+                    &mut rook_table[..]
                 } else {
-                    for i in offset..=(offset + permutations - 1) {
-                        rook_table[i as usize] = EMPTY;
+                    &mut bishop_table[..]
+                };
+                if table[index] == EMPTY {
+                    let fail_low = index < offset as usize;
+                    let fail_high = index > end as usize;
+                    assert!(!fail_low && !fail_high, "Indexing error.");
+                    table[index] = attack_boards[next];
+                } else {
+                    for i in offset..=end {
+                        table[i as usize] = EMPTY;
                     }
-                    low = offset as usize;
-                    high = offset as usize;
                     found = false;
                     break;
                 }
             }
         }
-        print::found_magic(sq, try_this, offset, permutations, low, high, attempts);
+        print::found_magic(sq, try_this, offset, end, attempts);
         offset += permutations; // Set offset for next square.
     }
-    print::magic_the_gathering_finished(total_permutations, ROOK_TABLE_SIZE);
+    let expected = if is_rook {
+        ROOK_TABLE_SIZE
+    } else {
+        BISHOP_TABLE_SIZE
+    };
+    assert!((total_permutations as usize) == expected);
 }
