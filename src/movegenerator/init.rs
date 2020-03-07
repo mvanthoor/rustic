@@ -6,28 +6,27 @@
  * combination of blockers for the sliders) are calculated at the start of the engine, which
  * saves tremendous amounts of time in the move generator.
  */
-mod blockatt;
-pub mod magics;
-mod masks;
 extern crate rand;
 
+use super::blockatt::{
+    create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
+};
+use super::magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
+use super::masks::{create_bishop_mask, create_rook_mask};
 use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING,
     KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, QUEEN, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 use crate::utils::{create_bb_files, create_bb_ranks};
-use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
-use magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
-use masks::{create_bishop_mask, create_rook_mask};
 
 const WHITE_BLACK: usize = 2;
-const EMPTY: Bitboard = 0;
 const NSQ: usize = NR_OF_SQUARES as usize;
-const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
-const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
+pub const EMPTY: Bitboard = 0;
+pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
+pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
-type BlockerBoards = Vec<Bitboard>;
-type AttackBoards = Vec<Bitboard>;
+pub type BlockerBoards = Vec<Bitboard>;
+pub type AttackBoards = Vec<Bitboard>;
 
 /**
  * The struct "Magics" will hold all of the attack tables for each piece on each square.

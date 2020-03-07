@@ -15,7 +15,7 @@ use crate::defines::{
     Bitboard, Piece, Side, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5,
     RANK_8, ROOK, WHITE,
 };
-use crate::movements::Movements;
+use crate::movegenerator::init::Movements;
 use crate::utils::square_on_rank;
 
 /*

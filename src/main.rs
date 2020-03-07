@@ -1,15 +1,14 @@
 mod board;
 mod defines;
 mod fen;
-mod movegen;
-mod movements;
+mod movegenerator;
 mod print;
 mod utils;
 
 use board::Board;
 use defines::*;
-use movegen::*;
-use movements::Movements;
+use movegenerator::gen::{MoveList, MAX_LEGAL_MOVES};
+use movegenerator::init::Movements;
 use utils::*;
 
 fn main() {
@@ -25,10 +24,10 @@ fn main() {
 
     print::position(&board, None);
 
-    movegen::generate(&board, WHITE, &movements, &mut moves);
+    movegenerator::gen::generate(&board, WHITE, &movements, &mut moves);
     print::movelist(&moves);
     println!("...");
-    movegen::generate(&board, BLACK, &movements, &mut moves);
+    movegenerator::gen::generate(&board, BLACK, &movements, &mut moves);
     print::movelist(&moves);
 
     println!("Done.");

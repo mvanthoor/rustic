@@ -3,7 +3,7 @@
  * It generates all possible blocker boards for a given mask,
  * rook attack boards, and bishop attack boards.
 */
-use super::{AttackBoards, BlockerBoards};
+use super::init::{AttackBoards, BlockerBoards};
 use crate::defines::Bitboard;
 use crate::utils::{create_bb_ray, Direction};
 

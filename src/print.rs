@@ -10,8 +10,8 @@ use crate::defines::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
     ROOK, SQUARE_NAME,
 };
-use crate::movegen::Move;
-use crate::movements::magics::Magics;
+use crate::movegenerator::gen::Move;
+use crate::movegenerator::magics::Magics;
 
 type AsciiBoard = [char; NR_OF_SQUARES as usize];
 

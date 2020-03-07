@@ -5,8 +5,8 @@ extern crate rand; // Random number generator for creating magics.
 use super::blockatt::{
     create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
 };
+use super::init::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use super::masks::{create_bishop_mask, create_rook_mask};
-use super::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use crate::defines::{Bitboard, Piece, ALL_SQUARES, BISHOP, NR_OF_SQUARES, ROOK};
 use crate::print;
 use crate::print::PIECE_NAME;
