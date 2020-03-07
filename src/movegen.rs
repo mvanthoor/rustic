@@ -108,26 +108,57 @@ impl Move {
 */
 pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     list.clear();
-    non_slider(KING, board, side, movement, list);
-    non_slider(KNIGHT, board, side, movement, list);
+    piece(KING, board, side, movement, list);
+    piece(KNIGHT, board, side, movement, list);
+    piece(ROOK, board, side, movement, list);
+    piece(BISHOP, board, side, movement, list);
+    piece(QUEEN, board, side, movement, list);
     pawns(board, side, movement, list);
 }
 
+// fn non_slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+//     let bb_us = board.bb_pieces[side];
+//     let mut bb_pieces = board.get_pieces(piece, side);
+//     while bb_pieces > 0 {
+//         let from = next(&mut bb_pieces);
+//         let bb_target = movement.get_non_slider_attacks(piece, from);
+//         let bb_moves = bb_target & !bb_us;
+//         add_move(board, piece, side, from, bb_moves, list);
+//     }
+// }
+
+// fn slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+//     let bb_occupancy = board.occupancy();
+//     let bb_us = board.bb_pieces[side];
+//     let mut bb_pieces = board.get_pieces(piece, side);
+//     while bb_pieces > 0 {
+//         let from = next(&mut bb_pieces);
+//         let bb_target = movement.get_slider_attacks(piece, from, bb_occupancy);
+//         let bb_moves = bb_target & !bb_us;
+//         add_move(board, piece, side, from, bb_moves, list);
+//     }
+// }
+
 /**
- * Generates moves for non-sliding pieces: King and Knight.
+ * Generates moves for pieces.
  * Basically:
  * - It gets the "from" square.
- * - It gets all the targets for the piece from the Movements database.
+ * - It gets all the targets for the piece from the Movements object.
  * - The piece can move to all squares that do not contain our own pieces.
  * - Add those moves to the move list.
  */
-fn non_slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
-    let bb_us = board.bb_pieces[side];
+fn piece(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+    let bb_occupancy = board.occupancy();
+    let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
     while bb_pieces > 0 {
         let from = next(&mut bb_pieces);
-        let bb_target = movement.get_non_slider_attacks(piece, from);
-        let bb_moves = bb_target & !bb_us;
+        let bb_target = match piece {
+            QUEEN | ROOK | BISHOP => movement.get_slider_attacks(piece, from, bb_occupancy),
+            KING | KNIGHT => movement.get_non_slider_attacks(piece, from),
+            _ => 0,
+        };
+        let bb_moves = bb_target & !bb_own_pieces;
         add_move(board, piece, side, from, bb_moves, list);
     }
 }

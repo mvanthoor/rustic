@@ -13,10 +13,12 @@ extern crate rand;
 
 use crate::defines::{
     Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING,
-    KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
+    KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, QUEEN, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 use crate::utils::{create_bb_files, create_bb_ranks};
-use magics::*;
+use blockatt::{create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards};
+use magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
+use masks::{create_bishop_mask, create_rook_mask};
 
 const WHITE_BLACK: usize = 2;
 const EMPTY: Bitboard = 0;
@@ -38,9 +40,9 @@ pub struct Movements {
     _king: [Bitboard; NSQ],
     _knight: [Bitboard; NSQ],
     _pawns: [[Bitboard; NSQ]; WHITE_BLACK],
-    _rook: [Bitboard; ROOK_TABLE_SIZE],
+    _rook: Vec<Bitboard>,
+    _bishop: Vec<Bitboard>,
     _rook_magics: [Magics; NSQ],
-    _bishop: [Bitboard; BISHOP_TABLE_SIZE],
     _bishop_magics: [Magics; NSQ],
 }
 
@@ -51,9 +53,9 @@ impl Default for Movements {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
-            _rook: [EMPTY; ROOK_TABLE_SIZE],
+            _rook: vec![EMPTY; ROOK_TABLE_SIZE],
+            _bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
             _rook_magics: [magics; NSQ],
-            _bishop: [EMPTY; BISHOP_TABLE_SIZE],
             _bishop_magics: [magics; NSQ],
         }
     }
@@ -67,7 +69,8 @@ impl Movements {
         self.init_king(&files, &ranks);
         self.init_knight(&files, &ranks);
         self.init_pawns(&files);
-        self.init_magics();
+        self.init_magics(ROOK);
+        self.init_magics(BISHOP);
     }
 
     /** Return non-slider (King, Knight) attacks for the given square. */
@@ -75,6 +78,26 @@ impl Movements {
         match piece {
             KING => self._king[square as usize],
             KNIGHT => self._knight[square as usize],
+            _ => 0,
+        }
+    }
+
+    /** Return slider attacsk for Rook, Bishop and Queen using Magic. */
+    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
+        match piece {
+            ROOK => {
+                let index = self._rook_magics[square as usize].get_index(occupancy);
+                self._rook[index]
+            }
+            BISHOP => {
+                let index = self._bishop_magics[square as usize].get_index(occupancy);
+                self._bishop[index]
+            }
+            QUEEN => {
+                let r_index = self._rook_magics[square as usize].get_index(occupancy);
+                let b_index = self._bishop_magics[square as usize].get_index(occupancy);
+                self._rook[r_index] ^ self._bishop[b_index]
+            }
             _ => 0,
         }
     }
@@ -143,21 +166,79 @@ impl Movements {
         }
     }
 
-    /** This is the main part of the module: it generates all the "magic" numbers and
-     * bitboards for every slider, on every square, for every blocker setup.
-     * A blocker is a piece that is "in the way", causing the slider to not be able to
+    /** This is the main part of the module: it indexes all of the atack boards
+     * using the magic numbers from the "magics" module. This builds an attack database
+     * for sliding pieces, for each square and each combination of blocker boards. A
+     * blocker is a piece that is "in the way", causing the slider to not be able to
      * 'see' beyond that piece.
-     * The first part initializes magics for the rook.
-     * The second part initializes magics for the bishop.
-     * This way of initializatoin is not the absolute fastest, as it could have been
-     * done all in one loop, and without extra functions. This is not a problem.
-     * Initialization is only done once, at program startup, and so it does not have any impact
-     * on the performance of the engine. Because this is quite a difficult subject to wrap one's
-     * head around, and speed is unimportant in this case, clarity is preferable over cleverness.
+     * // TODO: Add some more comments, step by step.
      */
-    fn init_magics(&mut self) {
-        // TODO: Turn rook and bishop attack tables from arrays into vectors.
-        find_magics(ROOK);
-        find_magics(BISHOP);
+    fn init_magics(&mut self, piece: Piece) {
+        assert!(piece == ROOK || piece == BISHOP, "Illegal piece: {}", 0);
+        let is_rook = piece == ROOK;
+        let mut offset = 0;
+        let mut total_permutations = 0;
+        for sq in ALL_SQUARES {
+            let mask = if is_rook {
+                create_rook_mask(sq)
+            } else {
+                create_bishop_mask(sq)
+            };
+            let bits = mask.count_ones(); // Number of set bits in the mask
+            let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
+            let end = offset + permutations - 1; // End point in the attack table.
+            let blocker_boards = create_blocker_boards(mask);
+            let attack_boards = if is_rook {
+                create_rook_attack_boards(sq, &blocker_boards)
+            } else {
+                create_bishop_attack_boards(sq, &blocker_boards)
+            };
+            let mut mcurrent: Magics = Default::default();
+
+            mcurrent.mask = mask;
+            mcurrent.shift = (64 - bits) as u8;
+            mcurrent.offset = offset;
+            mcurrent.magic = if is_rook {
+                ROOK_MAGICS[sq as usize]
+            } else {
+                BISHOP_MAGICS[sq as usize]
+            };
+            total_permutations += permutations;
+            for i in 0..permutations {
+                let next = i as usize;
+                let index = mcurrent.get_index(blocker_boards[next]);
+                let table: &mut [Bitboard] = if is_rook {
+                    &mut self._rook[..]
+                } else {
+                    &mut self._bishop[..]
+                };
+                if table[index] == EMPTY {
+                    let fail_low = index < offset as usize;
+                    let fail_high = index > end as usize;
+                    assert!(!fail_low && !fail_high, "Indexing error. Error in Magics.");
+                    table[index] = attack_boards[next];
+                } else {
+                    panic!("Attack table index not empty. Error in Magics.");
+                }
+            }
+            // No failures  during indexing.
+            // Store this magic, then do the next one.
+            if is_rook {
+                self._rook_magics[sq as usize] = mcurrent;
+            } else {
+                self._bishop_magics[sq as usize] = mcurrent
+            }
+            offset += permutations;
+        }
+        // All permutations (blocker boards) should have been indexed.
+        assert!(
+            (total_permutations as usize)
+                == if is_rook {
+                    ROOK_TABLE_SIZE
+                } else {
+                    BISHOP_TABLE_SIZE
+                },
+            "Initializing magics failed. Check magic numbers."
+        );
     }
 }
