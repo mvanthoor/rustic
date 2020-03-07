@@ -10,7 +10,8 @@ use crate::defines::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
     ROOK, SQUARE_NAME,
 };
-use crate::movegen::MoveList;
+use crate::movegen::Move;
+use crate::movements::magics::Magics;
 
 type AsciiBoard = [char; NR_OF_SQUARES as usize];
 
@@ -29,19 +30,17 @@ const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
 
 const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
-const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
+pub const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 
-/** Prints the current position to the screen. */
+/* Prints the current position to the screen. */
+#[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
 }
 
-/**
- * Prints a given bitboard to the screen.
- * Optionally, one square in the bitboard can be marked by a color.
- */
+/* This prints a bitboard (64-bit number) to the screen in an 8x8 grid. */
 #[allow(dead_code)]
 pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     const SQUARE_OCCUPIED: char = '1';
@@ -50,9 +49,9 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     to_console(&ascii_board, mark_square);
 }
 
-/** Prints a given movelist to the screen. */
+/* Prints a given movelist to the screen. */
 #[allow(dead_code)]
-pub fn movelist(moves: &MoveList) {
+pub fn movelist(moves: &[Move]) {
     for (i, m) in moves.iter().enumerate() {
         println!(
             "Move {}: {}{}{} capture: {}, promotion: {}, ep: {}",
@@ -67,10 +66,8 @@ pub fn movelist(moves: &MoveList) {
     }
 }
 
-/**
- * Private function: when creating a board to print, this function creates an
- * ASCII board out of the bitboards contained in the 'board' parameter.
- */
+/* Create a printable ASCII-board out of bitboards. */
+#[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
     for (&bb_w, (board, &bb_b)) in board.bb_w.iter().zip(board.bb_b.iter().enumerate()) {
         match board {
@@ -104,6 +101,7 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
 }
 
 //** This function actually puts the correct character into the ASCII board. */
+#[allow(dead_code)]
 fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, character: char) {
     for (i, square) in ascii_board.iter_mut().enumerate() {
         if (bitboard >> i) & 1 == 1 {
@@ -112,10 +110,8 @@ fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, cha
     }
 }
 
-/**
- * After creating the ASCII board, it can be printed using this function.
- * Optionally, one square on the board can be marked by a color.
- */
+/* Print the generated ASCII-board to the console. Optionally mark one square. */
+#[allow(dead_code)]
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
     let mut coordinate_digit = NR_OF_FILES;
@@ -147,4 +143,13 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     }
     println!();
     println!();
+}
+
+/* This function prints a found magic number and its stats. */
+#[allow(dead_code)]
+pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
+    println!(
+        "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
+        SQUARE_NAME[sq as usize], m.magic, offset, end, attempts
+    );
 }
