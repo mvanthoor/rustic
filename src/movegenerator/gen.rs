@@ -116,29 +116,6 @@ pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut Move
     pawns(board, side, movement, list);
 }
 
-// fn non_slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
-//     let bb_us = board.bb_pieces[side];
-//     let mut bb_pieces = board.get_pieces(piece, side);
-//     while bb_pieces > 0 {
-//         let from = next(&mut bb_pieces);
-//         let bb_target = movement.get_non_slider_attacks(piece, from);
-//         let bb_moves = bb_target & !bb_us;
-//         add_move(board, piece, side, from, bb_moves, list);
-//     }
-// }
-
-// fn slider(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
-//     let bb_occupancy = board.occupancy();
-//     let bb_us = board.bb_pieces[side];
-//     let mut bb_pieces = board.get_pieces(piece, side);
-//     while bb_pieces > 0 {
-//         let from = next(&mut bb_pieces);
-//         let bb_target = movement.get_slider_attacks(piece, from, bb_occupancy);
-//         let bb_moves = bb_target & !bb_us;
-//         add_move(board, piece, side, from, bb_moves, list);
-//     }
-// }
-
 /**
  * Generates moves for pieces.
  * Basically:
