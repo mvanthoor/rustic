@@ -114,16 +114,11 @@ fn part_2(part: &str, board: &mut Board) {
     let length = part.len();
     let mut char_ok = 0;
 
-    if length == 1 {
-        if let Some(x) = part.chars().next() {
-            if x == DASH || CASTLE_RIGHTS.contains(x) {
+    if length >= 1 && length <= 4 {
+        for c in part.chars() {
+            if c == DASH {
                 char_ok += 1
             }
-        }
-    }
-
-    if length > 1 && length <= 4 {
-        for c in part.chars() {
             if CASTLE_RIGHTS.contains(c) {
                 char_ok += 1;
                 match c {
@@ -136,6 +131,7 @@ fn part_2(part: &str, board: &mut Board) {
             }
         }
     }
+    assert!(length >= 1, "FEN {}: Castling rights: {}", PART, part);
     assert_eq!(char_ok, length, "FEN {}: Castling rights: {}", PART, part);
 }
 
