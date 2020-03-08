@@ -16,7 +16,7 @@ fn main() {
     let mut movements: Movements = Default::default();
     let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
-    let test_pos: &str = "8/8/8/8/8/4k3/8/4K3 w - - 0 1";
+    let test_pos: &str = "4k3/6P1/2P1P3/8/8/8/6p1/3K4 w - - 0 1";
     board.initialize(test_pos);
     movements.initialize();
 
@@ -24,7 +24,7 @@ fn main() {
 
     print::position(&board, None);
 
-    let x = square_attacked(&board, BLACK, &movements, 28);
+    let x = square_attacked(&board, WHITE, &movements, 62);
     println!("{}", x);
 
     // movegenerator::gen::generate(&board, WHITE, &movements, &mut moves);
