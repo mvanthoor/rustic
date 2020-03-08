@@ -12,11 +12,11 @@
  */
 use crate::board::Board;
 use crate::defines::{
-    Bitboard, Piece, Side, BISHOP, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, FILE_H,
-    KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8, ROOK, SQUARE_NAME, WHITE,
+    Bitboard, Piece, Side, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
+    CASTLE_WQ, D1, D8, E1, E8, F1, F8, FILE_A, FILE_H, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN,
+    RANK_1, RANK_4, RANK_5, RANK_8, ROOK, WHITE,
 };
 use crate::movegenerator::init::Movements;
-use crate::print;
 use crate::utils::square_on_rank;
 
 /*
@@ -96,7 +96,7 @@ impl Move {
 }
 
 /**
- * This function actually generates the moves, using private functions in this module.
+ * This function actually generates the moves, using other functions in this module.
  * It takes the following parameters:
  *
  * board: a reference to the board/position
@@ -105,13 +105,12 @@ impl Move {
  *          It uses precalculated moves for each piece on each square, so the move
  *          generator does not have to calculate this over and aover again.
  * list: a mutable reference to a list that will contain the moves.
- *
 */
 pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     list.clear();
     piece(KING, board, side, movement, list);
     piece(KNIGHT, board, side, movement, list);
-    //piece(ROOK, board, side, movement, list);
+    piece(ROOK, board, side, movement, list);
     piece(BISHOP, board, side, movement, list);
     piece(QUEEN, board, side, movement, list);
     pawns(board, side, movement, list);
@@ -131,12 +130,11 @@ pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut Move
  * The queen does not have her own check. She is a combination of the rook and the bishop.
  * The queen can see what the rook can see, and she can see what the bishop can see.
  * So, when checking to find a rook, we also check for the queen; same with the bishop.
- * For pawns, we calculate on which squares a pawn should be to attack the given square, and then
- * check if the given side actually has at least one pawn on one of those squares.
- * "pieces" and "pawns" are obviously dependent on the side where looking at.
+ * For pawns, we calculate on which squares a pawn should be to attack the given square,
+ *  and then check if the given side actually has at least one pawn on one of those squares.
+ * "pieces" and "pawns" are obviously dependent on the side we're looking at.
  */
 pub fn square_attacked(board: &Board, side: Side, movement: &Movements, square: u8) -> bool {
-    println!("Examine square: {}", SQUARE_NAME[square as usize]);
     let pieces = if side == WHITE {
         board.bb_w
     } else {
@@ -232,36 +230,93 @@ fn pawns(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     }
 }
 
+/** The castling function is long, but fortunately not hard to understand.
+ * The length is due to having four parts; each side can castle either kingside or queenside.
+ * Step by step description:
+ * First, determine the opponent, which is "not our side".
+ * "has_castling_rights" is checked against the board, for either white or black.
+ * "in_check" is either checked for white or black.
+ * Then there are two big parts: one for white castling, and one for black castling.
+ * A part can be executed, if the side is correct for that part, the side has at least one
+ * castling right, and the king is not in check.
+ * Inside the part, we try to either castle kingside or queenside. To be able to determine
+ * if castling is possible, we first determine if there are any blocking pieces between the
+ * king and the rook of the side we're castling to. We also check if the square directly next
+ * to the king is not attacked; it's not permitted to castle across check. If there are no
+ * blockers and the squares just next to the king are not attacked, castling is possible.
+ * Note: we MUST verify if the king does not castle ACROSS check. We DON'T verify if the king
+ * castles INTO check on the landing square (gi, c1, g8 or c8). This verification is left up
+ * to makemove/unmake move outside of the move generator.
+ */
 fn castling(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
     let opponent = side ^ 1;
-    let white_has_castling_rights = (board.castling & (CASTLE_WK + CASTLE_WQ)) > 0;
-    let e1_attacked = square_attacked(board, opponent, movement, 4);
+    let has_castling_rights = if side == WHITE {
+        (board.castling & (CASTLE_WK + CASTLE_WQ)) > 0
+    } else {
+        (board.castling & (CASTLE_BK + CASTLE_BQ)) > 0
+    };
+    let in_check = if side == WHITE {
+        square_attacked(board, opponent, movement, E1)
+    } else {
+        square_attacked(board, opponent, movement, E8)
+    };
 
-    if side == WHITE && white_has_castling_rights && !e1_attacked {
+    if side == WHITE && has_castling_rights && !in_check {
         let mut bb_king = board.get_pieces(KING, side);
         let from = next(&mut bb_king);
         let bb_occupancy = board.occupancy();
 
+        // Kingside
         if board.castling & CASTLE_WK > 0 {
-            let bb_kingside_blockers: u64 = (1u64 << 5) | (1u64 << 6);
+            let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
-            let f1_attacked = square_attacked(board, opponent, movement, 5);
+            let f1_attacked = square_attacked(board, opponent, movement, F1);
 
-            if !is_kingside_blocked && !e1_attacked && !f1_attacked {
+            if !is_kingside_blocked && !f1_attacked {
                 let to = (1u64 << from) << 2;
                 add_move(board, KING, WHITE, from, to, list);
             }
         }
 
+        // Queenside
         if board.castling & CASTLE_WQ > 0 {
-            let bb_queenside_blockers: u64 = (1u64 << 1) | (1u64 << 2) | (1u64 << 3);
+            let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
-            let d1_attacked = square_attacked(board, opponent, movement, 3);
-            let c1_attacked = square_attacked(board, opponent, movement, 2);
+            let d1_attacked = square_attacked(board, opponent, movement, D1);
 
-            if !is_queenside_blocked && !d1_attacked && !c1_attacked {
+            if !is_queenside_blocked && !d1_attacked {
                 let to = (1u64 << from) >> 2;
                 add_move(board, KING, WHITE, from, to, list);
+            }
+        }
+    }
+
+    if side == BLACK && has_castling_rights && !in_check {
+        let mut bb_king = board.get_pieces(KING, side);
+        let from = next(&mut bb_king);
+        let bb_occupancy = board.occupancy();
+
+        // Kingside
+        if board.castling & CASTLE_BK > 0 {
+            let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
+            let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
+            let f8_attacked = square_attacked(board, opponent, movement, F8);
+
+            if !is_kingside_blocked && !f8_attacked {
+                let to = (1u64 << from) << 2;
+                add_move(board, KING, BLACK, from, to, list);
+            }
+        }
+
+        // Queenside
+        if board.castling & CASTLE_BQ > 0 {
+            let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
+            let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
+            let d8_attacked = square_attacked(board, opponent, movement, D8);
+
+            if !is_queenside_blocked && !d8_attacked {
+                let to = (1u64 << from) >> 2;
+                add_move(board, KING, BLACK, from, to, list);
             }
         }
     }
@@ -294,6 +349,7 @@ fn captured_piece(board: &Board, side: Side, to_square: u8) -> Piece {
     PNONE
 }
 
+// TODO: add castling move type
 /** Adds moves and the data belonging to those moves to a move list.
  * This function also takes care of promotions, by adding four moves
  * to the list instead of one; one move for each promotion possibility.

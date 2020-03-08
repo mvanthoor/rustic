@@ -47,6 +47,22 @@ pub const FILE_B: usize = 1;
 pub const FILE_G: usize = 6;
 pub const FILE_H: usize = 7;
 
+// White side squares that are important for castling
+pub const B1: u8 = 1;
+pub const C1: u8 = 2;
+pub const D1: u8 = 3;
+pub const E1: u8 = 4;
+pub const F1: u8 = 5;
+pub const G1: u8 = 6;
+
+// Black side squares that are important for castling
+pub const B8: u8 = 57;
+pub const C8: u8 = 58;
+pub const D8: u8 = 59;
+pub const E8: u8 = 60;
+pub const F8: u8 = 61;
+pub const G8: u8 = 62;
+
 pub const ALL_RANKS: RangeInclusive<u8> = (RANK_1 as u8)..=(RANK_8 as u8);
 pub const ALL_FILES: RangeInclusive<u8> = (FILE_A as u8)..=(FILE_H as u8);
 pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
