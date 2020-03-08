@@ -13,9 +13,10 @@
 use crate::board::Board;
 use crate::defines::{
     Bitboard, Piece, Side, BISHOP, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5,
-    RANK_8, ROOK, WHITE,
+    RANK_8, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegenerator::init::Movements;
+use crate::print;
 use crate::utils::square_on_rank;
 
 /*
@@ -114,6 +115,27 @@ pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut Move
     piece(BISHOP, board, side, movement, list);
     piece(QUEEN, board, side, movement, list);
     pawns(board, side, movement, list);
+}
+
+pub fn square_attacked(board: &Board, side: Side, movement: &Movements, square: u8) -> bool {
+    println!("Examine square: {}", SQUARE_NAME[square as usize]);
+    let pieces = if side == WHITE {
+        board.bb_w
+    } else {
+        board.bb_b
+    };
+    let occupancy = board.occupancy();
+    let bb_rook = movement.get_slider_attacks(ROOK, square, occupancy);
+    let bb_bishop = movement.get_slider_attacks(BISHOP, square, occupancy);
+    let bb_knight = movement.get_non_slider_attacks(KNIGHT, square);
+    let bb_king = movement.get_non_slider_attacks(KING, square);
+
+    (bb_rook & pieces[ROOK] > 0)
+        || (bb_rook & pieces[QUEEN] > 0)
+        || (bb_bishop & pieces[BISHOP] > 0)
+        || (bb_bishop & pieces[QUEEN] > 0)
+        || (bb_knight & pieces[KNIGHT] > 0)
+        || (bb_king & pieces[KING] > 0)
 }
 
 /**
