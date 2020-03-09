@@ -4,8 +4,9 @@
  * rook attack boards, and bishop attack boards.
 */
 use super::init::{AttackBoards, BlockerBoards};
-use crate::defines::Bitboard;
-use crate::utils::{create_bb_ray, Direction};
+use super::rays::create_bb_ray;
+use crate::definitions::Bitboard;
+use crate::utils::Direction;
 
 /**
  * create_blocker_boards() takes a mask. This is a bitboard in which

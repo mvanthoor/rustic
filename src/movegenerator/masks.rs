@@ -9,10 +9,9 @@
  * They can not be seen by the slider (if a blocker is in the way), or they can always be seen
  * (if there is no blocker). The generator for the attack boards takes this into account.
 */
-use crate::defines::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
-use crate::utils::{
-    create_bb_files, create_bb_ranks, create_bb_ray, square_on_file_rank, Direction, Location,
-};
+use super::rays::create_bb_ray;
+use crate::definitions::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::utils::{create_bb_files, create_bb_ranks, square_on_file_rank, Direction, Location};
 
 /**
  * Explanation of create_rook mask, step by step.

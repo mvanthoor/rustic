@@ -10,8 +10,8 @@
  * discarded moves will not be executed or evaluated. If legality checking had been done on
  * those moves, that time would have been wasted.
  */
-use crate::board::Board;
-use crate::defines::{
+use crate::board::representation::Board;
+use crate::definitions::{
     Bitboard, Piece, Side, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
     CASTLE_WQ, D1, D8, E1, E8, F1, F8, FILE_A, FILE_H, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN,
     RANK_1, RANK_4, RANK_5, RANK_8, ROOK, WHITE,

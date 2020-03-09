@@ -1,15 +1,21 @@
 mod board;
-mod defines;
-mod fen;
+mod definitions;
+mod extra;
 mod movegenerator;
-mod print;
 mod utils;
 
-use board::Board;
-use defines::*;
+use board::representation::Board;
+use definitions::*;
+use extra::print;
 use movegenerator::gen::{MoveList, MAX_LEGAL_MOVES};
 use movegenerator::init::Movements;
-use utils::*;
+
+/** Prints information about the engine to the screen. */
+pub fn engine_info() {
+    println!();
+    println!("Engine: {} {}", ENGINE, VERSION);
+    println!("Author: {}", AUTHOR);
+}
 
 fn main() {
     let mut board: Board = Default::default();
@@ -20,7 +26,7 @@ fn main() {
     board.initialize(test_pos);
     movements.initialize();
 
-    engine_info();
+    //engine_info();
 
     print::position(&board, None);
 

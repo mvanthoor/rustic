@@ -5,8 +5,8 @@
  * humans when viewed in in decimal, or as one long string. In normal play, the
  * functionality of this module will not be used.
  */
-use crate::board::Board;
-use crate::defines::{
+use crate::board::representation::Board;
+use crate::definitions::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
     ROOK, SQUARE_NAME,
 };

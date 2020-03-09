@@ -7,9 +7,9 @@ use super::blockatt::{
 };
 use super::init::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use super::masks::{create_bishop_mask, create_rook_mask};
-use crate::defines::{Bitboard, Piece, ALL_SQUARES, BISHOP, NR_OF_SQUARES, ROOK};
-use crate::print;
-use crate::print::PIECE_NAME;
+use crate::definitions::{Bitboard, Piece, ALL_SQUARES, BISHOP, NR_OF_SQUARES, ROOK};
+use crate::extra::print;
+use crate::extra::print::PIECE_NAME;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 

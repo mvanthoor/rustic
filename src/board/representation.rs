@@ -8,11 +8,11 @@
  * All other things making up a chess position such as color, castling rights, e_passant
  * and others, will also be in this struct.
 */
-use crate::defines::{
+use super::fen;
+use crate::definitions::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, PNONE, WHITE,
 };
-use crate::fen;
 use crate::utils::{create_bb_files, create_bb_ranks};
 
 pub struct Board {

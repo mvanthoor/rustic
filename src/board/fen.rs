@@ -6,8 +6,8 @@
  * chess, such as having two kings, 9 pawns, 10 queens, or both kings in check at the same time.
  * It is not the purpose of the FEN-reader to check position legality, so it doesn't.
 */
-use crate::board::Board;
-use crate::defines::{
+use crate::board::representation::Board;
+use crate::definitions::{
     BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN, QUEEN,
     RANK_8, ROOK, WHITE,
 };
