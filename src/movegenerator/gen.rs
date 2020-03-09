@@ -26,17 +26,18 @@ Move format explanation
 
 Field       :   bits     Decimal values
 ============================================
-PIECE       :   3        0-7 (use only 0-5)
+PIECE       :   3        0-7 (use only 0-6)
 FROM SQUARE :   6        0-63
 TO SQUARE   :   6        0-63
-CAPTURE     :   3        0-7
-PROMOTION   :   3        0-7
+CAPTURE     :   3        0-7 (captured piece)
+PROMOTION   :   3        0-7 (piece promoted to)
 ENPASSANT   :   1        0-1
+CASTLING    :   1        0-1
 
-Field:      ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
-            1           111         111         111111      111111      111
-Shift:      21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
-& Value:    0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
+Field:      CASTLING    ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
+            1           1           111         111         111111      111111      111
+Shift:      22 bits     21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
+& Value:    0x1 (1)     0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -58,6 +59,7 @@ enum Shift {
     Capture = 15,
     Promotion = 18,
     EnPassant = 21,
+    Castling = 22,
 }
 
 /** This part defines the movelist, and the move and its functions */
@@ -90,8 +92,11 @@ impl Move {
     }
 
     pub fn en_passant(&self) -> bool {
-        let ep = ((self.data >> Shift::EnPassant as u64) & 0x1) as u8;
-        ep == 1
+        ((self.data >> Shift::EnPassant as u64) & 0x1) as u8 == 1
+    }
+
+    pub fn castling(&self) -> bool {
+        ((self.data >> Shift::Castling as u64) & 0x1) as u8 == 1
     }
 }
 
@@ -349,7 +354,6 @@ fn captured_piece(board: &Board, side: Side, to_square: u8) -> Piece {
     PNONE
 }
 
-// TODO: add castling move type
 /** Adds moves and the data belonging to those moves to a move list.
  * This function also takes care of promotions, by adding four moves
  * to the list instead of one; one move for each promotion possibility.
@@ -373,11 +377,13 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
             0
         };
         let en_passant = (piece == PAWN) && (ep_square != 0) && (to_square == ep_square);
+        let castling = (piece == KING) && ((to_square as i8 - from as i8).abs() == 2);
         let move_data = (piece as u64)
             | ((from as u64) << Shift::FromSq as u64)
             | ((to_square as u64) << Shift::ToSq as u64)
             | ((capture as u64) << Shift::Capture as u64)
-            | ((en_passant as u64) << Shift::EnPassant as u64);
+            | ((en_passant as u64) << Shift::EnPassant as u64)
+            | ((castling as u64) << Shift::Castling as u64);
 
         if !promotion {
             let m = Move {
