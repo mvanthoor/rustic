@@ -6,7 +6,7 @@
  * functionality of this module will not be used.
  */
 use crate::board::representation::Board;
-use crate::definitions::{
+use crate::defs::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
     ROOK, SQUARE_NAME,
 };

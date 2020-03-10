@@ -1,11 +1,11 @@
 mod board;
-mod definitions;
+mod defs;
 mod extra;
 mod movegenerator;
 mod utils;
 
 use board::representation::Board;
-use definitions::*;
+use defs::{AUTHOR, BLACK, ENGINE, VERSION, WHITE};
 use extra::print;
 use movegenerator::gen::{MoveList, MAX_LEGAL_MOVES};
 use movegenerator::init::Movements;
@@ -26,7 +26,7 @@ fn main() {
     board.initialize(test_pos);
     movements.initialize();
 
-    //engine_info();
+    engine_info();
 
     print::position(&board, None);
 

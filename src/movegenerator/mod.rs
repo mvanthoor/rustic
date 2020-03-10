@@ -1,6 +1,6 @@
-mod blockatt;
+pub mod blockatt;
 pub mod gen;
 pub mod init;
 pub mod magics;
-mod masks;
+pub mod masks;
 mod rays;

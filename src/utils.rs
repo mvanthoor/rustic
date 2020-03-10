@@ -8,7 +8,7 @@
  * This file will also contain functions that are needed but don't fit anywhere else,
  * such as engine_info(), which prints information to the screen at startup.
  */
-use crate::definitions::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::defs::Bitboard;
 
 // Piece location: (file, rank)
 pub type Location = (u8, u8);

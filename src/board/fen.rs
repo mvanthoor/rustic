@@ -7,7 +7,7 @@
  * It is not the purpose of the FEN-reader to check position legality, so it doesn't.
 */
 use crate::board::representation::Board;
-use crate::definitions::{
+use crate::defs::{
     BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN, QUEEN,
     RANK_8, ROOK, WHITE,
 };

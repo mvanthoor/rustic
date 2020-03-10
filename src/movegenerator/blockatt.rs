@@ -5,7 +5,7 @@
 */
 use super::init::{AttackBoards, BlockerBoards};
 use super::rays::create_bb_ray;
-use crate::definitions::Bitboard;
+use crate::defs::Bitboard;
 use crate::utils::Direction;
 
 /**

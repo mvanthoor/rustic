@@ -1,4 +1,4 @@
-use crate::definitions::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
 use crate::utils::{square_on_file_rank, Direction};
 
 /**

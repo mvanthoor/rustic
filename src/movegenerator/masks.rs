@@ -10,7 +10,7 @@
  * (if there is no blocker). The generator for the attack boards takes this into account.
 */
 use super::rays::create_bb_ray;
-use crate::definitions::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
 use crate::utils::{create_bb_files, create_bb_ranks, square_on_file_rank, Direction, Location};
 
 /**

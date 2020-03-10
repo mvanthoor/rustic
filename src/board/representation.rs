@@ -9,7 +9,7 @@
  * and others, will also be in this struct.
 */
 use super::fen;
-use crate::definitions::{
+use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, PNONE, WHITE,
 };
