@@ -5,9 +5,9 @@ use crate::extra::print::PIECE_NAME;
 use crate::movegenerator::blockatt::{
     create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
 };
-use crate::movegenerator::init::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use crate::movegenerator::magics::Magics;
 use crate::movegenerator::masks::{create_bishop_mask, create_rook_mask};
+use crate::movegenerator::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 

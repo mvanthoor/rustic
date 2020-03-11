@@ -10,6 +10,7 @@
  * discarded moves will not be executed or evaluated. If legality checking had been done on
  * those moves, that time would have been wasted.
  */
+use super::MoveGenerator;
 use crate::board::representation::Board;
 use crate::board::square_on_rank;
 use crate::defs::{
@@ -17,7 +18,6 @@ use crate::defs::{
     CASTLE_WQ, D1, D8, E1, E8, F1, F8, FILE_A, FILE_H, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN,
     RANK_1, RANK_4, RANK_5, RANK_8, ROOK, WHITE,
 };
-use crate::movegenerator::init::Movements;
 
 /*
 Move format explanation
@@ -111,7 +111,7 @@ impl Move {
  *          generator does not have to calculate this over and aover again.
  * list: a mutable reference to a list that will contain the moves.
 */
-pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+pub fn generate(board: &Board, side: Side, movement: &MoveGenerator, list: &mut MoveList) {
     list.clear();
     piece(KING, board, side, movement, list);
     piece(KNIGHT, board, side, movement, list);
@@ -139,7 +139,7 @@ pub fn generate(board: &Board, side: Side, movement: &Movements, list: &mut Move
  *  and then check if the given side actually has at least one pawn on one of those squares.
  * "pieces" and "pawns" are obviously dependent on the side we're looking at.
  */
-pub fn square_attacked(board: &Board, side: Side, movement: &Movements, square: u8) -> bool {
+pub fn square_attacked(board: &Board, side: Side, movement: &MoveGenerator, square: u8) -> bool {
     let pieces = if side == WHITE {
         board.bb_w
     } else {
@@ -174,7 +174,7 @@ pub fn square_attacked(board: &Board, side: Side, movement: &Movements, square: 
  * - The piece can move to all squares that do not contain our own pieces.
  * - Add those moves to the move list.
  */
-fn piece(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+fn piece(piece: Piece, board: &Board, side: Side, movement: &MoveGenerator, list: &mut MoveList) {
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
@@ -207,7 +207,7 @@ fn piece(piece: Piece, board: &Board, side: Side, movement: &Movements, list: &m
  * Combine all the moves, and add them to the move list. The add_move function will take care
  * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
  */
-fn pawns(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+fn pawns(board: &Board, side: Side, movement: &MoveGenerator, list: &mut MoveList) {
     // Direction is Up or Down depending on white or black
     let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
@@ -253,7 +253,7 @@ fn pawns(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
  * castles INTO check on the landing square (gi, c1, g8 or c8). This verification is left up
  * to makemove/unmake move outside of the move generator.
  */
-fn castling(board: &Board, side: Side, movement: &Movements, list: &mut MoveList) {
+fn castling(board: &Board, side: Side, movement: &MoveGenerator, list: &mut MoveList) {
     let opponent = side ^ 1;
     let has_castling_rights = if side == WHITE {
         (board.castling & (CASTLE_WK + CASTLE_WQ)) > 0
