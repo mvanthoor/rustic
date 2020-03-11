@@ -67,27 +67,31 @@ impl MoveGenerator {
 
     /** Return non-slider (King, Knight) attacks for the given square. */
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+        let sq = square as usize;
+
         match piece {
-            KING => self._king[square as usize],
-            KNIGHT => self._knight[square as usize],
+            KING => self._king[sq],
+            KNIGHT => self._knight[sq],
             _ => 0,
         }
     }
 
     /** Return slider attacsk for Rook, Bishop and Queen using Magic. */
     pub fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
+        let sq = square as usize;
+
         match piece {
             ROOK => {
-                let index = self._rook_magics[square as usize].get_index(occupancy);
+                let index = self._rook_magics[sq].get_index(occupancy);
                 self._rook[index]
             }
             BISHOP => {
-                let index = self._bishop_magics[square as usize].get_index(occupancy);
+                let index = self._bishop_magics[sq].get_index(occupancy);
                 self._bishop[index]
             }
             QUEEN => {
-                let r_index = self._rook_magics[square as usize].get_index(occupancy);
-                let b_index = self._bishop_magics[square as usize].get_index(occupancy);
+                let r_index = self._rook_magics[sq].get_index(occupancy);
+                let b_index = self._bishop_magics[sq].get_index(occupancy);
                 self._rook[r_index] ^ self._bishop[b_index]
             }
             _ => 0,
