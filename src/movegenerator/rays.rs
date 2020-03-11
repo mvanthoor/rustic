@@ -1,5 +1,5 @@
+use crate::board::{square_on_file_rank, Direction};
 use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
-use crate::utils::{square_on_file_rank, Direction};
 
 /**
  * create_bb_ray() is a long function, but it's actually quite simple.

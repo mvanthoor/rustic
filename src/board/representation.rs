@@ -9,11 +9,11 @@
  * and others, will also be in this struct.
 */
 use super::fen;
+use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, PNONE, WHITE,
 };
-use crate::utils::{create_bb_files, create_bb_ranks};
 
 pub struct Board {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],

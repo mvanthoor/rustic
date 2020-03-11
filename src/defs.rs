@@ -1,5 +1,5 @@
 /**
- * defines.rs holds all the definitions that are needed throughout the program.
+ * defs.rs holds all the definitions that are needed throughout the program.
  * If there are definitions that are needed only inside a single module, those
  * can be found within that module.
 */

@@ -5,8 +5,8 @@
 */
 use super::init::{AttackBoards, BlockerBoards};
 use super::rays::create_bb_ray;
+use crate::board::Direction;
 use crate::defs::Bitboard;
-use crate::utils::Direction;
 
 /**
  * create_blocker_boards() takes a mask. This is a bitboard in which

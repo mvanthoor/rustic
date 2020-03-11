@@ -13,11 +13,11 @@ use super::blockatt::{
 };
 use super::magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
 use super::masks::{create_bishop_mask, create_rook_mask};
+use crate::board::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, KING,
     KNIGHT, NR_OF_SQUARES, PAWN_SQUARES, QUEEN, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
-use crate::utils::{create_bb_files, create_bb_ranks};
 
 const WHITE_BLACK: usize = 2;
 const NSQ: usize = NR_OF_SQUARES as usize;

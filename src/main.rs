@@ -5,17 +5,11 @@ mod movegenerator;
 mod utils;
 
 use board::representation::Board;
-use defs::{AUTHOR, BLACK, ENGINE, VERSION, WHITE};
+use defs::{BLACK, WHITE};
 use extra::print;
 use movegenerator::gen::{MoveList, MAX_LEGAL_MOVES};
 use movegenerator::init::Movements;
-
-/** Prints information about the engine to the screen. */
-pub fn engine_info() {
-    println!();
-    println!("Engine: {} {}", ENGINE, VERSION);
-    println!("Author: {}", AUTHOR);
-}
+use utils::engine_info;
 
 fn main() {
     let mut board: Board = Default::default();
