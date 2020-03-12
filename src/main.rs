@@ -7,7 +7,7 @@ mod utils;
 use board::representation::Board;
 use defs::{BLACK, WHITE};
 use extra::print;
-use movegenerator::gen::{MoveList, MAX_LEGAL_MOVES};
+use movegenerator::movedefs::{MoveList, MAX_LEGAL_MOVES};
 use movegenerator::MoveGenerator;
 use utils::engine_info;
 
@@ -24,10 +24,10 @@ fn main() {
 
     print::position(&board, None);
 
-    movegenerator::gen::generate(&board, WHITE, &move_generator, &mut moves);
+    movegenerator::gen::all_moves(&board, WHITE, &move_generator, &mut moves);
     print::movelist(&moves);
     println!("...");
-    movegenerator::gen::generate(&board, BLACK, &move_generator, &mut moves);
+    movegenerator::gen::all_moves(&board, BLACK, &move_generator, &mut moves);
     print::movelist(&moves);
 
     println!("Done.");

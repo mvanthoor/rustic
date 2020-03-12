@@ -3,6 +3,7 @@ pub mod gen;
 pub mod init;
 pub mod magics;
 pub mod masks;
+pub mod movedefs;
 mod rays;
 
 // TODO: Rewrite comments for move generator
