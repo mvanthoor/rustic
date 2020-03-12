@@ -24,10 +24,10 @@ fn main() {
 
     print::position(&board, None);
 
-    movegenerator::gen::all_moves(&board, WHITE, &move_generator, &mut moves);
+    move_generator.gen_all_moves(&board, WHITE, &mut moves);
     print::movelist(&moves);
     println!("...");
-    movegenerator::gen::all_moves(&board, BLACK, &move_generator, &mut moves);
+    move_generator.gen_all_moves(&board, BLACK, &mut moves);
     print::movelist(&moves);
 
     println!("Done.");

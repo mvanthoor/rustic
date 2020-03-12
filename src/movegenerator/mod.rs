@@ -1,5 +1,5 @@
 pub mod blockatt;
-pub mod gen;
+mod gen;
 pub mod init;
 pub mod magics;
 pub mod masks;
@@ -8,10 +8,12 @@ mod rays;
 
 // TODO: Rewrite comments for move generator
 extern crate rand;
+use crate::board::representation::Board;
 use crate::board::{create_bb_files, create_bb_ranks};
 use crate::defs::{Bitboard, Piece, Side, BISHOP, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
+use movedefs::MoveList;
 
 const WHITE_BLACK: usize = 2;
 const NSQ: usize = NR_OF_SQUARES as usize;
@@ -102,5 +104,9 @@ impl MoveGenerator {
     /** Return pawn attacks for the given square. */
     pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         self._pawns[side][square as usize]
+    }
+
+    pub fn gen_all_moves(&self, board: &Board, side: Side, ml: &mut MoveList) {
+        gen::all_moves(board, side, self, ml);
     }
 }
