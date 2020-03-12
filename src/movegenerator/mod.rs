@@ -1,6 +1,6 @@
 pub mod blockatt;
 mod gen;
-pub mod init;
+mod init;
 pub mod magics;
 pub mod masks;
 pub mod movedefs;
