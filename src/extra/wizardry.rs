@@ -1,4 +1,3 @@
-extern crate rand; // Random number generator for creating magics.
 use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, ROOK};
 use crate::extra::print;
 use crate::extra::print::PIECE_NAME;
