@@ -28,8 +28,12 @@ pub struct Board {
     pub fullmove_number: u16,
 }
 
-impl Default for Board {
-    fn default() -> Board {
+impl Board {
+    /**
+     * This function creates a new board. If an FEN-position is passed, then use that for
+     * setting up the board. If None is passed, use the normal starting position.
+     */
+    pub fn new(fen: Option<&str>) -> Board {
         let mut board = Board {
             bb_w: [0; BITBOARDS_PER_SIDE as usize],
             bb_b: [0; BITBOARDS_PER_SIDE as usize],
@@ -44,21 +48,12 @@ impl Default for Board {
         };
         board.bb_files = create_bb_files();
         board.bb_ranks = create_bb_ranks();
-        board.setup_fen(FEN_START_POSITION);
-        board
-    }
-}
-
-impl Board {
-    /**
-     * This function iterates through all the white and black bitboards
-     * to create the bitboard holding all of the pieces of that color.
-     */
-    pub fn create_piece_bitboards(&mut self) {
-        for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
-            self.bb_pieces[WHITE] |= bb_w;
-            self.bb_pieces[BLACK] |= bb_b;
+        if let Some(f) = fen {
+            board.setup_fen(f);
+        } else {
+            board.setup_fen(FEN_START_POSITION);
         }
+        board
     }
 
     /** Reset the board. */
@@ -104,5 +99,16 @@ impl Board {
     /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
+    }
+
+    /**
+     * This function iterates through all the white and black bitboards
+     * to create the bitboard holding all of the pieces of that color.
+     */
+    fn create_piece_bitboards(&mut self) {
+        for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
+            self.bb_pieces[WHITE] |= bb_w;
+            self.bb_pieces[BLACK] |= bb_b;
+        }
     }
 }
