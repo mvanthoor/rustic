@@ -66,8 +66,15 @@ impl MoveGenerator {
         mg
     }
 
+    //** This function takes a board, and generates all moves for the side that is to move. */
+    pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
+        gen::all_moves(board, self, ml);
+    }
+
+    // ===== Private functions for use by submodules ===== //
+
     /** Return non-slider (King, Knight) attacks for the given square. */
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+    fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -78,7 +85,7 @@ impl MoveGenerator {
     }
 
     /** Return slider attacsk for Rook, Bishop and Queen using Magic. */
-    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
+    fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -100,11 +107,7 @@ impl MoveGenerator {
     }
 
     /** Return pawn attacks for the given square. */
-    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+    fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         self._pawns[side][square as usize]
-    }
-
-    pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
-        gen::all_moves(board, self, ml);
     }
 }
