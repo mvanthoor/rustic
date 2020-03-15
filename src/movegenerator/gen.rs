@@ -16,9 +16,9 @@ use super::MoveGenerator;
 use crate::board::representation::Board;
 use crate::board::square_on_rank;
 use crate::defs::{
-    Bitboard, Piece, Side, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
-    CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4,
-    RANK_5, RANK_8, ROOK, WHITE,
+    Bitboard, Piece, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1,
+    D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
+    ROOK, WHITE,
 };
 
 /**
@@ -32,15 +32,15 @@ use crate::defs::{
  *          generator does not have to calculate this over and aover again.
  * list: a mutable reference to a list that will contain the moves.
 */
-pub fn all_moves(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
+pub fn all_moves(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
     list.clear();
-    piece(KING, board, side, mg, list);
-    piece(KNIGHT, board, side, mg, list);
-    piece(ROOK, board, side, mg, list);
-    piece(BISHOP, board, side, mg, list);
-    piece(QUEEN, board, side, mg, list);
-    pawns(board, side, mg, list);
-    castling(board, side, mg, list);
+    piece(KING, board, mg, list);
+    piece(KNIGHT, board, mg, list);
+    piece(ROOK, board, mg, list);
+    piece(BISHOP, board, mg, list);
+    piece(QUEEN, board, mg, list);
+    pawns(board, mg, list);
+    castling(board, mg, list);
 }
 
 /**
@@ -51,7 +51,8 @@ pub fn all_moves(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveL
  * - The piece can move to all squares that do not contain our own pieces.
  * - Add those moves to the move list.
  */
-fn piece(piece: Piece, board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
+fn piece(piece: Piece, board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+    let side = board.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
@@ -63,7 +64,7 @@ fn piece(piece: Piece, board: &Board, side: Side, mg: &MoveGenerator, list: &mut
             _ => 0,
         };
         let bb_moves = bb_target & !bb_own_pieces;
-        add_move(board, piece, side, from, bb_moves, list);
+        add_move(board, piece, from, bb_moves, list);
     }
 }
 
@@ -84,8 +85,8 @@ fn piece(piece: Piece, board: &Board, side: Side, mg: &MoveGenerator, list: &mut
  * Combine all the moves, and add them to the move list. The add_move function will take care
  * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
  */
-fn pawns(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
-    // Direction is Up or Down depending on white or black
+fn pawns(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+    let side = board.active_color as usize;
     let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     let bb_empty = !board.occupancy();
@@ -108,7 +109,7 @@ fn pawns(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
             0
         };
         let moves = bb_one_step | bb_two_step | bb_captures | bb_ep_capture;
-        add_move(board, PAWN, side, from, moves, list);
+        add_move(board, PAWN, from, moves, list);
     }
 }
 
@@ -130,7 +131,8 @@ fn pawns(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
  * castles INTO check on the landing square (gi, c1, g8 or c8). This verification is left up
  * to makemove/unmake move outside of the move generator.
  */
-fn castling(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) {
+fn castling(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+    let side = board.active_color as usize;
     let opponent = side ^ 1;
     let has_castling_rights = if side == WHITE {
         (board.castling & (CASTLE_WK + CASTLE_WQ)) > 0
@@ -156,7 +158,7 @@ fn castling(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) 
 
             if !is_kingside_blocked && !f1_attacked {
                 let to = (1u64 << from) << 2;
-                add_move(board, KING, WHITE, from, to, list);
+                add_move(board, KING, from, to, list);
             }
         }
 
@@ -168,7 +170,7 @@ fn castling(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) 
 
             if !is_queenside_blocked && !d1_attacked {
                 let to = (1u64 << from) >> 2;
-                add_move(board, KING, WHITE, from, to, list);
+                add_move(board, KING, from, to, list);
             }
         }
     }
@@ -186,7 +188,7 @@ fn castling(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) 
 
             if !is_kingside_blocked && !f8_attacked {
                 let to = (1u64 << from) << 2;
-                add_move(board, KING, BLACK, from, to, list);
+                add_move(board, KING, from, to, list);
             }
         }
 
@@ -198,7 +200,7 @@ fn castling(board: &Board, side: Side, mg: &MoveGenerator, list: &mut MoveList) 
 
             if !is_queenside_blocked && !d8_attacked {
                 let to = (1u64 << from) >> 2;
-                add_move(board, KING, BLACK, from, to, list);
+                add_move(board, KING, from, to, list);
             }
         }
     }
@@ -222,7 +224,8 @@ fn next(bitboard: &mut Bitboard) -> u8 {
  * target square of the moving piece. If so, return which piece is on the target square. If
  * there is no piece, PNONE (no piece) will will be returned.
  */
-fn captured_piece(board: &Board, side: Side, to_square: u8) -> Piece {
+fn captured_piece(board: &Board, to_square: u8) -> Piece {
+    let side = board.active_color as usize;
     let bb_target_square = 1u64 << (to_square as u64);
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     if bb_target_square & bb_opponent_pieces > 0 {
@@ -235,7 +238,8 @@ fn captured_piece(board: &Board, side: Side, to_square: u8) -> Piece {
  * This function also takes care of promotions, by adding four moves
  * to the list instead of one; one move for each promotion possibility.
 */
-fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, list: &mut MoveList) {
+fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut MoveList) {
+    let side = board.active_color as usize;
     let mut bb_to = to;
     let promotion_rank = if side == WHITE {
         RANK_8 as u8
@@ -246,7 +250,7 @@ fn add_move(board: &Board, piece: Piece, side: Side, from: u8, to: Bitboard, lis
 
     while bb_to > 0 {
         let to_square = next(&mut bb_to);
-        let capture = captured_piece(board, side, to_square);
+        let capture = captured_piece(board, to_square);
         let promotion = (piece == PAWN) && square_on_rank(to_square, promotion_rank);
         let ep_square = if let Some(square) = board.en_passant {
             square

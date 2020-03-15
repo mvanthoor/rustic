@@ -107,7 +107,7 @@ impl MoveGenerator {
         self._pawns[side][square as usize]
     }
 
-    pub fn gen_all_moves(&self, board: &Board, side: Side, ml: &mut MoveList) {
-        gen::all_moves(board, side, self, ml);
+    pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
+        gen::all_moves(board, self, ml);
     }
 }
