@@ -5,7 +5,7 @@ mod movegenerator;
 mod utils;
 
 use board::representation::Board;
-use defs::{BLACK, WHITE};
+use board::zobrist;
 use extra::print;
 use movegenerator::movedefs::{MoveList, MAX_LEGAL_MOVES};
 use movegenerator::MoveGenerator;
@@ -26,6 +26,8 @@ fn main() {
 
     move_generator.gen_all_moves(&board, &mut moves);
     print::movelist(&moves);
+
+    zobrist::initialize();
 
     println!("Done.");
 }

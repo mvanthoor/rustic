@@ -1,5 +1,6 @@
 pub mod fen;
 pub mod representation;
+pub mod zobrist;
 
 use crate::defs::Bitboard;
 
