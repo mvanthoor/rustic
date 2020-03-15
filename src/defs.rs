@@ -29,7 +29,6 @@ pub const SQUARE_NAME: [&str; NR_OF_SQUARES as usize] = [
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 ];
 
-#[allow(dead_code)]
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 pub const NR_OF_SQUARES: u8 = 64;

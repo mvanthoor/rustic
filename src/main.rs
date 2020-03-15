@@ -16,8 +16,8 @@ fn main() {
     let mut moves: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
     let move_generator: MoveGenerator = Default::default();
 
-    let test_pos: &str = "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1";
-    board.initialize(test_pos);
+    let test_pos: &str = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
+    board.setup_fen(test_pos);
 
     engine_info();
 

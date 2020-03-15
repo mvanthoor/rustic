@@ -12,7 +12,7 @@ use super::fen;
 use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
-    BLACK, PNONE, WHITE,
+    BLACK, FEN_START_POSITION, PNONE, WHITE,
 };
 
 pub struct Board {
@@ -30,7 +30,7 @@ pub struct Board {
 
 impl Default for Board {
     fn default() -> Board {
-        Board {
+        let mut board = Board {
             bb_w: [0; BITBOARDS_PER_SIDE as usize],
             bb_b: [0; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [0; BITBOARDS_FOR_PIECES as usize],
@@ -41,7 +41,11 @@ impl Default for Board {
             en_passant: None,
             halfmove_clock: 0,
             fullmove_number: 0,
-        }
+        };
+        board.bb_files = create_bb_files();
+        board.bb_ranks = create_bb_ranks();
+        board.setup_fen(FEN_START_POSITION);
+        board
     }
 }
 
@@ -69,11 +73,8 @@ impl Board {
         self.fullmove_number = 0;
     }
 
-    /** Initialize the board. */
-    pub fn initialize(&mut self, fen: &str) {
+    pub fn setup_fen(&mut self, fen: &str) {
         fen::read(fen, self);
-        self.bb_files = create_bb_files();
-        self.bb_ranks = create_bb_ranks();
         self.create_piece_bitboards();
     }
 
