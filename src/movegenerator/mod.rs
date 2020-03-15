@@ -45,7 +45,7 @@ pub struct MoveGenerator {
 impl Default for MoveGenerator {
     fn default() -> MoveGenerator {
         let magics: Magics = Default::default();
-        MoveGenerator {
+        let mut move_generator = MoveGenerator {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
@@ -53,12 +53,15 @@ impl Default for MoveGenerator {
             _bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
             _rook_magics: [magics; NSQ],
             _bishop_magics: [magics; NSQ],
-        }
+        };
+        move_generator.initialize();
+        move_generator
     }
 }
 
 impl MoveGenerator {
-    pub fn initialize(&mut self) {
+    /** Initialize move generator; called by Default::default() */
+    fn initialize(&mut self) {
         let files = create_bb_files();
         let ranks = create_bb_ranks();
 
