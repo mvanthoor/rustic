@@ -42,8 +42,10 @@ pub struct MoveGenerator {
     _bishop_magics: [Magics; NSQ],
 }
 
-impl Default for MoveGenerator {
-    fn default() -> MoveGenerator {
+// impl Default for MoveGenerator {}
+
+impl MoveGenerator {
+    pub fn new() -> MoveGenerator {
         let magics: Magics = Default::default();
         let files = create_bb_files();
         let ranks = create_bb_ranks();
@@ -63,9 +65,7 @@ impl Default for MoveGenerator {
         init_magics(&mut mg, BISHOP);
         mg
     }
-}
 
-impl MoveGenerator {
     /** Return non-slider (King, Knight) attacks for the given square. */
     pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
         let sq = square as usize;
