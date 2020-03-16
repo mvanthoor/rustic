@@ -1,14 +1,14 @@
 mod board;
 mod defs;
 mod extra;
-mod movegenerator;
+mod movegen;
 mod utils;
 
 use board::representation::Board;
 use board::zobrist;
 use extra::print;
-use movegenerator::movedefs::{MoveList, MAX_LEGAL_MOVES};
-use movegenerator::MoveGenerator;
+use movegen::movedefs::{MoveList, MAX_LEGAL_MOVES};
+use movegen::MoveGenerator;
 use utils::engine_info;
 
 fn main() {

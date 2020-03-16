@@ -1,12 +1,12 @@
 use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, ROOK};
 use crate::extra::print;
 use crate::extra::print::PIECE_NAME;
-use crate::movegenerator::blockatt::{
+use crate::movegen::blockatt::{
     create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
 };
-use crate::movegenerator::magics::Magics;
-use crate::movegenerator::masks::{create_bishop_mask, create_rook_mask};
-use crate::movegenerator::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
+use crate::movegen::magics::Magics;
+use crate::movegen::masks::{create_bishop_mask, create_rook_mask};
+use crate::movegen::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
