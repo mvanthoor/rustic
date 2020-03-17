@@ -69,12 +69,13 @@ impl<'a> Board<'a> {
     pub fn reset(&mut self) {
         self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
-        self.bb_pieces = [0; BITBOARDS_FOR_PIECES as usize];
+        self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
         self.active_color = WHITE as u8;
         self.castling = 0;
         self.en_passant = None;
         self.halfmove_clock = 0;
         self.fullmove_number = 0;
+        self.zobrist_key = EMPTY;
     }
 
     pub fn setup_fen(&mut self, fen: &str) {
