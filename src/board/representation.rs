@@ -9,12 +9,14 @@
  * and others, will also be in this struct.
 */
 use super::fen;
-use super::zobrist::ZobristRandoms;
+use super::zobrist::{ZobristKey, ZobristRandoms};
 use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
-    BLACK, FEN_START_POSITION, PNONE, WHITE,
+    BLACK, EMPTY, FEN_START_POSITION, PNONE, SQUARE_NAME, WHITE,
 };
+use crate::extra::print::PIECE_NAME;
+use crate::utils::next;
 
 pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
@@ -27,7 +29,8 @@ pub struct Board<'a> {
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
-    pub zobrist_randoms: &'a ZobristRandoms,
+    zobrist_key: ZobristKey,
+    zobrist_randoms: &'a ZobristRandoms,
 }
 
 impl<'a> Board<'a> {
@@ -37,16 +40,17 @@ impl<'a> Board<'a> {
      */
     pub fn new(zr: &'a ZobristRandoms, fen: Option<&str>) -> Board<'a> {
         let mut board = Board {
-            bb_w: [0; BITBOARDS_PER_SIDE as usize],
-            bb_b: [0; BITBOARDS_PER_SIDE as usize],
-            bb_pieces: [0; BITBOARDS_FOR_PIECES as usize],
-            bb_files: [0; BB_FOR_FILES as usize],
-            bb_ranks: [0; BB_FOR_RANKS as usize],
+            bb_w: [EMPTY; BITBOARDS_PER_SIDE as usize],
+            bb_b: [EMPTY; BITBOARDS_PER_SIDE as usize],
+            bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
+            bb_files: [EMPTY; BB_FOR_FILES as usize],
+            bb_ranks: [EMPTY; BB_FOR_RANKS as usize],
             active_color: WHITE as u8,
             castling: 0,
             en_passant: None,
             halfmove_clock: 0,
             fullmove_number: 0,
+            zobrist_key: EMPTY,
             zobrist_randoms: zr,
         };
         board.bb_files = create_bb_files();
@@ -56,6 +60,8 @@ impl<'a> Board<'a> {
         } else {
             board.setup_fen(FEN_START_POSITION);
         }
+        board.build_zobrist_key();
+
         board
     }
 
@@ -112,6 +118,23 @@ impl<'a> Board<'a> {
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
             self.bb_pieces[WHITE] |= bb_w;
             self.bb_pieces[BLACK] |= bb_b;
+        }
+    }
+
+    fn build_zobrist_key(&mut self) {
+        for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
+            let mut white = *bb_w;
+            let mut black = *bb_b;
+
+            while white > 0 {
+                let square = next(&mut white);
+                self.zobrist_key ^= self.zobrist_randoms.piece(WHITE, piece, square);
+            }
+
+            while black > 0 {
+                let square = next(&mut black);
+                self.zobrist_key ^= self.zobrist_randoms.piece(BLACK, piece, square);
+            }
         }
     }
 }

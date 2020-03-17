@@ -20,6 +20,7 @@ use crate::defs::{
     D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
     ROOK, WHITE,
 };
+use crate::utils::next;
 
 /**
  * This function actually generates the moves, using other functions in this module.
@@ -204,20 +205,6 @@ fn castling(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
             }
         }
     }
-}
-
-/**
- * Get the next set bit from a bitboard.
- * This is used to get the square locations of each piece.
- * For example, the PAWNS bitboard could have 8 bits set.
- * This function returns the index (= square) from that bitboard,
- * and then removes the bit. All pieces/squares (whatver is in
- * the bitboard) have been handled when the bitboard becomes 0.
- * */
-fn next(bitboard: &mut Bitboard) -> u8 {
-    let location = bitboard.trailing_zeros();
-    *bitboard ^= 1u64 << location;
-    location as u8
 }
 
 /** Determine if the move is a capture; this is the case if there's an opponent piece on the
