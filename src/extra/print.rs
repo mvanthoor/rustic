@@ -7,8 +7,8 @@
  */
 use crate::board::representation::Board;
 use crate::defs::{
-    Bitboard, ALL_FILES, ALL_RANKS, BISHOP, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN,
-    ROOK, SQUARE_NAME,
+    Bitboard, ALL_FILES, ALL_RANKS, BISHOP, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, KING,
+    KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegen::magics::Magics;
 use crate::movegen::movedefs::Move;
@@ -66,6 +66,15 @@ pub fn movelist(moves: &[Move]) {
             m.castling(),
         );
     }
+}
+
+/* This function prints a found magic number and its stats. */
+#[allow(dead_code)]
+pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
+    println!(
+        "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
+        SQUARE_NAME[sq as usize], m.magic, offset, end, attempts
+    );
 }
 
 /* Create a printable ASCII-board out of bitboards. */
@@ -147,16 +156,37 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     println!();
 }
 
+/** This function prints all of the metadata about the position. */
 fn metadata(board: &Board) {
-    println!("Zobrist key: {:x}", board.get_zobrist_key());
+    let castling = castling_as_string(board.castling);
+    let en_passant = if let Some(ep) = board.en_passant {
+        SQUARE_NAME[ep as usize]
+    } else {
+        "-"
+    };
+    let active_color = if (board.active_color as usize) == WHITE {
+        "White"
+    } else {
+        "Black"
+    };
+
+    println!("{:<20}{:x}", "Zobrist key:", board.get_zobrist_key());
+    println!("{:<20}{}", "Active Color:", active_color);
+    println!("{:<20}{}", "Castling:", castling);
+    println!("{:<20}{}", "En Passant:", en_passant);
+    println!("{:<20}{}", "Half-move clock:", board.halfmove_clock);
+    println!("{:<20}{}", "Full-move number:", board.fullmove_number);
     println!();
 }
 
-/* This function prints a found magic number and its stats. */
-#[allow(dead_code)]
-pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
-    println!(
-        "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
-        SQUARE_NAME[sq as usize], m.magic, offset, end, attempts
-    );
+fn castling_as_string(permissions: u8) -> String {
+    let mut castling_as_string: String = String::from("");
+    let p = permissions;
+
+    castling_as_string += if p & CASTLE_WK > 0 { "K" } else { "" };
+    castling_as_string += if p & CASTLE_WQ > 0 { "Q" } else { "" };
+    castling_as_string += if p & CASTLE_BK > 0 { "k" } else { "" };
+    castling_as_string += if p & CASTLE_BQ > 0 { "q" } else { "" };
+
+    castling_as_string
 }
