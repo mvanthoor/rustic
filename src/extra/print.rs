@@ -38,6 +38,7 @@ pub fn position(board: &Board, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
+    metadata(board);
 }
 
 /* This prints a bitboard (64-bit number) to the screen in an 8x8 grid. */
@@ -143,6 +144,11 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
         print!("{} ", c);
     }
     println!();
+    println!();
+}
+
+fn metadata(board: &Board) {
+    println!("Zobrist key: {:x}", board.get_zobrist_key());
     println!();
 }
 

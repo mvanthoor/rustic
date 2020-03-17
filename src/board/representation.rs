@@ -110,6 +110,10 @@ impl<'a> Board<'a> {
         self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
     }
 
+    pub fn get_zobrist_key(&self) -> u64 {
+        self.zobrist_key
+    }
+
     /**
      * This function iterates through all the white and black bitboards
      * to create the bitboard holding all of the pieces of that color.
