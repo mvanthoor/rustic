@@ -15,7 +15,7 @@ use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, EMPTY, FEN_START_POSITION, PNONE, SQUARE_NAME, WHITE,
 };
-use crate::extra::print::PIECE_NAME;
+use crate::extra::print;
 use crate::utils::next;
 
 pub struct Board<'a> {
@@ -108,7 +108,7 @@ impl<'a> Board<'a> {
 
     /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
-        self.bb_pieces[WHITE] ^ self.bb_pieces[BLACK]
+        self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
     }
 
     pub fn get_zobrist_key(&self) -> u64 {
@@ -121,8 +121,8 @@ impl<'a> Board<'a> {
      */
     fn create_piece_bitboards(&mut self) {
         for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
-            self.bb_pieces[WHITE] |= bb_w;
-            self.bb_pieces[BLACK] |= bb_b;
+            self.bb_pieces[WHITE] |= *bb_w;
+            self.bb_pieces[BLACK] |= *bb_b;
         }
     }
 
