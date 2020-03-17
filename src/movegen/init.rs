@@ -4,10 +4,10 @@ use super::blockatt::{
 use super::magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
 use super::masks::{create_bishop_mask, create_rook_mask};
 use super::MoveGenerator;
-use super::{BISHOP_TABLE_SIZE, EMPTY, ROOK_TABLE_SIZE};
+use super::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 use crate::defs::{
-    Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, FILE_A, FILE_B, FILE_G, FILE_H, PAWN_SQUARES,
-    RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
+    Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, EMPTY, FILE_A, FILE_B, FILE_G, FILE_H,
+    PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 
 /**

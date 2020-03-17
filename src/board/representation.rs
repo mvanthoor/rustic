@@ -9,13 +9,14 @@
  * and others, will also be in this struct.
 */
 use super::fen;
+use super::zobrist::ZobristRandoms;
 use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, FEN_START_POSITION, PNONE, WHITE,
 };
 
-pub struct Board {
+pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
@@ -26,14 +27,15 @@ pub struct Board {
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
+    pub zobrist_randoms: &'a ZobristRandoms,
 }
 
-impl Board {
+impl<'a> Board<'a> {
     /**
      * This function creates a new board. If an FEN-position is passed, then use that for
      * setting up the board. If None is passed, use the normal starting position.
      */
-    pub fn new(fen: Option<&str>) -> Board {
+    pub fn new(zr: &'a ZobristRandoms, fen: Option<&str>) -> Board<'a> {
         let mut board = Board {
             bb_w: [0; BITBOARDS_PER_SIDE as usize],
             bb_b: [0; BITBOARDS_PER_SIDE as usize],
@@ -45,6 +47,7 @@ impl Board {
             en_passant: None,
             halfmove_clock: 0,
             fullmove_number: 0,
+            zobrist_randoms: zr,
         };
         board.bb_files = create_bb_files();
         board.bb_ranks = create_bb_ranks();

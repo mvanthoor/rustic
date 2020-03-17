@@ -11,14 +11,13 @@ mod rays;
 extern crate rand;
 use crate::board::representation::Board;
 use crate::board::{create_bb_files, create_bb_ranks};
-use crate::defs::{Bitboard, Piece, Side, BISHOP, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};
+use crate::defs::{Bitboard, Piece, Side, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
 use movedefs::MoveList;
 
 const WHITE_BLACK: usize = 2;
 const NSQ: usize = NR_OF_SQUARES as usize;
-pub const EMPTY: Bitboard = 0;
 pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 

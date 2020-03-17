@@ -84,3 +84,5 @@ pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
 pub const CASTLE_BQ: u8 = 8;
+
+pub const EMPTY: u64 = 0;
