@@ -27,17 +27,19 @@ pub struct UnMakeInfo {
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
+    pub zobrist_key: u64,
     pub this_move: Move,
 }
 
 impl UnMakeInfo {
-    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, m: Move) -> UnMakeInfo {
+    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, zk: u64, m: Move) -> UnMakeInfo {
         UnMakeInfo {
             active_color: ac,
             castling: c,
             en_passant: ep,
             halfmove_clock: hmc,
             fullmove_number: fmn,
+            zobrist_key: zk,
             this_move: m,
         }
     }

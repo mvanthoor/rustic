@@ -8,6 +8,7 @@ pub fn make_move(board: &mut Board, m: Move) {
         board.en_passant,
         board.halfmove_clock,
         board.fullmove_number,
+        board.get_zobrist_key(),
         m,
     );
     board.unmake_list.push(unmake_info);
