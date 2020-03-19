@@ -16,7 +16,21 @@ use crate::defs::{
     BLACK, EMPTY, FEN_START_POSITION, PNONE, SQUARE_NAME, WHITE,
 };
 use crate::extra::print;
+use crate::movegen::movedefs::Move;
 use crate::utils::next;
+
+const MAX_GAME_MOVES: u16 = 2048;
+
+pub struct UnMake {
+    pub this_move: Move,
+    pub active_color: u8,
+    pub castling: u8,
+    pub en_passant: Option<u8>,
+    pub halfmove_clock: u8,
+    pub fullmove_number: u16,
+}
+
+pub type UnMakeList = Vec<UnMake>;
 
 pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
@@ -29,6 +43,7 @@ pub struct Board<'a> {
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
+    unmake_list: UnMakeList,
     zobrist_key: ZobristKey,
     zobrist_randoms: &'a ZobristRandoms,
 }
@@ -50,6 +65,7 @@ impl<'a> Board<'a> {
             en_passant: None,
             halfmove_clock: 0,
             fullmove_number: 0,
+            unmake_list: Vec::with_capacity(MAX_GAME_MOVES as usize),
             zobrist_key: EMPTY,
             zobrist_randoms: zr,
         };
@@ -75,6 +91,7 @@ impl<'a> Board<'a> {
         self.en_passant = None;
         self.halfmove_clock = 0;
         self.fullmove_number = 0;
+        self.unmake_list.clear();
         self.zobrist_key = EMPTY;
     }
 
