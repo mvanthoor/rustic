@@ -20,3 +20,7 @@ pub fn next(bitboard: &mut Bitboard) -> u8 {
     *bitboard ^= 1u64 << location;
     location as u8
 }
+
+pub fn clear_bit(bitboard: &mut Bitboard, bit: u8) {}
+
+pub fn set_bit(bitboard: &mut Bitboard, bit: u8) {}
