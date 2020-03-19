@@ -245,12 +245,14 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
             0
         };
         let en_passant = (piece == PAWN) && (ep_square != 0) && (to_square == ep_square);
+        let double_step = (piece == PAWN) && ((to_square as i8 - from as i8).abs() == 16);
         let castling = (piece == KING) && ((to_square as i8 - from as i8).abs() == 2);
         let move_data = (piece as u64)
             | ((from as u64) << Shift::FromSq as u64)
             | ((to_square as u64) << Shift::ToSq as u64)
             | ((capture as u64) << Shift::Capture as u64)
             | ((en_passant as u64) << Shift::EnPassant as u64)
+            | ((double_step as u64) << Shift::DoubleStep as u64)
             | ((castling as u64) << Shift::Castling as u64);
 
         if !promotion {

@@ -11,12 +11,14 @@ TO SQUARE   :   6        0-63
 CAPTURE     :   3        0-7 (captured piece)
 PROMOTION   :   3        0-7 (piece promoted to)
 ENPASSANT   :   1        0-1
+DOUBLESTEP  :   1        0-1
 CASTLING    :   1        0-1
 
-Field:      CASTLING    ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
-            1           1           111         111         111111      111111      111
-Shift:      22 bits     21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
-& Value:    0x1 (1)     0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
+
+Field:      CASTLING    DOUBLESTEP  ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
+            1           1           1           111         111         111111      111111      111
+Shift:      23 bits     22 bits     21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
+& Value:    0x1         0x1 (1)     0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -38,7 +40,8 @@ pub enum Shift {
     Capture = 15,
     Promotion = 18,
     EnPassant = 21,
-    Castling = 22,
+    DoubleStep = 22,
+    Castling = 23,
 }
 
 /** This part defines the movelist, and the move and its functions */
@@ -72,6 +75,10 @@ impl Move {
 
     pub fn en_passant(&self) -> bool {
         ((self.data >> Shift::EnPassant as u64) & 0x1) as u8 == 1
+    }
+
+    pub fn double_step(&self) -> bool {
+        ((self.data >> Shift::DoubleStep as u64) & 0x1) as u8 == 1
     }
 
     pub fn castling(&self) -> bool {
