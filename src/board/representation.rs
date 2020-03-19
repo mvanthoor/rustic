@@ -21,7 +21,7 @@ use crate::utils::next;
 
 const MAX_GAME_MOVES: u16 = 2048;
 
-pub struct UnMake {
+pub struct UnMakeInfo {
     pub active_color: u8,
     pub castling: u8,
     pub en_passant: Option<u8>,
@@ -30,9 +30,9 @@ pub struct UnMake {
     pub this_move: Move,
 }
 
-impl UnMake {
-    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, m: Move) -> UnMake {
-        UnMake {
+impl UnMakeInfo {
+    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, m: Move) -> UnMakeInfo {
+        UnMakeInfo {
             active_color: ac,
             castling: c,
             en_passant: ep,
@@ -43,7 +43,7 @@ impl UnMake {
     }
 }
 
-pub type UnMakeList = Vec<UnMake>;
+pub type UnMakeList = Vec<UnMakeInfo>;
 
 pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],

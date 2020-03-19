@@ -1,8 +1,8 @@
-use super::representation::{Board, UnMake};
+use super::representation::{Board, UnMakeInfo};
 use crate::movegen::movedefs::Move;
 
 pub fn make_move(board: &mut Board, m: Move) {
-    let unmake_info = UnMake::new(
+    let unmake_info = UnMakeInfo::new(
         board.active_color,
         board.castling,
         board.en_passant,
