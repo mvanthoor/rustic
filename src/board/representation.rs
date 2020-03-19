@@ -22,12 +22,25 @@ use crate::utils::next;
 const MAX_GAME_MOVES: u16 = 2048;
 
 pub struct UnMake {
-    pub this_move: Move,
     pub active_color: u8,
     pub castling: u8,
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
+    pub this_move: Move,
+}
+
+impl UnMake {
+    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, m: Move) -> UnMake {
+        UnMake {
+            active_color: ac,
+            castling: c,
+            en_passant: ep,
+            halfmove_clock: hmc,
+            fullmove_number: fmn,
+            this_move: m,
+        }
+    }
 }
 
 pub type UnMakeList = Vec<UnMake>;
@@ -43,7 +56,7 @@ pub struct Board<'a> {
     pub en_passant: Option<u8>,
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
-    unmake_list: UnMakeList,
+    pub unmake_list: UnMakeList,
     zobrist_key: ZobristKey,
     zobrist_randoms: &'a ZobristRandoms,
 }
