@@ -53,20 +53,23 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 /* Prints a given movelist to the screen. */
 #[allow(dead_code)]
 pub fn movelist(moves: &[Move]) {
-    for (i, m) in moves.iter().enumerate() {
-        println!(
-            "Move {}: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
-            i + 1,
-            PIECE_CHAR[m.piece() as usize],
-            SQUARE_NAME[m.from() as usize],
-            SQUARE_NAME[m.to() as usize],
-            PIECE_NAME[m.captured() as usize],
-            PIECE_NAME[m.promoted() as usize],
-            m.en_passant(),
-            m.double_step(),
-            m.castling(),
-        );
+    for m in moves.iter() {
+        move_data(m);
     }
+}
+
+pub fn move_data(m: &Move) {
+    println!(
+        "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
+        PIECE_CHAR[m.piece() as usize],
+        SQUARE_NAME[m.from() as usize],
+        SQUARE_NAME[m.to() as usize],
+        PIECE_NAME[m.captured() as usize],
+        PIECE_NAME[m.promoted() as usize],
+        m.en_passant(),
+        m.double_step(),
+        m.castling(),
+    );
 }
 
 /* This function prints a found magic number and its stats. */
@@ -171,7 +174,7 @@ fn metadata(board: &Board) {
         "Black"
     };
 
-    println!("{:<20}{:x}", "Zobrist key:", board.get_zobrist_key());
+    println!("{:<20}{:x}", "Zobrist key:", board.zobrist_key);
     println!("{:<20}{}", "Active Color:", active_color);
     println!("{:<20}{}", "Castling:", castling);
     println!("{:<20}{}", "En Passant:", en_passant);

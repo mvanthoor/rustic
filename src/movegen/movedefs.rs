@@ -48,6 +48,7 @@ pub enum Shift {
 pub const MAX_LEGAL_MOVES: u8 = 255;
 pub type MoveList = Vec<Move>;
 
+#[derive(Copy, Clone)]
 pub struct Move {
     pub data: u64,
 }

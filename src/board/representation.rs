@@ -59,8 +59,8 @@ pub struct Board<'a> {
     pub halfmove_clock: u8,
     pub fullmove_number: u16,
     pub unmake_list: UnMakeList,
-    zobrist_key: ZobristKey,
-    zobrist_randoms: &'a ZobristRandoms,
+    pub zobrist_key: ZobristKey,
+    pub zobrist_randoms: &'a ZobristRandoms,
 }
 
 impl<'a> Board<'a> {
@@ -141,10 +141,6 @@ impl<'a> Board<'a> {
     /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
-    }
-
-    pub fn get_zobrist_key(&self) -> u64 {
-        self.zobrist_key
     }
 
     /**
