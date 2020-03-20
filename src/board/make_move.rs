@@ -1,5 +1,5 @@
 use super::representation::{Board, UnMakeInfo};
-use crate::defs::WHITE;
+use crate::defs::{Bitboard, PNONE, WHITE};
 use crate::movegen::movedefs::Move;
 use crate::print;
 use crate::utils::{clear_bit, set_bit};
@@ -15,29 +15,46 @@ pub fn make_move(board: &mut Board, m: Move) {
         m,
     );
 
-    let side = board.active_color as usize;
+    // Set "us" and "opponent"
+    let us = board.active_color as usize;
+    let opponent = (us ^ 1) as usize;
+
+    // Set which bitboards are "us" and "opponent" pieces
+    let bb_mine: &mut [Bitboard];
+    let bb_opponent: &mut [Bitboard];
+
+    if us == WHITE {
+        bb_mine = &mut board.bb_w[..];
+        bb_opponent = &mut board.bb_b[..];
+    } else {
+        bb_mine = &mut board.bb_b[..];
+        bb_opponent = &mut board.bb_w[..];
+    };
+
+    // Dissect the move
     let piece = m.piece() as usize;
     let from = m.from();
     let to = m.to();
-    let bb = if side == WHITE {
-        &mut board.bb_w[..]
-    } else {
-        &mut board.bb_b[..]
-    };
+    let captured = m.captured() as usize;
 
-    // take the piece out of the key, on the from-square.
-    board.zobrist_key ^= board.zobrist_randoms.piece(side, piece, from);
+    // If a piece is captured by this move, then remove it from the to-square
+    if captured != PNONE {
+        board.zobrist_key ^= board.zobrist_randoms.piece(opponent, captured, to);
+        clear_bit(&mut bb_opponent[captured], to);
+        clear_bit(&mut board.bb_pieces[opponent], to);
+    }
 
-    // actually move the piece in the bitboards
-    clear_bit(&mut bb[piece], from);
-    clear_bit(&mut board.bb_pieces[side], from);
-    set_bit(&mut bb[piece], to);
-    set_bit(&mut board.bb_pieces[side], to);
+    // take the moving piece off the from-square
+    board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, from);
+    clear_bit(&mut bb_mine[piece], from);
+    clear_bit(&mut board.bb_pieces[us], from);
 
-    // add the piece into the key, on the to-square.
-    board.zobrist_key ^= board.zobrist_randoms.piece(side, piece, to);
+    // put the moving piece on the to-square
+    set_bit(&mut bb_mine[piece], to);
+    set_bit(&mut board.bb_pieces[us], to);
+    board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
 
-    board.active_color = (side ^ 1) as u8;
+    board.active_color = opponent as u8;
     board.fullmove_number += 1;
     board.unmake_list.push(unmake_info);
 }
