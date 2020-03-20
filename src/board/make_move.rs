@@ -1,10 +1,13 @@
 use super::representation::{Board, UnMakeInfo};
-use crate::defs::{Bitboard, PNONE, WHITE};
+use super::unmake_move::unmake_move;
+use crate::defs::{Bitboard, KING, PNONE, WHITE};
+use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
+use crate::movegen::MoveGenerator;
 use crate::print;
 use crate::utils::{clear_bit, set_bit};
 
-pub fn make_move(board: &mut Board, m: Move) {
+pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let unmake_info = UnMakeInfo::new(
         board.active_color,
         board.castling,
@@ -57,4 +60,14 @@ pub fn make_move(board: &mut Board, m: Move) {
     board.active_color = opponent as u8;
     board.fullmove_number += 1;
     board.unmake_list.push(unmake_info);
+
+    // Move is done. Check if it's actually legal. (King can not be in check.)
+    let king_square = bb_mine[KING].trailing_zeros() as u8;
+    let is_legal = !square_attacked(board, opponent, mg, king_square);
+
+    if !is_legal {
+        unmake_move(board);
+    }
+
+    is_legal
 }

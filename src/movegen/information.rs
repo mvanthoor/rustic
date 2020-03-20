@@ -19,8 +19,8 @@ use crate::defs::{Side, BISHOP, FILE_A, FILE_H, KING, KNIGHT, PAWN, QUEEN, ROOK,
  *  and then check if the given side actually has at least one pawn on one of those squares.
  * "pieces" and "pawns" are obviously dependent on the side we're looking at.
  */
-pub fn square_attacked(board: &Board, side: Side, mg: &MoveGenerator, square: u8) -> bool {
-    let pieces = if side == WHITE {
+pub fn square_attacked(board: &Board, attacker: Side, mg: &MoveGenerator, square: u8) -> bool {
+    let pieces = if attacker == WHITE {
         board.bb_w
     } else {
         board.bb_b
@@ -31,7 +31,7 @@ pub fn square_attacked(board: &Board, side: Side, mg: &MoveGenerator, square: u8
     let bb_rook = mg.get_slider_attacks(ROOK, square, occupancy);
     let bb_bishop = mg.get_slider_attacks(BISHOP, square, occupancy);
     let bb_knight = mg.get_non_slider_attacks(KNIGHT, square);
-    let bb_pawns = if side == WHITE {
+    let bb_pawns = if attacker == WHITE {
         (bb_square & !board.bb_files[FILE_A]) >> 9 | (bb_square & !board.bb_files[FILE_H]) >> 7
     } else {
         (bb_square & !board.bb_files[FILE_A]) << 7 | (bb_square & !board.bb_files[FILE_H]) << 9
