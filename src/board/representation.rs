@@ -172,7 +172,7 @@ impl<'a> Board<'a> {
         }
 
         self.zobrist_key ^= self.zobrist_randoms.castling(self.castling);
-        self.zobrist_key ^= self.zobrist_randoms.white(self.active_color);
+        self.zobrist_key ^= self.zobrist_randoms.side(self.active_color as usize);
         self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
     }
 }

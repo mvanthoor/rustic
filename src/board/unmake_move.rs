@@ -14,11 +14,11 @@ pub fn unmake_move(board: &mut Board) {
         let bb_opponent: &mut [Bitboard];
 
         if us == WHITE {
-            bb_mine = &mut board.bb_w[..];
-            bb_opponent = &mut board.bb_b[..];
+            bb_mine = &mut board.bb_w;
+            bb_opponent = &mut board.bb_b;
         } else {
-            bb_mine = &mut board.bb_b[..];
-            bb_opponent = &mut board.bb_w[..];
+            bb_mine = &mut board.bb_b;
+            bb_opponent = &mut board.bb_w;
         };
 
         // Dissect the move to undo
