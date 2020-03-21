@@ -66,7 +66,7 @@ impl ZobristRandoms {
     }
 
     pub fn en_passant(&self, en_passant: Option<u8>) -> u64 {
-        if let Some(_ep) = en_passant {
+        if en_passant.is_some() {
             self.rnd_en_passant
         } else {
             0

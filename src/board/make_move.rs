@@ -151,13 +151,22 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         }
     }
 
-    // In case of pawn double-step, set the en-passant square.
+    /*** Updating the board state ***/
+
+    // If the en-passant square is set, every move will unset it...
+    if board.en_passant.is_some() {
+        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
+        board.en_passant = None;
+    }
+
+    // ...except a pawn double-step, which will set it (again, if just unset).
     if double_step {
         board.en_passant = if us == WHITE {
             Some(to - 8)
         } else {
             Some(to + 8)
-        }
+        };
+        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
     }
 
     // change the color to move: out with "us", in with "opponent"
@@ -167,6 +176,8 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
     // increment move counter
     board.fullmove_number += 1;
+
+    /*** Validating move ***/
 
     // Move is done. Check if it's actually legal. (King can not be in check.)
     let king_square = bb_mine[KING].trailing_zeros() as u8;
