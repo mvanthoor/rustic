@@ -1,6 +1,9 @@
 use super::representation::{Board, UnMakeInfo};
 use super::unmake_move::unmake_move;
-use crate::defs::{Bitboard, KING, PNONE, WHITE};
+use crate::defs::{
+    Bitboard, A1, A8, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8, G1, G8,
+    H1, H8, KING, PNONE, ROOK, WHITE,
+};
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
 use crate::movegen::MoveGenerator;
@@ -42,6 +45,10 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let to = m.to();
     let captured = m.captured() as usize;
     let promoted = m.promoted() as usize;
+    let castling = m.castling();
+
+    let normal_move = (promoted == PNONE) && !castling;
+    let promotion_move = promoted != PNONE;
 
     // If a piece is captured by this move, then remove it from the to-square
     if captured != PNONE {
@@ -56,20 +63,94 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     clear_bit(&mut board.bb_pieces[us], from);
 
     // put the moving piece on the to-square: normal move
-    if promoted == PNONE {
+    if normal_move {
         set_bit(&mut bb_mine[piece], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
     }
 
     // put the moving piece on the to-square: promotion
-    if promoted != PNONE {
+    if promotion_move {
         set_bit(&mut bb_mine[promoted], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, promoted, to);
     }
 
-    // swap the color to move: out with "us", in with "opponent"
+    // We're castling. This is a special case.
+    if castling {
+        // Because of castling, we just picked up the king as a moving piece.
+        // Put it down first. The to-square is contained in the king's move.
+        set_bit(&mut bb_mine[piece], to);
+        set_bit(&mut board.bb_pieces[us], to);
+        board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
+
+        // Now move the correct rook.
+        if to == G1 {
+            // White is castling short. Pick up rook h1.
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H1);
+            clear_bit(&mut bb_mine[ROOK], H1);
+            clear_bit(&mut board.bb_pieces[us], H1);
+
+            // Put it back down on f1.
+            set_bit(&mut bb_mine[ROOK], F1);
+            set_bit(&mut board.bb_pieces[us], F1);
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F1);
+
+            // Remove all castling permissions for white
+            board.castling -= CASTLE_WK;
+            board.castling -= CASTLE_WQ;
+        }
+
+        if to == C1 {
+            // White is castling long. Pick up rook A1.
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A1);
+            clear_bit(&mut bb_mine[ROOK], A1);
+            clear_bit(&mut board.bb_pieces[us], A1);
+
+            // Put it back down on d1.
+            set_bit(&mut bb_mine[ROOK], D1);
+            set_bit(&mut board.bb_pieces[us], D1);
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D1);
+
+            // Remove all castling permissions for white.
+            board.castling -= CASTLE_WK;
+            board.castling -= CASTLE_WQ;
+        }
+
+        if to == G8 {
+            // Black is castling short. Pick up rook h8.
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H8);
+            clear_bit(&mut bb_mine[ROOK], H8);
+            clear_bit(&mut board.bb_pieces[us], H8);
+
+            // Put it back down on f8.
+            set_bit(&mut bb_mine[ROOK], F8);
+            set_bit(&mut board.bb_pieces[us], F8);
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F8);
+
+            // Remove all castling permissions for black
+            board.castling -= CASTLE_BK;
+            board.castling -= CASTLE_BQ;
+        }
+
+        if to == C8 {
+            // Black is castling long. Pick up rook a8.
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A8);
+            clear_bit(&mut bb_mine[ROOK], A8);
+            clear_bit(&mut board.bb_pieces[us], A8);
+
+            // Put it back down on d8.
+            set_bit(&mut bb_mine[ROOK], D8);
+            set_bit(&mut board.bb_pieces[us], D8);
+            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D8);
+
+            // Remove all castling permissions for black.
+            board.castling -= CASTLE_BK;
+            board.castling -= CASTLE_BQ;
+        }
+    }
+
+    // change the color to move: out with "us", in with "opponent"
     board.zobrist_key ^= board.zobrist_randoms.side(us);
     board.zobrist_key ^= board.zobrist_randoms.side(opponent);
     board.active_color = opponent as u8;
