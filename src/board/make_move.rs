@@ -1,8 +1,8 @@
 use super::representation::{Board, UnMakeInfo};
 use super::unmake_move::unmake_move;
 use crate::defs::{
-    Bitboard, A1, A8, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8, G1, G8,
-    H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
+    Bitboard, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8,
+    G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
@@ -175,8 +175,18 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     board.zobrist_key ^= board.zobrist_randoms.side(opponent);
     board.active_color = opponent as u8;
 
-    // increment move counter
-    board.fullmove_number += 1;
+    // If a pawn moves or a piece is captured, reset the 50-move counter.
+    // Otherwise, increment the counter by one move.
+    if (piece == PAWN) || (captured != PNONE) {
+        board.halfmove_clock = 0;
+    } else {
+        board.halfmove_clock += 1;
+    }
+
+    // Increase full move number if black has moved
+    if us == BLACK {
+        board.fullmove_number += 1;
+    }
     //endregion
 
     /*** Validating move ***/
