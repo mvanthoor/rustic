@@ -49,7 +49,6 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let double_step = m.double_step();
     let en_passant = m.en_passant();
 
-    let normal_move = (promoted == PNONE) && !castling;
     let promotion_move = promoted != PNONE;
 
     // If a piece is captured by this move, then remove it from the to-square
@@ -64,15 +63,14 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     clear_bit(&mut bb_mine[piece], from);
     clear_bit(&mut board.bb_pieces[us], from);
 
-    // put the moving piece on the to-square: normal move
-    if normal_move {
+    // put the moving piece on the to-square
+    if !promotion_move {
+        // normal move.
         set_bit(&mut bb_mine[piece], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
-    }
-
-    // put the moving piece on the to-square: promotion
-    if promotion_move {
+    } else {
+        // promotion move. Don't put the piece (pawn) back, but place promoted piece.
         set_bit(&mut bb_mine[promoted], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, promoted, to);
@@ -80,13 +78,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
     // We're castling. This is a special case.
     if castling {
-        // Because of castling, we just picked up the king as a moving piece.
-        // Put it down first. The to-square is contained in the king's move.
-        set_bit(&mut bb_mine[piece], to);
-        set_bit(&mut board.bb_pieces[us], to);
-        board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
-
-        // Now move the correct rook.
+        // The king was already moved as a "normal" move. Now move the correct rook.
         if to == G1 {
             // White is castling short. Pick up rook h1.
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H1);

@@ -33,12 +33,10 @@ pub fn unmake_move(board: &mut Board) {
         let castling = last_move.castling();
         let en_passant = last_move.en_passant();
 
-        let normal_move = (promoted == PNONE) && !castling;
         let promotion_move = promoted != PNONE;
 
         // Moving backwards...
-        // Used for normal moves and for the king when undoing castling.
-        if normal_move || castling {
+        if !promotion_move {
             // remove the piece from the to-square
             clear_bit(&mut bb_mine[piece], to);
             clear_bit(&mut board.bb_pieces[us], to);
@@ -46,10 +44,8 @@ pub fn unmake_move(board: &mut Board) {
             // Put the piece onto the from-square
             set_bit(&mut bb_mine[piece], from);
             set_bit(&mut board.bb_pieces[us], from);
-        }
-
-        // Moving backwards... promotion
-        if promotion_move {
+        } else {
+            // When this was a promotion, the piece actually changes into a pawn again.
             // Remove the promoted piece from the to-square
             clear_bit(&mut bb_mine[promoted], to);
             clear_bit(&mut board.bb_pieces[us], to);
