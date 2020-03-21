@@ -15,7 +15,7 @@ use movegen::MoveGenerator;
 use utils::engine_info;
 
 fn main() {
-    let test_pos: &str = "7k/8/8/8/8/8/8/K2R3r w - - 0 1";
+    let test_pos: &str = "r1n4k/1P3P2/8/8/8/8/8/7K w - - 0 1";
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, Some(test_pos));

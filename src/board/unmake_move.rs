@@ -1,5 +1,5 @@
 use super::representation::Board;
-use crate::defs::{Bitboard, PNONE, WHITE};
+use crate::defs::{Bitboard, PAWN, PNONE, WHITE};
 use crate::utils::{clear_bit, set_bit};
 
 pub fn unmake_move(board: &mut Board) {
@@ -27,15 +27,29 @@ pub fn unmake_move(board: &mut Board) {
         let from = last_move.from();
         let to = last_move.to();
         let captured = last_move.captured() as usize;
+        let promoted = last_move.promoted() as usize;
 
-        // Moving backwards...
-        // Remove the moving/undo piece from the to-square
-        clear_bit(&mut bb_mine[piece], to);
-        clear_bit(&mut board.bb_pieces[us], to);
+        // Moving backwards... normal move.
+        if promoted == PNONE {
+            // remove the piece from the to-square
+            clear_bit(&mut bb_mine[piece], to);
+            clear_bit(&mut board.bb_pieces[us], to);
 
-        // Put the moving/undo piece onto the from-square
-        set_bit(&mut bb_mine[piece], from);
-        set_bit(&mut board.bb_pieces[us], from);
+            // Put the piece onto the from-square
+            set_bit(&mut bb_mine[piece], from);
+            set_bit(&mut board.bb_pieces[us], from);
+        }
+
+        // Moving backwards... promotion
+        if promoted != PNONE {
+            // Remove the promoted piece from the to-square
+            clear_bit(&mut bb_mine[promoted], to);
+            clear_bit(&mut board.bb_pieces[us], to);
+
+            // Put a pawn back
+            set_bit(&mut bb_mine[PAWN], from);
+            set_bit(&mut board.bb_pieces[us], from);
+        }
 
         // If a piece was captured, put it back onto the to-square
         if captured != PNONE {

@@ -41,6 +41,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let from = m.from();
     let to = m.to();
     let captured = m.captured() as usize;
+    let promoted = m.promoted() as usize;
 
     // If a piece is captured by this move, then remove it from the to-square
     if captured != PNONE {
@@ -54,10 +55,19 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     clear_bit(&mut bb_mine[piece], from);
     clear_bit(&mut board.bb_pieces[us], from);
 
-    // put the moving piece on the to-square
-    set_bit(&mut bb_mine[piece], to);
-    set_bit(&mut board.bb_pieces[us], to);
-    board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
+    // put the moving piece on the to-square: normal move
+    if promoted == PNONE {
+        set_bit(&mut bb_mine[piece], to);
+        set_bit(&mut board.bb_pieces[us], to);
+        board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
+    }
+
+    // put the moving piece on the to-square: promotion
+    if promoted != PNONE {
+        set_bit(&mut bb_mine[promoted], to);
+        set_bit(&mut board.bb_pieces[us], to);
+        board.zobrist_key ^= board.zobrist_randoms.piece(us, promoted, to);
+    }
 
     // swap the color to move: out with "us", in with "opponent"
     board.zobrist_key ^= board.zobrist_randoms.side(us);
