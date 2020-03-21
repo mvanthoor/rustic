@@ -46,6 +46,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let captured = m.captured() as usize;
     let promoted = m.promoted() as usize;
     let castling = m.castling();
+    let double_step = m.double_step();
 
     let normal_move = (promoted == PNONE) && !castling;
     let promotion_move = promoted != PNONE;
@@ -147,6 +148,15 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
             // Remove all castling permissions for black.
             board.castling -= CASTLE_BK;
             board.castling -= CASTLE_BQ;
+        }
+    }
+
+    // In case of pawn double-step, set the en-passant square.
+    if double_step {
+        board.en_passant = if us == WHITE {
+            Some(to - 8)
+        } else {
+            Some(to + 8)
         }
     }
 
