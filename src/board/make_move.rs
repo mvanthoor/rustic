@@ -2,7 +2,7 @@ use super::representation::{Board, UnMakeInfo};
 use super::unmake_move::unmake_move;
 use crate::defs::{
     Bitboard, A1, A8, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8, G1, G8,
-    H1, H8, KING, PNONE, ROOK, WHITE,
+    H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
@@ -47,6 +47,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let promoted = m.promoted() as usize;
     let castling = m.castling();
     let double_step = m.double_step();
+    let en_passant = m.en_passant();
 
     let normal_move = (promoted == PNONE) && !castling;
     let promotion_move = promoted != PNONE;
@@ -151,7 +152,15 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         }
     }
 
-    /*** Updating the board state ***/
+    // After the en-passant maneuver, the opponent's pawn has yet to be removed.
+    if en_passant {
+        let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
+        board.zobrist_key ^= board.zobrist_randoms.piece(opponent, PAWN, pawn_square);
+        clear_bit(&mut bb_opponent[PAWN], pawn_square);
+        clear_bit(&mut board.bb_pieces[opponent], pawn_square);
+    }
+
+    //region Updating the board state
 
     // If the en-passant square is set, every move will unset it...
     if board.en_passant.is_some() {
@@ -176,6 +185,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
     // increment move counter
     board.fullmove_number += 1;
+    //endregion
 
     /*** Validating move ***/
 

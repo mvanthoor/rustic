@@ -31,6 +31,7 @@ pub fn unmake_move(board: &mut Board) {
         let captured = last_move.captured() as usize;
         let promoted = last_move.promoted() as usize;
         let castling = last_move.castling();
+        let en_passant = last_move.en_passant();
 
         let normal_move = (promoted == PNONE) && !castling;
         let promotion_move = promoted != PNONE;
@@ -98,6 +99,13 @@ pub fn unmake_move(board: &mut Board) {
         if captured != PNONE {
             set_bit(&mut bb_opponent[captured], to);
             set_bit(&mut board.bb_pieces[opponent], to);
+        }
+
+        // If this was an e-passant move, put the opponent's pawn back
+        if en_passant {
+            let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
+            set_bit(&mut bb_opponent[PAWN], pawn_square);
+            set_bit(&mut board.bb_pieces[opponent], pawn_square);
         }
 
         // restore the previous board state.
