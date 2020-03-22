@@ -9,54 +9,41 @@ use board::representation::Board;
 use board::unmake_move::unmake_move;
 use board::zobrist::ZobristRandoms;
 use extra::print;
-use movegen::information::square_attacked;
 use movegen::movedefs::{MoveList, MAX_LEGAL_MOVES};
 use movegen::MoveGenerator;
 use utils::engine_info;
 
+fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
+    let mut move_list: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
+    let mut nodes: u64 = 0;
+
+    if depth == 0 {
+        return 1;
+    }
+
+    mg.gen_all_moves(&board, &mut move_list);
+    for m in move_list {
+        if !make_move(board, m, mg) {
+            continue;
+        }
+        nodes += perft(board, depth - 1, mg);
+        unmake_move(board);
+    }
+
+    nodes
+}
+
 fn main() {
-    let test_pos: &str = "r3k2r/8/8/p6p/P6P/8/8/R3K2R b KQkq - 0 1";
+    let test_pos: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, Some(test_pos));
     let mut move_list: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
     engine_info();
-
     print::position(&board, None);
 
-    move_generator.gen_all_moves(&board, &mut move_list);
-    print::movelist(&move_list);
-
-    let mut has_move = false;
-    for mv in move_list.iter() {
-        println!();
-        println!("Executing move...");
-        print::move_data(&mv);
-
-        let is_legal = make_move(&mut board, *mv, &move_generator);
-
-        if !is_legal {
-            println!("This move is not legal. King in check after move.");
-        } else {
-            has_move = true;
-            println!("After:");
-            print::position(&board, None);
-            unmake_move(&mut board);
-            println!("Undone:");
-            print::position(&board, None);
-        }
-    }
-
-    if !has_move {
-        let king_square = board.bb_w[0].trailing_zeros() as u8;
-        let in_check = square_attacked(&board, 1, &move_generator, king_square);
-        if in_check {
-            println!("Checkmate.");
-        } else {
-            println!("Stalemate.");
-        }
-    }
-
+    let x = perft(&mut board, 4, &move_generator);
+    println!("Peft result: {}", x);
     println!("Finished.");
 }
