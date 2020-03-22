@@ -9,6 +9,7 @@ use crate::movegen::movedefs::Move;
 use crate::movegen::MoveGenerator;
 use crate::utils::{clear_bit, set_bit};
 
+#[allow(clippy::cognitive_complexity)]
 pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     // create the unmake info and store it.
     let unmake_info = UnMakeInfo::new(
