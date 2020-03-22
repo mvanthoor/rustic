@@ -55,8 +55,8 @@ pub fn unmake_move(board: &mut Board) {
             set_bit(&mut board.bb_pieces[us], from);
         }
 
-        // The king's move was already undone.
-        // Also Undo the rook move.
+        // The king's move was already undone as a normal move.
+        // The rook move also needs to be undone.
         if castling {
             // White short castle. Return the rook from F1 to H1.
             if to == G1 {
