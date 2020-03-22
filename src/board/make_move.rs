@@ -56,6 +56,21 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         board.zobrist_key ^= board.zobrist_randoms.piece(opponent, captured, to);
         clear_bit(&mut bb_opponent[captured], to);
         clear_bit(&mut board.bb_pieces[opponent], to);
+
+        if captured == ROOK {
+            if to == H1 {
+                board.castling &= !CASTLE_WK;
+            };
+            if to == A1 {
+                board.castling &= !CASTLE_WQ;
+            };
+            if to == H8 {
+                board.castling &= !CASTLE_BK;
+            };
+            if to == A8 {
+                board.castling &= !CASTLE_BQ;
+            };
+        }
     }
 
     // take the moving piece off the from-square

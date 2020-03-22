@@ -38,12 +38,17 @@ fn main() {
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, Some(test_pos));
-    let mut move_list: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
+    // let mut move_list: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
 
     engine_info();
     print::position(&board, None);
 
-    let x = perft(&mut board, 4, &move_generator);
-    println!("Peft result: {}", x);
+    const TEST: u8 = 5;
+    for i in 1..=TEST {
+        let mut perft_board: Board = Board::new(&zobrist_randoms, Some(test_pos));
+        let x = perft(&mut perft_board, i, &move_generator);
+        println!("Peft {}: {}", i, x);
+    }
+
     println!("Finished.");
 }
