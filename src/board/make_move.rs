@@ -7,7 +7,6 @@ use crate::defs::{
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
 use crate::movegen::MoveGenerator;
-use crate::print;
 use crate::utils::{clear_bit, set_bit};
 
 pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
@@ -57,6 +56,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         clear_bit(&mut bb_opponent[captured], to);
         clear_bit(&mut board.bb_pieces[opponent], to);
 
+        // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
             if to == H1 {
                 board.castling &= !CASTLE_WK;
