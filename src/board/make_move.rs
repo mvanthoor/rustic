@@ -28,14 +28,14 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     let opponent = (us ^ 1) as usize;
 
     // Set which bitboards are "us" and "opponent" pieces
-    let bb_mine: &mut [Bitboard];
+    let bb_us: &mut [Bitboard];
     let bb_opponent: &mut [Bitboard];
 
     if us == WHITE {
-        bb_mine = &mut board.bb_w;
+        bb_us = &mut board.bb_w;
         bb_opponent = &mut board.bb_b;
     } else {
-        bb_mine = &mut board.bb_b;
+        bb_us = &mut board.bb_b;
         bb_opponent = &mut board.bb_w;
     };
 
@@ -76,18 +76,18 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
     // take the moving piece off the from-square
     board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, from);
-    clear_bit(&mut bb_mine[piece], from);
+    clear_bit(&mut bb_us[piece], from);
     clear_bit(&mut board.bb_pieces[us], from);
 
     // put the moving piece on the to-square
     if !promotion_move {
         // normal move (including the king part of castling).
-        set_bit(&mut bb_mine[piece], to);
+        set_bit(&mut bb_us[piece], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
     } else {
         // promotion move. Put promotion piece on the to-square instead of the pawn.
-        set_bit(&mut bb_mine[promoted], to);
+        set_bit(&mut bb_us[promoted], to);
         set_bit(&mut board.bb_pieces[us], to);
         board.zobrist_key ^= board.zobrist_randoms.piece(us, promoted, to);
     }
@@ -101,11 +101,11 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         if to == G1 {
             // White is castling short. Pick up rook h1.
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H1);
-            clear_bit(&mut bb_mine[ROOK], H1);
+            clear_bit(&mut bb_us[ROOK], H1);
             clear_bit(&mut board.bb_pieces[us], H1);
 
             // Put it back down on f1.
-            set_bit(&mut bb_mine[ROOK], F1);
+            set_bit(&mut bb_us[ROOK], F1);
             set_bit(&mut board.bb_pieces[us], F1);
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F1);
 
@@ -116,11 +116,11 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         if to == C1 {
             // White is castling long. Pick up rook A1.
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A1);
-            clear_bit(&mut bb_mine[ROOK], A1);
+            clear_bit(&mut bb_us[ROOK], A1);
             clear_bit(&mut board.bb_pieces[us], A1);
 
             // Put it back down on d1.
-            set_bit(&mut bb_mine[ROOK], D1);
+            set_bit(&mut bb_us[ROOK], D1);
             set_bit(&mut board.bb_pieces[us], D1);
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D1);
 
@@ -131,11 +131,11 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         if to == G8 {
             // Black is castling short. Pick up rook h8.
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H8);
-            clear_bit(&mut bb_mine[ROOK], H8);
+            clear_bit(&mut bb_us[ROOK], H8);
             clear_bit(&mut board.bb_pieces[us], H8);
 
             // Put it back down on f8.
-            set_bit(&mut bb_mine[ROOK], F8);
+            set_bit(&mut bb_us[ROOK], F8);
             set_bit(&mut board.bb_pieces[us], F8);
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F8);
 
@@ -146,11 +146,11 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
         if to == C8 {
             // Black is castling long. Pick up rook a8.
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A8);
-            clear_bit(&mut bb_mine[ROOK], A8);
+            clear_bit(&mut bb_us[ROOK], A8);
             clear_bit(&mut board.bb_pieces[us], A8);
 
             // Put it back down on d8.
-            set_bit(&mut bb_mine[ROOK], D8);
+            set_bit(&mut bb_us[ROOK], D8);
             set_bit(&mut board.bb_pieces[us], D8);
             board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D8);
 
@@ -245,7 +245,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
     /*** Validating move ***/
 
     // Move is done. Check if it's actually legal. (King can not be in check.)
-    let king_square = bb_mine[KING].trailing_zeros() as u8;
+    let king_square = bb_us[KING].trailing_zeros() as u8;
     let is_legal = !square_attacked(board, opponent, mg, king_square);
 
     if !is_legal {
