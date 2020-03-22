@@ -59,16 +59,16 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
         // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
-            if to == H1 {
+            if us == BLACK && to == H1 {
                 board.castling &= !CASTLE_WK;
             };
-            if to == A1 {
+            if us == BLACK && to == A1 {
                 board.castling &= !CASTLE_WQ;
             };
-            if to == H8 {
+            if us == WHITE && to == H8 {
                 board.castling &= !CASTLE_BK;
             };
-            if to == A8 {
+            if us == WHITE && to == A8 {
                 board.castling &= !CASTLE_BQ;
             };
         }
