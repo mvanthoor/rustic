@@ -13,14 +13,14 @@ use super::zobrist::{ZobristKey, ZobristRandoms};
 use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
-    BLACK, EMPTY, FEN_START_POSITION, PNONE, SQUARE_NAME, WHITE,
+    BLACK, EMPTY, FEN_START_POSITION, PNONE, WHITE,
 };
-use crate::extra::print;
 use crate::movegen::movedefs::Move;
 use crate::utils::next;
 
 const MAX_GAME_MOVES: u16 = 2048;
 
+#[derive(Clone)]
 pub struct UnMakeInfo {
     pub active_color: u8,
     pub castling: u8,
@@ -47,6 +47,7 @@ impl UnMakeInfo {
 
 pub type UnMakeList = Vec<UnMakeInfo>;
 
+#[derive(Clone)]
 pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
