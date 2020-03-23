@@ -17,7 +17,7 @@ fn main() {
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, None);
-    // let mut move_list: MoveList = Vec::with_capacity(MAX_LEGAL_MOVES as usize);
+    //let mut move_list: MoveList = MoveList::new();
 
     engine_info();
     print::position(&board, None);

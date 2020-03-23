@@ -46,7 +46,39 @@ pub enum Shift {
 
 /** This part defines the movelist, and the move and its functions */
 pub const MAX_LEGAL_MOVES: u8 = 255;
-pub type MoveList = Vec<Move>;
+pub struct MoveList {
+    list: [Move; MAX_LEGAL_MOVES as usize],
+    count: u8,
+}
+
+impl MoveList {
+    pub fn new() -> MoveList {
+        MoveList {
+            list: [Move { data: 0 }; MAX_LEGAL_MOVES as usize],
+            count: 0,
+        }
+    }
+
+    pub fn push(&mut self, m: Move) {
+        self.list[self.count as usize] = m;
+        self.count += 1;
+    }
+
+    pub fn clear(&mut self) {
+        for i in 0..MAX_LEGAL_MOVES {
+            self.list[i as usize] = Move { data: 0 };
+            self.count = 0;
+        }
+    }
+
+    pub fn len(&self) -> u8 {
+        self.count
+    }
+
+    pub fn get(&self, index: u8) -> Move {
+        self.list[index as usize]
+    }
+}
 
 #[derive(Copy, Clone)]
 pub struct Move {
@@ -54,35 +86,35 @@ pub struct Move {
 }
 
 impl Move {
-    pub fn piece(&self) -> u8 {
+    pub fn piece(self) -> u8 {
         ((self.data >> Shift::Piece as u64) & 0x7) as u8
     }
 
-    pub fn from(&self) -> u8 {
+    pub fn from(self) -> u8 {
         ((self.data >> Shift::FromSq as u64) & 0x3F) as u8
     }
 
-    pub fn to(&self) -> u8 {
+    pub fn to(self) -> u8 {
         ((self.data >> Shift::ToSq as u64) & 0x3F) as u8
     }
 
-    pub fn captured(&self) -> u8 {
+    pub fn captured(self) -> u8 {
         ((self.data >> Shift::Capture as u64) & 0x7) as u8
     }
 
-    pub fn promoted(&self) -> u8 {
+    pub fn promoted(self) -> u8 {
         ((self.data >> Shift::Promotion as u64) & 0x7) as u8
     }
 
-    pub fn en_passant(&self) -> bool {
+    pub fn en_passant(self) -> bool {
         ((self.data >> Shift::EnPassant as u64) & 0x1) as u8 == 1
     }
 
-    pub fn double_step(&self) -> bool {
+    pub fn double_step(self) -> bool {
         ((self.data >> Shift::DoubleStep as u64) & 0x1) as u8 == 1
     }
 
-    pub fn castling(&self) -> bool {
+    pub fn castling(self) -> bool {
         ((self.data >> Shift::Castling as u64) & 0x1) as u8 == 1
     }
 }
