@@ -34,7 +34,7 @@ use crate::utils::next;
  * list: a mutable reference to a list that will contain the moves.
 */
 pub fn all_moves(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
-    list.clear();
+    // list.clear();
     piece(KING, board, mg, list);
     piece(KNIGHT, board, mg, list);
     piece(ROOK, board, mg, list);

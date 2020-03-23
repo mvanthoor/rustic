@@ -8,7 +8,7 @@ mod utils;
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
 use extra::print;
-use movegen::movedefs::{MoveList, MAX_LEGAL_MOVES};
+use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
 use utils::engine_info;
 

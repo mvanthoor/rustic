@@ -8,7 +8,6 @@ pub mod movedefs;
 mod rays;
 
 // TODO: Rewrite comments for move generator
-extern crate rand;
 use crate::board::representation::Board;
 use crate::board::{create_bb_files, create_bb_ranks};
 use crate::defs::{Bitboard, Piece, Side, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};

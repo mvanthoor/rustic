@@ -65,10 +65,10 @@ impl MoveList {
     }
 
     pub fn clear(&mut self) {
-        for i in 0..MAX_LEGAL_MOVES {
+        for i in 0..self.count {
             self.list[i as usize] = Move { data: 0 };
-            self.count = 0;
         }
+        self.count = 0;
     }
 
     pub fn len(&self) -> u8 {

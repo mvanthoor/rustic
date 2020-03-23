@@ -118,8 +118,6 @@ impl<'a> Board<'a> {
 
     /** Get the pieces of a certain type, for one of the sides. */
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
-        debug_assert!(piece <= 5, "Not a piece: {}", piece);
-        debug_assert!(side == 0 || side == 1, "Not a side: {}", side);
         match side {
             WHITE => self.bb_w[piece],
             BLACK => self.bb_b[piece],
@@ -129,7 +127,6 @@ impl<'a> Board<'a> {
 
     /** Return which piece is on a given square, or return PNONE (no piece) */
     pub fn which_piece(&self, square: u8) -> Piece {
-        debug_assert!(square < 64, "Not a correct square number: {}", square);
         let inspect = 1u64 << square as u64;
         for (piece, (white, black)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
             if (*white & inspect > 0) || (*black & inspect > 0) {
