@@ -30,7 +30,7 @@ fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerato
 
     mg.gen_all_moves(&board, &mut mlp.lists[current]);
     for i in 0..mlp.lists[current].len() {
-        if !make_move(board, mlp.lists[current][i], mg) {
+        if !make_move(board, mlp.lists[current].get(i), mg) {
             continue;
         };
         leaf_nodes += perft(board, depth - 1, mlp, mg);
