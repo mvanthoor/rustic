@@ -49,23 +49,26 @@ pub const MAX_LEGAL_MOVES: u8 = 255;
 pub const MAX_SEARCH_DEPTH: u8 = 128;
 
 pub struct MoveListPool {
-    pub lists: Vec<MoveList>,
+    pool: [MoveList; MAX_SEARCH_DEPTH as usize],
 }
 
 impl MoveListPool {
     pub fn new() -> MoveListPool {
-        let max_legal = MAX_LEGAL_MOVES as usize;
-        let max_search = MAX_SEARCH_DEPTH as usize;
-        let mut mlp = MoveListPool {
-            lists: Vec::with_capacity(max_search),
-        };
-        for _ in 0..MAX_SEARCH_DEPTH {
-            mlp.lists.push(MoveList::new())
+        MoveListPool {
+            pool: [MoveList::new(); MAX_SEARCH_DEPTH as usize],
         }
-        mlp
+    }
+
+    pub fn get_list(&self, index: u8) -> &MoveList {
+        &self.pool[index as usize]
+    }
+
+    pub fn get_list_mut(&mut self, index: u8) -> &mut MoveList {
+        &mut self.pool[index as usize]
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct MoveList {
     list: [Move; MAX_LEGAL_MOVES as usize],
     count: u8,
@@ -95,7 +98,7 @@ impl MoveList {
         self.count
     }
 
-    pub fn get(&self, index: u8) -> Move {
+    pub fn get_move(&self, index: u8) -> Move {
         self.list[index as usize]
     }
 }

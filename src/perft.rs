@@ -12,25 +12,24 @@ pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
         let now = Instant::now();
         let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool, &mg);
         let elapsed = now.elapsed().as_millis();
-        let moves_ps = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
+        let moves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
         println!(
             "Peft {}: {} ({} ms, {} moves/sec)",
-            d, leaf_nodes, elapsed, moves_ps
+            d, leaf_nodes, elapsed, moves_per_second
         );
     }
 }
 
 fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
-    let current = depth as usize;
 
     if depth == 0 {
         return 1;
     }
 
-    mg.gen_all_moves(&board, &mut mlp.lists[current]);
-    for i in 0..mlp.lists[current].len() {
-        if !make_move(board, mlp.lists[current].get(i), mg) {
+    mg.gen_all_moves(&board, mlp.get_list_mut(depth));
+    for i in 0..mlp.get_list(depth).len() {
+        if !make_move(board, mlp.get_list(depth).get_move(i), mg) {
             continue;
         };
         leaf_nodes += perft(board, depth - 1, mlp, mg);
