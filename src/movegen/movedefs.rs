@@ -46,39 +46,61 @@ pub enum Shift {
 
 /** This part defines the movelist, and the move and its functions */
 pub const MAX_LEGAL_MOVES: u8 = 255;
-pub struct MoveList {
-    list: [Move; MAX_LEGAL_MOVES as usize],
-    count: u8,
+pub const MAX_SEARCH_DEPTH: u8 = 128;
+
+pub struct MoveListPool {
+    pub lists: Vec<MoveList>,
 }
 
-impl MoveList {
-    pub fn new() -> MoveList {
-        MoveList {
-            list: [Move { data: 0 }; MAX_LEGAL_MOVES as usize],
-            count: 0,
+impl MoveListPool {
+    pub fn new() -> MoveListPool {
+        let max_legal = MAX_LEGAL_MOVES as usize;
+        let max_search = MAX_SEARCH_DEPTH as usize;
+        let mut mlp = MoveListPool {
+            lists: Vec::with_capacity(max_search),
+        };
+        for _ in 0..MAX_SEARCH_DEPTH {
+            mlp.lists.push(MoveList::with_capacity(max_search))
         }
-    }
-
-    pub fn push(&mut self, m: Move) {
-        self.list[self.count as usize] = m;
-        self.count += 1;
-    }
-
-    pub fn clear(&mut self) {
-        for i in 0..self.count {
-            self.list[i as usize] = Move { data: 0 };
-        }
-        self.count = 0;
-    }
-
-    pub fn len(&self) -> u8 {
-        self.count
-    }
-
-    pub fn get(&self, index: u8) -> Move {
-        self.list[index as usize]
+        mlp
     }
 }
+
+pub type MoveList = Vec<Move>;
+
+// pub struct MoveList {
+//     list: [Move; MAX_LEGAL_MOVES as usize],
+//     count: u8,
+// }
+
+// impl MoveList {
+//     pub fn new() -> MoveList {
+//         MoveList {
+//             list: [Move { data: 0 }; MAX_LEGAL_MOVES as usize],
+//             count: 0,
+//         }
+//     }
+
+//     pub fn push(&mut self, m: Move) {
+//         self.list[self.count as usize] = m;
+//         self.count += 1;
+//     }
+
+//     pub fn clear(&mut self) {
+//         for i in 0..self.count {
+//             self.list[i as usize] = Move { data: 0 };
+//         }
+//         self.count = 0;
+//     }
+
+//     pub fn len(&self) -> u8 {
+//         self.count
+//     }
+
+//     pub fn get(&self, index: u8) -> Move {
+//         self.list[index as usize]
+//     }
+// }
 
 #[derive(Copy, Clone)]
 pub struct Move {
