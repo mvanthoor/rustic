@@ -1,3 +1,5 @@
+pub mod perft;
+
 use crate::defs::{Bitboard, AUTHOR, ENGINE, VERSION};
 
 /** Prints information about the engine to the screen. */
