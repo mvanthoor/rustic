@@ -9,6 +9,7 @@ use std::time::Instant;
 const SEMI_COLON: char = ';';
 const DEPTH: usize = 3;
 
+// This is the table with all the tests from perftsuite.epd.
 const LARGE_PERFT_SUITE: [&str; 127] = [
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ;D1 20 ;D2 400 ;D3 8902 ;D4 197281 ;D5 4865609 ;D6 119060324",
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1 ;D1 20 ;D2 400 ;D3 8902 ;D4 197281 ;D5 4865609 ;D6 119060324",
@@ -139,13 +140,16 @@ const LARGE_PERFT_SUITE: [&str; 127] = [
     "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1 ;D1 24 ;D2 496 ;D3 9483 ;D4 182838 ;D5 3605103 ;D6 71179139",
 ];
 
+// This function runs the entire perft suite.
 pub fn run_large_suite() {
     let number_of_tests = LARGE_PERFT_SUITE.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut keep_running = false;
 
-    for (current_test, test) in LARGE_PERFT_SUITE.iter().enumerate() {
+    // Run all the tests.
+    for (test_nr, test) in LARGE_PERFT_SUITE.iter().enumerate() {
+        // Split the test's data string into multiple parts.
         let data: Vec<String> = test
             .split(SEMI_COLON)
             .map(|s| s.trim().to_string())
@@ -153,23 +157,29 @@ pub fn run_large_suite() {
         let fen_string = data[0].clone();
         let fen = &fen_string[..];
 
-        println!("Test {} from {}", current_test + 1, number_of_tests);
+        println!("Test {} from {}", test_nr + 1, number_of_tests);
         println!("FEN: {}", fen);
 
         // This board is created only for printing the current test position.
         let board = Board::new(&zobrist_randoms, Some(fen));
         print::position(&board, None);
 
+        // Run each test at the given depths.
         for (i, d) in data.iter().enumerate() {
             let mut board: Board = Board::new(&zobrist_randoms, Some(fen));
             let mut move_list_pool = MoveListPool::new();
 
+            // Data index 0 contains the FEN-string, so skip this
+            // and start at index 1 to find the expected leaf nodes per depth.
             if i > 0 {
                 let expected_leaf_nodes = d.clone().split_off(DEPTH).parse::<u64>().unwrap();
                 print!("Expect for depth {}: {}", i, expected_leaf_nodes);
                 let now = Instant::now();
+
+                // This is the actual perft test for this test and depth.
                 let found_leaf_nodes =
                     perft::perft(&mut board, i as u8, &mut move_list_pool, &move_generator);
+
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_leaf_nodes == found_leaf_nodes;
@@ -181,6 +191,7 @@ pub fn run_large_suite() {
 
                 keep_running = expected_leaf_nodes == found_leaf_nodes;
 
+                // Break if there are errors.
                 if !keep_running {
                     break;
                 }
@@ -188,10 +199,10 @@ pub fn run_large_suite() {
         }
 
         if keep_running {
-            println!("Test {} finished without errors.", current_test + 1);
+            println!("Test {} finished without errors.", test_nr + 1);
             println!();
         } else {
-            println!("Test {} stopped because of errors.", current_test + 1);
+            println!("Test {} stopped because of errors.", test_nr + 1);
             println!();
             break;
         }
