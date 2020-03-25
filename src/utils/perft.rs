@@ -1,7 +1,7 @@
 use crate::board::make_move::make_move;
 use crate::board::representation::Board;
 use crate::board::unmake_move::unmake_move;
-use crate::movegen::movedefs::{MoveList, MoveListPool};
+use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
 use std::time::Instant;
 
@@ -20,7 +20,7 @@ pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
     }
 }
 
-fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
+pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let index = depth as usize;
 
