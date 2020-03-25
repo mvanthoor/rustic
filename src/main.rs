@@ -21,7 +21,7 @@ fn main() {
     engine_info();
     print::position(&board, None);
 
-    perft::run(&board, 6, &move_generator);
+    perft::run(&board, 7, &move_generator);
 
     println!("Finished.");
 }

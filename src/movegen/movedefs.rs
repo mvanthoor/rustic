@@ -46,17 +46,21 @@ pub enum Shift {
 
 /** This part defines the movelist, and the move and its functions */
 pub const MAX_LEGAL_MOVES: u8 = 255;
-pub const MAX_SEARCH_DEPTH: u8 = 128;
+pub const MIN_MOVE_LIST_POOL: u8 = 128;
 
 pub struct MoveListPool {
-    pool: [MoveList; MAX_SEARCH_DEPTH as usize],
+    pool: Vec<MoveList>,
 }
 
 impl MoveListPool {
     pub fn new() -> MoveListPool {
-        MoveListPool {
-            pool: [MoveList::new(); MAX_SEARCH_DEPTH as usize],
+        let mut mlp = MoveListPool {
+            pool: Vec::with_capacity(MIN_MOVE_LIST_POOL as usize),
+        };
+        for _ in 0..MIN_MOVE_LIST_POOL {
+            mlp.pool.push(MoveList::new());
         }
+        mlp
     }
 
     pub fn get_list(&self, index: u8) -> &MoveList {
