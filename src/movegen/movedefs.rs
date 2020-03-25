@@ -1,3 +1,5 @@
+use std::cmp;
+
 /*
 Move format explanation
 
@@ -46,7 +48,8 @@ pub enum Shift {
 
 /** This part defines the movelist, and the move and its functions */
 pub const MAX_LEGAL_MOVES: u8 = 255;
-pub const MIN_MOVE_LIST_POOL: u8 = 128;
+pub const MIN_MOVE_LIST_POOL_SIZE: usize = 128;
+pub const MIN_MOVE_LIST_POOL_EXTENSION: usize = 32;
 
 pub struct MoveListPool {
     pool: Vec<MoveList>,
@@ -55,20 +58,32 @@ pub struct MoveListPool {
 impl MoveListPool {
     pub fn new() -> MoveListPool {
         let mut mlp = MoveListPool {
-            pool: Vec::with_capacity(MIN_MOVE_LIST_POOL as usize),
+            pool: Vec::with_capacity(MIN_MOVE_LIST_POOL_SIZE as usize),
         };
-        for _ in 0..MIN_MOVE_LIST_POOL {
+        for _ in 0..MIN_MOVE_LIST_POOL_SIZE {
             mlp.pool.push(MoveList::new());
         }
         mlp
     }
 
-    pub fn get_list(&self, index: u8) -> &MoveList {
-        &self.pool[index as usize]
+    pub fn get_list(&self, index: usize) -> &MoveList {
+        if index as usize > self.pool.len() {}
+        &self.pool[index]
     }
 
-    pub fn get_list_mut(&mut self, index: u8) -> &mut MoveList {
-        &mut self.pool[index as usize]
+    pub fn get_list_mut(&mut self, index: usize) -> &mut MoveList {
+        &mut self.pool[index]
+    }
+
+    pub fn extend(&mut self, amount: usize) {
+        let extension = cmp::max(amount, MIN_MOVE_LIST_POOL_EXTENSION);
+        for _ in 0..extension {
+            self.pool.push(MoveList::new());
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        self.pool.len()
     }
 }
 

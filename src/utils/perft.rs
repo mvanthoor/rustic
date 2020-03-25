@@ -22,14 +22,15 @@ pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
 
 fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
+    let index = depth as usize;
 
     if depth == 0 {
         return 1;
     }
 
-    mg.gen_all_moves(&board, mlp.get_list_mut(depth));
-    for i in 0..mlp.get_list(depth).len() {
-        if !make_move(board, mlp.get_list(depth).get_move(i), mg) {
+    mg.gen_all_moves(&board, mlp.get_list_mut(index));
+    for i in 0..mlp.get_list(index).len() {
+        if !make_move(board, mlp.get_list(index).get_move(i), mg) {
             continue;
         };
         leaf_nodes += perft(board, depth - 1, mlp, mg);
