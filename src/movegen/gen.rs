@@ -33,15 +33,15 @@ use crate::utils::next;
  *          generator does not have to calculate this over and aover again.
  * list: a mutable reference to a list that will contain the moves.
 */
-pub fn all_moves(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+pub fn all_moves(board: &Board, list: &mut MoveList) {
     list.clear();
-    piece(KING, board, mg, list);
-    piece(KNIGHT, board, mg, list);
-    piece(ROOK, board, mg, list);
-    piece(BISHOP, board, mg, list);
-    piece(QUEEN, board, mg, list);
-    pawns(board, mg, list);
-    castling(board, mg, list);
+    piece(KING, board, list);
+    piece(KNIGHT, board, list);
+    piece(ROOK, board, list);
+    piece(BISHOP, board, list);
+    piece(QUEEN, board, list);
+    pawns(board, list);
+    castling(board, list);
 }
 
 /**
@@ -52,7 +52,7 @@ pub fn all_moves(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
  * - The piece can move to all squares that do not contain our own pieces.
  * - Add those moves to the move list.
  */
-fn piece(piece: Piece, board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
     let side = board.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
@@ -60,8 +60,12 @@ fn piece(piece: Piece, board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
     while bb_pieces > 0 {
         let from = next(&mut bb_pieces);
         let bb_target = match piece {
-            QUEEN | ROOK | BISHOP => mg.get_slider_attacks(piece, from, bb_occupancy),
-            KING | KNIGHT => mg.get_non_slider_attacks(piece, from),
+            QUEEN | ROOK | BISHOP => {
+                board
+                    .move_generator
+                    .get_slider_attacks(piece, from, bb_occupancy)
+            }
+            KING | KNIGHT => board.move_generator.get_non_slider_attacks(piece, from),
             _ => 0,
         };
         let bb_moves = bb_target & !bb_own_pieces;
@@ -86,7 +90,7 @@ fn piece(piece: Piece, board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
  * Combine all the moves, and add them to the move list. The add_move function will take care
  * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
  */
-fn pawns(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+fn pawns(board: &Board, list: &mut MoveList) {
     let side = board.active_color as usize;
     let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
@@ -102,7 +106,7 @@ fn pawns(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
         let bb_push = 1u64 << (from as i8 + direction);
         let bb_one_step = bb_push & bb_empty;
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
-        let bb_targets = mg.get_pawn_attacks(side, from);
+        let bb_targets = board.move_generator.get_pawn_attacks(side, from);
         let bb_captures = bb_targets & bb_opponent_pieces;
         let bb_ep_capture = if let Some(ep) = board.en_passant {
             bb_targets & (1u64 << ep)
@@ -132,7 +136,7 @@ fn pawns(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
  * castles INTO check on the landing square (gi, c1, g8 or c8). This verification is left up
  * to makemove/unmake move outside of the move generator.
  */
-fn castling(board: &Board, mg: &MoveGenerator, list: &mut MoveList) {
+fn castling(board: &Board, list: &mut MoveList) {
     let side = board.active_color as usize;
     let opponent = side ^ 1;
     let has_castling_rights = if side == WHITE {

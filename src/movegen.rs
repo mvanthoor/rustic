@@ -66,7 +66,7 @@ impl MoveGenerator {
 
     //** This function takes a board, and generates all moves for the side that is to move. */
     pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
-        gen::all_moves(board, self, ml);
+        gen::all_moves(board, ml);
     }
 
     // ===== Private functions for use by submodules ===== //
