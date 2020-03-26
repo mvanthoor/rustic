@@ -16,6 +16,7 @@ use crate::defs::{
     BLACK, EMPTY, FEN_START_POSITION, PNONE, WHITE,
 };
 use crate::movegen::movedefs::Move;
+use crate::movegen::MoveGenerator;
 use crate::utils::next;
 
 const MAX_GAME_MOVES: u16 = 2048;
@@ -62,6 +63,7 @@ pub struct Board<'a> {
     pub unmake_list: UnMakeList,
     pub zobrist_key: ZobristKey,
     pub zobrist_randoms: &'a ZobristRandoms,
+    pub move_generator: &'a MoveGenerator,
 }
 
 impl<'a> Board<'a> {
@@ -69,7 +71,7 @@ impl<'a> Board<'a> {
      * This function creates a new board. If an FEN-position is passed, then use that for
      * setting up the board. If None is passed, use the normal starting position.
      */
-    pub fn new(zr: &'a ZobristRandoms, fen: Option<&str>) -> Board<'a> {
+    pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator, fen: Option<&str>) -> Board<'a> {
         let mut board = Board {
             bb_w: [EMPTY; BITBOARDS_PER_SIDE as usize],
             bb_b: [EMPTY; BITBOARDS_PER_SIDE as usize],
@@ -84,6 +86,7 @@ impl<'a> Board<'a> {
             unmake_list: Vec::with_capacity(MAX_GAME_MOVES as usize),
             zobrist_key: EMPTY,
             zobrist_randoms: zr,
+            move_generator: mg,
         };
         board.bb_files = create_bb_files();
         board.bb_ranks = create_bb_ranks();

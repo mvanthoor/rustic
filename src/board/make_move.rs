@@ -6,11 +6,10 @@ use crate::defs::{
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
-use crate::movegen::MoveGenerator;
 use crate::utils::{clear_bit, set_bit};
 
 #[allow(clippy::cognitive_complexity)]
-pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
+pub fn make_move(board: &mut Board, m: Move) -> bool {
     // create the unmake info and store it.
     let unmake_info = UnMakeInfo::new(
         board.active_color,
@@ -246,7 +245,7 @@ pub fn make_move(board: &mut Board, m: Move, mg: &MoveGenerator) -> bool {
 
     // Move is done. Check if it's actually legal. (King can not be in check.)
     let king_square = bb_us[KING].trailing_zeros() as u8;
-    let is_legal = !square_attacked(board, opponent, mg, king_square);
+    let is_legal = !square_attacked(board, opponent, king_square);
 
     if !is_legal {
         unmake_move(board);

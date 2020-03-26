@@ -182,12 +182,12 @@ fn run(subset: &[&str]) {
         println!("FEN: {}", fen);
 
         // This board is created only for printing the current test position.
-        let board = Board::new(&zobrist_randoms, Some(fen));
+        let board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
         print::position(&board, None);
 
         // Run each test at the given depths.
         for (i, d) in data.iter().enumerate() {
-            let mut board: Board = Board::new(&zobrist_randoms, Some(fen));
+            let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
             let mut move_list_pool = MoveListPool::new();
 
             // Data index 0 contains the FEN-string, so skip this
@@ -198,8 +198,7 @@ fn run(subset: &[&str]) {
                 let now = Instant::now();
 
                 // This is the actual perft test for this test and depth.
-                let found_leaf_nodes =
-                    perft::perft(&mut board, i as u8, &mut move_list_pool, &move_generator);
+                let found_leaf_nodes = perft::perft(&mut board, i as u8, &mut move_list_pool);
 
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();

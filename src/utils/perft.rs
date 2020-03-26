@@ -17,9 +17,9 @@ pub fn bench(depth: u8) {
 
     for d in 1..=depth {
         let mut move_list_pool = MoveListPool::new();
-        let mut perft_board: Board = Board::new(&zobrist_randoms, None);
+        let mut perft_board: Board = Board::new(&zobrist_randoms, &move_generator, None);
         let now = Instant::now();
-        let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool, &move_generator);
+        let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool);
         let elapsed = now.elapsed().as_millis();
         let leaves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
         total_time += elapsed;
@@ -36,7 +36,7 @@ pub fn bench(depth: u8) {
 }
 
 #[allow(dead_code)]
-pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
+pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let index = depth as usize;
 
@@ -44,12 +44,14 @@ pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGene
         return 1;
     }
 
-    mg.gen_all_moves(&board, mlp.get_list_mut(index));
+    board
+        .move_generator
+        .gen_all_moves(&board, mlp.get_list_mut(index));
     for i in 0..mlp.get_list(index).len() {
-        if !make_move(board, mlp.get_list(index).get_move(i), mg) {
+        if !make_move(board, mlp.get_list(index).get_move(i)) {
             continue;
         };
-        leaf_nodes += perft(board, depth - 1, mlp, mg);
+        leaf_nodes += perft(board, depth - 1, mlp);
         unmake_move(board);
     }
 
