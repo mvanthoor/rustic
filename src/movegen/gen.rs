@@ -59,12 +59,8 @@ fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
     while bb_pieces > 0 {
         let from = next(&mut bb_pieces);
         let bb_target = match piece {
-            QUEEN | ROOK | BISHOP => {
-                board
-                    .move_generator
-                    .get_slider_attacks(piece, from, bb_occupancy)
-            }
-            KING | KNIGHT => board.move_generator.get_non_slider_attacks(piece, from),
+            QUEEN | ROOK | BISHOP => board.get_slider_attacks(piece, from, bb_occupancy),
+            KING | KNIGHT => board.get_non_slider_attacks(piece, from),
             _ => 0,
         };
         let bb_moves = bb_target & !bb_own_pieces;
@@ -105,7 +101,7 @@ fn pawns(board: &Board, list: &mut MoveList) {
         let bb_push = 1u64 << (from as i8 + direction);
         let bb_one_step = bb_push & bb_empty;
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
-        let bb_targets = board.move_generator.get_pawn_attacks(side, from);
+        let bb_targets = board.get_pawn_attacks(side, from);
         let bb_captures = bb_targets & bb_opponent_pieces;
         let bb_ep_capture = if let Some(ep) = board.en_passant {
             bb_targets & (1u64 << ep)

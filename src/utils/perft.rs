@@ -44,9 +44,7 @@ pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool) -> u64 {
         return 1;
     }
 
-    board
-        .move_generator
-        .gen_all_moves(&board, mlp.get_list_mut(index));
+    board.gen_all_moves(mlp.get_list_mut(index));
     for i in 0..mlp.get_list(index).len() {
         if !make_move(board, mlp.get_list(index).get_move(i)) {
             continue;

@@ -72,7 +72,7 @@ impl MoveGenerator {
     // ===== Private functions for use by submodules ===== //
 
     /** Return non-slider (King, Knight) attacks for the given square. */
-    fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -83,7 +83,7 @@ impl MoveGenerator {
     }
 
     /** Return slider attacsk for Rook, Bishop and Queen using Magic. */
-    fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
+    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -105,7 +105,7 @@ impl MoveGenerator {
     }
 
     /** Return pawn attacks for the given square. */
-    fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         self._pawns[side][square as usize]
     }
 }

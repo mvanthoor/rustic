@@ -15,7 +15,7 @@ use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, EMPTY, FEN_START_POSITION, PNONE, WHITE,
 };
-use crate::movegen::movedefs::Move;
+use crate::movegen::movedefs::{Move, MoveList};
 use crate::movegen::MoveGenerator;
 use crate::utils::next;
 
@@ -63,7 +63,7 @@ pub struct Board<'a> {
     pub unmake_list: UnMakeList,
     pub zobrist_key: ZobristKey,
     pub zobrist_randoms: &'a ZobristRandoms,
-    pub move_generator: &'a MoveGenerator,
+    move_generator: &'a MoveGenerator,
 }
 
 impl<'a> Board<'a> {
@@ -98,6 +98,22 @@ impl<'a> Board<'a> {
         board.build_zobrist_key();
 
         board
+    }
+
+    pub fn gen_all_moves(&self, ml: &mut MoveList) {
+        self.move_generator.gen_all_moves(self, ml);
+    }
+
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+        self.move_generator.get_non_slider_attacks(piece, square)
+    }
+
+    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
+        self.move_generator.get_slider_attacks(piece, square, occ)
+    }
+
+    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+        self.move_generator.get_pawn_attacks(side, square)
     }
 
     /** Reset the board. */
