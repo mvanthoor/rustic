@@ -6,10 +6,11 @@ mod utils;
 
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
-use extra::{perftsuite, print};
+use extra::print;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
 use utils::engine_info;
+use utils::perft;
 
 fn main() {
     let test_pos: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
@@ -21,7 +22,7 @@ fn main() {
     engine_info();
     print::position(&board, None);
 
-    perftsuite::run_large_suite();
+    perft::bench(7);
 
     println!("Finished.");
 }

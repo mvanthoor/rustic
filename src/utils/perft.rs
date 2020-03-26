@@ -1,25 +1,41 @@
 use crate::board::make_move::make_move;
 use crate::board::representation::Board;
 use crate::board::unmake_move::unmake_move;
+use crate::board::zobrist::ZobristRandoms;
 use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
 use std::time::Instant;
 
-pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
+#[allow(dead_code)]
+pub fn bench(depth: u8) {
+    let mut total_time: u128 = 0;
+    let mut total_nodes: u64 = 0;
+    let move_generator = MoveGenerator::new();
+    let zobrist_randoms = ZobristRandoms::new();
+
+    println!("Benchmarking perft 1-{} from starting position...", depth);
+
     for d in 1..=depth {
-        let mut perft_board = board.clone();
         let mut move_list_pool = MoveListPool::new();
+        let mut perft_board: Board = Board::new(&zobrist_randoms, None);
         let now = Instant::now();
-        let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool, &mg);
+        let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool, &move_generator);
         let elapsed = now.elapsed().as_millis();
-        let moves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
+        let leaves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
+        total_time += elapsed;
+        total_nodes += leaf_nodes;
         println!(
-            "Peft {}: {} ({} ms, {} moves/sec)",
-            d, leaf_nodes, elapsed, moves_per_second
+            "Perft {}: {} ({} ms, {} leaves/sec)",
+            d, leaf_nodes, elapsed, leaves_per_second
         );
     }
+
+    let final_lnps = ((total_nodes * 1000) as f64 / total_time as f64).floor();
+    println!("Total time spent: {} ms", total_time);
+    println!("Execution speed: {} leaves/second", final_lnps);
 }
 
+#[allow(dead_code)]
 pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let index = depth as usize;

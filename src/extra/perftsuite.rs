@@ -140,15 +140,36 @@ const LARGE_PERFT_SUITE: [&str; 127] = [
     "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1 ;D1 24 ;D2 496 ;D3 9483 ;D4 182838 ;D5 3605103 ;D6 71179139",
 ];
 
-// This function runs the entire perft suite.
-pub fn run_large_suite() {
-    let number_of_tests = LARGE_PERFT_SUITE.len();
+// This function runs the entire suite.
+#[allow(dead_code)]
+pub fn run_all_tests() {
+    let entire_suite = &LARGE_PERFT_SUITE[..];
+    run(entire_suite);
+}
+
+// This function runs a single test.
+#[allow(dead_code)]
+pub fn run_single_test(test: usize) {
+    let length = LARGE_PERFT_SUITE.len();
+    if (1..=length).contains(&test) {
+        let single_test = &LARGE_PERFT_SUITE[(test - 1)..test];
+        run(single_test);
+    } else {
+        println!("Perftsuite: Test does not exist. Range: 1 - {}", length);
+    }
+}
+
+// This private function is the one actually running tests.
+// This can be the entire suite, or a single test.
+#[allow(dead_code)]
+fn run(subset: &[&str]) {
+    let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
-    let mut keep_running = false;
+    let mut abort = false;
 
     // Run all the tests.
-    for (test_nr, test) in LARGE_PERFT_SUITE.iter().enumerate() {
+    for (test_nr, test) in subset.iter().enumerate() {
         // Split the test's data string into multiple parts.
         let data: Vec<String> = test
             .split(SEMI_COLON)
@@ -189,16 +210,16 @@ pub fn run_large_suite() {
                 print!(" - Result: {}", result);
                 println!(" ({} ms, {} moves/sec)", elapsed, moves_per_second);
 
-                keep_running = expected_leaf_nodes == found_leaf_nodes;
+                abort = expected_leaf_nodes != found_leaf_nodes;
 
                 // Break if there are errors.
-                if !keep_running {
+                if abort {
                     break;
                 }
             }
         }
 
-        if keep_running {
+        if !abort {
             println!("Test {} finished without errors.", test_nr + 1);
             println!();
         } else {
@@ -208,7 +229,7 @@ pub fn run_large_suite() {
         }
     }
 
-    if keep_running {
+    if !abort {
         println!("Perft testing completed without errors.");
     } else {
         println!("Perft testing found errors.");
