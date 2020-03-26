@@ -1,4 +1,3 @@
-use super::MoveGenerator;
 use crate::board::representation::Board;
 use crate::defs::{Side, BISHOP, FILE_A, FILE_H, KING, KNIGHT, PAWN, QUEEN, ROOK, WHITE};
 

@@ -12,7 +12,6 @@
  */
 use super::information::square_attacked;
 use super::movedefs::{Move, MoveList, Shift};
-use super::MoveGenerator;
 use crate::board::representation::Board;
 use crate::board::square_on_rank;
 use crate::defs::{

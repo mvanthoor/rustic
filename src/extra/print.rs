@@ -54,11 +54,11 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 #[allow(dead_code)]
 pub fn movelist(moves: &[Move]) {
     for m in moves.iter() {
-        move_data(m);
+        move_data(*m);
     }
 }
 
-pub fn move_data(m: &Move) {
+pub fn move_data(m: Move) {
     println!(
         "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
         PIECE_CHAR[m.piece() as usize],
