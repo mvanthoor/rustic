@@ -4,6 +4,7 @@ use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
 use crate::utils::perft;
+use crate::utils::perft::{PerftHashEntry, PerftHashTable};
 use std::time::Instant;
 
 const SEMI_COLON: char = ';';
@@ -166,6 +167,7 @@ fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
+    let mut hash_table: PerftHashTable = PerftHashTable::new(256);
     let mut abort = false;
 
     // Run all the tests.
@@ -198,7 +200,8 @@ fn run(subset: &[&str]) {
                 let now = Instant::now();
 
                 // This is the actual perft test for this test and depth.
-                let found_leaf_nodes = perft::perft(&mut board, i as u8, &mut move_list_pool);
+                let found_leaf_nodes =
+                    perft::perft(&mut board, i as u8, &mut move_list_pool, &mut hash_table);
 
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();

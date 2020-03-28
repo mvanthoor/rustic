@@ -18,14 +18,16 @@ fn main() {
     let test_pos: &str = "rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/1NBQKB1R w Kkq - 0 1";
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
-    let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(test_pos));
+    let mut board: Board = Board::new(&zobrist_randoms, &move_generator, None);
     //let mut move_list: MoveList = MoveList::new();
 
     engine_info();
-    print::position(&board, None);
+    // print::position(&board, None);
 
-    let evaluation = evaluate(&board);
-    println!("Evaluation: {}", evaluation);
+    // let evaluation = evaluate(&board);
+    // println!("Evaluation: {}", evaluation);
+
+    perft::bench(6);
 
     println!("Finished.");
 }
