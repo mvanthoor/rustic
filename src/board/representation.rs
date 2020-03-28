@@ -172,7 +172,7 @@ impl<'a> Board<'a> {
     }
 
     /** This function builds the Zobrist key for the inital position. */
-    fn build_zobrist_key(&mut self) {
+    pub fn build_zobrist_key(&mut self) {
         for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
             let mut white = *bb_w;
             let mut black = *bb_b;
@@ -191,5 +191,27 @@ impl<'a> Board<'a> {
         self.zobrist_key ^= self.zobrist_randoms.castling(self.castling);
         self.zobrist_key ^= self.zobrist_randoms.side(self.active_color as usize);
         self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+    }
+
+    pub fn recreate_zobrist_key(board: &mut Board) {
+        board.zobrist_key = 0;
+        for (piece, (bb_w, bb_b)) in board.bb_w.iter().zip(board.bb_b.iter()).enumerate() {
+            let mut white = *bb_w;
+            let mut black = *bb_b;
+
+            while white > 0 {
+                let square = next(&mut white);
+                board.zobrist_key ^= board.zobrist_randoms.piece(WHITE, piece, square);
+            }
+
+            while black > 0 {
+                let square = next(&mut black);
+                board.zobrist_key ^= board.zobrist_randoms.piece(BLACK, piece, square);
+            }
+        }
+
+        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+        board.zobrist_key ^= board.zobrist_randoms.side(board.active_color as usize);
+        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
     }
 }

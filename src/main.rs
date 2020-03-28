@@ -27,7 +27,7 @@ fn main() {
     // let evaluation = evaluate(&board);
     // println!("Evaluation: {}", evaluation);
 
-    perft::bench(6);
+    perft::bench(7);
 
     println!("Finished.");
 }

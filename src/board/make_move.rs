@@ -58,6 +58,10 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
         // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
+            // Remove current castling permissions from zobrist key.
+            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+
+            // Remove the correct castling permissions from the position.
             if us == BLACK && to == H1 {
                 board.castling &= !CASTLE_WK;
             };
@@ -70,6 +74,9 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
             if us == WHITE && to == A8 {
                 board.castling &= !CASTLE_BQ;
             };
+
+            // Add the new castling permission state back into the zobrist key.
+            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
         }
     }
 
@@ -176,28 +183,28 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         // remove current castling permissions from zobrist key.
         board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
 
-        if from == H1 {
+        if us == WHITE && from == H1 {
             // remove kingside castling (clear bit 0)
             board.castling &= !CASTLE_WK;
         }
-        if from == A1 {
+        if us == WHITE && from == A1 {
             // remove queenside castling (clear bit 1)
             board.castling &= !CASTLE_WQ;
         }
-        if from == E1 {
+        if us == WHITE && from == E1 {
             // remove both castling rights (clear bit 0 and 1)
             board.castling &= !(CASTLE_WK + CASTLE_WQ);
         }
 
-        if from == H8 {
+        if us == BLACK && from == H8 {
             // remove kingside castling (clear bit 2)
             board.castling &= !CASTLE_BK;
         }
-        if from == A8 {
+        if us == BLACK && from == A8 {
             // remove queenside castling (clear bit 3)
             board.castling &= !CASTLE_BQ;
         }
-        if from == E8 {
+        if us == BLACK && from == E8 {
             // remove all castling rights (clear bit 2 and 3)
             board.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
