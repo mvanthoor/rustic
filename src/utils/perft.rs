@@ -51,11 +51,12 @@ impl PerftHashTable {
 
     pub fn push(&mut self, entry: PerftHashEntry) {
         let index = (entry.zobrist_key % self.max_entries) as usize;
-        let ht_key = self.hash_table[index].zobrist_key;
-        let ht_depth = self.hash_table[index].depth;
-        if (ht_key == 0) || ((ht_key == entry.zobrist_key) && (ht_depth < entry.depth)) {
-            self.hash_table[index] = entry;
-        }
+        // let ht_key = self.hash_table[index].zobrist_key;
+        // let ht_depth = self.hash_table[index].depth;
+        // if (ht_key == 0) || ((ht_key == entry.zobrist_key) && (ht_depth < entry.depth)) {
+        //     self.hash_table[index] = entry;
+        // }
+        self.hash_table[index] = entry;
     }
 
     pub fn leaf_nodes(&self, depth: u8, zk: ZobristKey) -> Option<u64> {
@@ -74,14 +75,13 @@ impl PerftHashTable {
 pub fn bench(depth: u8) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
-    let mut hash_table: PerftHashTable = PerftHashTable::new(256);
+    let mut hash_table: PerftHashTable = PerftHashTable::new(4096);
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
 
     println!("Benchmarking perft 1-{} from starting position...", depth);
 
     for d in 1..=depth {
-        hash_table.clear();
         let mut move_list_pool = MoveListPool::new();
         let mut perft_board: Board = Board::new(&zobrist_randoms, &move_generator, None);
         let now = Instant::now();
