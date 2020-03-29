@@ -6,9 +6,6 @@ use crate::defs::{Piece, Side, EMPTY, NR_OF_SQUARES};
 const ALL_SQUARES: usize = NR_OF_SQUARES as usize;
 const ALL_PIECES: usize = 6;
 const ALL_SIDES: usize = 2;
-const EP_NO_YES: usize = 2;
-const EP_NO: usize = 0;
-const EP_YES: usize = 1;
 const ALL_CASTLING_PERMISSIONS: usize = 16;
 
 /* Random number for all sides for all pieces on all squares */
@@ -86,8 +83,6 @@ impl ZobristRandoms {
     }
 
     pub fn en_passant(&self, en_passant: Option<u8>) -> u64 {
-        // let x = if en_passant.is_some() { EP_YES } else { EP_NO };
-        // self.rnd_en_passant[x]
         if let Some(ep) = en_passant {
             self.rnd_en_passant[ep as usize]
         } else {
