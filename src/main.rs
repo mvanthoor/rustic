@@ -30,7 +30,5 @@ fn main() {
 
     perft::bench(7);
 
-    // perftsuite::run_all_tests();
-
     println!("Finished.");
 }
