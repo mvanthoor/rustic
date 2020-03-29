@@ -67,7 +67,7 @@ impl PerftHashBucket {
 
 pub struct PerftHashTable {
     hash_table: Vec<PerftHashBucket>,
-    max_entries: u64,
+    max_buckets: u64,
 }
 
 impl PerftHashTable {
@@ -78,7 +78,7 @@ impl PerftHashTable {
 
         PerftHashTable {
             hash_table: vec![PerftHashBucket::new(); buckets as usize],
-            max_entries: buckets,
+            max_buckets: buckets,
         }
     }
 
@@ -89,12 +89,12 @@ impl PerftHashTable {
     }
 
     pub fn push(&mut self, entry: PerftHashEntry) {
-        let index = (entry.zobrist_key % self.max_entries) as usize;
+        let index = (entry.zobrist_key % self.max_buckets) as usize;
         self.hash_table[index].push(entry);
     }
 
     pub fn leaf_nodes(&self, depth: u8, zk: ZobristKey) -> Option<u64> {
-        let index = (zk % self.max_entries) as usize;
+        let index = (zk % self.max_buckets) as usize;
         let bucket = &self.hash_table[index];
 
         bucket.find(depth, zk)

@@ -9,7 +9,7 @@ use crate::movegen::MoveGenerator;
 use hash::{PerftHashEntry, PerftHashTable};
 use std::time::Instant;
 
-const HASH_MEGABYTES: u64 = 1024;
+const HASH_MEGABYTES: u64 = 32;
 
 #[allow(dead_code)]
 pub fn bench(depth: u8) {

@@ -25,7 +25,6 @@ pub struct ZobristRandoms {
 
 impl ZobristRandoms {
     pub fn new() -> ZobristRandoms {
-        let mut all_randoms: Vec<ZobristKey> = Vec::with_capacity(0);
         let mut random = SmallRng::from_seed([125; 16]);
         let mut zobrist_randoms = ZobristRandoms {
             rnd_pieces: [[[EMPTY; ALL_SQUARES]; ALL_PIECES]; ALL_SIDES],
@@ -38,35 +37,22 @@ impl ZobristRandoms {
             for piece in 0..ALL_PIECES {
                 for square in 0..ALL_SQUARES {
                     zobrist_randoms.rnd_pieces[side][piece][square] = random.gen::<u64>();
-                    all_randoms.push(zobrist_randoms.rnd_pieces[side][piece][square]);
                 }
             }
         }
 
         for permission in 0..ALL_CASTLING_PERMISSIONS {
             zobrist_randoms.rnd_castling[permission] = random.gen::<u64>();
-            all_randoms.push(zobrist_randoms.rnd_castling[permission]);
         }
 
         for side in 0..ALL_SIDES {
             zobrist_randoms.rnd_sides[side] = random.gen::<u64>();
-            all_randoms.push(zobrist_randoms.rnd_sides[side]);
         }
 
         for i in 0..(ALL_SQUARES + 1) {
-            // zobrist_randoms.rnd_en_passant[has_ep] = random.gen::<u64>();
             zobrist_randoms.rnd_en_passant[i] = random.gen::<u64>();
-            all_randoms.push(zobrist_randoms.rnd_en_passant[i]);
         }
 
-        println!("Checking doubles");
-        for i in 0..all_randoms.len() {
-            for j in 0..all_randoms.len() {
-                if (i != j) && (all_randoms[i] == all_randoms[j]) {
-                    println!("Error: double randoms at: {} and {}", i, j);
-                }
-            }
-        }
         zobrist_randoms
     }
 
