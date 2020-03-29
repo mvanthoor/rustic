@@ -8,6 +8,7 @@ mod utils;
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
 use evaluation::evaluate;
+use extra::perftsuite;
 use extra::print;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
@@ -27,7 +28,9 @@ fn main() {
     // let evaluation = evaluate(&board);
     // println!("Evaluation: {}", evaluation);
 
-    perft::bench(7);
+    // perft::bench(7);
+
+    perftsuite::run_all_tests();
 
     println!("Finished.");
 }

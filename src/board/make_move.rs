@@ -52,15 +52,11 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // If a piece is captured by this move, then remove it from the to-square
     if captured != PNONE {
-        board.zobrist_key ^= board.zobrist_randoms.piece(opponent, captured, to);
         clear_bit(&mut bb_opponent[captured], to);
         clear_bit(&mut board.bb_pieces[opponent], to);
 
         // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
-            // Remove current castling permissions from zobrist key.
-            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
             // Remove the correct castling permissions from the position.
             if us == BLACK && to == H1 {
                 board.castling &= !CASTLE_WK;
@@ -74,14 +70,10 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
             if us == WHITE && to == A8 {
                 board.castling &= !CASTLE_BQ;
             };
-
-            // Add the new castling permission state back into the zobrist key.
-            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
         }
     }
 
     // take the moving piece off the from-square
-    board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, from);
     clear_bit(&mut bb_us[piece], from);
     clear_bit(&mut board.bb_pieces[us], from);
 
@@ -90,30 +82,23 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         // normal move (including the king part of castling).
         set_bit(&mut bb_us[piece], to);
         set_bit(&mut board.bb_pieces[us], to);
-        board.zobrist_key ^= board.zobrist_randoms.piece(us, piece, to);
     } else {
         // promotion move. Put promotion piece on the to-square instead of the pawn.
         set_bit(&mut bb_us[promoted], to);
         set_bit(&mut board.bb_pieces[us], to);
-        board.zobrist_key ^= board.zobrist_randoms.piece(us, promoted, to);
     }
 
     // We're castling. This is a special case.
     if castling {
-        // remove current castling rights from the zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
         // The king was already moved as a "normal" move. Now move the correct rook.
         if to == G1 {
             // White is castling short. Pick up rook h1.
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H1);
             clear_bit(&mut bb_us[ROOK], H1);
             clear_bit(&mut board.bb_pieces[us], H1);
 
             // Put it back down on f1.
             set_bit(&mut bb_us[ROOK], F1);
             set_bit(&mut board.bb_pieces[us], F1);
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F1);
 
             // Remove all castling permissions for white (clear bits 0 and 1)
             board.castling &= !(CASTLE_WK + CASTLE_WQ);
@@ -121,14 +106,12 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
         if to == C1 {
             // White is castling long. Pick up rook A1.
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A1);
             clear_bit(&mut bb_us[ROOK], A1);
             clear_bit(&mut board.bb_pieces[us], A1);
 
             // Put it back down on d1.
             set_bit(&mut bb_us[ROOK], D1);
             set_bit(&mut board.bb_pieces[us], D1);
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D1);
 
             // Remove all castling permissions for white (clear bits 0 and 1)
             board.castling &= !(CASTLE_WK + CASTLE_WQ);
@@ -136,14 +119,12 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
         if to == G8 {
             // Black is castling short. Pick up rook h8.
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, H8);
             clear_bit(&mut bb_us[ROOK], H8);
             clear_bit(&mut board.bb_pieces[us], H8);
 
             // Put it back down on f8.
             set_bit(&mut bb_us[ROOK], F8);
             set_bit(&mut board.bb_pieces[us], F8);
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, F8);
 
             // Remove all castling permissions for black (clear bits 2 and 3)
             board.castling &= !(CASTLE_BK + CASTLE_BQ);
@@ -151,27 +132,21 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
         if to == C8 {
             // Black is castling long. Pick up rook a8.
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, A8);
             clear_bit(&mut bb_us[ROOK], A8);
             clear_bit(&mut board.bb_pieces[us], A8);
 
             // Put it back down on d8.
             set_bit(&mut bb_us[ROOK], D8);
             set_bit(&mut board.bb_pieces[us], D8);
-            board.zobrist_key ^= board.zobrist_randoms.piece(us, ROOK, D8);
 
             // Remove all castling permissions for black (clear bits 2 and 3)
             board.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
-
-        // add resulting castling permissions to the zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
     }
 
     // After the en-passant maneuver, the opponent's pawn has yet to be removed.
     if en_passant {
         let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-        board.zobrist_key ^= board.zobrist_randoms.piece(opponent, PAWN, pawn_square);
         clear_bit(&mut bb_opponent[PAWN], pawn_square);
         clear_bit(&mut board.bb_pieces[opponent], pawn_square);
     }
@@ -180,9 +155,6 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // If moving the king or one of the rooks, castling permissions are dropped.
     if !castling && (piece == KING || piece == ROOK) {
-        // remove current castling permissions from zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
         if us == WHITE && from == H1 {
             // remove kingside castling (clear bit 0)
             board.castling &= !CASTLE_WK;
@@ -208,14 +180,10 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
             // remove all castling rights (clear bit 2 and 3)
             board.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
-
-        // add resulting castling rights back into zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
     }
 
     // If the en-passant square is set, every move will unset it...
     if board.en_passant.is_some() {
-        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
         board.en_passant = None;
     }
 
@@ -226,12 +194,9 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         } else {
             Some(to + 8)
         };
-        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
     }
 
     // change the color to move: out with "us", in with "opponent"
-    board.zobrist_key ^= board.zobrist_randoms.side(us);
-    board.zobrist_key ^= board.zobrist_randoms.side(opponent);
     board.active_color = opponent as u8;
 
     // If a pawn moves or a piece is captured, reset the 50-move counter.
@@ -256,6 +221,8 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     if !is_legal {
         unmake_move(board);
+    } else {
+        board.build_zobrist_key();
     }
 
     is_legal

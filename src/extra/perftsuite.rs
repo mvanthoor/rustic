@@ -167,7 +167,7 @@ fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
-    let mut hash_table: PerftHashTable = PerftHashTable::new(256);
+    let mut hash_table: PerftHashTable = PerftHashTable::new(1024);
     let mut abort = false;
 
     // Run all the tests.
@@ -188,6 +188,7 @@ fn run(subset: &[&str]) {
         print::position(&board, None);
 
         // Run each test at the given depths.
+        hash_table.clear();
         for (i, d) in data.iter().enumerate() {
             let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
             let mut move_list_pool = MoveListPool::new();

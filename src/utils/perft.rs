@@ -51,7 +51,9 @@ impl PerftHashTable {
 
     pub fn push(&mut self, entry: PerftHashEntry) {
         let index = (entry.zobrist_key % self.max_entries) as usize;
-        if self.hash_table[index].zobrist_key == 0 {
+        let ht_key = self.hash_table[index].zobrist_key;
+        let ht_depth = self.hash_table[index].depth;
+        if (ht_key == 0) || ((ht_key == entry.zobrist_key) && (ht_depth < entry.depth)) {
             self.hash_table[index] = entry;
         }
     }
@@ -72,7 +74,7 @@ impl PerftHashTable {
 pub fn bench(depth: u8) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
-    let mut hash_table: PerftHashTable = PerftHashTable::new(1024);
+    let mut hash_table: PerftHashTable = PerftHashTable::new(256);
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
 
@@ -118,11 +120,9 @@ pub fn perft(
     } else {
         board.gen_all_moves(mlp.get_list_mut(index));
         for i in 0..mlp.get_list(index).len() {
-            let current_move = mlp.get_list(index).get_move(i);
-            if !make_move(board, current_move) {
+            if !make_move(board, mlp.get_list(index).get_move(i)) {
                 continue;
             };
-            Board::recreate_zobrist_key(board);
             leaf_nodes += perft(board, depth - 1, mlp, hash);
             unmake_move(board);
         }
