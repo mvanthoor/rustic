@@ -29,6 +29,7 @@ fn main() {
     // println!("Evaluation: {}", evaluation);
 
     perft::bench(7, None);
+    // perftsuite::run_all_tests();
 
     println!("Finished.");
 }

@@ -1,20 +1,19 @@
 use crate::board::zobrist::ZobristKey;
 use std::mem;
 
-const BUCKET_SIZE: usize = 3;
+const BUCKET_SIZE: usize = 4;
+const UNSET_HIGHEST_BYTE: u64 = 0x00_FF_FF_FF_FF_FF_FF_FF;
 
 #[derive(Copy, Clone)]
 pub struct PerftHashEntry {
-    depth: u8,
-    zobrist_key: ZobristKey,
+    verification: u64,
     leaf_nodes: u64,
 }
 
 impl PerftHashEntry {
-    pub fn new(d: u8, zk: ZobristKey, ln: u64) -> PerftHashEntry {
+    pub fn new(v: u64, ln: u64) -> PerftHashEntry {
         PerftHashEntry {
-            depth: d,
-            zobrist_key: zk,
+            verification: v,
             leaf_nodes: ln,
         }
     }
@@ -23,32 +22,31 @@ impl PerftHashEntry {
 #[derive(Clone)]
 pub struct PerftHashBucket {
     bucket: [PerftHashEntry; BUCKET_SIZE],
-    in_use: u8,
 }
 
 impl PerftHashBucket {
     pub fn new() -> PerftHashBucket {
         PerftHashBucket {
-            bucket: [PerftHashEntry::new(0, 0, 0); BUCKET_SIZE],
-            in_use: 0,
+            bucket: [PerftHashEntry::new(0, 0); BUCKET_SIZE],
         }
     }
 
     pub fn push(&mut self, entry: PerftHashEntry) {
         let mut index_with_lowest_depth = 0;
         for i in 1..BUCKET_SIZE {
-            if self.bucket[i].depth < self.bucket[index_with_lowest_depth].depth {
+            let bucket_depth = self.bucket[i].verification >> 56;
+            let lowest_depth = self.bucket[index_with_lowest_depth].verification >> 56;
+            if bucket_depth < lowest_depth {
                 index_with_lowest_depth = i;
             }
         }
         self.bucket[index_with_lowest_depth] = entry;
     }
 
-    pub fn find(&self, depth: u8, zk: ZobristKey) -> Option<u64> {
+    pub fn find(&self, verification: u64) -> Option<u64> {
         for entry in self.bucket.iter() {
-            let correct_key = entry.zobrist_key == zk;
-            let correct_depth = entry.depth == depth;
-            if correct_key && correct_depth {
+            let correct_verification = entry.verification == verification;
+            if correct_verification {
                 return Some(entry.leaf_nodes);
             }
         }
@@ -56,7 +54,7 @@ impl PerftHashBucket {
     }
 
     pub fn clear(&mut self) {
-        self.bucket = [PerftHashEntry::new(0, 0, 0); BUCKET_SIZE];
+        self.bucket = [PerftHashEntry::new(0, 0); BUCKET_SIZE];
     }
 }
 
@@ -67,9 +65,15 @@ pub struct PerftHashTable {
 
 impl PerftHashTable {
     pub fn new(megabytes: u64) -> PerftHashTable {
+        const ENTRY_MEMORY_USAGE: u64 = mem::size_of::<PerftHashEntry>() as u64;
         const BUCKET_MEMORY_USAGE: u64 = mem::size_of::<PerftHashBucket>() as u64;
         const BUCKETS_PER_MEGABYTE: u64 = (1024 * 1024 / BUCKET_MEMORY_USAGE);
         let buckets = BUCKETS_PER_MEGABYTE * megabytes;
+
+        println!("Entry memory usage: {}", ENTRY_MEMORY_USAGE);
+        println!("Bucket memory usage: {}", BUCKET_MEMORY_USAGE);
+        println!("Buckets per megabyte: {}", BUCKETS_PER_MEGABYTE);
+        println!("Total entries: {}", buckets * BUCKET_SIZE as u64);
 
         PerftHashTable {
             hash_table: vec![PerftHashBucket::new(); buckets as usize],
@@ -83,15 +87,18 @@ impl PerftHashTable {
         }
     }
 
-    pub fn push(&mut self, entry: PerftHashEntry) {
-        let index = (entry.zobrist_key % self.max_buckets) as usize;
+    pub fn push(&mut self, depth: u8, zk: ZobristKey, leaf_nodes: u64) {
+        let verification = (zk & UNSET_HIGHEST_BYTE) | ((depth as u64) << 56);
+        let index = (zk % self.max_buckets) as usize;
+        let entry = PerftHashEntry::new(verification, leaf_nodes);
         self.hash_table[index].push(entry);
     }
 
     pub fn leaf_nodes(&self, depth: u8, zk: ZobristKey) -> Option<u64> {
+        let verification = (zk & UNSET_HIGHEST_BYTE) | ((depth as u64) << 56);
         let index = (zk % self.max_buckets) as usize;
         let bucket = &self.hash_table[index];
 
-        bucket.find(depth, zk)
+        bucket.find(verification)
     }
 }

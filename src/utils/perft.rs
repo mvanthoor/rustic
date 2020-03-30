@@ -7,10 +7,10 @@ use crate::board::zobrist::ZobristRandoms;
 use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
-use hash::{PerftHashEntry, PerftHashTable};
+use hash::PerftHashTable;
 use std::time::Instant;
 
-const HASH_MEGABYTES: u64 = 32;
+const HASH_MEGABYTES: u64 = 1;
 
 #[allow(dead_code)]
 pub fn bench(depth: u8, fen_string: Option<String>) {
@@ -78,7 +78,7 @@ pub fn perft(
             leaf_nodes += perft(board, depth - 1, mlp, hash);
             unmake_move(board);
         }
-        hash.push(PerftHashEntry::new(depth, board.zobrist_key, leaf_nodes));
+        hash.push(depth, board.zobrist_key, leaf_nodes);
 
         leaf_nodes
     }
