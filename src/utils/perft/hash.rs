@@ -35,18 +35,13 @@ impl PerftHashBucket {
     }
 
     pub fn push(&mut self, entry: PerftHashEntry) {
-        if (self.in_use as usize) < BUCKET_SIZE {
-            self.bucket[self.in_use as usize] = entry;
-            self.in_use += 1;
-        } else {
-            let mut index_with_lowest_depth = 0;
-            for i in 1..BUCKET_SIZE {
-                if self.bucket[i].depth < self.bucket[index_with_lowest_depth].depth {
-                    index_with_lowest_depth = i;
-                }
+        let mut index_with_lowest_depth = 0;
+        for i in 1..BUCKET_SIZE {
+            if self.bucket[i].depth < self.bucket[index_with_lowest_depth].depth {
+                index_with_lowest_depth = i;
             }
-            self.bucket[index_with_lowest_depth] = entry;
         }
+        self.bucket[index_with_lowest_depth] = entry;
     }
 
     pub fn find(&self, depth: u8, zk: ZobristKey) -> Option<u64> {

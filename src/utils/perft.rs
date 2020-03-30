@@ -21,6 +21,7 @@ pub fn bench(depth: u8, fen_string: Option<String>) {
     let zobrist_randoms = ZobristRandoms::new();
     let fen = fen_string.as_deref();
 
+    // print the position of the incoming FEN-string.
     println!("Benchmarking perft 1-{}: ", depth);
     if let Some(f) = fen {
         println!("{}", f);
@@ -51,6 +52,7 @@ pub fn bench(depth: u8, fen_string: Option<String>) {
     println!("Execution speed: {} leaves/second", final_lnps);
 }
 
+// This is the actual Perft function.
 #[allow(dead_code)]
 pub fn perft(
     board: &mut Board,
