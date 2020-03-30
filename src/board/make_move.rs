@@ -58,6 +58,9 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
         // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
+            // Remove current castling permissions from key
+            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+
             if us == BLACK && to == H1 {
                 board.castling &= !CASTLE_WK;
             };
@@ -70,6 +73,9 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
             if us == WHITE && to == A8 {
                 board.castling &= !CASTLE_BQ;
             };
+
+            // Add castling permissions back in
+            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
         }
     }
 
