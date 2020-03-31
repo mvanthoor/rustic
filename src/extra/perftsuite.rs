@@ -6,14 +6,11 @@ use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
 use crate::utils::perft;
-use crate::utils::perft::hash::PerftHashTable;
 use large_epd::LARGE_PERFT_SUITE;
 use std::time::Instant;
 
 const SEMI_COLON: char = ';';
 const SPLIT_INDEX: usize = 3;
-
-const HASH_MEGABYTES: u64 = 256;
 
 // This function runs the entire suite.
 #[allow(dead_code)]
@@ -41,7 +38,6 @@ fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
-    let mut hash_table: PerftHashTable = PerftHashTable::new(HASH_MEGABYTES);
     let mut abort = false;
 
     // Run all the tests.
@@ -62,7 +58,6 @@ fn run(subset: &[&str]) {
         print::position(&board, None);
 
         // Run each test at the given depths.
-        hash_table.clear();
         for (i, d) in data.iter().enumerate() {
             let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
             let mut move_list_pool = MoveListPool::new();
@@ -75,8 +70,7 @@ fn run(subset: &[&str]) {
                 let now = Instant::now();
 
                 // This is the actual perft test for this test and depth.
-                let found_leaf_nodes =
-                    perft::perft(&mut board, i as u8, &mut move_list_pool, &mut hash_table);
+                let found_leaf_nodes = perft::perft(&mut board, i as u8, &mut move_list_pool);
 
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();
