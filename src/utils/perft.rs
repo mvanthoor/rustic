@@ -3,37 +3,27 @@ pub mod hash;
 use crate::board::make_move::make_move;
 use crate::board::representation::Board;
 use crate::board::unmake_move::unmake_move;
-use crate::board::zobrist::ZobristRandoms;
 use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
-use crate::movegen::MoveGenerator;
 use hash::PerftHashTable;
 use std::time::Instant;
 
-const HASH_MEGABYTES: u64 = 1;
+const HASH_MEGABYTES: u64 = 32;
 
 #[allow(dead_code)]
-pub fn bench(depth: u8, fen_string: Option<String>) {
+pub fn bench(board: &Board, depth: u8, hash_mb: Option<u64>) {
+    let hash_mb = if let Some(h) = hash_mb { h } else { 0 };
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
-    let mut hash_table: PerftHashTable = PerftHashTable::new(HASH_MEGABYTES);
-    let move_generator = MoveGenerator::new();
-    let zobrist_randoms = ZobristRandoms::new();
-    let fen = fen_string.as_deref();
+    let mut hash_table: PerftHashTable = PerftHashTable::new(hash_mb);
 
-    // print the position of the incoming FEN-string.
     println!("Benchmarking perft 1-{}: ", depth);
-    if let Some(f) = fen {
-        println!("{}", f);
-    } else {
-        print!("Starting position");
-    }
-    println!();
-    print::position(&Board::new(&zobrist_randoms, &move_generator, fen), None);
+    print::position(board, None);
 
+    // Perform all perfts for depths 1 up to and including "depth"
     for d in 1..=depth {
         let mut move_list_pool = MoveListPool::new();
-        let mut perft_board: Board = Board::new(&zobrist_randoms, &move_generator, fen);
+        let mut perft_board: Board = board.clone();
         let now = Instant::now();
         let leaf_nodes = perft(&mut perft_board, d, &mut move_list_pool, &mut hash_table);
         let elapsed = now.elapsed().as_millis();
