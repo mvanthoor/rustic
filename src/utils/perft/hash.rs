@@ -65,15 +65,9 @@ pub struct PerftHashTable {
 
 impl PerftHashTable {
     pub fn new(megabytes: u64) -> PerftHashTable {
-        const ENTRY_MEMORY_USAGE: u64 = mem::size_of::<PerftHashEntry>() as u64;
         const BUCKET_MEMORY_USAGE: u64 = mem::size_of::<PerftHashBucket>() as u64;
         const BUCKETS_PER_MEGABYTE: u64 = (1024 * 1024 / BUCKET_MEMORY_USAGE);
         let buckets = BUCKETS_PER_MEGABYTE * megabytes;
-
-        println!("Entry memory usage: {}", ENTRY_MEMORY_USAGE);
-        println!("Bucket memory usage: {}", BUCKET_MEMORY_USAGE);
-        println!("Buckets per megabyte: {}", BUCKETS_PER_MEGABYTE);
-        println!("Total entries: {}", buckets * BUCKET_SIZE as u64);
 
         PerftHashTable {
             hash_table: vec![PerftHashBucket::new(); buckets as usize],

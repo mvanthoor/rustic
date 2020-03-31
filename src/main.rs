@@ -28,7 +28,7 @@ fn main() {
     // let evaluation = evaluate(&board);
     // println!("Evaluation: {}", evaluation);
 
-    perft::bench(&board, 7, Some(32));
+    perft::bench(&board, 7, 32);
     // perftsuite::run_all_tests();
 
     println!("Finished.");

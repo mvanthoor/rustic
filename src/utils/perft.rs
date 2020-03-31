@@ -8,11 +8,9 @@ use crate::movegen::movedefs::MoveListPool;
 use hash::PerftHashTable;
 use std::time::Instant;
 
-const HASH_MEGABYTES: u64 = 32;
-
 #[allow(dead_code)]
-pub fn bench(board: &Board, depth: u8, hash_mb: Option<u64>) {
-    let hash_mb = if let Some(h) = hash_mb { h } else { 0 };
+pub fn bench(board: &Board, depth: u8, hash_mb: u64) {
+    let hash_mb = if hash_mb == 0 { 1 } else { hash_mb };
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
     let mut hash_table: PerftHashTable = PerftHashTable::new(hash_mb);
