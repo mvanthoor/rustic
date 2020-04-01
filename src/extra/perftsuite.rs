@@ -10,7 +10,7 @@ use large_epd::LARGE_PERFT_SUITE;
 use std::time::Instant;
 
 const SEMI_COLON: char = ';';
-const SPLIT_INDEX: usize = 3;
+const SPACE: char = ' ';
 
 // This function runs the entire suite.
 #[allow(dead_code)]
@@ -47,8 +47,7 @@ fn run(subset: &[&str]) {
             .split(SEMI_COLON)
             .map(|s| s.trim().to_string())
             .collect();
-        let fen_string = data[0].clone();
-        let fen = &fen_string[..];
+        let fen = &data[0][..];
 
         println!("Test {} from {}", test_nr + 1, number_of_tests);
         println!("FEN: {}", fen);
@@ -65,18 +64,26 @@ fn run(subset: &[&str]) {
             // Data index 0 contains the FEN-string, so skip this
             // and start at index 1 to find the expected leaf nodes per depth.
             if i > 0 {
-                let expected_leaf_nodes = d.clone().split_off(SPLIT_INDEX).parse::<u64>().unwrap();
-                print!("Expect for depth {}: {}", i, expected_leaf_nodes);
-                let now = Instant::now();
+                // Split "D1 20" into a vector containing "D1" (depth) and "20" (leaf nodes)
+                let depth_ln: Vec<String> = d.split(SPACE).map(|s| s.to_string()).collect();
+
+                // Parse the depth to an integer. Skip the first character "D".
+                let depth = (depth_ln[0][1..]).parse::<u8>().unwrap();
+
+                // Parse the number of leaf nodes to an integer.
+                let expected_leaf_nodes = depth_ln[1].parse::<u64>().unwrap();
+
+                print!("Expect for depth {}: {}", depth, expected_leaf_nodes);
 
                 // This is the actual perft test for this test and depth.
-                let found_leaf_nodes = perft::perft(&mut board, i as u8, &mut move_list_pool);
-
+                let now = Instant::now();
+                let found_leaf_nodes = perft::perft(&mut board, depth, &mut move_list_pool);
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_leaf_nodes == found_leaf_nodes;
                 let result = if is_ok { "OK" } else { "Error" };
 
+                // Print the results
                 print!(" - Found: {}", found_leaf_nodes);
                 print!(" - Result: {}", result);
                 println!(" ({} ms, {} moves/sec)", elapsed, moves_per_second);
