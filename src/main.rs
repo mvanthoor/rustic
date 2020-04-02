@@ -8,7 +8,8 @@ mod utils;
 
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
-use comm::input::get_move;
+use comm::input::get_input;
+use comm::COMM_IS_FINISHED;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
 use utils::engine_info;
@@ -21,5 +22,5 @@ fn main() {
     let mut move_list: MoveList = MoveList::new();
 
     engine_info();
-    while get_move() != 0 {}
+    while get_input() != (COMM_IS_FINISHED as u64) {}
 }
