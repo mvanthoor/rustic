@@ -1,7 +1,7 @@
 use super::evaldefs::PIECE_VALUES;
 use super::EvalScore;
 use crate::board::representation::Board;
-use crate::utils::next;
+use crate::utils::bits::next;
 
 pub fn count_difference(board: &Board) -> EvalScore {
     let mut white_value: i64 = 0;

@@ -2,7 +2,7 @@ use super::representation::Board;
 use crate::defs::{
     Bitboard, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE,
 };
-use crate::utils::{clear_bit, set_bit};
+use crate::utils::bits::{clear_bit, set_bit};
 
 pub fn unmake_move(board: &mut Board) {
     let unamke_info = board.unmake_list.pop();

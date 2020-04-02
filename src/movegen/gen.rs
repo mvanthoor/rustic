@@ -19,7 +19,7 @@ use crate::defs::{
     D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
     ROOK, WHITE,
 };
-use crate::utils::next;
+use crate::utils::bits::next;
 
 /**
  * This function actually generates the moves, using other functions in this module.

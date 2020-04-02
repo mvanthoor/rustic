@@ -1,6 +1,4 @@
-use crate::defs::{BISHOP, ROOK};
-use crate::extra::wizardry::find_magics;
-use crate::utils::strip_newline;
+use crate::utils::parse::strip_newline;
 use std::io::stdin;
 
 pub fn get_input() -> u64 {
@@ -16,16 +14,14 @@ fn parse_input(input: &mut String) -> u64 {
     strip_newline(input);
 
     match &input[..] {
-        "magics" => {
-            find_magics(ROOK);
-            find_magics(BISHOP);
-            1
-        }
-        "test" => {
-            println!("Testing...");
-            1
-        }
-        "quit" => 0,
-        _ => 1,
+        "quit" | "exit" => 0,
+        _ => parse_move(input),
     }
+}
+
+fn parse_move(input: &mut String) -> u64 {
+    if (4..=5).contains(&input.len()) {
+        println!("ok");
+    }
+    1
 }

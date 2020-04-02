@@ -17,7 +17,7 @@ use crate::defs::{
 };
 use crate::movegen::movedefs::{Move, MoveList};
 use crate::movegen::MoveGenerator;
-use crate::utils::next;
+use crate::utils::bits::next;
 
 const MAX_GAME_MOVES: u16 = 2048;
 
