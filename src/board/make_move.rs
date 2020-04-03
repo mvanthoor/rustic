@@ -6,7 +6,7 @@ use crate::defs::{
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
-use crate::utils::{clear_bit, set_bit};
+use crate::utils::bits::{clear_bit, set_bit};
 
 #[allow(clippy::cognitive_complexity)]
 pub fn make_move(board: &mut Board, m: Move) -> bool {
