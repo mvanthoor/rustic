@@ -9,16 +9,7 @@ use crate::movegen::movedefs::Move;
 
 pub fn make_move(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
-    let unmake_info = UnMakeInfo::new(
-        board.active_color,
-        board.castling,
-        board.en_passant,
-        board.halfmove_clock,
-        board.fullmove_number,
-        board.zobrist_key,
-        m,
-    );
-    board.unmake_list.push(unmake_info);
+    store_unmake_info(board, m);
 
     // Set "us" and "opponent"
     let us = board.active_color as usize;
@@ -57,17 +48,15 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         move_rook_during_castling(board, king_square);
     }
 
-    // After the en-passant maneuver, the opponent's pawn has yet to be removed.
+    // King or rook moves from starting square; castling permissions are dropped.
+    if !castling && (board.castling > 0) && (piece == KING || piece == ROOK) {
+        adjust_castling_perms_if_leaving_starting_square(board, from);
+    }
+
+    // After an en-passant maneuver, the opponent's pawn has yet to be removed.
     if en_passant {
         let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
         board.remove_piece(opponent, PAWN, pawn_square);
-    }
-
-    //region: Updating the board state
-
-    // If moving the king or one of the rooks, castling permissions are dropped.
-    if !castling && (board.castling > 0) && (piece == KING || piece == ROOK) {
-        adjust_castling_perms_if_leaving_starting_square(board, from);
     }
 
     // If the en-passant square is set, every move will unset it...
@@ -76,7 +65,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         board.en_passant = None;
     }
 
-    // ...except a pawn double-step, which will set it (again, if just unset).
+    // ...except a pawn double-step, which will set it.
     if double_step {
         board.en_passant = if us == WHITE {
             Some(to - 8)
@@ -86,13 +75,12 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
     }
 
-    // change the color to move: out with "us", in with "opponent"
-    board.zobrist_key ^= board.zobrist_randoms.side(us);
-    board.zobrist_key ^= board.zobrist_randoms.side(opponent);
-    board.active_color = opponent as u8;
+    // *** Update the remainder of the board state ***
 
-    // If a pawn moves or a piece is captured, reset the 50-move counter.
-    // Otherwise, increment the counter by one move.
+    // change the color to move: out with "us", in with "opponent"
+    board.swap_color();
+
+    // Update the move counter
     if (piece == PAWN) || (captured != PNONE) {
         board.halfmove_clock = 0;
     } else {
@@ -103,19 +91,32 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     if us == BLACK {
         board.fullmove_number += 1;
     }
-    //endregion
 
-    /*** Validating move ***/
+    /*** Validating move: see if "us" is in check ***/
 
-    // Move is done. Check if it's actually legal. (King can not be in check.)
     let king_square = board.get_pieces(KING, us).trailing_zeros() as u8;
     let is_legal = !square_attacked(board, opponent, king_square);
 
+    // We're in check. Undo everything.
     if !is_legal {
         unmake_move(board);
     }
 
     is_legal
+}
+
+// Stores the current board state, and the move made while in that state
+fn store_unmake_info(board: &mut Board, m: Move) {
+    let unmake_info = UnMakeInfo::new(
+        board.active_color,
+        board.castling,
+        board.en_passant,
+        board.halfmove_clock,
+        board.fullmove_number,
+        board.zobrist_key,
+        m,
+    );
+    board.unmake_list.push(unmake_info);
 }
 
 // This function changes castling permissions according to the rook being captured

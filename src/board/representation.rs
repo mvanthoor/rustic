@@ -180,6 +180,15 @@ impl<'a> Board<'a> {
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 
+    pub fn swap_color(&mut self) {
+        let us = self.active_color as usize;
+        let opponent = us ^ 1;
+
+        self.zobrist_key ^= self.zobrist_randoms.side(us);
+        self.zobrist_key ^= self.zobrist_randoms.side(opponent);
+        self.active_color = opponent as u8;
+    }
+
     /**
      * This function iterates through all the white and black bitboards
      * to create the bitboard holding all of the pieces of that color.
