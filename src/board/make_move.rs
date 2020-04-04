@@ -7,9 +7,8 @@ use crate::defs::{
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
 
-#[allow(clippy::cognitive_complexity)]
 pub fn make_move(board: &mut Board, m: Move) -> bool {
-    // create the unmake info and store it.
+    // Create the unmake info and store it.
     let unmake_info = UnMakeInfo::new(
         board.active_color,
         board.castling,
@@ -25,7 +24,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     let us = board.active_color as usize;
     let opponent = (us ^ 1) as usize;
 
-    // Dissect the move
+    // Dissect the move so we don't need "m.function()" and type casts everywhere.
     let piece = m.piece() as usize;
     let from = m.from();
     let to = m.to();
@@ -36,7 +35,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     let en_passant = m.en_passant();
     let promotion_move = promoted != PNONE;
 
-    // Move captured a piece. Remove it.
+    // If piece was captured with this move then remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
         if captured == ROOK {
@@ -44,7 +43,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         }
     }
 
-    // Actually perform the move, taking promotion into account.
+    // Make the move, taking promotion into account.
     board.remove_piece(us, piece, from);
     if !promotion_move {
         board.put_piece(us, piece, to);
@@ -52,58 +51,10 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         board.put_piece(us, promoted, to);
     }
 
-    // We're castling. This is a special case.
+    // The king performed a castling move. Make the correct rook move.
     if castling {
-        // remove current castling rights from the zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
-        // The king was already moved as a "normal" move. Now move the correct rook.
-        if to == G1 {
-            // White is castling short. Pick up rook h1.
-            board.remove_piece(us, ROOK, H1);
-
-            // Put it back down on f1.
-            board.put_piece(us, ROOK, F1);
-
-            // Remove all castling permissions for white (clear bits 0 and 1)
-            board.castling &= !(CASTLE_WK + CASTLE_WQ);
-        }
-
-        if to == C1 {
-            // White is castling long. Pick up rook A1.
-            board.remove_piece(us, ROOK, A1);
-
-            // Put it back down on d1.
-            board.put_piece(us, ROOK, D1);
-
-            // Remove all castling permissions for white (clear bits 0 and 1)
-            board.castling &= !(CASTLE_WK + CASTLE_WQ);
-        }
-
-        if to == G8 {
-            // Black is castling short. Pick up rook h8.
-            board.remove_piece(us, ROOK, H8);
-
-            // Put it back down on f8.
-            board.put_piece(us, ROOK, F8);
-
-            // Remove all castling permissions for black (clear bits 2 and 3)
-            board.castling &= !(CASTLE_BK + CASTLE_BQ);
-        }
-
-        if to == C8 {
-            // Black is castling long. Pick up rook a8.
-            board.remove_piece(us, ROOK, A8);
-
-            // Put it back down on d8.
-            board.put_piece(us, ROOK, D8);
-
-            // Remove all castling permissions for black (clear bits 2 and 3)
-            board.castling &= !(CASTLE_BK + CASTLE_BQ);
-        }
-
-        // add resulting castling permissions to the zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+        let king_square = to;
+        move_rook_during_castling(board, king_square);
     }
 
     // After the en-passant maneuver, the opponent's pawn has yet to be removed.
@@ -212,6 +163,36 @@ fn adjust_castling_perms_on_rook_capture(board: &mut Board, side: Side, square: 
             A1 => board.castling &= !CASTLE_WQ,
             _ => (),
         }
+    }
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+}
+
+// This function moves the correct rook after the king has moved during castling.
+fn move_rook_during_castling(board: &mut Board, king_square: u8) {
+    let us = board.active_color as usize;
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    match king_square {
+        G1 => {
+            board.remove_piece(us, ROOK, H1);
+            board.put_piece(us, ROOK, F1);
+            board.castling &= !(CASTLE_WK + CASTLE_WQ);
+        }
+        C1 => {
+            board.remove_piece(us, ROOK, A1);
+            board.put_piece(us, ROOK, D1);
+            board.castling &= !(CASTLE_WK + CASTLE_WQ);
+        }
+        G8 => {
+            board.remove_piece(us, ROOK, H8);
+            board.put_piece(us, ROOK, F8);
+            board.castling &= !(CASTLE_BK + CASTLE_BQ);
+        }
+        C8 => {
+            board.remove_piece(us, ROOK, A8);
+            board.put_piece(us, ROOK, D8);
+            board.castling &= !(CASTLE_BK + CASTLE_BQ);
+        }
+        _ => (),
     }
     board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
 }
