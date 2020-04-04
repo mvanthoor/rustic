@@ -66,38 +66,8 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     //region: Updating the board state
 
     // If moving the king or one of the rooks, castling permissions are dropped.
-    if !castling && (piece == KING || piece == ROOK) {
-        // remove current castling permissions from zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
-        if from == H1 {
-            // remove kingside castling (clear bit 0)
-            board.castling &= !CASTLE_WK;
-        }
-        if from == A1 {
-            // remove queenside castling (clear bit 1)
-            board.castling &= !CASTLE_WQ;
-        }
-        if from == E1 {
-            // remove both castling rights (clear bit 0 and 1)
-            board.castling &= !(CASTLE_WK + CASTLE_WQ);
-        }
-
-        if from == H8 {
-            // remove kingside castling (clear bit 2)
-            board.castling &= !CASTLE_BK;
-        }
-        if from == A8 {
-            // remove queenside castling (clear bit 3)
-            board.castling &= !CASTLE_BQ;
-        }
-        if from == E8 {
-            // remove all castling rights (clear bit 2 and 3)
-            board.castling &= !(CASTLE_BK + CASTLE_BQ);
-        }
-
-        // add resulting castling rights back into zobrist key.
-        board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    if !castling && (board.castling > 0) && (piece == KING || piece == ROOK) {
+        adjust_castling_perms_if_leaving_starting_square(board, from);
     }
 
     // If the en-passant square is set, every move will unset it...
@@ -151,19 +121,28 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 // This function changes castling permissions according to the rook being captured
 fn adjust_castling_perms_on_rook_capture(board: &mut Board, side: Side, square: u8) {
     board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-    if side == WHITE {
-        match square {
-            H8 => board.castling &= !CASTLE_BK,
-            A8 => board.castling &= !CASTLE_BQ,
-            _ => (),
-        }
-    } else {
-        match square {
-            H1 => board.castling &= !CASTLE_WK,
-            A1 => board.castling &= !CASTLE_WQ,
-            _ => (),
-        }
+    match square {
+        H1 => board.castling &= !CASTLE_WK,
+        A1 => board.castling &= !CASTLE_WQ,
+        H8 => board.castling &= !CASTLE_BK,
+        A8 => board.castling &= !CASTLE_BQ,
+        _ => (),
     }
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+}
+
+// This function adjusts castling permissions if king or rook leaves a starting square.
+fn adjust_castling_perms_if_leaving_starting_square(board: &mut Board, square: u8) {
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    match square {
+        H1 => board.castling &= !CASTLE_WK,
+        A1 => board.castling &= !CASTLE_WQ,
+        E1 => board.castling &= !(CASTLE_WK + CASTLE_WQ),
+        H8 => board.castling &= !CASTLE_BK,
+        A8 => board.castling &= !CASTLE_BQ,
+        E8 => board.castling &= !(CASTLE_BK + CASTLE_BQ),
+        _ => (),
+    };
     board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
 }
 
