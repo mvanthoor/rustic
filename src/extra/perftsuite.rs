@@ -2,10 +2,10 @@ mod large_epd;
 
 use crate::board::representation::Board;
 use crate::board::zobrist::ZobristRandoms;
+use crate::extra::perft;
 use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use crate::movegen::MoveGenerator;
-use crate::utils::perft;
 use large_epd::LARGE_PERFT_SUITE;
 use std::time::Instant;
 

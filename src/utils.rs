@@ -1,6 +1,5 @@
 pub mod bits;
 pub mod parse;
-pub mod perft;
 
 use crate::defs::{AUTHOR, ENGINE, VERSION};
 

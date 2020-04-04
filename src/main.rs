@@ -9,12 +9,12 @@ mod utils;
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
 use comm::cli::get_input;
+use extra::perft;
 use extra::perftsuite;
 use extra::print;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
 use utils::engine_info;
-use utils::perft;
 
 fn main() {
     let test_pos: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
@@ -27,6 +27,6 @@ fn main() {
     // print::position(&board, None);
     // while get_input() != 0 {}
 
-    // perft::bench(&board, 7);
-    perftsuite::run_all_tests();
+    perft::bench(&board, 7);
+    //perftsuite::run_all_tests();
 }
