@@ -17,7 +17,7 @@ use crate::defs::{
 };
 use crate::movegen::movedefs::{Move, MoveList};
 use crate::movegen::MoveGenerator;
-use crate::utils::bits::next;
+use crate::utils::bits::{clear_bit, next, set_bit};
 
 const MAX_GAME_MOVES: u16 = 2048;
 
@@ -158,6 +158,26 @@ impl<'a> Board<'a> {
     /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
+    }
+
+    pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
+        self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        if side == WHITE {
+            clear_bit(&mut self.bb_w[piece], square);
+        } else {
+            clear_bit(&mut self.bb_b[piece], square);
+        }
+        clear_bit(&mut self.bb_pieces[side], square);
+    }
+
+    pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
+        if side == WHITE {
+            set_bit(&mut self.bb_w[piece], square);
+        } else {
+            set_bit(&mut self.bb_b[piece], square);
+        }
+        set_bit(&mut self.bb_pieces[side], square);
+        self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 
     /**
