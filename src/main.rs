@@ -27,6 +27,6 @@ fn main() {
     // print::position(&board, None);
     // while get_input() != 0 {}
 
-    perft::bench(&board, 7);
-    //perftsuite::run_all_tests();
+    // perft::bench(&board, 7);
+    perftsuite::run_all_tests();
 }

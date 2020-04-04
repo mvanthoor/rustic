@@ -1,12 +1,11 @@
 use super::representation::{Board, UnMakeInfo};
 use super::unmake_move::unmake_move;
 use crate::defs::{
-    Bitboard, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8,
-    F1, F8, G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
+    Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1,
+    F8, G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
-use crate::utils::bits::{clear_bit, set_bit};
 
 #[allow(clippy::cognitive_complexity)]
 pub fn make_move(board: &mut Board, m: Move) -> bool {
@@ -35,45 +34,21 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     let castling = m.castling();
     let double_step = m.double_step();
     let en_passant = m.en_passant();
-
     let promotion_move = promoted != PNONE;
 
-    // If a piece is captured by this move, then remove it from the to-square
+    // Move captured a piece. Remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
-
-        // If a rook in the corner is captured, drop the corresponding castling permissions.
         if captured == ROOK {
-            // Remove current castling permissions from key
-            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
-
-            if us == BLACK && to == H1 {
-                board.castling &= !CASTLE_WK;
-            };
-            if us == BLACK && to == A1 {
-                board.castling &= !CASTLE_WQ;
-            };
-            if us == WHITE && to == H8 {
-                board.castling &= !CASTLE_BK;
-            };
-            if us == WHITE && to == A8 {
-                board.castling &= !CASTLE_BQ;
-            };
-
-            // Add castling permissions back in
-            board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+            adjust_castling_perms_on_rook_capture(board, us, to);
         }
     }
 
-    // take the moving piece off the from-square
+    // Actually perform the move, taking promotion into account.
     board.remove_piece(us, piece, from);
-
-    // put the moving piece on the to-square
     if !promotion_move {
-        // normal move (including the king part of castling).
         board.put_piece(us, piece, to);
     } else {
-        // promotion move. Put promotion piece on the to-square instead of the pawn.
         board.put_piece(us, promoted, to);
     }
 
@@ -220,4 +195,23 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     }
 
     is_legal
+}
+
+// This function changes castling permissions according to the rook being captured
+fn adjust_castling_perms_on_rook_capture(board: &mut Board, side: Side, square: u8) {
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    if side == WHITE {
+        match square {
+            H8 => board.castling &= !CASTLE_BK,
+            A8 => board.castling &= !CASTLE_BQ,
+            _ => (),
+        }
+    } else {
+        match square {
+            H1 => board.castling &= !CASTLE_WK,
+            A1 => board.castling &= !CASTLE_WQ,
+            _ => (),
+        }
+    }
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
 }
