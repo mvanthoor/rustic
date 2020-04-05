@@ -24,9 +24,6 @@ fn main() {
     let mut move_list: MoveList = MoveList::new();
 
     engine_info();
-    // print::position(&board, None);
-    // while get_input() != 0 {}
-
-    perft::bench(&board, 7);
-    //perftsuite::run_all_tests();
+    print::position(&board, None);
+    while get_input() != 0 {}
 }

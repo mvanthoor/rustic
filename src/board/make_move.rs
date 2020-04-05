@@ -1,11 +1,23 @@
 use super::representation::{Board, UnMakeInfo};
 use super::unmake_move::unmake_move;
 use crate::defs::{
-    Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1,
-    F8, G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
+    A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1,
+    G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
+
+/**
+ * This function executes the given move "m" on the board.
+ * See the comments within the function to find out what it
+ * does exactly, and in which order.
+ *
+ * Note: Zobrist hasing is handled by the board itself when
+ * moving pieces. The exception is castling; the castling
+ * permissions can suddenly change because of a piece move or
+ * rook capture. This is handled by make_move() through some
+ * seperate functions.
+*/
 
 pub fn make_move(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
@@ -30,7 +42,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
         if captured == ROOK {
-            adjust_castling_perms_on_rook_capture(board, us, to);
+            adjust_castling_perms_on_rook_capture(board, to);
         }
     }
 
@@ -61,23 +73,18 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // If the en-passant square is set, every move will unset it...
     if board.en_passant.is_some() {
-        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
-        board.en_passant = None;
+        board.clear_ep_square();
     }
 
     // ...except a pawn double-step, which will set it.
     if double_step {
-        board.en_passant = if us == WHITE {
-            Some(to - 8)
-        } else {
-            Some(to + 8)
-        };
-        board.zobrist_key ^= board.zobrist_randoms.en_passant(board.en_passant);
+        let ep_square = if us == WHITE { to - 8 } else { to + 8 };
+        board.set_ep_square(ep_square);
     }
 
     // *** Update the remainder of the board state ***
 
-    // change the color to move: out with "us", in with "opponent"
+    // Swap the color to move.
     board.swap_color();
 
     // Update the move counter
@@ -120,7 +127,7 @@ fn store_unmake_info(board: &mut Board, m: Move) {
 }
 
 // This function changes castling permissions according to the rook being captured
-fn adjust_castling_perms_on_rook_capture(board: &mut Board, side: Side, square: u8) {
+fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
     board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
     match square {
         H1 => board.castling &= !CASTLE_WK,

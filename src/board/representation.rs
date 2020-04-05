@@ -180,6 +180,18 @@ impl<'a> Board<'a> {
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 
+    pub fn set_ep_square(&mut self, square: u8) {
+        self.en_passant = Some(square);
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+    }
+
+    pub fn clear_ep_square(&mut self) {
+        if self.en_passant.is_some() {
+            self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+            self.en_passant = None;
+        }
+    }
+
     pub fn swap_color(&mut self) {
         let us = self.active_color as usize;
         let opponent = us ^ 1;
