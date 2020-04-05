@@ -6,7 +6,6 @@ use crate::defs::{
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
-use crate::print;
 
 /**
  * This function executes the given move "m" on the board.
@@ -42,7 +41,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     // If piece was captured with this move then remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
-        if captured == ROOK {
+        if captured == ROOK && (board.castling > 0) {
             adjust_castling_perms_on_rook_capture(board, to);
         }
     }
@@ -62,7 +61,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     }
 
     // King or rook moves from starting square; castling permissions are dropped.
-    if !castling && (board.castling > 0) && (piece == KING || piece == ROOK) {
+    if !castling && (piece == KING || piece == ROOK) && (board.castling > 0) {
         adjust_castling_perms_if_leaving_starting_square(board, from);
     }
 

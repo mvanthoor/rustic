@@ -9,8 +9,6 @@ mod utils;
 use board::representation::Board;
 use board::zobrist::ZobristRandoms;
 use comm::cli::get_input;
-use extra::perft;
-use extra::perftsuite;
 use extra::print;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;
@@ -24,9 +22,6 @@ fn main() {
     let mut move_list: MoveList = MoveList::new();
 
     engine_info();
-    // print::position(&board, None);
-    // while get_input() != 0 {}
-
-    extra::perft::bench(&board, 7);
-    // extra::perftsuite::run_all_tests();
+    print::position(&board, None);
+    while get_input() != 0 {}
 }
