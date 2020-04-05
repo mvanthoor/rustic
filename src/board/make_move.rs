@@ -6,6 +6,7 @@ use crate::defs::{
 };
 use crate::movegen::information::square_attacked;
 use crate::movegen::movedefs::Move;
+use crate::print;
 
 /**
  * This function executes the given move "m" on the board.
@@ -72,9 +73,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     }
 
     // If the en-passant square is set, every move will unset it...
-    if board.en_passant.is_some() {
-        board.clear_ep_square();
-    }
+    board.clear_ep_square();
 
     // ...except a pawn double-step, which will set it.
     if double_step {
@@ -84,8 +83,8 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // *** Update the remainder of the board state ***
 
-    // Swap the color to move.
-    board.swap_color();
+    // Swap the side to move.
+    board.swap_side();
 
     // Update the move counter
     if (piece == PAWN) || (captured != PNONE) {

@@ -95,25 +95,9 @@ impl<'a> Board<'a> {
         } else {
             board.setup_fen(FEN_START_POSITION);
         }
-        board.build_zobrist_key();
+        board.zobrist_key = board.build_zobrist_key();
 
         board
-    }
-
-    pub fn gen_all_moves(&self, ml: &mut MoveList) {
-        self.move_generator.gen_all_moves(self, ml);
-    }
-
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
-        self.move_generator.get_non_slider_attacks(piece, square)
-    }
-
-    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
-        self.move_generator.get_slider_attacks(piece, square, occ)
-    }
-
-    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
-        self.move_generator.get_pawn_attacks(side, square)
     }
 
     /** Reset the board. */
@@ -130,6 +114,7 @@ impl<'a> Board<'a> {
         self.zobrist_key = EMPTY;
     }
 
+    // Call the fen-reader function and create the piece bitboards to do the setup.
     pub fn setup_fen(&mut self, fen: &str) {
         fen::read(fen, self);
         self.create_piece_bitboards();
@@ -137,10 +122,10 @@ impl<'a> Board<'a> {
 
     /** Get the pieces of a certain type, for one of the sides. */
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
-        match side {
-            WHITE => self.bb_w[piece],
-            BLACK => self.bb_b[piece],
-            _ => 0,
+        if side == WHITE {
+            self.bb_w[piece]
+        } else {
+            self.bb_b[piece]
         }
     }
 
@@ -160,6 +145,7 @@ impl<'a> Board<'a> {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
     }
 
+    // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         if side == WHITE {
@@ -170,6 +156,7 @@ impl<'a> Board<'a> {
         clear_bit(&mut self.bb_pieces[side], square);
     }
 
+    // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
         if side == WHITE {
             set_bit(&mut self.bb_w[piece], square);
@@ -180,19 +167,22 @@ impl<'a> Board<'a> {
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 
+    // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: u8) {
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
         self.en_passant = Some(square);
         self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
     }
 
+    // Clear the ep-square. (If the ep-square is None already, nothing changes.)
     pub fn clear_ep_square(&mut self) {
-        if self.en_passant.is_some() {
-            self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
-            self.en_passant = None;
-        }
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+        self.en_passant = None;
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
     }
 
-    pub fn swap_color(&mut self) {
+    // Swap side from WHITE <==> BLACK
+    pub fn swap_side(&mut self) {
         let us = self.active_color as usize;
         let opponent = us ^ 1;
 
@@ -212,26 +202,46 @@ impl<'a> Board<'a> {
         }
     }
 
+    // Passthrough functions for move generator
+    pub fn gen_all_moves(&self, ml: &mut MoveList) {
+        self.move_generator.gen_all_moves(self, ml);
+    }
+
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+        self.move_generator.get_non_slider_attacks(piece, square)
+    }
+
+    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
+        self.move_generator.get_slider_attacks(piece, square, occ)
+    }
+
+    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+        self.move_generator.get_pawn_attacks(side, square)
+    }
+
     /** This function builds the Zobrist key for the inital position. */
-    pub fn build_zobrist_key(&mut self) {
-        self.zobrist_key = 0u64;
+    pub fn build_zobrist_key(&mut self) -> ZobristKey {
+        let mut key: u64 = 0;
+
         for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
             let mut white = *bb_w;
             let mut black = *bb_b;
 
             while white > 0 {
                 let square = next(&mut white);
-                self.zobrist_key ^= self.zobrist_randoms.piece(WHITE, piece, square);
+                key ^= self.zobrist_randoms.piece(WHITE, piece, square);
             }
 
             while black > 0 {
                 let square = next(&mut black);
-                self.zobrist_key ^= self.zobrist_randoms.piece(BLACK, piece, square);
+                key ^= self.zobrist_randoms.piece(BLACK, piece, square);
             }
         }
 
-        self.zobrist_key ^= self.zobrist_randoms.castling(self.castling);
-        self.zobrist_key ^= self.zobrist_randoms.side(self.active_color as usize);
-        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+        key ^= self.zobrist_randoms.castling(self.castling);
+        key ^= self.zobrist_randoms.side(self.active_color as usize);
+        key ^= self.zobrist_randoms.en_passant(self.en_passant);
+
+        key
     }
 }
