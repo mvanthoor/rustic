@@ -12,14 +12,14 @@ pub fn unmake_move(board: &mut Board) {
         let opponent = (us ^ 1) as usize;
 
         // Set which bitboards are "us" and "opponent" pieces
-        let bb_mine: &mut [Bitboard];
+        let bb_us: &mut [Bitboard];
         let bb_opponent: &mut [Bitboard];
 
         if us == WHITE {
-            bb_mine = &mut board.bb_w;
+            bb_us = &mut board.bb_w;
             bb_opponent = &mut board.bb_b;
         } else {
-            bb_mine = &mut board.bb_b;
+            bb_us = &mut board.bb_b;
             bb_opponent = &mut board.bb_w;
         };
 
@@ -38,20 +38,20 @@ pub fn unmake_move(board: &mut Board) {
         // Moving backwards...
         if !promotion_move {
             // remove the piece from the to-square
-            clear_bit(&mut bb_mine[piece], to);
+            clear_bit(&mut bb_us[piece], to);
             clear_bit(&mut board.bb_pieces[us], to);
 
             // Put the piece onto the from-square
-            set_bit(&mut bb_mine[piece], from);
+            set_bit(&mut bb_us[piece], from);
             set_bit(&mut board.bb_pieces[us], from);
         } else {
             // When this was a promotion, the piece actually changes into a pawn again.
             // Remove the promoted piece from the to-square
-            clear_bit(&mut bb_mine[promoted], to);
+            clear_bit(&mut bb_us[promoted], to);
             clear_bit(&mut board.bb_pieces[us], to);
 
             // Put a pawn onto the from-square
-            set_bit(&mut bb_mine[PAWN], from);
+            set_bit(&mut bb_us[PAWN], from);
             set_bit(&mut board.bb_pieces[us], from);
         }
 
@@ -60,33 +60,33 @@ pub fn unmake_move(board: &mut Board) {
         if castling {
             // White short castle. Return the rook from F1 to H1.
             if to == G1 {
-                clear_bit(&mut bb_mine[ROOK], F1);
+                clear_bit(&mut bb_us[ROOK], F1);
                 clear_bit(&mut board.bb_pieces[us], F1);
-                set_bit(&mut bb_mine[ROOK], H1);
+                set_bit(&mut bb_us[ROOK], H1);
                 set_bit(&mut board.bb_pieces[us], H1);
             }
 
             // White long castle. Return the rook from D1 to A1.
             if to == C1 {
-                clear_bit(&mut bb_mine[ROOK], D1);
+                clear_bit(&mut bb_us[ROOK], D1);
                 clear_bit(&mut board.bb_pieces[us], D1);
-                set_bit(&mut bb_mine[ROOK], A1);
+                set_bit(&mut bb_us[ROOK], A1);
                 set_bit(&mut board.bb_pieces[us], A1);
             }
 
             // Black short castle.  Return the rook from F8 to H8.
             if to == G8 {
-                clear_bit(&mut bb_mine[ROOK], F8);
+                clear_bit(&mut bb_us[ROOK], F8);
                 clear_bit(&mut board.bb_pieces[us], F8);
-                set_bit(&mut bb_mine[ROOK], H8);
+                set_bit(&mut bb_us[ROOK], H8);
                 set_bit(&mut board.bb_pieces[us], H8);
             }
 
             // Black long castle.  Return the rook from D8 to A8.
             if to == C8 {
-                clear_bit(&mut bb_mine[ROOK], D8);
+                clear_bit(&mut bb_us[ROOK], D8);
                 clear_bit(&mut board.bb_pieces[us], D8);
-                set_bit(&mut bb_mine[ROOK], A8);
+                set_bit(&mut bb_us[ROOK], A8);
                 set_bit(&mut board.bb_pieces[us], A8);
             }
         }
