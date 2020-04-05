@@ -4,6 +4,24 @@ use crate::defs::{
 };
 use crate::utils::bits::{clear_bit, set_bit};
 
+/**
+ * This function retracts moves made by make_move().
+ * Notice that it doesn't use "board.put_piece()" and "board.remove_piece()"
+ * and related functions the way make_move does. The reason is that these
+ * functions incrementally update the Zobrist key, which is necessary for
+ * make_move; doing this update incrementally is much faster than calculating
+ * the key from scratch when make_move is done.
+ *
+ * Unmake_move on the other hand, justretrieves the zobrist key of the
+ * previous board from unmake_info, so it  * does not need to keep track
+ * of the key. The same is true for the rest of the board state such as
+ * castling rights. Therefore, unmake_move just putspieces back where they
+ * came from all by itself, without keeping track of the board state,
+ * and it copies that state back from the list of saved states at the end.
+ * Doing it this way makes unmake_move faster, because all of the incremental
+ * state updates can be omitted.
+*/
+
 pub fn unmake_move(board: &mut Board) {
     let unamke_info = board.unmake_list.pop();
     if let Some(stored) = unamke_info {
@@ -56,39 +74,35 @@ pub fn unmake_move(board: &mut Board) {
         }
 
         // The king's move was already undone as a normal move.
-        // The rook move also needs to be undone.
+        // Now undo the correct castling rook move.
         if castling {
-            // White short castle. Return the rook from F1 to H1.
-            if to == G1 {
-                clear_bit(&mut bb_us[ROOK], F1);
-                clear_bit(&mut board.bb_pieces[us], F1);
-                set_bit(&mut bb_us[ROOK], H1);
-                set_bit(&mut board.bb_pieces[us], H1);
-            }
-
-            // White long castle. Return the rook from D1 to A1.
-            if to == C1 {
-                clear_bit(&mut bb_us[ROOK], D1);
-                clear_bit(&mut board.bb_pieces[us], D1);
-                set_bit(&mut bb_us[ROOK], A1);
-                set_bit(&mut board.bb_pieces[us], A1);
-            }
-
-            // Black short castle.  Return the rook from F8 to H8.
-            if to == G8 {
-                clear_bit(&mut bb_us[ROOK], F8);
-                clear_bit(&mut board.bb_pieces[us], F8);
-                set_bit(&mut bb_us[ROOK], H8);
-                set_bit(&mut board.bb_pieces[us], H8);
-            }
-
-            // Black long castle.  Return the rook from D8 to A8.
-            if to == C8 {
-                clear_bit(&mut bb_us[ROOK], D8);
-                clear_bit(&mut board.bb_pieces[us], D8);
-                set_bit(&mut bb_us[ROOK], A8);
-                set_bit(&mut board.bb_pieces[us], A8);
-            }
+            match to {
+                G1 => {
+                    clear_bit(&mut bb_us[ROOK], F1);
+                    clear_bit(&mut board.bb_pieces[us], F1);
+                    set_bit(&mut bb_us[ROOK], H1);
+                    set_bit(&mut board.bb_pieces[us], H1);
+                }
+                C1 => {
+                    clear_bit(&mut bb_us[ROOK], D1);
+                    clear_bit(&mut board.bb_pieces[us], D1);
+                    set_bit(&mut bb_us[ROOK], A1);
+                    set_bit(&mut board.bb_pieces[us], A1);
+                }
+                G8 => {
+                    clear_bit(&mut bb_us[ROOK], F8);
+                    clear_bit(&mut board.bb_pieces[us], F8);
+                    set_bit(&mut bb_us[ROOK], H8);
+                    set_bit(&mut board.bb_pieces[us], H8);
+                }
+                C8 => {
+                    clear_bit(&mut bb_us[ROOK], D8);
+                    clear_bit(&mut board.bb_pieces[us], D8);
+                    set_bit(&mut bb_us[ROOK], A8);
+                    set_bit(&mut board.bb_pieces[us], A8);
+                }
+                _ => (),
+            };
         }
 
         // If a piece was captured, put it back onto the to-square
