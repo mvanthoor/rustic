@@ -5,8 +5,9 @@ use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use std::time::Instant;
 
+// This function runs perft(), while collecting speed information.
 #[allow(dead_code)]
-pub fn bench(board: &Board, depth: u8) {
+pub fn run(board: &Board, depth: u8) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
