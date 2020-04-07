@@ -38,19 +38,24 @@ pub fn run(board: &Board, depth: u8) {
 #[allow(dead_code)]
 pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool) -> u64 {
     let mut leaf_nodes: u64 = 0;
-    let index = depth as usize;
+    let current = depth as usize;
 
     if depth == 0 {
         return 1;
     }
 
-    board.gen_all_moves(mlp.get_list_mut(index));
-    for i in 0..mlp.get_list(index).len() {
-        if !make_move::make_move(board, mlp.get_list(index).get_move(i)) {
-            continue;
-        };
-        leaf_nodes += perft(board, depth - 1, mlp);
-        unmake_move::unmake_move(board);
+    board.gen_all_moves(mlp.get_list_mut(current));
+    let move_list = mlp.get_list(current);
+    let nr_of_moves = move_list.len();
+
+    for i in 0..nr_of_moves {
+        let m = mlp.get_list(current).get_move(i);
+        let legal = make_move::make_move(board, m);
+
+        if legal {
+            leaf_nodes += perft(board, depth - 1, mlp);
+            unmake_move::unmake_move(board);
+        }
     }
 
     leaf_nodes

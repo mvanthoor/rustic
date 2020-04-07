@@ -112,6 +112,7 @@ fn pawns(board: &Board, list: &mut MoveList) {
     }
 }
 
+// TODO: Fix this comment
 /** The castling function is long, but fortunately not hard to understand.
  * The length is due to having four parts; each side can castle either kingside or queenside.
  * Step by step description:
@@ -138,24 +139,22 @@ fn castling(board: &Board, list: &mut MoveList) {
     } else {
         (board.castling & (CASTLE_BK + CASTLE_BQ)) > 0
     };
+    let mut bb_king = board.get_pieces(KING, side);
+    let from = bits::next(&mut bb_king);
+    let bb_occupancy = board.occupancy();
 
     if side == WHITE && has_castling_rights {
-        let mut bb_king = board.get_pieces(KING, side);
-        let from = bits::next(&mut bb_king);
-        let bb_occupancy = board.occupancy();
-
         // Kingside
         if board.castling & CASTLE_WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
-            if !is_kingside_blocked {
-                if !info::square_attacked(board, opponent, E1) {
-                    if !info::square_attacked(board, opponent, F1) {
-                        let to = (1u64 << from) << 2;
-                        add_move(board, KING, from, to, list);
-                    }
-                }
+            if !is_kingside_blocked
+                && !info::square_attacked(board, opponent, E1)
+                && !info::square_attacked(board, opponent, F1)
+            {
+                let to = (1u64 << from) << 2;
+                add_move(board, KING, from, to, list);
             }
         }
 
@@ -164,34 +163,28 @@ fn castling(board: &Board, list: &mut MoveList) {
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
-            if !is_queenside_blocked {
-                if !info::square_attacked(board, opponent, E1) {
-                    if !info::square_attacked(board, opponent, D1) {
-                        let to = (1u64 << from) >> 2;
-                        add_move(board, KING, from, to, list);
-                    }
-                }
+            if !is_queenside_blocked
+                && !info::square_attacked(board, opponent, E1)
+                && !info::square_attacked(board, opponent, D1)
+            {
+                let to = (1u64 << from) >> 2;
+                add_move(board, KING, from, to, list);
             }
         }
     }
 
     if side == BLACK && has_castling_rights {
-        let mut bb_king = board.get_pieces(KING, side);
-        let from = bits::next(&mut bb_king);
-        let bb_occupancy = board.occupancy();
-
         // Kingside
         if board.castling & CASTLE_BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
-            if !is_kingside_blocked {
-                if !info::square_attacked(board, opponent, E8) {
-                    if !info::square_attacked(board, opponent, F8) {
-                        let to = (1u64 << from) << 2;
-                        add_move(board, KING, from, to, list);
-                    }
-                }
+            if !is_kingside_blocked
+                && !info::square_attacked(board, opponent, E8)
+                && !info::square_attacked(board, opponent, F8)
+            {
+                let to = (1u64 << from) << 2;
+                add_move(board, KING, from, to, list);
             }
         }
 
@@ -200,30 +193,15 @@ fn castling(board: &Board, list: &mut MoveList) {
             let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
-            if !is_queenside_blocked {
-                if !info::square_attacked(board, opponent, E8) {
-                    if !info::square_attacked(board, opponent, D8) {
-                        let to = (1u64 << from) >> 2;
-                        add_move(board, KING, from, to, list);
-                    }
-                }
+            if !is_queenside_blocked
+                && !info::square_attacked(board, opponent, E8)
+                && !info::square_attacked(board, opponent, D8)
+            {
+                let to = (1u64 << from) >> 2;
+                add_move(board, KING, from, to, list);
             }
         }
     }
-}
-
-/** Determine if the move is a capture; this is the case if there's an opponent piece on the
- * target square of the moving piece. If so, return which piece is on the target square. If
- * there is no piece, PNONE (no piece) will will be returned.
- */
-fn captured_piece(board: &Board, to_square: u8) -> Piece {
-    let side = board.active_color as usize;
-    let bb_target_square = 1u64 << (to_square as u64);
-    let bb_opponent_pieces = board.bb_pieces[side ^ 1];
-    if bb_target_square & bb_opponent_pieces > 0 {
-        return board.which_piece(to_square);
-    };
-    PNONE
 }
 
 /** Adds moves and the data belonging to those moves to a move list.
@@ -242,14 +220,13 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
 
     while bb_to > 0 {
         let to_square = bits::next(&mut bb_to);
-        let capture = captured_piece(board, to_square);
+        let capture = board.piece_list[to_square as usize];
         let promotion = (piece == PAWN) && board::square_on_rank(to_square, promotion_rank);
-        let ep_square = if let Some(square) = board.en_passant {
-            square
+        let en_passant = if let Some(square) = board.en_passant {
+            (piece == PAWN) && (square == to_square)
         } else {
-            0
+            false
         };
-        let en_passant = (piece == PAWN) && (ep_square != 0) && (to_square == ep_square);
         let double_step = (piece == PAWN) && ((to_square as i8 - from as i8).abs() == 16);
         let castling = (piece == KING) && ((to_square as i8 - from as i8).abs() == 2);
         let move_data = (piece as u64)

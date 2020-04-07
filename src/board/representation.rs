@@ -12,7 +12,7 @@ use super::fen;
 use super::zobrist::{ZobristKey, ZobristRandoms};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
-    BLACK, EMPTY, FEN_START_POSITION, PNONE, WHITE,
+    BLACK, EMPTY, FEN_START_POSITION, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::movegen::{
     movedefs::{Move, MoveList},
@@ -64,6 +64,7 @@ pub struct Board<'a> {
     pub unmake_list: UnMakeList,
     pub zobrist_key: ZobristKey,
     pub zobrist_randoms: &'a ZobristRandoms,
+    pub piece_list: [Piece; NR_OF_SQUARES as usize],
     move_generator: &'a MoveGenerator,
 }
 
@@ -87,6 +88,7 @@ impl<'a> Board<'a> {
             unmake_list: Vec::with_capacity(MAX_GAME_MOVES as usize),
             zobrist_key: EMPTY,
             zobrist_randoms: zr,
+            piece_list: [PNONE; NR_OF_SQUARES as usize],
             move_generator: mg,
         };
         board.bb_files = super::create_bb_files();
@@ -96,9 +98,27 @@ impl<'a> Board<'a> {
         } else {
             board.setup_fen(FEN_START_POSITION);
         }
+        board.create_piece_list();
         board.zobrist_key = board.build_zobrist_key();
 
         board
+    }
+
+    fn create_piece_list(&mut self) {
+        for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
+            let mut white = *bb_w;
+            let mut black = *bb_b;
+
+            while white > 0 {
+                let square = bits::next(&mut white);
+                self.piece_list[square as usize] = piece;
+            }
+
+            while black > 0 {
+                let square = bits::next(&mut black);
+                self.piece_list[square as usize] = piece;
+            }
+        }
     }
 
     /** Reset the board. */
@@ -113,6 +133,7 @@ impl<'a> Board<'a> {
         self.fullmove_number = 0;
         self.unmake_list.clear();
         self.zobrist_key = EMPTY;
+        self.piece_list = [PNONE; NR_OF_SQUARES as usize];
     }
 
     // Call the fen-reader function and create the piece bitboards to do the setup.
@@ -130,17 +151,6 @@ impl<'a> Board<'a> {
         }
     }
 
-    /** Return which piece is on a given square, or return PNONE (no piece) */
-    pub fn which_piece(&self, square: u8) -> Piece {
-        let inspect = 1u64 << square as u64;
-        for (piece, (white, black)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
-            if (*white & inspect > 0) || (*black & inspect > 0) {
-                return piece;
-            }
-        }
-        PNONE
-    }
-
     /** Return a bitboard containing all the pieces on the board. */
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
@@ -148,6 +158,7 @@ impl<'a> Board<'a> {
 
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
+        self.piece_list[square as usize] = PNONE;
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         if side == WHITE {
             bits::clear_bit(&mut self.bb_w[piece], square);
@@ -166,6 +177,7 @@ impl<'a> Board<'a> {
         }
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        self.piece_list[square as usize] = piece;
     }
 
     // Set a square as being the current ep-square.
