@@ -110,7 +110,6 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 }
 
 // Stores the current board state, and the move made while in that state
-#[inline(always)]
 fn store_unmake_info(board: &mut Board, m: Move) {
     let unmake_info = UnMakeInfo::new(
         board.active_color,

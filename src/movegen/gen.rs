@@ -138,13 +138,8 @@ fn castling(board: &Board, list: &mut MoveList) {
     } else {
         (board.castling & (CASTLE_BK + CASTLE_BQ)) > 0
     };
-    let in_check = if side == WHITE {
-        info::square_attacked(board, opponent, E1)
-    } else {
-        info::square_attacked(board, opponent, E8)
-    };
 
-    if side == WHITE && has_castling_rights && !in_check {
+    if side == WHITE && has_castling_rights {
         let mut bb_king = board.get_pieces(KING, side);
         let from = bits::next(&mut bb_king);
         let bb_occupancy = board.occupancy();
@@ -153,11 +148,14 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
-            let f1_attacked = info::square_attacked(board, opponent, F1);
 
-            if !is_kingside_blocked && !f1_attacked {
-                let to = (1u64 << from) << 2;
-                add_move(board, KING, from, to, list);
+            if !is_kingside_blocked {
+                if !info::square_attacked(board, opponent, E1) {
+                    if !info::square_attacked(board, opponent, F1) {
+                        let to = (1u64 << from) << 2;
+                        add_move(board, KING, from, to, list);
+                    }
+                }
             }
         }
 
@@ -165,16 +163,19 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_WQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
-            let d1_attacked = info::square_attacked(board, opponent, D1);
 
-            if !is_queenside_blocked && !d1_attacked {
-                let to = (1u64 << from) >> 2;
-                add_move(board, KING, from, to, list);
+            if !is_queenside_blocked {
+                if !info::square_attacked(board, opponent, E1) {
+                    if !info::square_attacked(board, opponent, D1) {
+                        let to = (1u64 << from) >> 2;
+                        add_move(board, KING, from, to, list);
+                    }
+                }
             }
         }
     }
 
-    if side == BLACK && has_castling_rights && !in_check {
+    if side == BLACK && has_castling_rights {
         let mut bb_king = board.get_pieces(KING, side);
         let from = bits::next(&mut bb_king);
         let bb_occupancy = board.occupancy();
@@ -183,11 +184,14 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
-            let f8_attacked = info::square_attacked(board, opponent, F8);
 
-            if !is_kingside_blocked && !f8_attacked {
-                let to = (1u64 << from) << 2;
-                add_move(board, KING, from, to, list);
+            if !is_kingside_blocked {
+                if !info::square_attacked(board, opponent, E8) {
+                    if !info::square_attacked(board, opponent, F8) {
+                        let to = (1u64 << from) << 2;
+                        add_move(board, KING, from, to, list);
+                    }
+                }
             }
         }
 
@@ -195,11 +199,14 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_BQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
-            let d8_attacked = info::square_attacked(board, opponent, D8);
 
-            if !is_queenside_blocked && !d8_attacked {
-                let to = (1u64 << from) >> 2;
-                add_move(board, KING, from, to, list);
+            if !is_queenside_blocked {
+                if !info::square_attacked(board, opponent, E8) {
+                    if !info::square_attacked(board, opponent, D8) {
+                        let to = (1u64 << from) >> 2;
+                        add_move(board, KING, from, to, list);
+                    }
+                }
             }
         }
     }
