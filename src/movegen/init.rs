@@ -1,8 +1,6 @@
-use super::blockatt::{
-    create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
-};
+use super::blockatt;
 use super::magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
-use super::masks::{create_bishop_mask, create_rook_mask};
+use super::masks;
 use super::MoveGenerator;
 use super::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 use crate::defs::{
@@ -116,18 +114,18 @@ pub fn init_magics(mg: &mut MoveGenerator, piece: Piece) {
     let mut total_permutations = 0;
     for sq in ALL_SQUARES {
         let mask = if is_rook {
-            create_rook_mask(sq)
+            masks::create_rook_mask(sq)
         } else {
-            create_bishop_mask(sq)
+            masks::create_bishop_mask(sq)
         };
         let bits = mask.count_ones(); // Number of set bits in the mask
         let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
         let end = offset + permutations - 1; // End point in the attack table.
-        let blocker_boards = create_blocker_boards(mask);
+        let blocker_boards = blockatt::create_blocker_boards(mask);
         let attack_boards = if is_rook {
-            create_rook_attack_boards(sq, &blocker_boards)
+            blockatt::create_rook_attack_boards(sq, &blocker_boards)
         } else {
-            create_bishop_attack_boards(sq, &blocker_boards)
+            blockatt::create_bishop_attack_boards(sq, &blocker_boards)
         };
         let mut mcurrent: Magics = Default::default();
 

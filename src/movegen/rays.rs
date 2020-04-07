@@ -1,5 +1,5 @@
-use crate::board::{square_on_file_rank, Direction};
 use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::{board, board::Direction};
 
 /**
  * create_bb_ray() is a long function, but it's actually quite simple.
@@ -21,8 +21,8 @@ use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
  * because the ray can 'see' it.
  */
 pub fn create_bb_ray(bb_in: Bitboard, square: u8, direction: Direction) -> Bitboard {
-    let mut file = square_on_file_rank(square).0 as usize;
-    let mut rank = square_on_file_rank(square).1 as usize;
+    let mut file = board::square_on_file_rank(square).0 as usize;
+    let mut rank = board::square_on_file_rank(square).1 as usize;
     let mut bb_square = 1u64 << square;
     let mut bb_ray = 0;
     let mut done = false;

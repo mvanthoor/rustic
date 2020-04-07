@@ -2,7 +2,7 @@ use super::representation::Board;
 use crate::defs::{
     Bitboard, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE,
 };
-use crate::utils::bits::{clear_bit, set_bit};
+use crate::utils::bits;
 
 /**
  * This function retracts moves made by make_move().
@@ -56,21 +56,21 @@ pub fn unmake_move(board: &mut Board) {
         // Moving backwards...
         if !promotion_move {
             // remove the piece from the to-square
-            clear_bit(&mut bb_us[piece], to);
-            clear_bit(&mut board.bb_pieces[us], to);
+            bits::clear_bit(&mut bb_us[piece], to);
+            bits::clear_bit(&mut board.bb_pieces[us], to);
 
             // Put the piece onto the from-square
-            set_bit(&mut bb_us[piece], from);
-            set_bit(&mut board.bb_pieces[us], from);
+            bits::set_bit(&mut bb_us[piece], from);
+            bits::set_bit(&mut board.bb_pieces[us], from);
         } else {
             // When this was a promotion, the piece actually changes into a pawn again.
             // Remove the promoted piece from the to-square
-            clear_bit(&mut bb_us[promoted], to);
-            clear_bit(&mut board.bb_pieces[us], to);
+            bits::clear_bit(&mut bb_us[promoted], to);
+            bits::clear_bit(&mut board.bb_pieces[us], to);
 
             // Put a pawn onto the from-square
-            set_bit(&mut bb_us[PAWN], from);
-            set_bit(&mut board.bb_pieces[us], from);
+            bits::set_bit(&mut bb_us[PAWN], from);
+            bits::set_bit(&mut board.bb_pieces[us], from);
         }
 
         // The king's move was already undone as a normal move.
@@ -78,28 +78,28 @@ pub fn unmake_move(board: &mut Board) {
         if castling {
             match to {
                 G1 => {
-                    clear_bit(&mut bb_us[ROOK], F1);
-                    clear_bit(&mut board.bb_pieces[us], F1);
-                    set_bit(&mut bb_us[ROOK], H1);
-                    set_bit(&mut board.bb_pieces[us], H1);
+                    bits::clear_bit(&mut bb_us[ROOK], F1);
+                    bits::clear_bit(&mut board.bb_pieces[us], F1);
+                    bits::set_bit(&mut bb_us[ROOK], H1);
+                    bits::set_bit(&mut board.bb_pieces[us], H1);
                 }
                 C1 => {
-                    clear_bit(&mut bb_us[ROOK], D1);
-                    clear_bit(&mut board.bb_pieces[us], D1);
-                    set_bit(&mut bb_us[ROOK], A1);
-                    set_bit(&mut board.bb_pieces[us], A1);
+                    bits::clear_bit(&mut bb_us[ROOK], D1);
+                    bits::clear_bit(&mut board.bb_pieces[us], D1);
+                    bits::set_bit(&mut bb_us[ROOK], A1);
+                    bits::set_bit(&mut board.bb_pieces[us], A1);
                 }
                 G8 => {
-                    clear_bit(&mut bb_us[ROOK], F8);
-                    clear_bit(&mut board.bb_pieces[us], F8);
-                    set_bit(&mut bb_us[ROOK], H8);
-                    set_bit(&mut board.bb_pieces[us], H8);
+                    bits::clear_bit(&mut bb_us[ROOK], F8);
+                    bits::clear_bit(&mut board.bb_pieces[us], F8);
+                    bits::set_bit(&mut bb_us[ROOK], H8);
+                    bits::set_bit(&mut board.bb_pieces[us], H8);
                 }
                 C8 => {
-                    clear_bit(&mut bb_us[ROOK], D8);
-                    clear_bit(&mut board.bb_pieces[us], D8);
-                    set_bit(&mut bb_us[ROOK], A8);
-                    set_bit(&mut board.bb_pieces[us], A8);
+                    bits::clear_bit(&mut bb_us[ROOK], D8);
+                    bits::clear_bit(&mut board.bb_pieces[us], D8);
+                    bits::set_bit(&mut bb_us[ROOK], A8);
+                    bits::set_bit(&mut board.bb_pieces[us], A8);
                 }
                 _ => (),
             };
@@ -107,15 +107,15 @@ pub fn unmake_move(board: &mut Board) {
 
         // If a piece was captured, put it back onto the to-square
         if captured != PNONE {
-            set_bit(&mut bb_opponent[captured], to);
-            set_bit(&mut board.bb_pieces[opponent], to);
+            bits::set_bit(&mut bb_opponent[captured], to);
+            bits::set_bit(&mut board.bb_pieces[opponent], to);
         }
 
         // If this was an e-passant move, put the opponent's pawn back
         if en_passant {
             let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-            set_bit(&mut bb_opponent[PAWN], pawn_square);
-            set_bit(&mut board.bb_pieces[opponent], pawn_square);
+            bits::set_bit(&mut bb_opponent[PAWN], pawn_square);
+            bits::set_bit(&mut board.bb_pieces[opponent], pawn_square);
         }
 
         // restore the previous board state.

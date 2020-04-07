@@ -1,6 +1,4 @@
-use crate::board::make_move::make_move;
-use crate::board::representation::Board;
-use crate::board::unmake_move::unmake_move;
+use crate::board::{make_move, representation::Board, unmake_move};
 use crate::extra::print;
 use crate::movegen::movedefs::MoveListPool;
 use std::time::Instant;
@@ -48,11 +46,11 @@ pub fn perft(board: &mut Board, depth: u8, mlp: &mut MoveListPool) -> u64 {
 
     board.gen_all_moves(mlp.get_list_mut(index));
     for i in 0..mlp.get_list(index).len() {
-        if !make_move(board, mlp.get_list(index).get_move(i)) {
+        if !make_move::make_move(board, mlp.get_list(index).get_move(i)) {
             continue;
         };
         leaf_nodes += perft(board, depth - 1, mlp);
-        unmake_move(board);
+        unmake_move::unmake_move(board);
     }
 
     leaf_nodes

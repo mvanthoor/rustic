@@ -10,16 +10,15 @@
  * discarded moves will not be executed or evaluated. If legality checking had been done on
  * those moves, that time would have been wasted.
  */
-use super::information::square_attacked;
+use super::info;
 use super::movedefs::{Move, MoveList, Shift};
-use crate::board::representation::Board;
-use crate::board::square_on_rank;
 use crate::defs::{
     Bitboard, Piece, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1,
     D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
     ROOK, WHITE,
 };
-use crate::utils::bits::next;
+use crate::utils::bits;
+use crate::{board, board::representation::Board};
 
 /**
  * This function actually generates the moves, using other functions in this module.
@@ -57,7 +56,7 @@ fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
     let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
     while bb_pieces > 0 {
-        let from = next(&mut bb_pieces);
+        let from = bits::next(&mut bb_pieces);
         let bb_target = match piece {
             QUEEN | ROOK | BISHOP => board.get_slider_attacks(piece, from, bb_occupancy),
             KING | KNIGHT => board.get_non_slider_attacks(piece, from),
@@ -97,7 +96,7 @@ fn pawns(board: &Board, list: &mut MoveList) {
     };
     let mut bb_pawns = board.get_pieces(PAWN, side);
     while bb_pawns > 0 {
-        let from = next(&mut bb_pawns);
+        let from = bits::next(&mut bb_pawns);
         let bb_push = 1u64 << (from as i8 + direction);
         let bb_one_step = bb_push & bb_empty;
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
@@ -140,21 +139,21 @@ fn castling(board: &Board, list: &mut MoveList) {
         (board.castling & (CASTLE_BK + CASTLE_BQ)) > 0
     };
     let in_check = if side == WHITE {
-        square_attacked(board, opponent, E1)
+        info::square_attacked(board, opponent, E1)
     } else {
-        square_attacked(board, opponent, E8)
+        info::square_attacked(board, opponent, E8)
     };
 
     if side == WHITE && has_castling_rights && !in_check {
         let mut bb_king = board.get_pieces(KING, side);
-        let from = next(&mut bb_king);
+        let from = bits::next(&mut bb_king);
         let bb_occupancy = board.occupancy();
 
         // Kingside
         if board.castling & CASTLE_WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
-            let f1_attacked = square_attacked(board, opponent, F1);
+            let f1_attacked = info::square_attacked(board, opponent, F1);
 
             if !is_kingside_blocked && !f1_attacked {
                 let to = (1u64 << from) << 2;
@@ -166,7 +165,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_WQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
-            let d1_attacked = square_attacked(board, opponent, D1);
+            let d1_attacked = info::square_attacked(board, opponent, D1);
 
             if !is_queenside_blocked && !d1_attacked {
                 let to = (1u64 << from) >> 2;
@@ -177,14 +176,14 @@ fn castling(board: &Board, list: &mut MoveList) {
 
     if side == BLACK && has_castling_rights && !in_check {
         let mut bb_king = board.get_pieces(KING, side);
-        let from = next(&mut bb_king);
+        let from = bits::next(&mut bb_king);
         let bb_occupancy = board.occupancy();
 
         // Kingside
         if board.castling & CASTLE_BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
-            let f8_attacked = square_attacked(board, opponent, F8);
+            let f8_attacked = info::square_attacked(board, opponent, F8);
 
             if !is_kingside_blocked && !f8_attacked {
                 let to = (1u64 << from) << 2;
@@ -196,7 +195,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         if board.castling & CASTLE_BQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
-            let d8_attacked = square_attacked(board, opponent, D8);
+            let d8_attacked = info::square_attacked(board, opponent, D8);
 
             if !is_queenside_blocked && !d8_attacked {
                 let to = (1u64 << from) >> 2;
@@ -235,9 +234,9 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
     let promotion_pieces: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
 
     while bb_to > 0 {
-        let to_square = next(&mut bb_to);
+        let to_square = bits::next(&mut bb_to);
         let capture = captured_piece(board, to_square);
-        let promotion = (piece == PAWN) && square_on_rank(to_square, promotion_rank);
+        let promotion = (piece == PAWN) && board::square_on_rank(to_square, promotion_rank);
         let ep_square = if let Some(square) = board.en_passant {
             square
         } else {

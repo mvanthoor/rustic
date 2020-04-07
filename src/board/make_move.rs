@@ -1,11 +1,10 @@
 use super::representation::{Board, UnMakeInfo};
-use super::unmake_move::unmake_move;
+use super::unmake_move;
 use crate::defs::{
     A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1,
     G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
-use crate::movegen::information::square_attacked;
-use crate::movegen::movedefs::Move;
+use crate::movegen::{info, movedefs::Move};
 
 /**
  * This function executes the given move "m" on the board.
@@ -100,17 +99,18 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     /*** Validating move: see if "us" is in check ***/
 
     let king_square = board.get_pieces(KING, us).trailing_zeros() as u8;
-    let is_legal = !square_attacked(board, opponent, king_square);
+    let is_legal = !info::square_attacked(board, opponent, king_square);
 
     // We're in check. Undo everything.
     if !is_legal {
-        unmake_move(board);
+        unmake_move::unmake_move(board);
     }
 
     is_legal
 }
 
 // Stores the current board state, and the move made while in that state
+#[inline(always)]
 fn store_unmake_info(board: &mut Board, m: Move) {
     let unmake_info = UnMakeInfo::new(
         board.active_color,

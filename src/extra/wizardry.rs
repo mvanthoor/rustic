@@ -1,12 +1,6 @@
 use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, EMPTY, ROOK};
-use crate::extra::print;
-use crate::extra::print::PIECE_NAME;
-use crate::movegen::blockatt::{
-    create_bishop_attack_boards, create_blocker_boards, create_rook_attack_boards,
-};
-use crate::movegen::magics::Magics;
-use crate::movegen::masks::{create_bishop_mask, create_rook_mask};
-use crate::movegen::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
+use crate::extra::{print, print::PIECE_NAME};
+use crate::movegen::{blockatt, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
@@ -29,18 +23,18 @@ pub fn find_magics(piece: Piece) {
     println!("Finding magics for: {}", PIECE_NAME[piece]);
     for sq in ALL_SQUARES {
         let mask = if is_rook {
-            create_rook_mask(sq)
+            masks::create_rook_mask(sq)
         } else {
-            create_bishop_mask(sq)
+            masks::create_bishop_mask(sq)
         };
         let bits = mask.count_ones(); // Number of set bits in the mask
         let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
         let end = offset + permutations - 1; // End point in the attack table.
-        let blocker_boards = create_blocker_boards(mask);
+        let blocker_boards = blockatt::create_blocker_boards(mask);
         let attack_boards = if is_rook {
-            create_rook_attack_boards(sq, &blocker_boards)
+            blockatt::create_rook_attack_boards(sq, &blocker_boards)
         } else {
-            create_bishop_attack_boards(sq, &blocker_boards)
+            blockatt::create_bishop_attack_boards(sq, &blocker_boards)
         };
         let mut try_this: Magics = Default::default(); // New magic
         let mut found = false; // While loop breaker if magic works;

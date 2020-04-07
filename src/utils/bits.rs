@@ -1,23 +1,20 @@
 use crate::defs::Bitboard;
 
-/**
- * Get the next set bit from a bitboard.
- * This is used to get the square locations of each piece.
- * For example, the PAWNS bitboard could have 8 bits set.
- * This function returns the index (= square) from that bitboard,
- * and then removes the bit. All pieces/squares (whatver is in
- * the bitboard) have been handled when the bitboard becomes 0.
- * */
+// Get the next set bit from a bitboard and unset it.
+// When given a piece bitboard, this provides the
+// location/square of the next piece of that type.
 pub fn next(bitboard: &mut Bitboard) -> u8 {
     let location = bitboard.trailing_zeros();
     *bitboard ^= 1u64 << location;
     location as u8
 }
 
+// Clear the given bit in the bitboard.
 pub fn clear_bit(bitboard: &mut Bitboard, bit: u8) {
     *bitboard &= !(1u64 << bit);
 }
 
+// Set the given bit in the bitboard.
 pub fn set_bit(bitboard: &mut Bitboard, bit: u8) {
     *bitboard |= 1u64 << bit;
 }

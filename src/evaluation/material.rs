@@ -1,7 +1,7 @@
 use super::evaldefs::PIECE_VALUES;
 use super::EvalScore;
 use crate::board::representation::Board;
-use crate::utils::bits::next;
+use crate::utils::bits;
 
 pub fn count_difference(board: &Board) -> EvalScore {
     let mut white_value: i64 = 0;
@@ -13,12 +13,12 @@ pub fn count_difference(board: &Board) -> EvalScore {
 
         while white_pieces > 0 {
             white_value += PIECE_VALUES[piece];
-            next(&mut white_pieces);
+            bits::next(&mut white_pieces);
         }
 
         while black_pieces > 0 {
             black_value += PIECE_VALUES[piece];
-            next(&mut black_pieces);
+            bits::next(&mut black_pieces);
         }
     }
 

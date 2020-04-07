@@ -10,14 +10,15 @@
 */
 use super::fen;
 use super::zobrist::{ZobristKey, ZobristRandoms};
-use super::{create_bb_files, create_bb_ranks};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, EMPTY, FEN_START_POSITION, PNONE, WHITE,
 };
-use crate::movegen::movedefs::{Move, MoveList};
-use crate::movegen::MoveGenerator;
-use crate::utils::bits::{clear_bit, next, set_bit};
+use crate::movegen::{
+    movedefs::{Move, MoveList},
+    MoveGenerator,
+};
+use crate::utils::bits;
 
 const MAX_GAME_MOVES: u16 = 2048;
 
@@ -88,8 +89,8 @@ impl<'a> Board<'a> {
             zobrist_randoms: zr,
             move_generator: mg,
         };
-        board.bb_files = create_bb_files();
-        board.bb_ranks = create_bb_ranks();
+        board.bb_files = super::create_bb_files();
+        board.bb_ranks = super::create_bb_ranks();
         if let Some(f) = fen {
             board.setup_fen(f);
         } else {
@@ -149,21 +150,21 @@ impl<'a> Board<'a> {
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         if side == WHITE {
-            clear_bit(&mut self.bb_w[piece], square);
+            bits::clear_bit(&mut self.bb_w[piece], square);
         } else {
-            clear_bit(&mut self.bb_b[piece], square);
+            bits::clear_bit(&mut self.bb_b[piece], square);
         }
-        clear_bit(&mut self.bb_pieces[side], square);
+        bits::clear_bit(&mut self.bb_pieces[side], square);
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
         if side == WHITE {
-            set_bit(&mut self.bb_w[piece], square);
+            bits::set_bit(&mut self.bb_w[piece], square);
         } else {
-            set_bit(&mut self.bb_b[piece], square);
+            bits::set_bit(&mut self.bb_b[piece], square);
         }
-        set_bit(&mut self.bb_pieces[side], square);
+        bits::set_bit(&mut self.bb_pieces[side], square);
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 
@@ -228,12 +229,12 @@ impl<'a> Board<'a> {
             let mut black = *bb_b;
 
             while white > 0 {
-                let square = next(&mut white);
+                let square = bits::next(&mut white);
                 key ^= self.zobrist_randoms.piece(WHITE, piece, square);
             }
 
             while black > 0 {
-                let square = next(&mut black);
+                let square = bits::next(&mut black);
                 key ^= self.zobrist_randoms.piece(BLACK, piece, square);
             }
         }

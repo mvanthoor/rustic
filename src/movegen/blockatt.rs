@@ -3,7 +3,7 @@
  * It generates all possible blocker boards for a given mask,
  * rook attack boards, and bishop attack boards.
 */
-use super::rays::create_bb_ray;
+use super::rays;
 use super::{AttackBoards, BlockerBoards};
 use crate::board::Direction;
 use crate::defs::Bitboard;
@@ -44,10 +44,10 @@ pub fn create_rook_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards 
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
-        let bb_attacks = create_bb_ray(*b, sq, Direction::Up)
-            | create_bb_ray(*b, sq, Direction::Right)
-            | create_bb_ray(*b, sq, Direction::Down)
-            | create_bb_ray(*b, sq, Direction::Left);
+        let bb_attacks = rays::create_bb_ray(*b, sq, Direction::Up)
+            | rays::create_bb_ray(*b, sq, Direction::Right)
+            | rays::create_bb_ray(*b, sq, Direction::Down)
+            | rays::create_bb_ray(*b, sq, Direction::Left);
         bb_attack_boards.push(bb_attacks);
     }
 
@@ -59,10 +59,10 @@ pub fn create_bishop_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoard
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
-        let bb_attacks = create_bb_ray(*b, sq, Direction::UpLeft)
-            | create_bb_ray(*b, sq, Direction::UpRight)
-            | create_bb_ray(*b, sq, Direction::DownRight)
-            | create_bb_ray(*b, sq, Direction::DownLeft);
+        let bb_attacks = rays::create_bb_ray(*b, sq, Direction::UpLeft)
+            | rays::create_bb_ray(*b, sq, Direction::UpRight)
+            | rays::create_bb_ray(*b, sq, Direction::DownRight)
+            | rays::create_bb_ray(*b, sq, Direction::DownLeft);
         bb_attack_boards.push(bb_attacks);
     }
 

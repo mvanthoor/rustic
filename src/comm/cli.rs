@@ -1,9 +1,8 @@
 use crate::board::representation::Board;
 use crate::defs::ENGINE;
-use crate::extra::perft;
-use crate::extra::perftsuite;
-use crate::utils::parse::strip_newline;
-use std::io::{stdin, stdout, Write};
+use crate::extra::{perft, perftsuite};
+use crate::utils::parse;
+use std::{io, io::Write};
 
 const CMD_STR_ERROR: &str = "Command-line i/o error";
 const CMD_QUIT: u64 = 0;
@@ -13,23 +12,22 @@ pub fn get_input(board: &mut Board) -> u64 {
     let mut input = String::new();
 
     print!("{} > ", ENGINE);
-    match stdout().flush() {
+    match io::stdout().flush() {
         Ok(()) => (),
         Err(error) => panic!("{}: {}", CMD_STR_ERROR, error),
     }
-    match stdin().read_line(&mut input) {
+    match io::stdin().read_line(&mut input) {
         Ok(_) => parse_input(&mut input, board),
         Err(error) => panic!("{}: {}", CMD_STR_ERROR, error),
     }
 }
 
 fn parse_input(input: &mut String, board: &mut Board) -> u64 {
-    strip_newline(input);
-
+    parse::strip_newline(input);
     match &input[..] {
         "quit" | "exit" => CMD_QUIT,
         "perft" => cmd_perft(board),
-        "suite" => cmd_suite(board),
+        "suite" => cmd_suite(),
         "clear" => cmd_clear(),
         _ => cmd_parse_move(input),
     }
@@ -44,7 +42,7 @@ fn cmd_perft(board: &Board) -> u64 {
     CMD_CONTINUE
 }
 
-fn cmd_suite(board: &Board) -> u64 {
+fn cmd_suite() -> u64 {
     perftsuite::run_all_tests();
     CMD_CONTINUE
 }

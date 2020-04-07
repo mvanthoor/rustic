@@ -8,6 +8,7 @@ mod utils;
 
 use board::{representation::Board, zobrist::ZobristRandoms};
 use comm::cli;
+use extra::perft;
 use extra::print;
 use movegen::movedefs::MoveList;
 use movegen::MoveGenerator;

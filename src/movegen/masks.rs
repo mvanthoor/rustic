@@ -9,9 +9,9 @@
  * They can not be seen by the slider (if a blocker is in the way), or they can always be seen
  * (if there is no blocker). The generator for the attack boards takes this into account.
 */
-use super::rays::create_bb_ray;
-use crate::board::{create_bb_files, create_bb_ranks, square_on_file_rank, Direction, Location};
+use super::rays;
 use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::{board, board::Direction, board::Location};
 
 /**
  * Explanation of create_rook mask, step by step.
@@ -25,9 +25,9 @@ use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
  * For the final result: exclude the edge squares and rook's square from the mask.
  */
 pub fn create_rook_mask(square: u8) -> Bitboard {
-    let location = square_on_file_rank(square);
-    let bb_files = create_bb_files();
-    let bb_ranks = create_bb_ranks();
+    let location = board::square_on_file_rank(square);
+    let bb_files = board::create_bb_files();
+    let bb_ranks = board::create_bb_ranks();
     let bb_rook_square = 1u64 << square;
     let bb_edges = edges_without_piece(location);
     let bb_mask = bb_files[location.0 as usize] | bb_ranks[location.1 as usize];
@@ -45,12 +45,12 @@ pub fn create_rook_mask(square: u8) -> Bitboard {
  * on an empty board. Then the edges are clipped off, as they are not needed in the mask.
 */
 pub fn create_bishop_mask(square: u8) -> Bitboard {
-    let location = square_on_file_rank(square);
+    let location = board::square_on_file_rank(square);
     let bb_edges = edges_without_piece(location);
-    let bb_up_left = create_bb_ray(0, square, Direction::UpLeft);
-    let bb_up_right = create_bb_ray(0, square, Direction::UpRight);
-    let bb_down_right = create_bb_ray(0, square, Direction::DownRight);
-    let bb_down_left = create_bb_ray(0, square, Direction::DownLeft);
+    let bb_up_left = rays::create_bb_ray(0, square, Direction::UpLeft);
+    let bb_up_right = rays::create_bb_ray(0, square, Direction::UpRight);
+    let bb_down_right = rays::create_bb_ray(0, square, Direction::DownRight);
+    let bb_down_left = rays::create_bb_ray(0, square, Direction::DownLeft);
 
     (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges
 }
@@ -61,8 +61,8 @@ pub fn create_bishop_mask(square: u8) -> Bitboard {
  * piece itself is on an edge, the edge(s) containing the piece are excluded.
  */
 fn edges_without_piece(location: Location) -> Bitboard {
-    let bb_files = create_bb_files();
-    let bb_ranks = create_bb_ranks();
+    let bb_files = board::create_bb_files();
+    let bb_ranks = board::create_bb_ranks();
     let bb_piece_file = bb_files[location.0 as usize];
     let bb_piece_rank = bb_ranks[location.1 as usize];
 
