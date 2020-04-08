@@ -21,12 +21,14 @@ use crate::defs::{Side, BISHOP, FILE_A, FILE_H, KING, KNIGHT, PAWN, QUEEN, ROOK,
 #[inline(always)]
 pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
     let pieces = board.bb_side[attacker];
-    let bb_square = 1u64 << square;
     let occupancy = board.occupancy();
     let bb_king = board.get_non_slider_attacks(KING, square);
     let bb_rook = board.get_slider_attacks(ROOK, square, occupancy);
     let bb_bishop = board.get_slider_attacks(BISHOP, square, occupancy);
     let bb_knight = board.get_non_slider_attacks(KNIGHT, square);
+
+    // TODO: Explain this crap
+    let bb_square = 1u64 << square;
     let bb_pawns = if attacker == WHITE {
         (bb_square & !board.bb_files[FILE_A]) >> 9 | (bb_square & !board.bb_files[FILE_H]) >> 7
     } else {
