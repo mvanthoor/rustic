@@ -51,8 +51,6 @@ pub type UnMakeList = Vec<UnMakeInfo>;
 
 #[derive(Clone)]
 pub struct Board<'a> {
-    pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
-    pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
     pub bb_files: [Bitboard; BB_FOR_FILES as usize],
@@ -76,8 +74,6 @@ impl<'a> Board<'a> {
      */
     pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator, fen: Option<&str>) -> Board<'a> {
         let mut board = Board {
-            bb_w: [EMPTY; BITBOARDS_PER_SIDE as usize],
-            bb_b: [EMPTY; BITBOARDS_PER_SIDE as usize],
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
             bb_files: [EMPTY; BB_FOR_FILES as usize],
@@ -106,27 +102,8 @@ impl<'a> Board<'a> {
         board
     }
 
-    fn create_piece_list(&mut self) {
-        for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
-            let mut white = *bb_w;
-            let mut black = *bb_b;
-
-            while white > 0 {
-                let square = bits::next(&mut white);
-                self.piece_list[square as usize] = piece;
-            }
-
-            while black > 0 {
-                let square = bits::next(&mut black);
-                self.piece_list[square as usize] = piece;
-            }
-        }
-    }
-
     /** Reset the board. */
     pub fn reset(&mut self) {
-        self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
-        self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
         self.active_color = WHITE as u8;
@@ -147,11 +124,7 @@ impl<'a> Board<'a> {
 
     /** Get the pieces of a certain type, for one of the sides. */
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
-        if side == WHITE {
-            self.bb_w[piece]
-        } else {
-            self.bb_b[piece]
-        }
+        self.bb_side[side][piece]
     }
 
     /** Return a bitboard containing all the pieces on the board. */
@@ -163,21 +136,13 @@ impl<'a> Board<'a> {
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
         self.piece_list[square as usize] = PNONE;
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
-        if side == WHITE {
-            bits::clear_bit(&mut self.bb_w[piece], square);
-        } else {
-            bits::clear_bit(&mut self.bb_b[piece], square);
-        }
+        bits::clear_bit(&mut self.bb_side[side][piece], square);
         bits::clear_bit(&mut self.bb_pieces[side], square);
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
-        if side == WHITE {
-            bits::set_bit(&mut self.bb_w[piece], square);
-        } else {
-            bits::set_bit(&mut self.bb_b[piece], square);
-        }
+        bits::set_bit(&mut self.bb_side[side][piece], square);
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.piece_list[square as usize] = piece;
@@ -212,7 +177,7 @@ impl<'a> Board<'a> {
      * to create the bitboard holding all of the pieces of that color.
      */
     fn create_piece_bitboards(&mut self) {
-        for (bb_w, bb_b) in self.bb_w.iter().zip(self.bb_b.iter()) {
+        for (bb_w, bb_b) in self.bb_side[WHITE].iter().zip(self.bb_side[BLACK].iter()) {
             self.bb_pieces[WHITE] |= *bb_w;
             self.bb_pieces[BLACK] |= *bb_b;
         }
@@ -235,13 +200,35 @@ impl<'a> Board<'a> {
         self.move_generator.get_pawn_attacks(side, square)
     }
 
+    // This function builds the initial piece list (which piece type on which square).
+    fn create_piece_list(&mut self) {
+        let bb_w = self.bb_side[WHITE]; // White bitboards
+        let bb_b = self.bb_side[BLACK]; // Black bitboards
+        for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            let mut white = *w; // White pieces of type "p"
+            let mut black = *b; // Black pieces of type "p"
+
+            while white > 0 {
+                let square = bits::next(&mut white);
+                self.piece_list[square as usize] = p;
+            }
+
+            while black > 0 {
+                let square = bits::next(&mut black);
+                self.piece_list[square as usize] = p;
+            }
+        }
+    }
+
     /** This function builds the Zobrist key for the inital position. */
     pub fn build_zobrist_key(&mut self) -> ZobristKey {
         let mut key: u64 = 0;
+        let bb_w = self.bb_side[WHITE];
+        let bb_b = self.bb_side[BLACK];
 
-        for (piece, (bb_w, bb_b)) in self.bb_w.iter().zip(self.bb_b.iter()).enumerate() {
-            let mut white = *bb_w;
-            let mut black = *bb_b;
+        for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            let mut white = *w;
+            let mut black = *b;
 
             while white > 0 {
                 let square = bits::next(&mut white);

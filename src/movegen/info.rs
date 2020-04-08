@@ -20,11 +20,7 @@ use crate::defs::{Side, BISHOP, FILE_A, FILE_H, KING, KNIGHT, PAWN, QUEEN, ROOK,
  */
 #[inline(always)]
 pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
-    let pieces = if attacker == WHITE {
-        board.bb_w
-    } else {
-        board.bb_b
-    };
+    let pieces = board.bb_side[attacker];
     let bb_square = 1u64 << square;
     let occupancy = board.occupancy();
     let bb_king = board.get_non_slider_attacks(KING, square);

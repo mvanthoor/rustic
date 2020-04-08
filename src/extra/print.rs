@@ -7,8 +7,8 @@
  */
 use crate::board::representation::Board;
 use crate::defs::{
-    Bitboard, ALL_FILES, ALL_RANKS, BISHOP, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, KING,
-    KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN, ROOK, SQUARE_NAME, WHITE,
+    Bitboard, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ,
+    KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegen::{magics::Magics, movedefs::Move};
 
@@ -83,31 +83,34 @@ pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
 /* Create a printable ASCII-board out of bitboards. */
 #[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
-    for (piece, (bb_w, bb_b)) in board.bb_w.iter().zip(board.bb_b.iter()).enumerate() {
+    let bb_w = board.bb_side[WHITE];
+    let bb_b = board.bb_side[BLACK];
+
+    for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
         match piece {
             KING => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WK);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BK);
+                put_character_on_square(*w, ascii_board, CHAR_WK);
+                put_character_on_square(*b, ascii_board, CHAR_BK);
             }
             QUEEN => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WQ);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BQ);
+                put_character_on_square(*w, ascii_board, CHAR_WQ);
+                put_character_on_square(*b, ascii_board, CHAR_BQ);
             }
             ROOK => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WR);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BR);
+                put_character_on_square(*w, ascii_board, CHAR_WR);
+                put_character_on_square(*b, ascii_board, CHAR_BR);
             }
             BISHOP => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WB);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BB);
+                put_character_on_square(*w, ascii_board, CHAR_WB);
+                put_character_on_square(*b, ascii_board, CHAR_BB);
             }
             KNIGHT => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WN);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BN);
+                put_character_on_square(*w, ascii_board, CHAR_WN);
+                put_character_on_square(*b, ascii_board, CHAR_BN);
             }
             PAWN => {
-                put_character_on_square(*bb_w, ascii_board, CHAR_WP);
-                put_character_on_square(*bb_b, ascii_board, CHAR_BP);
+                put_character_on_square(*w, ascii_board, CHAR_WP);
+                put_character_on_square(*b, ascii_board, CHAR_BP);
             }
             _ => (),
         }

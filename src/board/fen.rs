@@ -60,18 +60,18 @@ fn part_0(part: &str, board: &mut Board) {
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_b[KING] += 1u64 << square,
-            'q' => board.bb_b[QUEEN] += 1u64 << square,
-            'r' => board.bb_b[ROOK] += 1u64 << square,
-            'b' => board.bb_b[BISHOP] += 1u64 << square,
-            'n' => board.bb_b[KNIGHT] += 1u64 << square,
-            'p' => board.bb_b[PAWN] += 1u64 << square,
-            'K' => board.bb_w[KING] += 1u64 << square,
-            'Q' => board.bb_w[QUEEN] += 1u64 << square,
-            'R' => board.bb_w[ROOK] += 1u64 << square,
-            'B' => board.bb_w[BISHOP] += 1u64 << square,
-            'N' => board.bb_w[KNIGHT] += 1u64 << square,
-            'P' => board.bb_w[PAWN] += 1u64 << square,
+            'k' => board.bb_side[BLACK][KING] += 1u64 << square,
+            'q' => board.bb_side[BLACK][QUEEN] += 1u64 << square,
+            'r' => board.bb_side[BLACK][ROOK] += 1u64 << square,
+            'b' => board.bb_side[BLACK][BISHOP] += 1u64 << square,
+            'n' => board.bb_side[BLACK][KNIGHT] += 1u64 << square,
+            'p' => board.bb_side[BLACK][PAWN] += 1u64 << square,
+            'K' => board.bb_side[WHITE][KING] += 1u64 << square,
+            'Q' => board.bb_side[WHITE][QUEEN] += 1u64 << square,
+            'R' => board.bb_side[WHITE][ROOK] += 1u64 << square,
+            'B' => board.bb_side[WHITE][BISHOP] += 1u64 << square,
+            'N' => board.bb_side[WHITE][KNIGHT] += 1u64 << square,
+            'P' => board.bb_side[WHITE][PAWN] += 1u64 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
