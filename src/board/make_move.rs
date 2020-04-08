@@ -64,16 +64,16 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
         adjust_castling_perms_if_leaving_starting_square(board, from);
     }
 
+    // Every move unsets the up-square (if not unset already).
+    board.clear_ep_square();
+
     // After an en-passant maneuver, the opponent's pawn has yet to be removed.
     if en_passant {
         let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
         board.remove_piece(opponent, PAWN, pawn_square);
     }
 
-    // If the en-passant square is set, every move will unset it...
-    board.clear_ep_square();
-
-    // ...except a pawn double-step, which will set it.
+    // A double-step is the only move that sets the ep-square.
     if double_step {
         let ep_square = if us == WHITE { to - 8 } else { to + 8 };
         board.set_ep_square(ep_square);
