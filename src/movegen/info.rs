@@ -18,6 +18,7 @@ use crate::defs::{Side, BISHOP, FILE_A, FILE_H, KING, KNIGHT, PAWN, QUEEN, ROOK,
  *  and then check if the given side actually has at least one pawn on one of those squares.
  * "pieces" and "pawns" are obviously dependent on the side we're looking at.
  */
+#[inline(always)]
 pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
     let pieces = if attacker == WHITE {
         board.bb_w

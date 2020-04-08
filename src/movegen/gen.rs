@@ -136,16 +136,13 @@ fn pawns(board: &Board, list: &mut MoveList) {
 fn castling(board: &Board, list: &mut MoveList) {
     let side = board.active_color as usize;
     let opponent = side ^ 1;
-    let has_castling_rights = if side == WHITE {
-        (board.castling & (CASTLE_WK + CASTLE_WQ)) > 0
-    } else {
-        (board.castling & (CASTLE_BK + CASTLE_BQ)) > 0
-    };
+    let castle_perms_white = (board.castling & (CASTLE_WK | CASTLE_WQ)) > 0;
+    let castle_perms_black = (board.castling & (CASTLE_BK | CASTLE_BQ)) > 0;
     let mut bb_king = board.get_pieces(KING, side);
     let from = bits::next(&mut bb_king);
     let bb_occupancy = board.occupancy();
 
-    if side == WHITE && has_castling_rights {
+    if side == WHITE && castle_perms_white {
         // Kingside
         if board.castling & CASTLE_WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
@@ -160,8 +157,8 @@ fn castling(board: &Board, list: &mut MoveList) {
             }
         }
 
-        // Queenside
         if board.castling & CASTLE_WQ > 0 {
+            // Queenside
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
@@ -173,9 +170,7 @@ fn castling(board: &Board, list: &mut MoveList) {
                 add_move(board, KING, from, to, list);
             }
         }
-    }
-
-    if side == BLACK && has_castling_rights {
+    } else if side == BLACK && castle_perms_black {
         // Kingside
         if board.castling & CASTLE_BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
