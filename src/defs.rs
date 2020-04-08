@@ -33,6 +33,7 @@ pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 pub const NR_OF_SQUARES: u8 = 64;
 pub const NR_OF_FILES: u8 = 8;
+pub const NR_OF_PIECES: u8 = 6;
 
 pub const RANK_1: usize = 0;
 pub const RANK_2: usize = 1;

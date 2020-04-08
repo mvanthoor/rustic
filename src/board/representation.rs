@@ -12,7 +12,7 @@ use super::fen;
 use super::zobrist::{ZobristKey, ZobristRandoms};
 use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
-    BLACK, EMPTY, FEN_START_POSITION, NR_OF_SQUARES, PNONE, WHITE,
+    BLACK, EMPTY, FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::movegen::{
     movedefs::{Move, MoveList},
@@ -53,6 +53,7 @@ pub type UnMakeList = Vec<UnMakeInfo>;
 pub struct Board<'a> {
     pub bb_w: [Bitboard; BITBOARDS_PER_SIDE as usize],
     pub bb_b: [Bitboard; BITBOARDS_PER_SIDE as usize],
+    pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
     pub bb_files: [Bitboard; BB_FOR_FILES as usize],
     pub bb_ranks: [Bitboard; BB_FOR_RANKS as usize],
@@ -77,6 +78,7 @@ impl<'a> Board<'a> {
         let mut board = Board {
             bb_w: [EMPTY; BITBOARDS_PER_SIDE as usize],
             bb_b: [EMPTY; BITBOARDS_PER_SIDE as usize],
+            bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
             bb_files: [EMPTY; BB_FOR_FILES as usize],
             bb_ranks: [EMPTY; BB_FOR_RANKS as usize],
@@ -125,6 +127,7 @@ impl<'a> Board<'a> {
     pub fn reset(&mut self) {
         self.bb_w = [0; BITBOARDS_PER_SIDE as usize];
         self.bb_b = [0; BITBOARDS_PER_SIDE as usize];
+        self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
         self.active_color = WHITE as u8;
         self.castling = 0;
