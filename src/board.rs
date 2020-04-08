@@ -4,7 +4,7 @@ pub mod representation;
 pub mod unmake_move;
 pub mod zobrist;
 
-use crate::defs::Bitboard;
+use crate::defs::{Bitboard, RANK_1, RANK_8};
 
 // Piece location: (file, rank)
 pub type Location = (u8, u8);

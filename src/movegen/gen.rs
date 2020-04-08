@@ -20,6 +20,8 @@ use crate::defs::{
 use crate::utils::bits;
 use crate::{board, board::representation::Board};
 
+const PROMOTION_PIECES: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
+
 /**
  * This function actually generates the moves, using other functions in this module.
  * It takes the following parameters:
@@ -209,14 +211,9 @@ fn castling(board: &Board, list: &mut MoveList) {
  * to the list instead of one; one move for each promotion possibility.
 */
 fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut MoveList) {
-    let side = board.active_color as usize;
     let mut bb_to = to;
-    let promotion_rank = if side == WHITE {
-        RANK_8 as u8
-    } else {
-        RANK_1 as u8
-    };
-    let promotion_pieces: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
+    let side = board.active_color as usize;
+    let promotion_rank = (if side == WHITE { RANK_8 } else { RANK_1 }) as u8;
 
     while bb_to > 0 {
         let to_square = bits::next(&mut bb_to);
@@ -242,10 +239,8 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
                 data: move_data | ((PNONE as u64) << Shift::Promotion as u64),
             };
             list.push(m);
-        }
-
-        if promotion {
-            for piece in promotion_pieces.iter() {
+        } else {
+            for piece in PROMOTION_PIECES.iter() {
                 let m = Move {
                     data: move_data | ((*piece as u64) << Shift::Promotion as u64),
                 };
