@@ -53,7 +53,7 @@ pub fn all_moves(board: &Board, list: &mut MoveList) {
  * - Add those moves to the move list.
  */
 fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
-    let side = board.active_color as usize;
+    let side = board.game_state.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
@@ -87,7 +87,7 @@ fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
  * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
  */
 fn pawns(board: &Board, list: &mut MoveList) {
-    let side = board.active_color as usize;
+    let side = board.game_state.active_color as usize;
     let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     let bb_empty = !board.occupancy();
@@ -104,7 +104,7 @@ fn pawns(board: &Board, list: &mut MoveList) {
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
         let bb_targets = board.get_pawn_attacks(side, from);
         let bb_captures = bb_targets & bb_opponent_pieces;
-        let bb_ep_capture = if let Some(ep) = board.en_passant {
+        let bb_ep_capture = if let Some(ep) = board.game_state.en_passant {
             bb_targets & (1u64 << ep)
         } else {
             0
@@ -134,17 +134,17 @@ fn pawns(board: &Board, list: &mut MoveList) {
  * to makemove/unmake move outside of the move generator.
  */
 fn castling(board: &Board, list: &mut MoveList) {
-    let side = board.active_color as usize;
+    let side = board.game_state.active_color as usize;
     let opponent = side ^ 1;
-    let castle_perms_white = (board.castling & (CASTLE_WK | CASTLE_WQ)) > 0;
-    let castle_perms_black = (board.castling & (CASTLE_BK | CASTLE_BQ)) > 0;
+    let castle_perms_white = (board.game_state.castling & (CASTLE_WK | CASTLE_WQ)) > 0;
+    let castle_perms_black = (board.game_state.castling & (CASTLE_BK | CASTLE_BQ)) > 0;
     let mut bb_king = board.get_pieces(KING, side);
     let from = bits::next(&mut bb_king);
     let bb_occupancy = board.occupancy();
 
     if side == WHITE && castle_perms_white {
         // Kingside
-        if board.castling & CASTLE_WK > 0 {
+        if board.game_state.castling & CASTLE_WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
@@ -157,7 +157,7 @@ fn castling(board: &Board, list: &mut MoveList) {
             }
         }
 
-        if board.castling & CASTLE_WQ > 0 {
+        if board.game_state.castling & CASTLE_WQ > 0 {
             // Queenside
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
@@ -172,7 +172,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         }
     } else if side == BLACK && castle_perms_black {
         // Kingside
-        if board.castling & CASTLE_BK > 0 {
+        if board.game_state.castling & CASTLE_BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
@@ -186,7 +186,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         }
 
         // Queenside
-        if board.castling & CASTLE_BQ > 0 {
+        if board.game_state.castling & CASTLE_BQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
@@ -207,14 +207,14 @@ fn castling(board: &Board, list: &mut MoveList) {
 */
 fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut MoveList) {
     let mut bb_to = to;
-    let side = board.active_color as usize;
+    let side = board.game_state.active_color as usize;
     let promotion_rank = (if side == WHITE { RANK_8 } else { RANK_1 }) as u8;
 
     while bb_to > 0 {
         let to_square = bits::next(&mut bb_to);
         let capture = board.piece_list[to_square as usize];
         let promotion = (piece == PAWN) && board::square_on_rank(to_square, promotion_rank);
-        let en_passant = if let Some(square) = board.en_passant {
+        let en_passant = if let Some(square) = board.game_state.en_passant {
             (piece == PAWN) && (square == to_square)
         } else {
             false

@@ -99,8 +99,8 @@ fn part_1(part: &str, board: &mut Board) {
         if let Some(x) = part.chars().next() {
             step += if WHITE_OR_BLACK.contains(x) { 1 } else { 0 };
             match x {
-                'w' => board.active_color = WHITE as u8,
-                'b' => board.active_color = BLACK as u8,
+                'w' => board.game_state.active_color = WHITE as u8,
+                'b' => board.game_state.active_color = BLACK as u8,
                 _ => (),
             }
         }
@@ -122,10 +122,10 @@ fn part_2(part: &str, board: &mut Board) {
             if CASTLE_RIGHTS.contains(c) {
                 char_ok += 1;
                 match c {
-                    'K' => board.castling += CASTLE_WK,
-                    'Q' => board.castling += CASTLE_WQ,
-                    'k' => board.castling += CASTLE_BK,
-                    'q' => board.castling += CASTLE_BQ,
+                    'K' => board.game_state.castling += CASTLE_WK,
+                    'Q' => board.game_state.castling += CASTLE_WQ,
+                    'k' => board.game_state.castling += CASTLE_BK,
+                    'q' => board.game_state.castling += CASTLE_BQ,
                     _ => (),
                 }
             }
@@ -170,7 +170,7 @@ fn part_3(part: &str, board: &mut Board) {
         }
         if file != 0 && rank != 0 {
             let square_nr = (rank * 8) + file;
-            board.en_passant = Some(square_nr);
+            board.game_state.en_passant = Some(square_nr);
         }
     }
     assert_eq!(char_ok, length, "FEN {}: En Passant Target: {}", PART, part);
@@ -185,7 +185,7 @@ fn part_4(part: &str, board: &mut Board) {
     if length == 1 || length == 2 {
         if let Ok(x) = part.parse::<u8>() {
             if x <= 50 {
-                board.halfmove_clock = x;
+                board.game_state.halfmove_clock = x;
                 is_ok = true;
             }
         }
@@ -202,7 +202,7 @@ fn part_5(part: &str, board: &mut Board) {
     if length >= 1 || length <= 4 {
         if let Ok(x) = part.parse::<u16>() {
             if x <= MAX_FULL_MOVES {
-                board.fullmove_number = x;
+                board.game_state.fullmove_number = x;
                 is_ok = true;
             }
         }

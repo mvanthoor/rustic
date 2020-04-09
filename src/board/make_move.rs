@@ -1,4 +1,4 @@
-use super::representation::{Board, GameState};
+use super::representation::Board;
 use super::unmake_move;
 use crate::defs::{
     A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1,
@@ -10,10 +10,12 @@ use crate::movegen::{info, movedefs::Move};
 
 pub fn make_move(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
-    store_unmake_info(board, m);
+    let mut current_game_state = board.game_state;
+    current_game_state.this_move = m;
+    board.unmake_list.push(current_game_state);
 
     // Set "us" and "opponent"
-    let us = board.active_color as usize;
+    let us = board.game_state.active_color as usize;
     let opponent = (us ^ 1) as usize;
 
     // Dissect the move so we don't need "m.function()" and type casts everywhere.
@@ -30,7 +32,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     // If piece was captured with this move then remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
-        if captured == ROOK && (board.castling > 0) {
+        if captured == ROOK && (board.game_state.castling > 0) {
             adjust_castling_perms_on_rook_capture(board, to);
         }
     }
@@ -50,7 +52,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     }
 
     // King or rook moves from starting square; castling permissions are dropped.
-    if !castling && (piece == KING || piece == ROOK) && (board.castling > 0) {
+    if !castling && (piece == KING || piece == ROOK) && (board.game_state.castling > 0) {
         adjust_castling_perms_if_leaving_starting_square(board, from);
     }
 
@@ -76,14 +78,14 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // Update the move counter
     if (piece == PAWN) || (captured != PNONE) {
-        board.halfmove_clock = 0;
+        board.game_state.halfmove_clock = 0;
     } else {
-        board.halfmove_clock += 1;
+        board.game_state.halfmove_clock += 1;
     }
 
     // Increase full move number if black has moved
     if us == BLACK {
-        board.fullmove_number += 1;
+        board.game_state.fullmove_number += 1;
     }
 
     /*** Validating move: see if "us" is in check ***/
@@ -99,74 +101,60 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     is_legal
 }
 
-// Stores the current board state, and the move made while in that state
-fn store_unmake_info(board: &mut Board, m: Move) {
-    let unmake_info = GameState::new(
-        board.active_color,
-        board.castling,
-        board.en_passant,
-        board.halfmove_clock,
-        board.fullmove_number,
-        board.zobrist_key,
-        m,
-    );
-    board.unmake_list.push(unmake_info);
-}
-
 // This function changes castling permissions according to the rook being captured
 fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match square {
-        H1 => board.castling &= !CASTLE_WK,
-        A1 => board.castling &= !CASTLE_WQ,
-        H8 => board.castling &= !CASTLE_BK,
-        A8 => board.castling &= !CASTLE_BQ,
+        H1 => board.game_state.castling &= !CASTLE_WK,
+        A1 => board.game_state.castling &= !CASTLE_WQ,
+        H8 => board.game_state.castling &= !CASTLE_BK,
+        A8 => board.game_state.castling &= !CASTLE_BQ,
         _ => (),
     }
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
 
 // This function adjusts castling permissions if king or rook leaves a starting square.
 fn adjust_castling_perms_if_leaving_starting_square(board: &mut Board, square: u8) {
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match square {
-        H1 => board.castling &= !CASTLE_WK,
-        A1 => board.castling &= !CASTLE_WQ,
-        E1 => board.castling &= !(CASTLE_WK + CASTLE_WQ),
-        H8 => board.castling &= !CASTLE_BK,
-        A8 => board.castling &= !CASTLE_BQ,
-        E8 => board.castling &= !(CASTLE_BK + CASTLE_BQ),
+        H1 => board.game_state.castling &= !CASTLE_WK,
+        A1 => board.game_state.castling &= !CASTLE_WQ,
+        E1 => board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ),
+        H8 => board.game_state.castling &= !CASTLE_BK,
+        A8 => board.game_state.castling &= !CASTLE_BQ,
+        E8 => board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ),
         _ => (),
     };
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
 
 // This function moves the correct rook after the king has moved during castling.
 fn move_rook_during_castling(board: &mut Board, king_square: u8) {
-    let us = board.active_color as usize;
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    let us = board.game_state.active_color as usize;
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match king_square {
         G1 => {
             board.remove_piece(us, ROOK, H1);
             board.put_piece(us, ROOK, F1);
-            board.castling &= !(CASTLE_WK + CASTLE_WQ);
+            board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
         }
         C1 => {
             board.remove_piece(us, ROOK, A1);
             board.put_piece(us, ROOK, D1);
-            board.castling &= !(CASTLE_WK + CASTLE_WQ);
+            board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
         }
         G8 => {
             board.remove_piece(us, ROOK, H8);
             board.put_piece(us, ROOK, F8);
-            board.castling &= !(CASTLE_BK + CASTLE_BQ);
+            board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
         C8 => {
             board.remove_piece(us, ROOK, A8);
             board.put_piece(us, ROOK, D8);
-            board.castling &= !(CASTLE_BK + CASTLE_BQ);
+            board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
         _ => (),
     }
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.castling);
+    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }

@@ -164,24 +164,26 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
 
 /** This function prints all of the metadata about the position. */
 fn metadata(board: &Board) {
-    let castling = castling_as_string(board.castling);
-    let en_passant = if let Some(ep) = board.en_passant {
+    let castling = castling_as_string(board.game_state.castling);
+    let en_passant = if let Some(ep) = board.game_state.en_passant {
         SQUARE_NAME[ep as usize]
     } else {
         "-"
     };
-    let active_color = if (board.active_color as usize) == WHITE {
+    let active_color = if (board.game_state.active_color as usize) == WHITE {
         "White"
     } else {
         "Black"
     };
 
+    let hmc = board.game_state.halfmove_clock;
+    let fmn = board.game_state.fullmove_number;
     println!("{:<20}{:x}", "Zobrist key:", board.zobrist_key);
     println!("{:<20}{}", "Active Color:", active_color);
     println!("{:<20}{}", "Castling:", castling);
     println!("{:<20}{}", "En Passant:", en_passant);
-    println!("{:<20}{}", "Half-move clock:", board.halfmove_clock);
-    println!("{:<20}{}", "Full-move number:", board.fullmove_number);
+    println!("{:<20}{}", "Half-move clock:", hmc);
+    println!("{:<20}{}", "Full-move number:", fmn);
     println!();
 }
 

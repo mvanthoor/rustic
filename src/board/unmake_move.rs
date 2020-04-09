@@ -2,31 +2,30 @@ use super::representation::Board;
 use crate::defs::{
     Piece, Side, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE,
 };
+//use crate::movegen::movedefs::Move;
 use crate::utils::bits;
 
 // TODO: Update comments
 
 pub fn unmake_move(board: &mut Board) {
-    let unamke_info = board.unmake_list.pop();
-    if let Some(stored) = unamke_info {
+    let game_state = board.unmake_list.pop();
+    if let Some(stored) = game_state {
         // Set "us" and "opponent"
         let us = stored.active_color as usize;
         let opponent = (us ^ 1) as usize;
 
         // Dissect the move to undo
-        let last_move = stored.this_move;
-        let piece = last_move.piece() as usize;
-        let from = last_move.from();
-        let to = last_move.to();
-        let captured = last_move.captured() as usize;
-        let promoted = last_move.promoted() as usize;
-        let castling = last_move.castling();
-        let en_passant = last_move.en_passant();
-
-        let promotion_move = promoted != PNONE;
+        let m = stored.this_move;
+        let piece = m.piece() as usize;
+        let from = m.from();
+        let to = m.to();
+        let captured = m.captured() as usize;
+        let promoted = m.promoted() as usize;
+        let castling = m.castling();
+        let en_passant = m.en_passant();
 
         // Moving backwards...
-        if !promotion_move {
+        if promoted == PNONE {
             reverse_move(board, us, piece, to, from);
         } else {
             remove_piece(board, us, promoted, to);
@@ -57,12 +56,7 @@ pub fn unmake_move(board: &mut Board) {
         }
 
         // restore the previous board state.
-        board.active_color = stored.active_color;
-        board.castling = stored.castling;
-        board.en_passant = stored.en_passant;
-        board.halfmove_clock = stored.halfmove_clock;
-        board.fullmove_number = stored.fullmove_number;
-        board.zobrist_key = stored.zobrist_key;
+        board.game_state = stored;
     }
 }
 

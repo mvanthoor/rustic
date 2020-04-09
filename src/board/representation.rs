@@ -22,7 +22,7 @@ use crate::utils::bits;
 
 const MAX_GAME_MOVES: u16 = 2048;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct GameState {
     pub active_color: u8,
     pub castling: u8,
@@ -55,11 +55,7 @@ pub struct Board<'a> {
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
     pub bb_files: [Bitboard; BB_FOR_FILES as usize],
     pub bb_ranks: [Bitboard; BB_FOR_RANKS as usize],
-    pub active_color: u8,
-    pub castling: u8,
-    pub en_passant: Option<u8>,
-    pub halfmove_clock: u8,
-    pub fullmove_number: u16,
+    pub game_state: GameState,
     pub unmake_list: UnMakeList,
     pub zobrist_key: ZobristKey,
     pub zobrist_randoms: &'a ZobristRandoms,
@@ -78,11 +74,7 @@ impl<'a> Board<'a> {
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
             bb_files: [EMPTY; BB_FOR_FILES as usize],
             bb_ranks: [EMPTY; BB_FOR_RANKS as usize],
-            active_color: WHITE as u8,
-            castling: 0,
-            en_passant: None,
-            halfmove_clock: 0,
-            fullmove_number: 0,
+            game_state: GameState::new(0, 0, None, 0, 0, 0, Move { data: 0 }),
             unmake_list: Vec::with_capacity(MAX_GAME_MOVES as usize),
             zobrist_key: EMPTY,
             zobrist_randoms: zr,
@@ -106,11 +98,7 @@ impl<'a> Board<'a> {
     pub fn reset(&mut self) {
         self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
-        self.active_color = WHITE as u8;
-        self.castling = 0;
-        self.en_passant = None;
-        self.halfmove_clock = 0;
-        self.fullmove_number = 0;
+        self.game_state = GameState::new(0, 0, None, 0, 0, 0, Move { data: 0 });
         self.unmake_list.clear();
         self.zobrist_key = EMPTY;
         self.piece_list = [PNONE; NR_OF_SQUARES as usize];
@@ -150,32 +138,29 @@ impl<'a> Board<'a> {
 
     // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: u8) {
-        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
-        self.en_passant = Some(square);
-        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.game_state.en_passant = Some(square);
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Clear the ep-square. (If the ep-square is None already, nothing changes.)
     pub fn clear_ep_square(&mut self) {
-        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
-        self.en_passant = None;
-        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.en_passant);
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.game_state.en_passant = None;
+        self.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Swap side from WHITE <==> BLACK
     pub fn swap_side(&mut self) {
-        let us = self.active_color as usize;
+        let us = self.game_state.active_color as usize;
         let opponent = us ^ 1;
 
         self.zobrist_key ^= self.zobrist_randoms.side(us);
         self.zobrist_key ^= self.zobrist_randoms.side(opponent);
-        self.active_color = opponent as u8;
+        self.game_state.active_color = opponent as u8;
     }
 
-    /**
-     * This function iterates through all the white and black bitboards
-     * to create the bitboard holding all of the pieces of that color.
-     */
+    // This function creates bitboards per side, containing all the pieces of that side.
     fn create_piece_bitboards(&mut self) {
         for (bb_w, bb_b) in self.bb_side[WHITE].iter().zip(self.bb_side[BLACK].iter()) {
             self.bb_pieces[WHITE] |= *bb_w;
@@ -223,6 +208,7 @@ impl<'a> Board<'a> {
     /** This function builds the Zobrist key for the inital position. */
     pub fn build_zobrist_key(&mut self) -> ZobristKey {
         let mut key: u64 = 0;
+        let zr = self.zobrist_randoms;
         let bb_w = self.bb_side[WHITE];
         let bb_b = self.bb_side[BLACK];
 
@@ -232,18 +218,18 @@ impl<'a> Board<'a> {
 
             while white > 0 {
                 let square = bits::next(&mut white);
-                key ^= self.zobrist_randoms.piece(WHITE, piece, square);
+                key ^= zr.piece(WHITE, piece, square);
             }
 
             while black > 0 {
                 let square = bits::next(&mut black);
-                key ^= self.zobrist_randoms.piece(BLACK, piece, square);
+                key ^= zr.piece(BLACK, piece, square);
             }
         }
 
-        key ^= self.zobrist_randoms.castling(self.castling);
-        key ^= self.zobrist_randoms.side(self.active_color as usize);
-        key ^= self.zobrist_randoms.en_passant(self.en_passant);
+        key ^= zr.castling(self.game_state.castling);
+        key ^= zr.side(self.game_state.active_color as usize);
+        key ^= zr.en_passant(self.game_state.en_passant);
 
         key
     }
