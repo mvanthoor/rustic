@@ -6,17 +6,7 @@ use crate::defs::{
 };
 use crate::movegen::{info, movedefs::Move};
 
-/**
- * This function executes the given move "m" on the board.
- * See the comments within the function to find out what it
- * does exactly, and in which order.
- *
- * Note: Zobrist hasing is handled by the board itself when
- * moving pieces. The exception is castling; the castling
- * permissions can suddenly change because of a piece move or
- * rook capture. This is handled by make_move() through some
- * seperate functions.
-*/
+// TODO: Update comments
 
 pub fn make_move(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.

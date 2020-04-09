@@ -29,16 +29,8 @@ pub fn unmake_move(board: &mut Board) {
         if !promotion_move {
             reverse_move(board, us, piece, to, from);
         } else {
-            // When this was a promotion, the piece actually changes into a pawn again.
-            // Remove the promoted piece from the to-square
-            bits::clear_bit(&mut board.bb_side[us][promoted], to);
-            bits::clear_bit(&mut board.bb_pieces[us], to);
-            board.piece_list[to as usize] = PNONE;
-
-            // Put a pawn onto the from-square
-            bits::set_bit(&mut board.bb_side[us][PAWN], from);
-            bits::set_bit(&mut board.bb_pieces[us], from);
-            board.piece_list[from as usize] = PAWN;
+            remove_piece(board, us, promoted, to);
+            put_piece(board, us, PAWN, from);
         }
 
         // The king's move was already undone as a normal move.
@@ -55,17 +47,13 @@ pub fn unmake_move(board: &mut Board) {
 
         // If a piece was captured, put it back onto the to-square
         if captured != PNONE {
-            bits::set_bit(&mut board.bb_side[opponent][captured], to);
-            bits::set_bit(&mut board.bb_pieces[opponent], to);
-            board.piece_list[to as usize] = captured;
+            put_piece(board, opponent, captured, to);
         }
 
         // If this was an e-passant move, put the opponent's pawn back
         if en_passant {
             let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-            bits::set_bit(&mut board.bb_side[opponent][PAWN], pawn_square);
-            bits::set_bit(&mut board.bb_pieces[opponent], pawn_square);
-            board.piece_list[pawn_square as usize] = PAWN;
+            put_piece(board, opponent, PAWN, pawn_square);
         }
 
         // restore the previous board state.
@@ -78,12 +66,22 @@ pub fn unmake_move(board: &mut Board) {
     }
 }
 
-fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: u8, put: u8) {
-    bits::clear_bit(&mut board.bb_side[side][piece], remove);
-    bits::clear_bit(&mut board.bb_pieces[side], remove);
-    board.piece_list[remove as usize] = PNONE;
+// Removes a piece from the board.
+fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+    bits::clear_bit(&mut board.bb_side[side][piece], square);
+    bits::clear_bit(&mut board.bb_pieces[side], square);
+    board.piece_list[square as usize] = PNONE;
+}
 
-    board.piece_list[put as usize] = piece;
-    bits::set_bit(&mut board.bb_side[side][piece], put);
-    bits::set_bit(&mut board.bb_pieces[side], put);
+// Puts a piece onto the board.
+fn put_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+    bits::set_bit(&mut board.bb_side[side][piece], square);
+    bits::set_bit(&mut board.bb_pieces[side], square);
+    board.piece_list[square as usize] = piece;
+}
+
+// Moves a piece from one square to the other.
+fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: u8, put: u8) {
+    remove_piece(board, side, piece, remove);
+    put_piece(board, side, piece, put);
 }
