@@ -30,10 +30,9 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
     // If piece was captured with this move then remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
-    }
-
-    if captured == ROOK && (board.castling > 0) {
-        adjust_castling_perms_on_rook_capture(board, to);
+        if captured == ROOK && (board.castling > 0) {
+            adjust_castling_perms_on_rook_capture(board, to);
+        }
     }
 
     // Make the move, taking promotion into account.
