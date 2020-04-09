@@ -2,7 +2,7 @@ mod large_epd;
 
 use crate::board::{representation::Board, zobrist::ZobristRandoms};
 use crate::extra::{perft, print};
-use crate::movegen::{movedefs::MoveListPool, MoveGenerator};
+use crate::movegen::MoveGenerator;
 use large_epd::LARGE_PERFT_SUITE;
 use std::time::Instant;
 
@@ -56,7 +56,6 @@ fn run(subset: &[&str]) {
         // Run each test at the given depths.
         for (i, d) in data.iter().enumerate() {
             let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
-            let mut move_list_pool = MoveListPool::new();
 
             // Data index 0 contains the FEN-string, so skip this
             // and start at index 1 to find the expected leaf nodes per depth.
@@ -74,7 +73,7 @@ fn run(subset: &[&str]) {
 
                 // This is the actual perft test for this test and depth.
                 let now = Instant::now();
-                let found_leaf_nodes = perft::perft(&mut board, depth, &mut move_list_pool);
+                let found_leaf_nodes = perft::perft(&mut board, depth);
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_leaf_nodes == found_leaf_nodes;

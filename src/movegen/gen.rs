@@ -34,7 +34,6 @@ const PROMOTION_PIECES: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
  * list: a mutable reference to a list that will contain the moves.
 */
 pub fn all_moves(board: &Board, list: &mut MoveList) {
-    list.clear();
     piece(KING, board, list);
     piece(KNIGHT, board, list);
     piece(ROOK, board, list);
