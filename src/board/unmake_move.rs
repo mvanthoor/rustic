@@ -1,24 +1,8 @@
 use super::representation::Board;
-use crate::defs::{A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE};
+use crate::defs::{Side, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE};
 use crate::utils::bits;
 
-/**
- * This function retracts moves made by make_move().
- * Notice that it doesn't use "board.put_piece()" and "board.remove_piece()"
- * and related functions the way make_move does. The reason is that these
- * functions incrementally update the Zobrist key, which is necessary for
- * make_move; doing this update incrementally is much faster than calculating
- * the key from scratch when make_move is done.
- *
- * Unmake_move on the other hand, justretrieves the zobrist key of the
- * previous board from unmake_info, so it  * does not need to keep track
- * of the key. The same is true for the rest of the board state such as
- * castling rights. Therefore, unmake_move just putspieces back where they
- * came from all by itself, without keeping track of the board state,
- * and it copies that state back from the list of saved states at the end.
- * Doing it this way makes unmake_move faster, because all of the incremental
- * state updates can be omitted.
-*/
+// TODO: Update comments
 
 pub fn unmake_move(board: &mut Board) {
     let unamke_info = board.unmake_list.pop();
@@ -67,42 +51,10 @@ pub fn unmake_move(board: &mut Board) {
         // Now undo the correct castling rook move.
         if castling {
             match to {
-                G1 => {
-                    bits::clear_bit(&mut board.bb_side[us][ROOK], F1);
-                    bits::clear_bit(&mut board.bb_pieces[us], F1);
-                    board.piece_list[F1 as usize] = PNONE;
-
-                    board.piece_list[H1 as usize] = ROOK;
-                    bits::set_bit(&mut board.bb_side[us][ROOK], H1);
-                    bits::set_bit(&mut board.bb_pieces[us], H1);
-                }
-                C1 => {
-                    bits::clear_bit(&mut board.bb_side[us][ROOK], D1);
-                    bits::clear_bit(&mut board.bb_pieces[us], D1);
-                    board.piece_list[D1 as usize] = PNONE;
-
-                    board.piece_list[A1 as usize] = ROOK;
-                    bits::set_bit(&mut board.bb_side[us][ROOK], A1);
-                    bits::set_bit(&mut board.bb_pieces[us], A1);
-                }
-                G8 => {
-                    bits::clear_bit(&mut board.bb_side[us][ROOK], F8);
-                    bits::clear_bit(&mut board.bb_pieces[us], F8);
-                    board.piece_list[F8 as usize] = PNONE;
-
-                    board.piece_list[H8 as usize] = ROOK;
-                    bits::set_bit(&mut board.bb_side[us][ROOK], H8);
-                    bits::set_bit(&mut board.bb_pieces[us], H8);
-                }
-                C8 => {
-                    bits::clear_bit(&mut board.bb_side[us][ROOK], D8);
-                    bits::clear_bit(&mut board.bb_pieces[us], D8);
-                    board.piece_list[D8 as usize] = PNONE;
-
-                    board.piece_list[A8 as usize] = ROOK;
-                    bits::set_bit(&mut board.bb_side[us][ROOK], A8);
-                    bits::set_bit(&mut board.bb_pieces[us], A8);
-                }
+                G1 => reverse_move(board, us, F1, H1),
+                C1 => reverse_move(board, us, D1, A1),
+                G8 => reverse_move(board, us, F8, H8),
+                C8 => reverse_move(board, us, D8, A8),
                 _ => (),
             };
         }
@@ -130,4 +82,14 @@ pub fn unmake_move(board: &mut Board) {
         board.fullmove_number = stored.fullmove_number;
         board.zobrist_key = stored.zobrist_key;
     }
+}
+
+fn reverse_move(board: &mut Board, side: Side, remove: u8, put: u8) {
+    bits::clear_bit(&mut board.bb_side[side][ROOK], remove);
+    bits::clear_bit(&mut board.bb_pieces[side], remove);
+    board.piece_list[remove as usize] = PNONE;
+
+    board.piece_list[put as usize] = ROOK;
+    bits::set_bit(&mut board.bb_side[side][ROOK], put);
+    bits::set_bit(&mut board.bb_pieces[side], put);
 }
