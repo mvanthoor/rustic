@@ -1,4 +1,4 @@
-use std::cmp;
+use std::mem;
 
 /*
 Move format explanation
@@ -47,25 +47,29 @@ pub enum Shift {
 }
 
 /** This part defines the movelist, and the move and its functions */
-pub const MAX_LEGAL_MOVES: u8 = 255;
+pub const MAX_MOVES: u8 = 255;
 
 #[derive(Copy, Clone)]
 pub struct MoveList {
-    list: [Move; MAX_LEGAL_MOVES as usize],
+    list: [Move; MAX_MOVES as usize],
     count: u8,
 }
 
 impl MoveList {
     pub fn new() -> MoveList {
         MoveList {
-            list: [Move { data: 0 }; MAX_LEGAL_MOVES as usize],
+            list: unsafe { mem::MaybeUninit::uninit().assume_init() },
             count: 0,
         }
     }
 
     pub fn push(&mut self, m: Move) {
-        self.list[self.count as usize] = m;
-        self.count += 1;
+        if self.count < MAX_MOVES {
+            self.list[self.count as usize] = m;
+            self.count += 1;
+        } else {
+            panic!("MoveList is already full.");
+        }
     }
 
     pub fn len(&self) -> u8 {
@@ -73,6 +77,9 @@ impl MoveList {
     }
 
     pub fn get_move(&self, index: u8) -> Move {
+        if index >= self.count {
+            panic!("MoveList index out of range.");
+        }
         self.list[index as usize]
     }
 }
