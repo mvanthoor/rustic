@@ -1,5 +1,7 @@
 use super::representation::Board;
-use crate::defs::{Side, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE};
+use crate::defs::{
+    Piece, Side, A1, A8, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, PAWN, PNONE, ROOK, WHITE,
+};
 use crate::utils::bits;
 
 // TODO: Update comments
@@ -25,15 +27,7 @@ pub fn unmake_move(board: &mut Board) {
 
         // Moving backwards...
         if !promotion_move {
-            // remove the piece from the to-square
-            bits::clear_bit(&mut board.bb_side[us][piece], to);
-            bits::clear_bit(&mut board.bb_pieces[us], to);
-            board.piece_list[to as usize] = PNONE;
-
-            // Put the piece onto the from-square
-            bits::set_bit(&mut board.bb_side[us][piece], from);
-            bits::set_bit(&mut board.bb_pieces[us], from);
-            board.piece_list[from as usize] = piece;
+            reverse_move(board, us, piece, to, from);
         } else {
             // When this was a promotion, the piece actually changes into a pawn again.
             // Remove the promoted piece from the to-square
@@ -51,10 +45,10 @@ pub fn unmake_move(board: &mut Board) {
         // Now undo the correct castling rook move.
         if castling {
             match to {
-                G1 => reverse_move(board, us, F1, H1),
-                C1 => reverse_move(board, us, D1, A1),
-                G8 => reverse_move(board, us, F8, H8),
-                C8 => reverse_move(board, us, D8, A8),
+                G1 => reverse_move(board, us, ROOK, F1, H1),
+                C1 => reverse_move(board, us, ROOK, D1, A1),
+                G8 => reverse_move(board, us, ROOK, F8, H8),
+                C8 => reverse_move(board, us, ROOK, D8, A8),
                 _ => (),
             };
         }
@@ -84,12 +78,12 @@ pub fn unmake_move(board: &mut Board) {
     }
 }
 
-fn reverse_move(board: &mut Board, side: Side, remove: u8, put: u8) {
-    bits::clear_bit(&mut board.bb_side[side][ROOK], remove);
+fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: u8, put: u8) {
+    bits::clear_bit(&mut board.bb_side[side][piece], remove);
     bits::clear_bit(&mut board.bb_pieces[side], remove);
     board.piece_list[remove as usize] = PNONE;
 
-    board.piece_list[put as usize] = ROOK;
-    bits::set_bit(&mut board.bb_side[side][ROOK], put);
+    board.piece_list[put as usize] = piece;
+    bits::set_bit(&mut board.bb_side[side][piece], put);
     bits::set_bit(&mut board.bb_pieces[side], put);
 }
