@@ -23,7 +23,7 @@ use crate::utils::bits;
 const MAX_GAME_MOVES: u16 = 2048;
 
 #[derive(Clone)]
-pub struct UnMakeInfo {
+pub struct GameState {
     pub active_color: u8,
     pub castling: u8,
     pub en_passant: Option<u8>,
@@ -33,9 +33,9 @@ pub struct UnMakeInfo {
     pub this_move: Move,
 }
 
-impl UnMakeInfo {
-    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, zk: u64, m: Move) -> UnMakeInfo {
-        UnMakeInfo {
+impl GameState {
+    pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, zk: u64, m: Move) -> GameState {
+        GameState {
             active_color: ac,
             castling: c,
             en_passant: ep,
@@ -47,7 +47,7 @@ impl UnMakeInfo {
     }
 }
 
-pub type UnMakeList = Vec<UnMakeInfo>;
+pub type UnMakeList = Vec<GameState>;
 
 #[derive(Clone)]
 pub struct Board<'a> {

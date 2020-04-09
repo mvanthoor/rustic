@@ -1,4 +1,4 @@
-use super::representation::{Board, UnMakeInfo};
+use super::representation::{Board, GameState};
 use super::unmake_move;
 use crate::defs::{
     A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1,
@@ -101,7 +101,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
 // Stores the current board state, and the move made while in that state
 fn store_unmake_info(board: &mut Board, m: Move) {
-    let unmake_info = UnMakeInfo::new(
+    let unmake_info = GameState::new(
         board.active_color,
         board.castling,
         board.en_passant,
