@@ -1,13 +1,4 @@
-/**
- * board.rs holds Rustic's board representation and functions associated with it.
- * Rustic uses bitboards. This means there will be at least 6 bitboards for each side;
- * one bitboard per piece type per side.
- * In addition, there are also bitboards containing all white pieces, all black pieces
- * (so it isn't necessary to loop through the bitboards all the time), and bitboards masking
- * files or ranks. Later, more bitboards (diagonals, for exmple) may be added.
- * All other things making up a chess position such as color, castling rights, e_passant
- * and others, will also be in this struct.
-*/
+// TODO: Update comments
 use super::fen;
 use super::zobrist::{ZobristKey, ZobristRandoms};
 use crate::defs::{
@@ -34,18 +25,6 @@ pub struct GameState {
 }
 
 impl GameState {
-    // pub fn new(ac: u8, c: u8, ep: Option<u8>, hmc: u8, fmn: u16, zk: u64, m: Move) -> GameState {
-    //     GameState {
-    //         active_color: ac,
-    //         castling: c,
-    //         en_passant: ep,
-    //         halfmove_clock: hmc,
-    //         fullmove_number: fmn,
-    //         zobrist_key: zk,
-    //         this_move: m,
-    //     }
-    // }
-
     pub fn new() -> GameState {
         GameState {
             active_color: 0,
@@ -59,17 +38,15 @@ impl GameState {
     }
 }
 
-// pub type UnMakeList = Vec<GameState>;
-
 #[derive(Clone)]
-pub struct UnMakeList {
+pub struct History {
     list: [GameState; MAX_GAME_MOVES as usize],
     count: usize,
 }
 
-impl UnMakeList {
-    pub fn new() -> UnMakeList {
-        UnMakeList {
+impl History {
+    pub fn new() -> History {
+        History {
             list: [GameState::new(); MAX_GAME_MOVES as usize],
             count: 0,
         }
@@ -100,17 +77,14 @@ pub struct Board<'a> {
     pub bb_files: [Bitboard; BB_FOR_FILES as usize],
     pub bb_ranks: [Bitboard; BB_FOR_RANKS as usize],
     pub game_state: GameState,
-    pub unmake_list: UnMakeList,
+    pub history: History,
     pub zobrist_randoms: &'a ZobristRandoms,
     pub piece_list: [Piece; NR_OF_SQUARES as usize],
     move_generator: &'a MoveGenerator,
 }
 
 impl<'a> Board<'a> {
-    /**
-     * This function creates a new board. If an FEN-position is passed, then use that for
-     * setting up the board. If None is passed, use the normal starting position.
-     */
+    // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator, fen: Option<&str>) -> Board<'a> {
         let mut board = Board {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
@@ -118,7 +92,7 @@ impl<'a> Board<'a> {
             bb_files: [EMPTY; BB_FOR_FILES as usize],
             bb_ranks: [EMPTY; BB_FOR_RANKS as usize],
             game_state: GameState::new(),
-            unmake_list: UnMakeList::new(),
+            history: History::new(),
             zobrist_randoms: zr,
             piece_list: [PNONE; NR_OF_SQUARES as usize],
             move_generator: mg,
@@ -131,17 +105,17 @@ impl<'a> Board<'a> {
             board.setup_fen(FEN_START_POSITION);
         }
         board.create_piece_list();
-        board.game_state.zobrist_key = board.build_zobrist_key();
+        board.game_state.zobrist_key = board.create_zobrist_key();
 
         board
     }
 
-    /** Reset the board. */
+    // Reset the board.
     pub fn reset(&mut self) {
         self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
         self.game_state = GameState::new();
-        self.unmake_list.clear();
+        self.history.clear();
         self.piece_list = [PNONE; NR_OF_SQUARES as usize];
     }
 
@@ -151,12 +125,12 @@ impl<'a> Board<'a> {
         self.create_piece_bitboards();
     }
 
-    /** Get the pieces of a certain type, for one of the sides. */
+    // Return a bitboard with locations of a certain piece type for one of the sides.
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
         self.bb_side[side][piece]
     }
 
-    /** Return a bitboard containing all the pieces on the board. */
+    // Return a bitboard containing all the pieces on the board.
     pub fn occupancy(&self) -> Bitboard {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
     }
@@ -175,6 +149,11 @@ impl<'a> Board<'a> {
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.piece_list[square as usize] = piece;
+    }
+
+    pub fn move_piece(&mut self, side: Side, piece: Piece, from: u8, to: u8) {
+        self.remove_piece(side, piece, from);
+        self.put_piece(side, piece, to);
     }
 
     // Set a square as being the current ep-square.
@@ -226,7 +205,7 @@ impl<'a> Board<'a> {
         self.move_generator.get_pawn_attacks(side, square)
     }
 
-    // This function builds the initial piece list (which piece type on which square).
+    // Build initial piece list with piece locations.
     fn create_piece_list(&mut self) {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
@@ -246,8 +225,8 @@ impl<'a> Board<'a> {
         }
     }
 
-    /** This function builds the Zobrist key for the inital position. */
-    pub fn build_zobrist_key(&mut self) -> ZobristKey {
+    // Create the initial Zobirst Key.
+    pub fn create_zobrist_key(&mut self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = self.zobrist_randoms;
         let bb_w = self.bb_side[WHITE];

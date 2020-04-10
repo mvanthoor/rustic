@@ -6,7 +6,6 @@ mod extra;
 mod movegen;
 mod utils;
 
-use board::{make_move, unmake_move};
 use board::{representation::Board, zobrist::ZobristRandoms};
 use comm::cli;
 use extra::perft;
@@ -26,6 +25,6 @@ fn main() {
 
     // print::position(&board, None);
     // while cli::get_input(&mut board) != 0 {}
-    perft::run(&board, 7);
-    // perftsuite::run_all_tests();
+    // perft::run(&board, 7);
+    perftsuite::run_all_tests();
 }

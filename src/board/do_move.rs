@@ -1,18 +1,17 @@
 use super::representation::Board;
-use super::unmake_move;
 use crate::defs::{
-    A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8, F1, F8, G1,
-    G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
+    Piece, Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8,
+    F1, F8, G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::{info, movedefs::Move};
+use crate::utils::bits;
 
 // TODO: Update comments
-
-pub fn make_move(board: &mut Board, m: Move) -> bool {
+pub fn make(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
     let mut current_game_state = board.game_state;
     current_game_state.this_move = m;
-    board.unmake_list.push(current_game_state);
+    board.history.push(current_game_state);
 
     // Set "us" and "opponent"
     let us = board.game_state.active_color as usize;
@@ -95,7 +94,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
     // We're in check. Undo everything.
     if !is_legal {
-        unmake_move::unmake_move(board);
+        unmake(board);
     }
 
     is_legal
@@ -135,26 +134,97 @@ fn move_rook_during_castling(board: &mut Board, king_square: u8) {
     board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match king_square {
         G1 => {
-            board.remove_piece(us, ROOK, H1);
-            board.put_piece(us, ROOK, F1);
+            board.move_piece(us, ROOK, H1, F1);
             board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
         }
         C1 => {
-            board.remove_piece(us, ROOK, A1);
-            board.put_piece(us, ROOK, D1);
+            board.move_piece(us, ROOK, A1, D1);
             board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
         }
         G8 => {
-            board.remove_piece(us, ROOK, H8);
-            board.put_piece(us, ROOK, F8);
+            board.move_piece(us, ROOK, H8, F8);
             board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
         C8 => {
-            board.remove_piece(us, ROOK, A8);
-            board.put_piece(us, ROOK, D8);
+            board.move_piece(us, ROOK, A8, D8);
             board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
-        _ => (),
+        _ => assert!(false, "Error: Move rook during castling."),
     }
     board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+}
+
+/*** ================================================================================ ***/
+
+// TODO: Update comments
+pub fn unmake(board: &mut Board) {
+    let stored = board.history.pop();
+
+    // Set "us" and "opponent"
+    let us = stored.active_color as usize;
+    let opponent = (us ^ 1) as usize;
+
+    // Dissect the move to undo
+    let m = stored.this_move;
+    let piece = m.piece() as usize;
+    let from = m.from();
+    let to = m.to();
+    let captured = m.captured() as usize;
+    let promoted = m.promoted() as usize;
+    let castling = m.castling();
+    let en_passant = m.en_passant();
+
+    // Moving backwards...
+    if promoted == PNONE {
+        reverse_move(board, us, piece, to, from);
+    } else {
+        remove_piece(board, us, promoted, to);
+        put_piece(board, us, PAWN, from);
+    }
+
+    // The king's move was already undone as a normal move.
+    // Now undo the correct castling rook move.
+    if castling {
+        match to {
+            G1 => reverse_move(board, us, ROOK, F1, H1),
+            C1 => reverse_move(board, us, ROOK, D1, A1),
+            G8 => reverse_move(board, us, ROOK, F8, H8),
+            C8 => reverse_move(board, us, ROOK, D8, A8),
+            _ => assert!(false, "Error: Reversing castling rook move."),
+        };
+    }
+
+    // If a piece was captured, put it back onto the to-square
+    if captured != PNONE {
+        put_piece(board, opponent, captured, to);
+    }
+
+    // If this was an e-passant move, put the opponent's pawn back
+    if en_passant {
+        let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
+        put_piece(board, opponent, PAWN, pawn_square);
+    }
+
+    // restore the previous board state.
+    board.game_state = stored;
+}
+
+// Removes a piece from the board.
+fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+    bits::clear_bit(&mut board.bb_side[side][piece], square);
+    bits::clear_bit(&mut board.bb_pieces[side], square);
+    board.piece_list[square as usize] = PNONE;
+}
+
+// Puts a piece onto the board.
+fn put_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+    bits::set_bit(&mut board.bb_side[side][piece], square);
+    bits::set_bit(&mut board.bb_pieces[side], square);
+    board.piece_list[square as usize] = piece;
+}
+
+// Moves a piece from one square to the other.
+fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: u8, put: u8) {
+    remove_piece(board, side, piece, remove);
+    put_piece(board, side, piece, put);
 }

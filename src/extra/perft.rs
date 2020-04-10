@@ -1,4 +1,4 @@
-use crate::board::{make_move, representation::Board, unmake_move};
+use crate::board::{do_move, representation::Board};
 use crate::extra::print;
 use crate::movegen::movedefs::MoveList;
 use std::time::Instant;
@@ -48,11 +48,11 @@ pub fn perft(board: &mut Board, depth: u8) -> u64 {
 
     for i in 0..nr_of_moves {
         let m = move_list.get_move(i);
-        let legal = make_move::make_move(board, m);
+        let legal = do_move::make(board, m);
 
         if legal {
             leaf_nodes += perft(board, depth - 1);
-            unmake_move::unmake_move(board);
+            do_move::unmake(board);
         }
     }
 
