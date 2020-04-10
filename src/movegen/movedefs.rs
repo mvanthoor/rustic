@@ -64,12 +64,9 @@ impl MoveList {
     }
 
     pub fn push(&mut self, m: Move) {
-        if self.count < MAX_MOVES {
-            self.list[self.count as usize] = m;
-            self.count += 1;
-        } else {
-            panic!("MoveList is already full.");
-        }
+        assert!(self.count < MAX_MOVES, "Move list already full.");
+        self.list[self.count as usize] = m;
+        self.count += 1;
     }
 
     pub fn len(&self) -> u8 {
@@ -77,9 +74,7 @@ impl MoveList {
     }
 
     pub fn get_move(&self, index: u8) -> Move {
-        if index >= self.count {
-            panic!("MoveList index out of range.");
-        }
+        assert!(index <= self.count, "Move list index out of range.");
         self.list[index as usize]
     }
 }

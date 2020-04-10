@@ -20,7 +20,7 @@ use crate::movegen::{
 };
 use crate::utils::bits;
 
-const MAX_GAME_MOVES: u16 = 2048;
+const MAX_GAME_MOVES: usize = 2048;
 
 #[derive(Clone, Copy)]
 pub struct GameState {
@@ -81,21 +81,15 @@ impl UnMakeList {
     }
 
     pub fn push(&mut self, g: GameState) {
-        if self.count < (MAX_GAME_MOVES as usize) {
-            self.list[self.count] = g;
-            self.count += 1;
-        } else {
-            panic!("Game state history list full.")
-        }
+        assert!(self.count < MAX_GAME_MOVES, "History list already full.");
+        self.list[self.count] = g;
+        self.count += 1;
     }
 
     pub fn pop(&mut self) -> GameState {
-        if self.count >= 1 {
-            self.count -= 1;
-            self.list[self.count]
-        } else {
-            panic!("Game state history list already empty.");
-        }
+        assert!(self.count >= 1, "History list already empty.");
+        self.count -= 1;
+        self.list[self.count]
     }
 }
 
