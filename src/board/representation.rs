@@ -89,12 +89,12 @@ impl UnMakeList {
         }
     }
 
-    pub fn pop(&mut self) -> Option<GameState> {
+    pub fn pop(&mut self) -> GameState {
         if self.count >= 1 {
             self.count -= 1;
-            Some(self.list[self.count])
+            self.list[self.count]
         } else {
-            None
+            panic!("Game state history list already empty.");
         }
     }
 }

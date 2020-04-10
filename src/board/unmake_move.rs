@@ -8,56 +8,55 @@ use crate::utils::bits;
 // TODO: Update comments
 
 pub fn unmake_move(board: &mut Board) {
-    let game_state = board.unmake_list.pop();
-    if let Some(stored) = game_state {
-        // Set "us" and "opponent"
-        let us = stored.active_color as usize;
-        let opponent = (us ^ 1) as usize;
+    let stored = board.unmake_list.pop();
 
-        // Dissect the move to undo
-        let m = stored.this_move;
-        let piece = m.piece() as usize;
-        let from = m.from();
-        let to = m.to();
-        let captured = m.captured() as usize;
-        let promoted = m.promoted() as usize;
-        let castling = m.castling();
-        let en_passant = m.en_passant();
+    // Set "us" and "opponent"
+    let us = stored.active_color as usize;
+    let opponent = (us ^ 1) as usize;
 
-        // Moving backwards...
-        if promoted == PNONE {
-            reverse_move(board, us, piece, to, from);
-        } else {
-            remove_piece(board, us, promoted, to);
-            put_piece(board, us, PAWN, from);
-        }
+    // Dissect the move to undo
+    let m = stored.this_move;
+    let piece = m.piece() as usize;
+    let from = m.from();
+    let to = m.to();
+    let captured = m.captured() as usize;
+    let promoted = m.promoted() as usize;
+    let castling = m.castling();
+    let en_passant = m.en_passant();
 
-        // The king's move was already undone as a normal move.
-        // Now undo the correct castling rook move.
-        if castling {
-            match to {
-                G1 => reverse_move(board, us, ROOK, F1, H1),
-                C1 => reverse_move(board, us, ROOK, D1, A1),
-                G8 => reverse_move(board, us, ROOK, F8, H8),
-                C8 => reverse_move(board, us, ROOK, D8, A8),
-                _ => (),
-            };
-        }
-
-        // If a piece was captured, put it back onto the to-square
-        if captured != PNONE {
-            put_piece(board, opponent, captured, to);
-        }
-
-        // If this was an e-passant move, put the opponent's pawn back
-        if en_passant {
-            let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-            put_piece(board, opponent, PAWN, pawn_square);
-        }
-
-        // restore the previous board state.
-        board.game_state = stored;
+    // Moving backwards...
+    if promoted == PNONE {
+        reverse_move(board, us, piece, to, from);
+    } else {
+        remove_piece(board, us, promoted, to);
+        put_piece(board, us, PAWN, from);
     }
+
+    // The king's move was already undone as a normal move.
+    // Now undo the correct castling rook move.
+    if castling {
+        match to {
+            G1 => reverse_move(board, us, ROOK, F1, H1),
+            C1 => reverse_move(board, us, ROOK, D1, A1),
+            G8 => reverse_move(board, us, ROOK, F8, H8),
+            C8 => reverse_move(board, us, ROOK, D8, A8),
+            _ => (),
+        };
+    }
+
+    // If a piece was captured, put it back onto the to-square
+    if captured != PNONE {
+        put_piece(board, opponent, captured, to);
+    }
+
+    // If this was an e-passant move, put the opponent's pawn back
+    if en_passant {
+        let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
+        put_piece(board, opponent, PAWN, pawn_square);
+    }
+
+    // restore the previous board state.
+    board.game_state = stored;
 }
 
 // Removes a piece from the board.
