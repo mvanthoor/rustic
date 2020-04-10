@@ -103,7 +103,7 @@ pub fn make_move(board: &mut Board, m: Move) -> bool {
 
 // This function changes castling permissions according to the rook being captured
 fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match square {
         H1 => board.game_state.castling &= !CASTLE_WK,
         A1 => board.game_state.castling &= !CASTLE_WQ,
@@ -111,12 +111,12 @@ fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
         A8 => board.game_state.castling &= !CASTLE_BQ,
         _ => (),
     }
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
 
 // This function adjusts castling permissions if king or rook leaves a starting square.
 fn adjust_castling_perms_if_leaving_starting_square(board: &mut Board, square: u8) {
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match square {
         H1 => board.game_state.castling &= !CASTLE_WK,
         A1 => board.game_state.castling &= !CASTLE_WQ,
@@ -126,13 +126,13 @@ fn adjust_castling_perms_if_leaving_starting_square(board: &mut Board, square: u
         E8 => board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ),
         _ => (),
     };
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
 
 // This function moves the correct rook after the king has moved during castling.
 fn move_rook_during_castling(board: &mut Board, king_square: u8) {
     let us = board.game_state.active_color as usize;
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
     match king_square {
         G1 => {
             board.remove_piece(us, ROOK, H1);
@@ -156,5 +156,5 @@ fn move_rook_during_castling(board: &mut Board, king_square: u8) {
         }
         _ => (),
     }
-    board.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }

@@ -178,7 +178,7 @@ fn metadata(board: &Board) {
 
     let hmc = board.game_state.halfmove_clock;
     let fmn = board.game_state.fullmove_number;
-    println!("{:<20}{:x}", "Zobrist key:", board.zobrist_key);
+    println!("{:<20}{:x}", "Zobrist key:", board.game_state.zobrist_key);
     println!("{:<20}{}", "Active Color:", active_color);
     println!("{:<20}{}", "Castling:", castling);
     println!("{:<20}{}", "En Passant:", en_passant);
