@@ -5,6 +5,7 @@ use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, EMPTY, FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
+use crate::evaluation::material;
 use crate::movegen::{
     movedefs::{Move, MoveList},
     MoveGenerator,
@@ -22,11 +23,13 @@ pub struct GameState {
     pub fullmove_number: u16,
     pub zobrist_key: u64,
     pub this_move: Move,
+    pub material: [u16; 2],
 }
 
 impl GameState {
     pub fn new() -> GameState {
         GameState {
+            material: [0; 2],
             active_color: 0,
             castling: 0,
             en_passant: None,
@@ -107,6 +110,11 @@ impl<'a> Board<'a> {
         board.create_piece_list();
         board.game_state.zobrist_key = board.create_zobrist_key();
 
+        // Count material after board setup finished.
+        let material = material::count(&mut board);
+        board.game_state.material[WHITE] = material.0;
+        board.game_state.material[BLACK] = material.1;
+
         board
     }
 
@@ -180,14 +188,6 @@ impl<'a> Board<'a> {
         self.game_state.active_color = opponent as u8;
     }
 
-    // This function creates bitboards per side, containing all the pieces of that side.
-    fn create_piece_bitboards(&mut self) {
-        for (bb_w, bb_b) in self.bb_side[WHITE].iter().zip(self.bb_side[BLACK].iter()) {
-            self.bb_pieces[WHITE] |= *bb_w;
-            self.bb_pieces[BLACK] |= *bb_b;
-        }
-    }
-
     // Passthrough functions for move generator
     pub fn gen_all_moves(&self, ml: &mut MoveList) {
         self.move_generator.gen_all_moves(self, ml);
@@ -203,6 +203,14 @@ impl<'a> Board<'a> {
 
     pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         self.move_generator.get_pawn_attacks(side, square)
+    }
+
+    // This function creates bitboards per side, containing all the pieces of that side.
+    fn create_piece_bitboards(&mut self) {
+        for (bb_w, bb_b) in self.bb_side[WHITE].iter().zip(self.bb_side[BLACK].iter()) {
+            self.bb_pieces[WHITE] |= *bb_w;
+            self.bb_pieces[BLACK] |= *bb_b;
+        }
     }
 
     // Build initial piece list with piece locations.
@@ -226,7 +234,7 @@ impl<'a> Board<'a> {
     }
 
     // Create the initial Zobirst Key.
-    pub fn create_zobrist_key(&mut self) -> ZobristKey {
+    fn create_zobrist_key(&mut self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = self.zobrist_randoms;
         let bb_w = self.bb_side[WHITE];
