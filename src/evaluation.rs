@@ -1,4 +1,4 @@
-mod evaldefs;
+pub mod evaldefs;
 pub mod material;
 
 use crate::board::representation::Board;

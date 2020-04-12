@@ -5,7 +5,7 @@ use crate::defs::{
     Bitboard, Piece, Side, BB_FOR_FILES, BB_FOR_RANKS, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE,
     BLACK, EMPTY, FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
-use crate::evaluation::material;
+use crate::evaluation::{evaldefs::PIECE_VALUES, material};
 use crate::movegen::{
     movedefs::{Move, MoveList},
     MoveGenerator,
@@ -107,7 +107,7 @@ impl<'a> Board<'a> {
         } else {
             board.setup_fen(FEN_START_POSITION);
         }
-        board.create_piece_list();
+        board.piece_list = board.create_piece_list();
         board.game_state.zobrist_key = board.create_zobrist_key();
 
         // Count material after board setup finished.
@@ -146,6 +146,7 @@ impl<'a> Board<'a> {
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
         self.piece_list[square as usize] = PNONE;
+        self.game_state.material[side] -= PIECE_VALUES[piece];
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         bits::clear_bit(&mut self.bb_side[side][piece], square);
         bits::clear_bit(&mut self.bb_pieces[side], square);
@@ -156,6 +157,7 @@ impl<'a> Board<'a> {
         bits::set_bit(&mut self.bb_side[side][piece], square);
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        self.game_state.material[side] += PIECE_VALUES[piece];
         self.piece_list[square as usize] = piece;
     }
 
@@ -214,23 +216,27 @@ impl<'a> Board<'a> {
     }
 
     // Build initial piece list with piece locations.
-    fn create_piece_list(&mut self) {
+    fn create_piece_list(&mut self) -> [Piece; NR_OF_SQUARES as usize] {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
+        let mut piece_list: [Piece; NR_OF_SQUARES as usize] = [PNONE; NR_OF_SQUARES as usize];
+
         for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
             let mut white = *w; // White pieces of type "p"
             let mut black = *b; // Black pieces of type "p"
 
             while white > 0 {
                 let square = bits::next(&mut white);
-                self.piece_list[square as usize] = p;
+                piece_list[square as usize] = p;
             }
 
             while black > 0 {
                 let square = bits::next(&mut black);
-                self.piece_list[square as usize] = p;
+                piece_list[square as usize] = p;
             }
         }
+
+        piece_list
     }
 
     // Create the initial Zobirst Key.
