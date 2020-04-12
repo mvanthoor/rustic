@@ -26,6 +26,7 @@ pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
     let bb_rook = board.get_slider_attacks(ROOK, square, occupancy);
     let bb_bishop = board.get_slider_attacks(BISHOP, square, occupancy);
     let bb_knight = board.get_non_slider_attacks(KNIGHT, square);
+    let bb_queen = bb_rook | bb_bishop;
 
     // TODO: Explain this crap
     let bb_square = 1u64 << square;
@@ -37,9 +38,8 @@ pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
 
     (bb_king & pieces[KING] > 0)
         || (bb_rook & pieces[ROOK] > 0)
-        || (bb_rook & pieces[QUEEN] > 0)
+        || (bb_queen & pieces[QUEEN] > 0)
         || (bb_bishop & pieces[BISHOP] > 0)
-        || (bb_bishop & pieces[QUEEN] > 0)
         || (bb_knight & pieces[KNIGHT] > 0)
         || (bb_pawns & pieces[PAWN] > 0)
 }
