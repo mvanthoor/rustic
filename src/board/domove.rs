@@ -60,14 +60,12 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // After an en-passant maneuver, the opponent's pawn has yet to be removed.
     if en_passant {
-        let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-        board.remove_piece(opponent, PAWN, pawn_square);
+        board.remove_piece(opponent, PAWN, to ^ 8);
     }
 
     // A double-step is the only move that sets the ep-square.
     if double_step {
-        let ep_square = if us == WHITE { to - 8 } else { to + 8 };
-        board.set_ep_square(ep_square);
+        board.set_ep_square(to ^ 8);
     }
 
     // *** Update the remainder of the board state ***
