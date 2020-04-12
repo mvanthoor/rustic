@@ -1,4 +1,7 @@
 // TODO: Update comments
+mod gamestate;
+mod history;
+
 use super::fen;
 use super::zobrist::{ZobristKey, ZobristRandoms};
 use crate::defs::{
@@ -6,72 +9,10 @@ use crate::defs::{
     BLACK, EMPTY, FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
-use crate::movegen::{
-    movedefs::{Move, MoveList},
-    MoveGenerator,
-};
+use crate::movegen::{movedefs::MoveList, MoveGenerator};
 use crate::utils::bits;
-
-const MAX_GAME_MOVES: usize = 2048;
-
-#[derive(Clone, Copy)]
-pub struct GameState {
-    pub active_color: u8,
-    pub castling: u8,
-    pub en_passant: Option<u8>,
-    pub halfmove_clock: u8,
-    pub fullmove_number: u16,
-    pub zobrist_key: u64,
-    pub this_move: Move,
-    pub material: [u16; 2],
-}
-
-impl GameState {
-    pub fn new() -> GameState {
-        GameState {
-            material: [0; 2],
-            active_color: 0,
-            castling: 0,
-            en_passant: None,
-            halfmove_clock: 0,
-            fullmove_number: 0,
-            zobrist_key: 0,
-            this_move: Move { data: 0 },
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct History {
-    list: [GameState; MAX_GAME_MOVES as usize],
-    count: usize,
-}
-
-impl History {
-    pub fn new() -> History {
-        History {
-            list: [GameState::new(); MAX_GAME_MOVES as usize],
-            count: 0,
-        }
-    }
-
-    pub fn clear(&mut self) {
-        self.list = [GameState::new(); MAX_GAME_MOVES as usize];
-        self.count = 0;
-    }
-
-    pub fn push(&mut self, g: GameState) {
-        assert!(self.count < MAX_GAME_MOVES, "History list already full.");
-        self.list[self.count] = g;
-        self.count += 1;
-    }
-
-    pub fn pop(&mut self) -> GameState {
-        assert!(self.count >= 1, "History list already empty.");
-        self.count -= 1;
-        self.list[self.count]
-    }
-}
+use gamestate::GameState;
+use history::History;
 
 #[derive(Clone)]
 pub struct Board<'a> {

@@ -1,4 +1,4 @@
-pub mod do_move;
+pub mod domove;
 pub mod fen;
 pub mod representation;
 pub mod zobrist;
