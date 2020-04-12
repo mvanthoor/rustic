@@ -70,7 +70,6 @@ pub const H8: u8 = 63;
 pub const ALL_RANKS: RangeInclusive<u8> = (RANK_1 as u8)..=(RANK_8 as u8);
 pub const ALL_FILES: RangeInclusive<u8> = (FILE_A as u8)..=(FILE_H as u8);
 pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
-pub const PAWN_SQUARES: RangeInclusive<u8> = 8..=55;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
 pub const BITBOARDS_FOR_PIECES: u8 = 2;

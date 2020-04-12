@@ -4,8 +4,8 @@ use super::masks;
 use super::MoveGenerator;
 use super::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 use crate::defs::{
-    Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, EMPTY, FILE_A, FILE_B, FILE_G, FILE_H,
-    PAWN_SQUARES, RANK_1, RANK_2, RANK_7, RANK_8, ROOK, WHITE,
+    Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, EMPTY, FILE_A, FILE_B, FILE_G, FILE_H, RANK_1,
+    RANK_2, RANK_7, RANK_8, ROOK, WHITE,
 };
 
 /**
@@ -58,7 +58,7 @@ pub fn init_knight(mg: &mut MoveGenerator, files: &[Bitboard; 8], ranks: &[Bitbo
  * if the location of the pawn makes that move possible.
  */
 pub fn init_pawns(mg: &mut MoveGenerator, files: &[Bitboard; 8]) {
-    for sq in PAWN_SQUARES {
+    for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let w = (bb_square & !files[FILE_A]) << 7 | (bb_square & !files[FILE_H]) << 9;
         let b = (bb_square & !files[FILE_A]) >> 9 | (bb_square & !files[FILE_H]) >> 7;
