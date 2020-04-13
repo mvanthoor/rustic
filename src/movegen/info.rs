@@ -18,7 +18,8 @@ use crate::defs::{Side, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
  *  and then check if the given side actually has at least one pawn on one of those squares.
  * "pieces" and "pawns" are obviously dependent on the side we're looking at.
  */
-#[inline(always)]
+#[cfg_attr(debug_assertions, inline(never))]
+#[cfg_attr(not(debug_assertions), inline(always))]
 pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
     let pieces = board.bb_side[attacker];
     let occupancy = board.occupancy();

@@ -21,10 +21,10 @@ fn main() {
     let mut board: Board = Board::new(&zobrist_randoms, &move_generator, None);
     let mut move_list: MoveList = MoveList::new();
 
-    utils::engine_info();
+    // utils::engine_info();
 
-    print::position(&board, None);
-    while cli::get_input(&mut board) != 0 {}
-    // perft::run(&board, 7);
+    // print::position(&board, None);
+    // while cli::get_input(&mut board) != 0 {}
+    perft::run(&board, 6);
     // perftsuite::run_all_tests();
 }

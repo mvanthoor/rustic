@@ -7,7 +7,8 @@ use crate::movegen::{info, movedefs::Move};
 use crate::utils::bits;
 
 // TODO: Update comments
-#[inline(always)]
+#[cfg_attr(debug_assertions, inline(never))]
+#[cfg_attr(not(debug_assertions), inline(always))]
 pub fn make(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
     let mut current_game_state = board.game_state;
@@ -156,7 +157,8 @@ fn move_rook_during_castling(board: &mut Board, king_square: u8) {
 /*** ================================================================================ ***/
 
 // TODO: Update comments
-#[inline(always)]
+#[cfg_attr(debug_assertions, inline(never))]
+#[cfg_attr(not(debug_assertions), inline(always))]
 pub fn unmake(board: &mut Board) {
     let stored = board.history.pop();
 
