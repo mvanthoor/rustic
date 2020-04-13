@@ -1,5 +1,5 @@
-pub mod domove;
 pub mod fen;
+pub mod playmove;
 pub mod representation;
 pub mod zobrist;
 

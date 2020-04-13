@@ -1,4 +1,4 @@
-use crate::board::{domove, representation::Board};
+use crate::board::{playmove, representation::Board};
 use crate::extra::print;
 use crate::movegen::movedefs::MoveList;
 use std::time::Instant;
@@ -48,11 +48,11 @@ pub fn perft(board: &mut Board, depth: u8) -> u64 {
 
     for i in 0..nr_of_moves {
         let m = move_list.get_move(i);
-        let legal = domove::make(board, m);
+        let legal = playmove::make(board, m);
 
         if legal {
             leaf_nodes += perft(board, depth - 1);
-            domove::unmake(board);
+            playmove::unmake(board);
         }
     }
 
