@@ -10,8 +10,8 @@
  * (if there is no blocker). The generator for the attack boards takes this into account.
 */
 use super::rays;
+use crate::board::{self, Direction, Location, BB_FILES, BB_RANKS};
 use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
-use crate::{board, board::Direction, board::Location};
 
 /**
  * Explanation of create_rook mask, step by step.
@@ -26,11 +26,9 @@ use crate::{board, board::Direction, board::Location};
  */
 pub fn create_rook_mask(square: u8) -> Bitboard {
     let location = board::square_on_file_rank(square);
-    let bb_files = board::create_bb_files();
-    let bb_ranks = board::create_bb_ranks();
     let bb_rook_square = 1u64 << square;
     let bb_edges = edges_without_piece(location);
-    let bb_mask = bb_files[location.0 as usize] | bb_ranks[location.1 as usize];
+    let bb_mask = BB_FILES[location.0 as usize] | BB_RANKS[location.1 as usize];
 
     bb_mask & !bb_edges & !bb_rook_square
 }
@@ -61,13 +59,11 @@ pub fn create_bishop_mask(square: u8) -> Bitboard {
  * piece itself is on an edge, the edge(s) containing the piece are excluded.
  */
 fn edges_without_piece(location: Location) -> Bitboard {
-    let bb_files = board::create_bb_files();
-    let bb_ranks = board::create_bb_ranks();
-    let bb_piece_file = bb_files[location.0 as usize];
-    let bb_piece_rank = bb_ranks[location.1 as usize];
+    let bb_piece_file = BB_FILES[location.0 as usize];
+    let bb_piece_rank = BB_RANKS[location.1 as usize];
 
-    (bb_files[FILE_A] & !bb_piece_file)
-        | (bb_files[FILE_H] & !bb_piece_file)
-        | (bb_ranks[RANK_1] & !bb_piece_rank)
-        | (bb_ranks[RANK_8] & !bb_piece_rank)
+    (BB_FILES[FILE_A] & !bb_piece_file)
+        | (BB_FILES[FILE_H] & !bb_piece_file)
+        | (BB_RANKS[RANK_1] & !bb_piece_rank)
+        | (BB_RANKS[RANK_8] & !bb_piece_rank)
 }

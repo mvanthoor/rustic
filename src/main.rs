@@ -23,8 +23,8 @@ fn main() {
 
     utils::engine_info();
 
-    // print::position(&board, None);
-    // while cli::get_input(&mut board) != 0 {}
-    perft::run(&board, 7);
+    print::position(&board, None);
+    while cli::get_input(&mut board) != 0 {}
+    // perft::run(&board, 7);
     // perftsuite::run_all_tests();
 }

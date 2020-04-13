@@ -12,13 +12,13 @@
  */
 use super::info;
 use super::movedefs::{Move, MoveList, Shift};
+use crate::board::{self, representation::Board, BB_RANKS};
 use crate::defs::{
     Bitboard, Piece, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1,
     D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
     ROOK, WHITE,
 };
 use crate::utils::bits;
-use crate::{board, board::representation::Board};
 
 const PROMOTION_PIECES: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
 
@@ -91,9 +91,9 @@ fn pawns(board: &Board, list: &mut MoveList) {
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     let bb_empty = !board.occupancy();
     let bb_fourth = if side == WHITE {
-        board.bb_ranks[RANK_4]
+        BB_RANKS[RANK_4]
     } else {
-        board.bb_ranks[RANK_5]
+        BB_RANKS[RANK_5]
     };
     let mut bb_pawns = board.get_pieces(PAWN, side);
     while bb_pawns > 0 {

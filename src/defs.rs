@@ -33,6 +33,7 @@ pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 pub const NR_OF_SQUARES: u8 = 64;
 pub const NR_OF_FILES: u8 = 8;
+pub const NR_OF_RANKS: u8 = 8;
 pub const NR_OF_PIECES: u8 = 6;
 
 pub const RANK_1: usize = 0;
@@ -73,8 +74,6 @@ pub const ALL_SQUARES: RangeInclusive<u8> = 0..=63;
 
 pub const BITBOARDS_PER_SIDE: u8 = 6;
 pub const BITBOARDS_FOR_PIECES: u8 = 2;
-pub const BB_FOR_FILES: u8 = 8;
-pub const BB_FOR_RANKS: u8 = 8;
 
 pub const KING: Piece = 0;
 pub const QUEEN: Piece = 1;

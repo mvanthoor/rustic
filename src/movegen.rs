@@ -9,7 +9,6 @@ mod rays;
 
 // TODO: Rewrite comments for move generator
 use crate::board::representation::Board;
-use crate::board::{create_bb_files, create_bb_ranks};
 use crate::defs::{Bitboard, Piece, Side, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
@@ -45,8 +44,6 @@ pub struct MoveGenerator {
 impl MoveGenerator {
     pub fn new() -> MoveGenerator {
         let magics: Magics = Default::default();
-        let files = create_bb_files();
-        let ranks = create_bb_ranks();
         let mut mg = MoveGenerator {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
@@ -56,9 +53,9 @@ impl MoveGenerator {
             _rook_magics: [magics; NSQ],
             _bishop_magics: [magics; NSQ],
         };
-        init_king(&mut mg, &files, &ranks);
-        init_knight(&mut mg, &files, &ranks);
-        init_pawns(&mut mg, &files);
+        init_king(&mut mg);
+        init_knight(&mut mg);
+        init_pawns(&mut mg);
         init_magics(&mut mg, ROOK);
         init_magics(&mut mg, BISHOP);
         mg
