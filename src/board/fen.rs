@@ -168,7 +168,7 @@ fn part_3(part: &str, board: &mut Board) {
                 char_ok += 1;
             }
         }
-        if file != 0 && rank != 0 {
+        if char_ok == length {
             let square_nr = (rank * 8) + file;
             board.game_state.en_passant = Some(square_nr);
         }

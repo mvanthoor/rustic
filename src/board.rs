@@ -27,7 +27,7 @@ pub const BB_RANK_1: Bitboard = 0xFF;
 
 // Contains bitboards for each file.
 pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
-    BB_FILE_A << 0,
+    BB_FILE_A,
     BB_FILE_A << 1,
     BB_FILE_A << 2,
     BB_FILE_A << 3,
@@ -39,14 +39,14 @@ pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
 
 // Contains bitboards for each rank.
 pub const BB_RANKS: [Bitboard; NR_OF_RANKS as usize] = [
-    BB_RANK_1 << (0 * 8),
-    BB_RANK_1 << (1 * 8),
-    BB_RANK_1 << (2 * 8),
-    BB_RANK_1 << (3 * 8),
-    BB_RANK_1 << (4 * 8),
-    BB_RANK_1 << (5 * 8),
-    BB_RANK_1 << (6 * 8),
-    BB_RANK_1 << (7 * 8),
+    BB_RANK_1,
+    BB_RANK_1 << 8,
+    BB_RANK_1 << 16,
+    BB_RANK_1 << 24,
+    BB_RANK_1 << 32,
+    BB_RANK_1 << 40,
+    BB_RANK_1 << 48,
+    BB_RANK_1 << 56,
 ];
 
 // Compute on which file and rank a given square is.
