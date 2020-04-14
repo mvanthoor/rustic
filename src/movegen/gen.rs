@@ -1,15 +1,5 @@
-/**
- * The movegen.rs module is the part of the engine that generates chess moves to be searched
- * and evaluate later, in the search and evaluation modules of the program. Note that the move
- * generator is pseudo-legal: that means that it generates all possible moves, regardless if
- * they leave the king in check after that move. The reason is twofold:
- *
- * 1. This speeds up move generation, as _MOST_ moves will be legal. Checking every move for
- * legality would greatly slow down the move generation process.
- * 2. The search might decide to focus only on a subset of moves and discard the rest. Those
- * discarded moves will not be executed or evaluated. If legality checking had been done on
- * those moves, that time would have been wasted.
- */
+// gen.rs is the file generating pseudo-legal moves for the current board position.
+
 use super::info;
 use super::movedefs::{Move, MoveList, Shift};
 use crate::board::{self, representation::Board, BB_RANKS};
@@ -22,17 +12,7 @@ use crate::utils::bits;
 
 const PROMOTION_PIECES: [usize; 4] = [QUEEN, ROOK, BISHOP, KNIGHT];
 
-/**
- * This function actually generates the moves, using other functions in this module.
- * It takes the following parameters:
- *
- * board: a reference to the board/position
- * side: the side to move
- * mg: The movegenerator, which provides all possible piece attacks on all squares.
- *          It uses precalculated moves for each piece on each square, so the move
- *          generator does not have to calculate this over and aover again.
- * list: a mutable reference to a list that will contain the moves.
-*/
+// This function generates all pseudo-legal moves for the current board and side to move.
 pub fn all_moves(board: &Board, list: &mut MoveList) {
     piece(KING, board, list);
     piece(KNIGHT, board, list);
@@ -43,19 +23,14 @@ pub fn all_moves(board: &Board, list: &mut MoveList) {
     castling(board, list);
 }
 
-/**
- * Generates moves for pieces.
- * Basically:
- * - It gets the "from" square.
- * - It gets all the targets for the piece from the Movements object.
- * - The piece can move to all squares that do not contain our own pieces.
- * - Add those moves to the move list.
- */
+/// This function generates pseudo-legal moves for the given piece type.
 fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
     let side = board.game_state.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
     let mut bb_pieces = board.get_pieces(piece, side);
+
+    // Generate moves for each piece of the type passed into the function.
     while bb_pieces > 0 {
         let from = bits::next(&mut bb_pieces);
         let bb_target = match piece {
@@ -63,31 +38,19 @@ fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
             KING | KNIGHT => board.get_non_slider_attacks(piece, from),
             _ => 0,
         };
+
+        // A piece can move to where there is no piece of our own.
         let bb_moves = bb_target & !bb_own_pieces;
         add_move(board, piece, from, bb_moves, list);
     }
 }
 
-/**
- * Pawns are a bit more complicated, because their attacks and moves are different,
- * but also because they have en-passant and promotion capabilities.
- * It works as such:
- * - Get the "from" square for each pawn.
- * - Push the pawn forward one rank.
- * - If the destination square is empty, "one_step" contains a move. Otherwise, it's 0.
- * - Two_step is a pawn moving two steps. It contains a move if:
- *      * One_step also contains a move
- *      * The next rank is empty
- *      * and the next rank is the fourth (from either WHITE or BLACK's point of view).
- * Then the capture moves are generated; same way as the king/knight moves.
- * An en_passant capture is generated, if the en_passant square in the board position is set,
- * and if the pawn currently being investigated has this square as an attack target.
- * Combine all the moves, and add them to the move list. The add_move function will take care
- * of promotions, adding four possible moves (Q, R, B, and N) to the list instead of one move.
- */
+// This function generates all the pawn moves.
 fn pawns(board: &Board, list: &mut MoveList) {
+    const UP: i8 = 8;
+    const DOWN: i8 = -8;
+
     let side = board.game_state.active_color as usize;
-    let direction = if side == WHITE { 8 } else { -8 };
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     let bb_empty = !board.occupancy();
     let bb_fourth = if side == WHITE {
@@ -96,6 +59,9 @@ fn pawns(board: &Board, list: &mut MoveList) {
         BB_RANKS[RANK_5]
     };
     let mut bb_pawns = board.get_pieces(PAWN, side);
+    let direction = if side == WHITE { UP } else { DOWN };
+
+    // As long as there are pawns, generate moves for each of them.
     while bb_pawns > 0 {
         let from = bits::next(&mut bb_pawns);
         let bb_push = 1u64 << (from as i8 + direction);
@@ -108,38 +74,22 @@ fn pawns(board: &Board, list: &mut MoveList) {
         } else {
             0
         };
-        let moves = bb_one_step | bb_two_step | bb_captures | bb_ep_capture;
-        add_move(board, PAWN, from, moves, list);
+
+        // Gather all moves for the pawn into one bitboard.
+        let bb_moves = bb_one_step | bb_two_step | bb_captures | bb_ep_capture;
+        add_move(board, PAWN, from, bb_moves, list);
     }
 }
 
-// TODO: Fix this comment
-/** The castling function is long, but fortunately not hard to understand.
- * The length is due to having four parts; each side can castle either kingside or queenside.
- * Step by step description:
- * First, determine the opponent, which is "not our side".
- * "has_castling_rights" is checked against the board, for either white or black.
- * "in_check" is either checked for white or black.
- * Then there are two big parts: one for white castling, and one for black castling.
- * A part can be executed, if the side is correct for that part, the side has at least one
- * castling right, and the king is not in check.
- * Inside the part, we try to either castle kingside or queenside. To be able to determine
- * if castling is possible, we first determine if there are any blocking pieces between the
- * king and the rook of the side we're castling to. We also check if the square directly next
- * to the king is not attacked; it's not permitted to castle across check. If there are no
- * blockers and the squares just next to the king are not attacked, castling is possible.
- * Note: we MUST verify if the king does not castle ACROSS check. We DON'T verify if the king
- * castles INTO check on the landing square (gi, c1, g8 or c8). This verification is left up
- * to makemove/unmake move outside of the move generator.
- */
+// This function generates castling moves (king part only).
 fn castling(board: &Board, list: &mut MoveList) {
     let side = board.game_state.active_color as usize;
     let opponent = side ^ 1;
     let castle_perms_white = (board.game_state.castling & (CASTLE_WK | CASTLE_WQ)) > 0;
     let castle_perms_black = (board.game_state.castling & (CASTLE_BK | CASTLE_BQ)) > 0;
+    let bb_occupancy = board.occupancy();
     let mut bb_king = board.get_pieces(KING, side);
     let from = bits::next(&mut bb_king);
-    let bb_occupancy = board.occupancy();
 
     if side == WHITE && castle_perms_white {
         // Kingside
@@ -200,15 +150,13 @@ fn castling(board: &Board, list: &mut MoveList) {
     }
 }
 
-/** Adds moves and the data belonging to those moves to a move list.
- * This function also takes care of promotions, by adding four moves
- * to the list instead of one; one move for each promotion possibility.
-*/
+// This function turns the given parameters into actual moves and puts them into the move list.
 fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut MoveList) {
     let mut bb_to = to;
     let side = board.game_state.active_color as usize;
     let promotion_rank = (if side == WHITE { RANK_8 } else { RANK_1 }) as u8;
 
+    // As long as there are still to-squres in bb_to, this piece has moves to add.
     while bb_to > 0 {
         let to_square = bits::next(&mut bb_to);
         let capture = board.piece_list[to_square as usize];
@@ -220,6 +168,8 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
         };
         let double_step = (piece == PAWN) && ((to_square as i8 - from as i8).abs() == 16);
         let castling = (piece == KING) && ((to_square as i8 - from as i8).abs() == 2);
+
+        // Gather all data for this move into one 64-bit integer.
         let move_data = (piece as u64)
             | ((from as u64) << Shift::FromSq as u64)
             | ((to_square as u64) << Shift::ToSq as u64)
@@ -229,11 +179,13 @@ fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut Move
             | ((castling as u64) << Shift::Castling as u64);
 
         if !promotion {
+            // No promotion: add this move.
             let m = Move {
                 data: move_data | ((PNONE as u64) << Shift::Promotion as u64),
             };
             list.push(m);
         } else {
+            // Promotion. Add one move for each piece to promote to.
             for piece in PROMOTION_PIECES.iter() {
                 let m = Move {
                     data: move_data | ((*piece as u64) << Shift::Promotion as u64),

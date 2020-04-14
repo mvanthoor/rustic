@@ -22,13 +22,13 @@ impl History {
     }
 
     pub fn push(&mut self, g: GameState) {
-        assert!(self.count < MAX_GAME_MOVES, "History list already full.");
+        debug_assert!(self.count < MAX_GAME_MOVES, "History list already full.");
         self.list[self.count] = g;
         self.count += 1;
     }
 
     pub fn pop(&mut self) -> GameState {
-        assert!(self.count >= 1, "History list already empty.");
+        debug_assert!(self.count >= 1, "History list already empty.");
         self.count -= 1;
         self.list[self.count]
     }
