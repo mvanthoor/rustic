@@ -115,6 +115,7 @@ fn part_2(part: &str, board: &mut Board) {
     let mut char_ok = 0;
 
     if length >= 1 && length <= 4 {
+        // Accepts "-" for no castling rights in addition to leaving out letters.
         for c in part.chars() {
             if c == DASH {
                 char_ok += 1
