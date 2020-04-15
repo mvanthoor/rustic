@@ -8,14 +8,12 @@ mod utils;
 
 use board::{representation::Board, zobrist::ZobristRandoms};
 use comm::cli;
-use extra::perft;
-use extra::perftsuite;
-use extra::print;
-use movegen::movedefs::MoveList;
-use movegen::MoveGenerator;
+use extra::{perft, perftsuite, print};
+use movegen::{movedefs::MoveList, MoveGenerator};
+use utils::parse;
 
 fn main() {
-    let test_pos: &str = "rnbqkbnr/pp1ppppp/2p5/8/PP6/8/2PPPPPP/RNBQKBNR w KQkq a3 0 1";
+    let test_pos: &str = "rnbqkbnr/pp1ppppp/2p5/8/PP6/8/2PPPPPP/RNBQKBNR w KQkq - 0 1";
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(test_pos));
