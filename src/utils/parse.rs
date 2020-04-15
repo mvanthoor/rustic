@@ -1,15 +1,15 @@
+use crate::defs::{Piece, BISHOP, KNIGHT, QUEEN, ROOK};
+
 pub const ASCII_VALUE_OF_LOWERCASE_A: u8 = 97;
 pub const ASCII_VALUE_OF_1: u8 = 49;
 pub const COORDINATE_LETTERS: &str = "abcdefgh";
 pub const COORDINATE_NUMBERS: &str = "12345678";
 
-const ERR_STR_SQUARE_DOESNT_EXIST: &str = "This square doesn't exist.";
-
 pub fn strip_newline(input: &mut String) {
     for _ in 0..2 {
         let c = input.chars().next_back();
-        let cr = if let Some('\r') = c { true } else { false };
-        let lf = if let Some('\n') = c { true } else { false };
+        let cr = Some('\r') == c;
+        let lf = Some('\n') == c;
 
         if cr || lf {
             input.pop();
@@ -17,9 +17,9 @@ pub fn strip_newline(input: &mut String) {
     }
 }
 
-pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, &str> {
+pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, ()> {
     let length = algebraic_move.len();
-    let mut result: Result<u8, &str> = Err(ERR_STR_SQUARE_DOESNT_EXIST);
+    let mut result: Result<u8, ()> = Err(());
 
     if length == 2 {
         let mut file = 0;
@@ -40,6 +40,20 @@ pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, &str> {
         if char_ok == length {
             let square_nr = (rank * 8) + file;
             result = Ok(square_nr);
+        }
+    }
+    result
+}
+
+pub fn piece_letter_to_number(piece_letter: char) -> Result<Piece, ()> {
+    let mut result: Result<Piece, ()> = Err(());
+    if let Some(p) = piece_letter.to_lowercase().next() {
+        match p {
+            'q' => result = Ok(QUEEN),
+            'r' => result = Ok(ROOK),
+            'b' => result = Ok(BISHOP),
+            'n' => result = Ok(KNIGHT),
+            _ => (),
         }
     }
     result

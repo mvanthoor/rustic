@@ -1,13 +1,13 @@
+// TODO: Update comments
+
 use crate::board::representation::Board;
-use crate::defs::ENGINE;
+use crate::defs::{ENGINE, PNONE};
 use crate::extra::{perft, perftsuite};
-use crate::movegen::movedefs::MoveList;
 use crate::utils::parse;
 use if_chain::if_chain;
 use std::{io, io::Write};
 
 const CMD_STR_ERR_IO: &str = "Command-line i/o error";
-const CMD_STR_ERR_MOVE: &str = "Error in move input.";
 const CMD_QUIT: u64 = 0;
 const CMD_CONTINUE: u64 = 1;
 
@@ -54,9 +54,10 @@ fn cmd_parse_move(input: &mut String, board: &Board) -> u64 {
     let length = input.len();
     let mut from: u8 = 0;
     let mut to: u8 = 0;
-    let mut error = 0;
+    let mut promotion_piece = PNONE;
+    let mut result = 0;
 
-    if (4..=5).contains(&length) {
+    if length == 4 || length == 5 {
         if_chain! {
             if let Ok(f) = parse::algebraic_square_to_number(&input[0..=1]);
             if let Ok(t) = parse::algebraic_square_to_number(&input[2..=3]);
@@ -64,17 +65,34 @@ fn cmd_parse_move(input: &mut String, board: &Board) -> u64 {
                 from = f;
                 to = t;
             } else {
-                error = 1;
+                result = 1;
+            }
+        };
+    }
+
+    if length == 5 {
+        if_chain! {
+            if let Some(c) = input.chars().next_back();
+            if let Ok(p) = parse::piece_letter_to_number(c);
+            then {
+                promotion_piece = p;
+            } else {
+                result = 2;
             }
         }
-    };
-    if error == 0 {
-        let mut move_list = MoveList::new();
-        board.gen_all_moves(&mut move_list);
-
-        println!("from: {}, to: {}", from, to);
-    } else {
-        println!("{}", CMD_STR_ERR_MOVE);
     }
+
+    if (length != 4) && (length != 5) {
+        result = 3;
+    }
+
+    match result {
+        0 => println!("From: {}, To: {}, Promotion: {}", from, to, promotion_piece),
+        1 => println!("Error in square notation."),
+        2 => println!("Not a promotion piece."),
+        3 => println!("A move is 4 or 5 characters long (e2e4, a7a8q)."),
+        _ => {}
+    };
+
     CMD_CONTINUE
 }

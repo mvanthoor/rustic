@@ -46,7 +46,7 @@ impl<'a> Board<'a> {
         board.game_state.zobrist_key = board.create_zobrist_key();
 
         // Count material after board setup finished.
-        let material = material::count(&mut board);
+        let material = material::count(&board);
         board.game_state.material[WHITE] = material.0;
         board.game_state.material[BLACK] = material.1;
 

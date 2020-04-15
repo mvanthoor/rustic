@@ -149,7 +149,7 @@ fn move_rook_during_castling(board: &mut Board, king_square: u8) {
             board.move_piece(us, ROOK, A8, D8);
             board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
         }
-        _ => assert!(false, "Error: Move rook during castling."),
+        _ => panic!("Error: Move rook during castling."),
     }
     board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
@@ -192,7 +192,7 @@ pub fn unmake(board: &mut Board) {
             C1 => reverse_move(board, us, ROOK, D1, A1),
             G8 => reverse_move(board, us, ROOK, F8, H8),
             C8 => reverse_move(board, us, ROOK, D8, A8),
-            _ => assert!(false, "Error: Reversing castling rook move."),
+            _ => panic!("Error: Reversing castling rook move."),
         };
     }
 
