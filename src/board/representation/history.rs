@@ -1,7 +1,8 @@
 use super::gamestate::GameState;
+use crate::defs::MAX_GAME_MOVES;
 
 // TODO: Update comments
-const MAX_GAME_MOVES: usize = 2048;
+
 #[derive(Clone)]
 pub struct History {
     list: [GameState; MAX_GAME_MOVES as usize],

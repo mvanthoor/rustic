@@ -8,7 +8,7 @@
 use crate::board::representation::Board;
 use crate::defs::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ,
-    KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, QUEEN, ROOK, SQUARE_NAME, WHITE,
+    KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegen::{magics::Magics, movedefs::Move};
 
@@ -27,9 +27,7 @@ const CHAR_BR: char = 'r';
 const CHAR_BB: char = 'b';
 const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
-
 const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
-pub const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 
 /* Prints the current position to the screen. */
 #[allow(dead_code)]

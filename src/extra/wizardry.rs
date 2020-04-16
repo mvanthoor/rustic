@@ -1,5 +1,5 @@
-use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, EMPTY, ROOK};
-use crate::extra::{print, print::PIECE_NAME};
+use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, EMPTY, PIECE_NAME, ROOK};
+use crate::extra::print;
 use crate::movegen::{blockatt, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -22,29 +22,40 @@ pub fn find_magics(piece: Piece) {
 
     println!("Finding magics for: {}", PIECE_NAME[piece]);
     for sq in ALL_SQUARES {
+        // Create the mask for either the rook or bishop.
         let mask = if is_rook {
             masks::create_rook_mask(sq)
         } else {
             masks::create_bishop_mask(sq)
         };
+
+        // Precalculate needed values.
         let bits = mask.count_ones(); // Number of set bits in the mask
         let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
-        let end = offset + permutations - 1; // End point in the attack table.
+        let end = offset + permutations - 1; // End index in the attack table.
+
+        // Create blocker board for the current mask.
         let blocker_boards = blockatt::create_blocker_boards(mask);
+
+        // Create attack board for the current square/blocker combo (either rook or bishop).
         let attack_boards = if is_rook {
             blockatt::create_rook_attack_boards(sq, &blocker_boards)
         } else {
             blockatt::create_bishop_attack_boards(sq, &blocker_boards)
         };
+
+        // Done calculating needed data. Create a new magic.
         let mut try_this: Magics = Default::default(); // New magic
         let mut found = false; // While loop breaker if magic works;
         let mut attempts = 0; // Track needed attempts to find the magic.
 
-        // Set up the new magic.
+        // Set up the new magic with the values we already know.
         try_this.mask = mask;
         try_this.shift = (64 - bits) as u8;
         try_this.offset = offset;
         total_permutations += permutations;
+
+        // Start finding a magic that works for this square, for all permuations.
         while !found {
             attempts += 1; // Next attempt to find magic.
             found = true; // Assume this new magic will work.
@@ -74,6 +85,8 @@ pub fn find_magics(piece: Piece) {
         print::found_magic(sq, try_this, offset, end, attempts);
         offset += permutations; // Set offset for next square.
     }
+
+    // Check if everything is correct.
     assert!(
         (total_permutations as usize)
             == if is_rook {
@@ -81,6 +94,6 @@ pub fn find_magics(piece: Piece) {
             } else {
                 BISHOP_TABLE_SIZE
             },
-        "Creating magics failed. Permutations were skiped."
+        "Creating magics failed. Permutations were skipped."
     );
 }

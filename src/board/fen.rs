@@ -1,8 +1,8 @@
 // TODO: Update comment
 use crate::board::representation::Board;
 use crate::defs::{
-    BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT, PAWN, QUEEN,
-    RANK_8, ROOK, WHITE,
+    BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT,
+    MAX_GAME_MOVES, PAWN, QUEEN, RANK_8, ROOK, WHITE,
 };
 use crate::parse;
 use if_chain::if_chain;
@@ -18,27 +18,22 @@ const CASTLE_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const SPACE: char = ' ';
-const MAX_FULL_MOVES: u16 = 2048;
-type FenPartHandlers = fn(part: &str, board: &mut Board);
+type FenPartParser = fn(part: &str, board: &mut Board);
 
-/** This is the only public function. It uses other functions to split up the parsing
- * of the FEN string. It works as follows:
- *      - First, the FEN-string is split up into parts.
- *      - Then, fen_parse loads all the functions for parsing each part.
- *      - The number of parts is determined.
- *      - If the number of parts is correct, each part will be parsed by its own function.
-*/
-pub fn read(fen_string: &str, board: &mut Board) {
+// This function splits the FEN-string into parts,
+// and then runs the parsing function for each part.
+pub fn read(board: &mut Board, fen_string: &str) {
     let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
-    let fen_parse: [FenPartHandlers; 6] = [part_0, part_1, part_2, part_3, part_4, part_5];
+    let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
     let length = fen_parts.len();
 
     if length == NR_OF_FEN_PARTS {
         board.reset();
-        for (i, handle_part) in fen_parse.iter().enumerate() {
-            handle_part(&fen_parts[i], board);
+        for (i, parser) in fen_parsers.iter().enumerate() {
+            parser(&fen_parts[i], board);
         }
     }
+
     assert!(
         length == NR_OF_FEN_PARTS,
         "FEN: Has {} parts instead of {}",
@@ -47,8 +42,8 @@ pub fn read(fen_string: &str, board: &mut Board) {
     );
 }
 
-/** Part 0: Parsing piece setup. Put each piece into its respective bitboard. */
-fn part_0(part: &str, board: &mut Board) {
+/** Parsing piece setup. Put each piece into its respective bitboard. */
+fn pieces(part: &str, board: &mut Board) {
     const PART: u8 = 0;
     let mut rank = RANK_8 as u8;
     let mut file = FILE_A as u8;
@@ -86,8 +81,8 @@ fn part_0(part: &str, board: &mut Board) {
     }
 }
 
-/** Part 1: Parse color to move: White or Black */
-fn part_1(part: &str, board: &mut Board) {
+/** Parse color to move: White or Black */
+fn color(part: &str, board: &mut Board) {
     const PART: u8 = 1;
     let mut step = if part.len() == 1 { 1 } else { 0 };
 
@@ -104,8 +99,8 @@ fn part_1(part: &str, board: &mut Board) {
     assert_eq!(step, 2, "FEN {}: Must be 'w' or 'b'. {}", PART, part);
 }
 
-/** Part 2: Parse castling rights. */
-fn part_2(part: &str, board: &mut Board) {
+/** Parse castling rights. */
+fn castling(part: &str, board: &mut Board) {
     const PART: u8 = 2;
     let length = part.len();
     let mut char_ok = 0;
@@ -130,7 +125,7 @@ fn part_2(part: &str, board: &mut Board) {
 }
 
 // Parse the en passant square.
-fn part_3(part: &str, board: &mut Board) {
+fn ep(part: &str, board: &mut Board) {
     const PART: u8 = 3;
     let length = part.len();
     let mut char_ok = 0;
@@ -158,7 +153,7 @@ fn part_3(part: &str, board: &mut Board) {
 }
 
 /** Half-move clock: parse number of moves since last capture or pawn push. */
-fn part_4(part: &str, board: &mut Board) {
+fn hmc(part: &str, board: &mut Board) {
     const PART: u8 = 4;
     let length = part.len();
     let mut is_ok = false;
@@ -175,8 +170,8 @@ fn part_4(part: &str, board: &mut Board) {
     assert!(is_ok, "FEN {}: 50-move count: {}", PART, part);
 }
 
-//** Parse number of moves made in the game. */
-fn part_5(part: &str, board: &mut Board) {
+//** Parse full move number. */
+fn fmn(part: &str, board: &mut Board) {
     const PART: u8 = 5;
     let length = part.len();
     let mut is_ok = false;
@@ -184,7 +179,7 @@ fn part_5(part: &str, board: &mut Board) {
     if_chain! {
         if length >= 1 || length <= 4;
         if let Ok(x) = part.parse::<u16>();
-        if x <= MAX_FULL_MOVES;
+        if x <= (MAX_GAME_MOVES as u16);
         then {
             board.game_state.fullmove_number = x;
             is_ok = true;
