@@ -5,6 +5,7 @@ use crate::defs::{
     RANK_8, ROOK, WHITE,
 };
 use crate::parse;
+use if_chain::if_chain;
 use std::ops::RangeInclusive;
 
 /** Definitions used by the FEN-reader */
@@ -13,11 +14,11 @@ const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const EP_SQUARES_WHITE: RangeInclusive<u8> = 16..=23;
 const EP_SQUARES_BLACK: RangeInclusive<u8> = 40..=47;
 const WHITE_OR_BLACK: &str = "wb";
-const CASTLE_RIGHTS: &str = "KQkq";
+const CASTLE_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const SPACE: char = ' ';
-const MAX_FULL_MOVES: u16 = 9999;
+const MAX_FULL_MOVES: u16 = 2048;
 type FenPartHandlers = fn(part: &str, board: &mut Board);
 
 /** This is the only public function. It uses other functions to split up the parsing
@@ -55,18 +56,18 @@ fn part_0(part: &str, board: &mut Board) {
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_side[BLACK][KING] += 1u64 << square,
-            'q' => board.bb_side[BLACK][QUEEN] += 1u64 << square,
-            'r' => board.bb_side[BLACK][ROOK] += 1u64 << square,
-            'b' => board.bb_side[BLACK][BISHOP] += 1u64 << square,
-            'n' => board.bb_side[BLACK][KNIGHT] += 1u64 << square,
-            'p' => board.bb_side[BLACK][PAWN] += 1u64 << square,
-            'K' => board.bb_side[WHITE][KING] += 1u64 << square,
-            'Q' => board.bb_side[WHITE][QUEEN] += 1u64 << square,
-            'R' => board.bb_side[WHITE][ROOK] += 1u64 << square,
-            'B' => board.bb_side[WHITE][BISHOP] += 1u64 << square,
-            'N' => board.bb_side[WHITE][KNIGHT] += 1u64 << square,
-            'P' => board.bb_side[WHITE][PAWN] += 1u64 << square,
+            'k' => board.bb_side[BLACK][KING] |= 1u64 << square,
+            'q' => board.bb_side[BLACK][QUEEN] |= 1u64 << square,
+            'r' => board.bb_side[BLACK][ROOK] |= 1u64 << square,
+            'b' => board.bb_side[BLACK][BISHOP] |= 1u64 << square,
+            'n' => board.bb_side[BLACK][KNIGHT] |= 1u64 << square,
+            'p' => board.bb_side[BLACK][PAWN] |= 1u64 << square,
+            'K' => board.bb_side[WHITE][KING] |= 1u64 << square,
+            'Q' => board.bb_side[WHITE][QUEEN] |= 1u64 << square,
+            'R' => board.bb_side[WHITE][ROOK] |= 1u64 << square,
+            'B' => board.bb_side[WHITE][BISHOP] |= 1u64 << square,
+            'N' => board.bb_side[WHITE][KNIGHT] |= 1u64 << square,
+            'P' => board.bb_side[WHITE][PAWN] |= 1u64 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
@@ -112,16 +113,13 @@ fn part_2(part: &str, board: &mut Board) {
     if length >= 1 && length <= 4 {
         // Accepts "-" for no castling rights in addition to leaving out letters.
         for c in part.chars() {
-            if c == DASH {
-                char_ok += 1
-            }
             if CASTLE_RIGHTS.contains(c) {
                 char_ok += 1;
                 match c {
-                    'K' => board.game_state.castling += CASTLE_WK,
-                    'Q' => board.game_state.castling += CASTLE_WQ,
-                    'k' => board.game_state.castling += CASTLE_BK,
-                    'q' => board.game_state.castling += CASTLE_BQ,
+                    'K' => board.game_state.castling |= CASTLE_WK,
+                    'Q' => board.game_state.castling |= CASTLE_WQ,
+                    'k' => board.game_state.castling |= CASTLE_BK,
+                    'q' => board.game_state.castling |= CASTLE_BQ,
                     _ => (),
                 }
             }
@@ -137,11 +135,12 @@ fn part_3(part: &str, board: &mut Board) {
     let length = part.len();
     let mut char_ok = 0;
 
-    if length == 1 {
-        if let Some(x) = part.chars().next() {
-            if x == DASH {
-                char_ok += 1
-            }
+    if_chain! {
+        if length == 1;
+        if let Some(x) = part.chars().next();
+        if x == DASH;
+        then {
+            char_ok += 1
         }
     }
 
@@ -164,12 +163,13 @@ fn part_4(part: &str, board: &mut Board) {
     let length = part.len();
     let mut is_ok = false;
 
-    if length == 1 || length == 2 {
-        if let Ok(x) = part.parse::<u8>() {
-            if x <= 50 {
-                board.game_state.halfmove_clock = x;
-                is_ok = true;
-            }
+    if_chain! {
+        if length == 1 || length == 2;
+        if let Ok(x) = part.parse::<u8>();
+        if x <= 50;
+        then {
+            board.game_state.halfmove_clock = x;
+            is_ok = true;
         }
     }
     assert!(is_ok, "FEN {}: 50-move count: {}", PART, part);
@@ -181,12 +181,13 @@ fn part_5(part: &str, board: &mut Board) {
     let length = part.len();
     let mut is_ok = false;
 
-    if length >= 1 || length <= 4 {
-        if let Ok(x) = part.parse::<u16>() {
-            if x <= MAX_FULL_MOVES {
-                board.game_state.fullmove_number = x;
-                is_ok = true;
-            }
+    if_chain! {
+        if length >= 1 || length <= 4;
+        if let Ok(x) = part.parse::<u16>();
+        if x <= MAX_FULL_MOVES;
+        then {
+            board.game_state.fullmove_number = x;
+            is_ok = true;
         }
     }
     assert!(is_ok, "FEN {}: Full move count: {}", PART, part);
