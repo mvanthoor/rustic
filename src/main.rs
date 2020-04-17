@@ -16,7 +16,7 @@ fn main() {
     let test_pos: &str = "rnbqkbnr/pp1ppppp/2p5/8/PP6/8/2PPPPPP/RNBQKBNR w KQkq - 0 1";
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
-    let mut board: Board = Board::new(&zobrist_randoms, &move_generator, None);
+    let mut board: Board = Board::new(&zobrist_randoms, &move_generator);
     let mut move_list: MoveList = MoveList::new();
 
     utils::engine_info();

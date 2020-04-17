@@ -27,7 +27,7 @@ pub struct Board<'a> {
 
 impl<'a> Board<'a> {
     // Creates a new board with either the provided FEN, or the starting position.
-    pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator, fen: Option<&str>) -> Board<'a> {
+    pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator) -> Board<'a> {
         let mut board = Board {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
@@ -37,12 +37,7 @@ impl<'a> Board<'a> {
             piece_list: [PNONE; NR_OF_SQUARES as usize],
             move_generator: mg,
         };
-
-        if let Some(f) = fen {
-            fen::read(&mut board, f);
-        } else {
-            fen::read(&mut board, FEN_START_POSITION);
-        }
+        fen::read(&mut board, FEN_START_POSITION);
 
         let piece_bitboards = board.create_piece_bitboards();
         board.bb_pieces[WHITE] = piece_bitboards.0;

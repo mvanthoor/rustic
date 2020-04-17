@@ -50,12 +50,12 @@ fn run(subset: &[&str]) {
         println!("FEN: {}", fen);
 
         // This board is created only for printing the current test position.
-        let board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
+        let board = Board::new(&zobrist_randoms, &move_generator);
         print::position(&board, None);
 
         // Run each test at the given depths.
         for (i, d) in data.iter().enumerate() {
-            let mut board: Board = Board::new(&zobrist_randoms, &move_generator, Some(fen));
+            let mut board: Board = Board::new(&zobrist_randoms, &move_generator);
 
             // Data index 0 contains the FEN-string, so skip this
             // and start at index 1 to find the expected leaf nodes per depth.
