@@ -18,7 +18,7 @@ const CASTLE_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const SPACE: char = ' ';
-type FenPartParser = fn(part: &str, board: &mut Board);
+type FenPartParser = fn(board: &mut Board, part: &str);
 
 // This function splits the FEN-string into parts,
 // and then runs the parsing function for each part.
@@ -30,7 +30,7 @@ pub fn read(board: &mut Board, fen_string: &str) {
     if length == NR_OF_FEN_PARTS {
         board.reset();
         for (i, parser) in fen_parsers.iter().enumerate() {
-            parser(&fen_parts[i], board);
+            parser(board, &fen_parts[i]);
         }
     }
 
@@ -43,7 +43,7 @@ pub fn read(board: &mut Board, fen_string: &str) {
 }
 
 /** Parsing piece setup. Put each piece into its respective bitboard. */
-fn pieces(part: &str, board: &mut Board) {
+fn pieces(board: &mut Board, part: &str) {
     const PART: u8 = 0;
     let mut rank = RANK_8 as u8;
     let mut file = FILE_A as u8;
@@ -82,7 +82,7 @@ fn pieces(part: &str, board: &mut Board) {
 }
 
 /** Parse color to move: White or Black */
-fn color(part: &str, board: &mut Board) {
+fn color(board: &mut Board, part: &str) {
     const PART: u8 = 1;
     let mut step = if part.len() == 1 { 1 } else { 0 };
 
@@ -100,7 +100,7 @@ fn color(part: &str, board: &mut Board) {
 }
 
 /** Parse castling rights. */
-fn castling(part: &str, board: &mut Board) {
+fn castling(board: &mut Board, part: &str) {
     const PART: u8 = 2;
     let length = part.len();
     let mut char_ok = 0;
@@ -125,7 +125,7 @@ fn castling(part: &str, board: &mut Board) {
 }
 
 // Parse the en passant square.
-fn ep(part: &str, board: &mut Board) {
+fn ep(board: &mut Board, part: &str) {
     const PART: u8 = 3;
     let length = part.len();
     let mut char_ok = 0;
@@ -153,7 +153,7 @@ fn ep(part: &str, board: &mut Board) {
 }
 
 /** Half-move clock: parse number of moves since last capture or pawn push. */
-fn hmc(part: &str, board: &mut Board) {
+fn hmc(board: &mut Board, part: &str) {
     const PART: u8 = 4;
     let length = part.len();
     let mut is_ok = false;
@@ -171,7 +171,7 @@ fn hmc(part: &str, board: &mut Board) {
 }
 
 //** Parse full move number. */
-fn fmn(part: &str, board: &mut Board) {
+fn fmn(board: &mut Board, part: &str) {
     const PART: u8 = 5;
     let length = part.len();
     let mut is_ok = false;
