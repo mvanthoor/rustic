@@ -39,8 +39,12 @@ impl<'a> Board<'a> {
         }
     }
 
-    pub fn fen_read(&mut self) {
-        fen::read(self, FEN_START_POSITION);
+    pub fn fen_read(&mut self, fen: Option<&str>) {
+        if let Some(f) = fen {
+            fen::read(self, f);
+        } else {
+            fen::read(self, FEN_START_POSITION);
+        }
     }
 
     pub fn init(&mut self) {
