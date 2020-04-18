@@ -19,6 +19,8 @@ fn main() {
     let mut board: Board = Board::new(&zobrist_randoms, &move_generator);
     let mut move_list: MoveList = MoveList::new();
 
+    board.fen_read();
+
     utils::engine_info();
     print::position(&board, None);
 

@@ -28,10 +28,18 @@ pub fn read(board: &mut Board, fen_string: &str) {
     let length = fen_parts.len();
 
     if length == NR_OF_FEN_PARTS {
-        board.reset();
+        // Clone the incoming board so we don't need to create one from scratch.
+        let mut try_board = board.clone();
+        try_board.reset();
+
+        // Try setup on the try_board, so we don't ruin our existing setup.
         for (i, parser) in fen_parsers.iter().enumerate() {
-            parser(board, &fen_parts[i]);
+            parser(&mut try_board, &fen_parts[i]);
         }
+
+        // If setup successful, initialize and replace.
+        try_board.init();
+        *board = try_board.clone();
     }
 
     assert!(

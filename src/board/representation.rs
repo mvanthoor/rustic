@@ -28,7 +28,7 @@ pub struct Board<'a> {
 impl<'a> Board<'a> {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator) -> Board<'a> {
-        let mut board = Board {
+        Board {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
             game_state: GameState::new(),
@@ -36,30 +36,33 @@ impl<'a> Board<'a> {
             zobrist_randoms: zr,
             piece_list: [PNONE; NR_OF_SQUARES as usize],
             move_generator: mg,
-        };
-        fen::read(&mut board, FEN_START_POSITION);
+        }
+    }
 
-        let piece_bitboards = board.create_piece_bitboards();
-        board.bb_pieces[WHITE] = piece_bitboards.0;
-        board.bb_pieces[BLACK] = piece_bitboards.1;
+    pub fn fen_read(&mut self) {
+        fen::read(self, FEN_START_POSITION);
+    }
 
-        board.piece_list = board.create_piece_list();
-        board.game_state.zobrist_key = board.create_zobrist_key();
+    pub fn init(&mut self) {
+        let piece_bitboards = self.init_piece_bitboards();
+        self.bb_pieces[WHITE] = piece_bitboards.0;
+        self.bb_pieces[BLACK] = piece_bitboards.1;
 
-        let material = material::count(&board);
-        board.game_state.material[WHITE] = material.0;
-        board.game_state.material[BLACK] = material.1;
+        self.piece_list = self.init_piece_list();
+        self.game_state.zobrist_key = self.init_zobrist_key();
 
-        board
+        let material = material::count(&self);
+        self.game_state.material[WHITE] = material.0;
+        self.game_state.material[BLACK] = material.1;
     }
 
     // Reset the board.
     pub fn reset(&mut self) {
         self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
         self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
+        self.piece_list = [PNONE; NR_OF_SQUARES as usize];
         self.game_state = GameState::new();
         self.history.clear();
-        self.piece_list = [PNONE; NR_OF_SQUARES as usize];
     }
 
     // Return a bitboard with locations of a certain piece type for one of the sides.
@@ -138,7 +141,7 @@ impl<'a> Board<'a> {
     }
 
     // This function creates bitboards per side, containing all the pieces of that side.
-    fn create_piece_bitboards(&self) -> (Bitboard, Bitboard) {
+    fn init_piece_bitboards(&self) -> (Bitboard, Bitboard) {
         let mut white: Bitboard = 0;
         let mut black: Bitboard = 0;
 
@@ -151,7 +154,7 @@ impl<'a> Board<'a> {
     }
 
     // Build initial piece list with piece locations.
-    fn create_piece_list(&self) -> [Piece; NR_OF_SQUARES as usize] {
+    fn init_piece_list(&self) -> [Piece; NR_OF_SQUARES as usize] {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
         let mut piece_list: [Piece; NR_OF_SQUARES as usize] = [PNONE; NR_OF_SQUARES as usize];
@@ -175,7 +178,7 @@ impl<'a> Board<'a> {
     }
 
     // Create the initial Zobirst Key.
-    fn create_zobrist_key(&self) -> ZobristKey {
+    fn init_zobrist_key(&self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = self.zobrist_randoms;
         let bb_w = self.bb_side[WHITE];
