@@ -17,8 +17,8 @@ pub fn strip_newline(input: &mut String) {
     }
 }
 
-pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, ()> {
-    let length = algebraic_move.len();
+pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<u8, ()> {
+    let length = algebraic_square.len();
     let mut result: Result<u8, ()> = Err(());
 
     if length == 2 {
@@ -26,7 +26,7 @@ pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, ()> {
         let mut rank = 0;
         let mut char_ok = 0;
 
-        for (index, c) in algebraic_move.to_lowercase().chars().enumerate() {
+        for (index, c) in algebraic_square.to_lowercase().chars().enumerate() {
             if index == 0 && COORDINATE_LETTERS.contains(c) {
                 file = (c as u8) - ASCII_VALUE_OF_LOWERCASE_A;
                 char_ok += 1;
@@ -45,7 +45,7 @@ pub fn algebraic_square_to_number(algebraic_move: &str) -> Result<u8, ()> {
     result
 }
 
-pub fn piece_letter_to_number(piece_letter: char) -> Result<Piece, ()> {
+pub fn promotion_piece_letter_to_number(piece_letter: char) -> Result<Piece, ()> {
     let mut result: Result<Piece, ()> = Err(());
     if let Some(p) = piece_letter.to_lowercase().next() {
         match p {

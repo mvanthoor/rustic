@@ -73,7 +73,7 @@ fn cmd_parse_move(input: &mut String, board: &Board) -> u64 {
     if length == 5 {
         if_chain! {
             if let Some(c) = input.chars().next_back();
-            if let Ok(p) = parse::piece_letter_to_number(c);
+            if let Ok(p) = parse::promotion_piece_letter_to_number(c);
             then {
                 promotion_piece = p;
             } else {
