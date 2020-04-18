@@ -6,7 +6,7 @@ mod extra;
 mod movegen;
 mod utils;
 
-use board::{representation::Board, zobrist::ZobristRandoms};
+use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
 use comm::cli;
 use extra::{perft, perftsuite, print};
 use movegen::{movedefs::MoveList, MoveGenerator};
@@ -18,13 +18,17 @@ fn main() {
     let zobrist_randoms = ZobristRandoms::new();
     let mut board: Board = Board::new(&zobrist_randoms, &move_generator);
     let mut move_list: MoveList = MoveList::new();
-
-    board.fen_read(test_pos);
+    let setup_result = board.fen_read(test_pos);
 
     utils::engine_info();
-    print::position(&board, None);
 
-    // while cli::get_input(&mut board) != 0 {}
-    perft::run(&board, 5);
-    // perftsuite::run_all_tests();
+    match setup_result {
+        Ok(()) => {
+            print::position(&board, None);
+            // while cli::get_input(&mut board) != 0 {}
+            perft::run(&board, 5);
+            // perftsuite::run_all_tests();
+        }
+        Err(e) => println!("Error in FEN-part: {}", ERR_FEN_PARTS[e as usize]),
+    }
 }
