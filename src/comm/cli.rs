@@ -30,6 +30,7 @@ type PotentialMove = (u8, u8, u8);
 pub fn get_input(board: &mut Board) -> u64 {
     let mut input = String::new();
 
+    print::horizontal_line('=', 40);
     print::position(board, None);
     print!("{} > ", ENGINE);
 
@@ -50,22 +51,8 @@ fn parse_input(board: &mut Board, input: &mut String) -> u64 {
         "perft" => cmd_perft(board),
         "suite" => cmd_suite(),
         "clear" => cmd_clear(),
-        "t" => cmd_take_back(board),
-        _ => {
-            let parse_move_result = cmd_parse_move(input);
-            let mut try_move_result = Err(());
-            match parse_move_result {
-                Ok(potential_move) => try_move_result = try_move(board, potential_move),
-                Err(e) => println!("Parsing error: {}", ERR_MV_STRINGS[e as usize]),
-            }
-            match try_move_result {
-                Ok(()) => println!("Done!"),
-                Err(()) if parse_move_result.is_ok() => println!("Illegal move."),
-                Err(_) => (),
-            }
-            println!("========================================");
-            CMD_CONTINUE
-        }
+        "t" => cmd_take_move(board),
+        _ => cmd_make_move(board, input),
     }
 }
 
@@ -83,14 +70,29 @@ fn cmd_suite() -> u64 {
     CMD_CONTINUE
 }
 
-fn cmd_take_back(board: &mut Board) -> u64 {
+fn cmd_take_move(board: &mut Board) -> u64 {
     if board.history.len() >= 1 {
         playmove::unmake(board);
     }
     CMD_CONTINUE
 }
 
-fn cmd_parse_move(input: &str) -> ParseMoveResult {
+fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
+    let parse_move_result = parse_move(input);
+    let mut try_move_result = Err(());
+    match parse_move_result {
+        Ok(potential_move) => try_move_result = try_move(board, potential_move),
+        Err(e) => println!("Parsing error: {}", ERR_MV_STRINGS[e as usize]),
+    }
+    match try_move_result {
+        Ok(()) => println!("Move played."),
+        Err(()) if parse_move_result.is_ok() => println!("Illegal move."),
+        Err(_) => (),
+    }
+    CMD_CONTINUE
+}
+
+fn parse_move(input: &str) -> ParseMoveResult {
     let length = input.len();
     let mut from: u8 = 0;
     let mut to: u8 = 0;

@@ -1,10 +1,3 @@
-/**
- * The print.rs module is used to print information such as the current position,
- * and the contents of bitboards to the screen. This is mainly useful for debugging,
- * because the position and bitboards contain only numbers, which are meaningless to
- * humans when viewed in in decimal, or as one long string. In normal play, the
- * functionality of this module will not be used.
- */
 use crate::board::representation::Board;
 use crate::defs::{
     Bitboard, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ,
@@ -29,7 +22,7 @@ const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
 const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 
-/* Prints the current position to the screen. */
+// Prints the current position to the screen.
 #[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
@@ -38,7 +31,7 @@ pub fn position(board: &Board, mark_square: Option<u8>) {
     metadata(board);
 }
 
-/* This prints a bitboard (64-bit number) to the screen in an 8x8 grid. */
+// This prints a bitboard (64-bit number) to the screen in an 8x8 grid.
 #[allow(dead_code)]
 pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     const SQUARE_OCCUPIED: char = '1';
@@ -47,7 +40,7 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     to_console(&ascii_board, mark_square);
 }
 
-/* Prints a given movelist to the screen. */
+// Prints a given movelist to the screen.
 #[allow(dead_code)]
 pub fn movelist(moves: &[Move]) {
     for m in moves.iter() {
@@ -55,6 +48,8 @@ pub fn movelist(moves: &[Move]) {
     }
 }
 
+// Prints decoded move data to the screen.
+#[allow(dead_code)]
 pub fn move_data(m: Move) {
     println!(
         "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
@@ -69,7 +64,7 @@ pub fn move_data(m: Move) {
     );
 }
 
-/* This function prints a found magic number and its stats. */
+// This function prints a found magic number and its stats.
 #[allow(dead_code)]
 pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
     println!(
@@ -78,7 +73,14 @@ pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
     );
 }
 
-/* Create a printable ASCII-board out of bitboards. */
+pub fn horizontal_line(c: char, length: u8) {
+    for _ in 0..length {
+        print!("{}", c);
+    }
+    println!();
+}
+
+// Create a printable ASCII-board out of bitboards.
 #[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
     let bb_w = board.bb_side[WHITE];
@@ -115,7 +117,7 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
     }
 }
 
-//** This function actually puts the correct character into the ASCII board. */
+// This function actually puts the correct character into the ASCII board.
 #[allow(dead_code)]
 fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, character: char) {
     for (i, square) in ascii_board.iter_mut().enumerate() {
@@ -125,7 +127,7 @@ fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, cha
     }
 }
 
-/* Print the generated ASCII-board to the console. Optionally mark one square. */
+// Print the generated ASCII-board to the console. Optionally mark one square.
 #[allow(dead_code)]
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
@@ -160,7 +162,8 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     println!();
 }
 
-/** This function prints all of the metadata about the position. */
+// This function prints all of the metadata about the position.
+#[allow(dead_code)]
 fn metadata(board: &Board) {
     let castling = castling_as_string(board.game_state.castling);
     let en_passant = if let Some(ep) = board.game_state.en_passant {
@@ -185,6 +188,8 @@ fn metadata(board: &Board) {
     println!();
 }
 
+// Converts castling permissions to a string.
+#[allow(dead_code)]
 fn castling_as_string(permissions: u8) -> String {
     let mut castling_as_string: String = String::from("");
     let p = permissions;
