@@ -50,6 +50,7 @@ fn parse_input(board: &mut Board, input: &mut String) -> u64 {
         "perft" => cmd_perft(board),
         "suite" => cmd_suite(),
         "clear" => cmd_clear(),
+        "t" => cmd_take_back(board),
         _ => {
             let parse_move_result = cmd_parse_move(input);
             let mut try_move_result = Err(());
@@ -79,6 +80,13 @@ fn cmd_perft(board: &Board) -> u64 {
 
 fn cmd_suite() -> u64 {
     perftsuite::run_all_tests();
+    CMD_CONTINUE
+}
+
+fn cmd_take_back(board: &mut Board) -> u64 {
+    if board.history.len() >= 1 {
+        playmove::unmake(board);
+    }
     CMD_CONTINUE
 }
 

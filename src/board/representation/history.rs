@@ -33,4 +33,8 @@ impl History {
         self.count -= 1;
         self.list[self.count]
     }
+
+    pub fn len(&self) -> usize {
+        self.count
+    }
 }

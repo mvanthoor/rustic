@@ -11,7 +11,6 @@ use comm::cli;
 use extra::{perft, perftsuite, print};
 use movegen::{movedefs::MoveList, MoveGenerator};
 use std::env;
-
 use utils::parse;
 
 fn main() {
@@ -27,8 +26,8 @@ fn main() {
 
     match setup_result {
         Ok(()) => {
-            // print::position(&board, None);
             while cli::get_input(&mut board) != 0 {}
+            // print::position(&board, None);
             // perft::run(&board, 6);
             // perftsuite::run_all_tests();
         }

@@ -10,6 +10,9 @@ edition = "2018"
 rand = { version = "0.7.3", features = ["small_rng"] }
 if_chain = "1.0.0"
 
+[features]
+cli = []
+
 [profile.dev]
 opt-level = 1
 lto = false
