@@ -4,7 +4,7 @@ use crate::board::{representation::Board, zobrist::ZobristRandoms};
 use crate::extra::{perft, print};
 use crate::movegen::MoveGenerator;
 use large_epd::LARGE_PERFT_SUITE;
-use std::time::Instant;
+use std::{sync::Arc, time::Instant};
 
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
@@ -35,6 +35,7 @@ fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
     let zobrist_randoms = ZobristRandoms::new();
+    let mut board: Board = Board::new(Arc::new(zobrist_randoms), Arc::new(move_generator));
     let mut abort = false;
 
     // Run all the tests.
@@ -44,21 +45,25 @@ fn run(subset: &[&str]) {
             .split(SEMI_COLON)
             .map(|s| s.trim().to_string())
             .collect();
-        let fen = &data[0][..];
+        let fen = &data[0];
 
+        let setup_result = board.fen_read(Some(fen));
         println!("Test {} from {}", test_nr + 1, number_of_tests);
         println!("FEN: {}", fen);
 
-        // This board is created only for printing the current test position.
-        let board = Board::new(&zobrist_randoms, &move_generator);
-        print::position(&board, None);
+        // If setup ok, then print position. Else, print error and continue to the next test.
+        match setup_result {
+            Ok(()) => print::position(&board, None),
+            Err(e) => {
+                println!("Error in FEN-string part: {}", e);
+                continue;
+            }
+        };
 
         // Run each test at the given depths.
         for (i, d) in data.iter().enumerate() {
-            let mut board: Board = Board::new(&zobrist_randoms, &move_generator);
-
-            // Data index 0 contains the FEN-string, so skip this
-            // and start at index 1 to find the expected leaf nodes per depth.
+            // Data index 0 contains the FEN-string, so skip this and
+            // start at index 1 to find the expected leaf nodes per depth.
             if i > 0 {
                 // Split "D1 20" into a vector containing "D1" (depth) and "20" (leaf nodes)
                 let depth_ln: Vec<String> = d.split(SPACE).map(|s| s.to_string()).collect();
@@ -71,7 +76,7 @@ fn run(subset: &[&str]) {
 
                 print!("Expect for depth {}: {}", depth, expected_leaf_nodes);
 
-                // This is the actual perft test for this test and depth.
+                // This is the actual perft run for this test and depth.
                 let now = Instant::now();
                 let found_leaf_nodes = perft::perft(&mut board, depth);
                 let elapsed = now.elapsed().as_millis();

@@ -44,7 +44,7 @@ pub fn get_input(board: &mut Board) -> u64 {
     }
 }
 
-fn parse_input(board: &mut Board, input: &mut String) -> u64 {
+pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
     parse::strip_newline(input);
     match &input[..] {
         "quit" | "exit" => CMD_QUIT,

@@ -13,21 +13,22 @@ use crate::movegen::{movedefs::MoveList, MoveGenerator};
 use crate::utils::bits;
 use gamestate::GameState;
 use history::History;
+use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct Board<'a> {
+pub struct Board {
     pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
     pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
     pub game_state: GameState,
     pub history: History,
-    pub zobrist_randoms: &'a ZobristRandoms,
     pub piece_list: [Piece; NR_OF_SQUARES as usize],
-    move_generator: &'a MoveGenerator,
+    pub zobrist_randoms: Arc<ZobristRandoms>,
+    move_generator: Arc<MoveGenerator>,
 }
 
-impl<'a> Board<'a> {
+impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
-    pub fn new(zr: &'a ZobristRandoms, mg: &'a MoveGenerator) -> Board<'a> {
+    pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Board {
         Board {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
             bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
@@ -184,7 +185,7 @@ impl<'a> Board<'a> {
     // Create the initial Zobirst Key.
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key: u64 = 0;
-        let zr = self.zobrist_randoms;
+        let zr = &self.zobrist_randoms;
         let bb_w = self.bb_side[WHITE];
         let bb_b = self.bb_side[BLACK];
 
