@@ -6,15 +6,17 @@ pub const COORDINATE_LETTERS: &str = "abcdefgh";
 pub const COORDINATE_NUMBERS: &str = "12345678";
 
 pub fn strip_newline(input: &mut String) {
+    let mut s = input.trim().to_string();
     for _ in 0..2 {
-        let c = input.chars().next_back();
+        let c = s.chars().next_back();
         let cr = Some('\r') == c;
         let lf = Some('\n') == c;
 
         if cr || lf {
-            input.pop();
+            s.pop();
         }
     }
+    *input = s;
 }
 
 pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<u8, ()> {

@@ -57,7 +57,7 @@ pub fn read(board: &mut Board, fen_string: &str) -> Result<(), u8> {
         // If setup of the pieces is successful, initialize and replace.
         if result == Ok(()) {
             try_board.init();
-            *board = try_board.clone();
+            *board = try_board;
         }
     }
     result

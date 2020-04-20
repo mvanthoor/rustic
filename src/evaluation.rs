@@ -3,6 +3,7 @@ pub mod material;
 
 use crate::board::representation::Board;
 
-pub fn evaluate(board: &Board) -> usize {
+#[allow(dead_code)]
+pub fn evaluate(_board: &Board) -> usize {
     0
 }
