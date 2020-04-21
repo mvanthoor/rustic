@@ -24,7 +24,7 @@ pub struct Board {
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NR_OF_SQUARES as usize],
-    pub zobrist_randoms: Arc<ZobristRandoms>,
+    zobrist_randoms: Arc<ZobristRandoms>,
     move_generator: Arc<MoveGenerator>,
 }
 
@@ -86,7 +86,7 @@ impl Board {
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
         self.piece_list[square as usize] = PNONE;
         self.game_state.material[side] -= PIECE_VALUES[piece];
-        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        self.zobrist_piece(side, piece, square);
         bits::clear_bit(&mut self.bb_side[side][piece], square);
         bits::clear_bit(&mut self.bb_pieces[side], square);
     }
@@ -95,7 +95,7 @@ impl Board {
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
         bits::set_bit(&mut self.bb_side[side][piece], square);
         bits::set_bit(&mut self.bb_pieces[side], square);
-        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        self.zobrist_piece(side, piece, square);
         self.game_state.material[side] += PIECE_VALUES[piece];
         self.piece_list[square as usize] = piece;
     }
@@ -125,36 +125,9 @@ impl Board {
         let us = self.game_state.active_color as usize;
         let opponent = us ^ 1;
 
-        self.game_state.zobrist_key ^= self.zobrist_randoms.side(us);
-        self.game_state.zobrist_key ^= self.zobrist_randoms.side(opponent);
+        self.zobrist_side(us);
+        self.zobrist_side(opponent);
         self.game_state.active_color = opponent as u8;
-    }
-
-    // Passthrough functions for move generator
-    pub fn gen_all_moves(&self, ml: &mut MoveList) {
-        self.move_generator.gen_all_moves(self, ml);
-    }
-
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
-        self.move_generator.get_non_slider_attacks(piece, square)
-    }
-
-    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
-        self.move_generator.get_slider_attacks(piece, square, occ)
-    }
-
-    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
-        self.move_generator.get_pawn_attacks(side, square)
-    }
-
-    pub fn zobrist_castling(&mut self) {
-        let gs_c = self.game_state.castling;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(gs_c);
-    }
-
-    pub fn zobrist_en_passant(&mut self) {
-        let gs_ep = self.game_state.en_passant;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(gs_ep);
     }
 
     // This function creates bitboards per side, containing all the pieces of that side.
@@ -221,5 +194,43 @@ impl Board {
         key ^= zr.en_passant(self.game_state.en_passant);
 
         key
+    }
+
+    // ========== Move Generator passthrough ==========
+
+    pub fn gen_all_moves(&self, ml: &mut MoveList) {
+        self.move_generator.gen_all_moves(self, ml);
+    }
+
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+        self.move_generator.get_non_slider_attacks(piece, square)
+    }
+
+    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
+        self.move_generator.get_slider_attacks(piece, square, occ)
+    }
+
+    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+        self.move_generator.get_pawn_attacks(side, square)
+    }
+
+    // ========== Zobrist Randoms passthrough ==========
+
+    pub fn zobrist_piece(&mut self, side: Side, piece: Piece, square: u8) {
+        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+    }
+
+    pub fn zobrist_castling(&mut self) {
+        let gs_c = self.game_state.castling;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(gs_c);
+    }
+
+    pub fn zobrist_en_passant(&mut self) {
+        let gs_ep = self.game_state.en_passant;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(gs_ep);
+    }
+
+    pub fn zobrist_side(&mut self, side: Side) {
+        self.game_state.zobrist_key ^= self.zobrist_randoms.side(side);
     }
 }
