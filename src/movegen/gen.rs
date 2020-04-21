@@ -1,7 +1,9 @@
 // gen.rs is the file generating pseudo-legal moves for the current board position.
 
-use super::info;
-use super::movedefs::{Move, MoveList, Shift};
+use super::{
+    info,
+    movedefs::{Move, MoveList, Shift},
+};
 use crate::board::{self, representation::Board, BB_RANKS};
 use crate::defs::{
     Bitboard, Piece, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1,

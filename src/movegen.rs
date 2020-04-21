@@ -19,9 +19,6 @@ const NSQ: usize = NR_OF_SQUARES as usize;
 pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
-pub type BlockerBoards = Vec<Bitboard>;
-pub type AttackBoards = Vec<Bitboard>;
-
 /**
  * The struct "Magics" will hold all of the attack tables for each piece on each square.
  * The _rook and _bishop arrays hold the attack tables for the sliders. _rook_info and

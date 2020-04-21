@@ -4,9 +4,11 @@
  * rook attack boards, and bishop attack boards.
 */
 use super::rays;
-use super::{AttackBoards, BlockerBoards};
 use crate::board::Direction;
 use crate::defs::Bitboard;
+
+pub type BlockerBoards = Vec<Bitboard>;
+pub type AttackBoards = Vec<Bitboard>;
 
 /**
  * create_blocker_boards() takes a mask. This is a bitboard in which

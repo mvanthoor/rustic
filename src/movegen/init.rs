@@ -1,8 +1,8 @@
-use super::blockatt;
-use super::magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS};
-use super::masks;
-use super::MoveGenerator;
-use super::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
+use super::{
+    blockatt,
+    magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS},
+    masks, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
+};
 use crate::board::{BB_FILES, BB_RANKS};
 use crate::defs::{
     Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, EMPTY, FILE_A, FILE_B, FILE_G, FILE_H, RANK_1,

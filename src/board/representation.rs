@@ -2,8 +2,10 @@
 mod gamestate;
 mod history;
 
-use super::fen;
-use super::zobrist::{ZobristKey, ZobristRandoms};
+use super::{
+    fen,
+    zobrist::{ZobristKey, ZobristRandoms},
+};
 use crate::defs::{
     Bitboard, Piece, Side, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE, BLACK, EMPTY,
     FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
@@ -106,16 +108,16 @@ impl Board {
 
     // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: u8) {
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.zobrist_en_passant();
         self.game_state.en_passant = Some(square);
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.zobrist_en_passant();
     }
 
     // Clear the ep-square. (If the ep-square is None already, nothing changes.)
     pub fn clear_ep_square(&mut self) {
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.zobrist_en_passant();
         self.game_state.en_passant = None;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
+        self.zobrist_en_passant();
     }
 
     // Swap side from WHITE <==> BLACK
@@ -143,6 +145,16 @@ impl Board {
 
     pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
         self.move_generator.get_pawn_attacks(side, square)
+    }
+
+    pub fn zobrist_castling(&mut self) {
+        let gs_c = self.game_state.castling;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(gs_c);
+    }
+
+    pub fn zobrist_en_passant(&mut self) {
+        let gs_ep = self.game_state.en_passant;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(gs_ep);
     }
 
     // This function creates bitboards per side, containing all the pieces of that side.

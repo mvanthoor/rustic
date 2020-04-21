@@ -1,10 +1,33 @@
 use super::representation::Board;
 use crate::defs::{
-    Piece, Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, E1, E8,
-    F1, F8, G1, G8, H1, H8, KING, PAWN, PNONE, ROOK, WHITE,
+    Piece, Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8,
+    G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::{info, movedefs::Move};
 use crate::utils::bits;
+
+// Full castling permissions are 1111, or value 15.
+// N_WKQ = Not White Kingside/Queenside, and so on.
+const CASTLING_PERMS_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
+const N_WKQ: u8 = CASTLING_PERMS_ALL & !(CASTLE_WK | CASTLE_WQ);
+const N_WQ: u8 = CASTLING_PERMS_ALL & !CASTLE_WQ;
+const N_WK: u8 = CASTLING_PERMS_ALL & !CASTLE_WK;
+const N_BKQ: u8 = CASTLING_PERMS_ALL & !(CASTLE_BK | CASTLE_BQ);
+const N_BQ: u8 = CASTLING_PERMS_ALL & !CASTLE_BQ;
+const N_BK: u8 = CASTLING_PERMS_ALL & !CASTLE_BK;
+
+#[rustfmt::skip]
+// First element in this array is square A1.
+const CASTLING_PERMS: [u8; NR_OF_SQUARES as usize] = [
+    N_WQ,  15,  15,  15,  N_WKQ,  15,  15,  N_WK,
+    15,    15,  15,  15,  15,     15,  15,  15, 
+    15,    15,  15,  15,  15,     15,  15,  15, 
+    15,    15,  15,  15,  15,     15,  15,  15, 
+    15,    15,  15,  15,  15,     15,  15,  15,
+    15,    15,  15,  15,  15,     15,  15,  15, 
+    15,    15,  15,  15,  15,     15,  15,  15, 
+    N_BQ,  15,  15,  15,  N_BKQ,  15,  15,  N_BK,
+];
 
 // TODO: Update comments
 #[cfg_attr(debug_assertions, inline(never))]
@@ -40,11 +63,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Make the move, taking promotion into account.
     board.remove_piece(us, piece, from);
-    if !promotion_move {
-        board.put_piece(us, piece, to);
-    } else {
-        board.put_piece(us, promoted, to);
-    }
+    board.put_piece(us, if !promotion_move { piece } else { promoted }, to);
 
     // The king performed a castling move. Make the correct rook move.
     if castling {
@@ -52,13 +71,17 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         move_rook_during_castling(board, king_square);
     }
 
-    // King or rook moves from starting square; castling permissions are dropped.
-    if !castling && (piece == KING || piece == ROOK) && (board.game_state.castling > 0) {
-        adjust_castling_perms_if_leaving_starting_square(board, from);
+    // Remove castling permissions if king/rook leaves from starting square
+    if CASTLING_PERMS[from as usize] != CASTLING_PERMS_ALL {
+        board.zobrist_castling();
+        board.game_state.castling &= CASTLING_PERMS[from as usize];
+        board.zobrist_castling();
     }
 
     // Every move unsets the up-square (if not unset already).
-    board.clear_ep_square();
+    if board.game_state.en_passant != None {
+        board.clear_ep_square();
+    }
 
     // After an en-passant maneuver, the opponent's pawn has yet to be removed.
     if en_passant {
@@ -110,21 +133,6 @@ fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
         A8 => board.game_state.castling &= !CASTLE_BQ,
         _ => (),
     }
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
-}
-
-// This function adjusts castling permissions if king or rook leaves a starting square.
-fn adjust_castling_perms_if_leaving_starting_square(board: &mut Board, square: u8) {
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
-    match square {
-        H1 => board.game_state.castling &= !CASTLE_WK,
-        A1 => board.game_state.castling &= !CASTLE_WQ,
-        E1 => board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ),
-        H8 => board.game_state.castling &= !CASTLE_BK,
-        A8 => board.game_state.castling &= !CASTLE_BQ,
-        E8 => board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ),
-        _ => (),
-    };
     board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
 }
 
