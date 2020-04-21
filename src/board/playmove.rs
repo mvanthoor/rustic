@@ -105,8 +105,6 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         board.set_ep_square(to ^ 8);
     }
 
-    // *** Move is legal. Update the remainder of the board state ***
-
     // Swap the side to move.
     board.swap_side();
 
