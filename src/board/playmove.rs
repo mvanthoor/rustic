@@ -7,17 +7,20 @@ use crate::movegen::{info, movedefs::Move};
 use crate::utils::bits;
 
 // Full castling permissions are 1111, or value 15.
+// CP_ALL = All castling permissions for both sides.
 // N_WKQ = Not White Kingside/Queenside, and so on.
-const CASTLING_PERMS_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
-const N_WKQ: u8 = CASTLING_PERMS_ALL & !(CASTLE_WK | CASTLE_WQ);
-const N_WQ: u8 = CASTLING_PERMS_ALL & !CASTLE_WQ;
-const N_WK: u8 = CASTLING_PERMS_ALL & !CASTLE_WK;
-const N_BKQ: u8 = CASTLING_PERMS_ALL & !(CASTLE_BK | CASTLE_BQ);
-const N_BQ: u8 = CASTLING_PERMS_ALL & !CASTLE_BQ;
-const N_BK: u8 = CASTLING_PERMS_ALL & !CASTLE_BK;
+const CP_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
+const N_WKQ: u8 = CP_ALL & !(CASTLE_WK | CASTLE_WQ);
+const N_WQ: u8 = CP_ALL & !CASTLE_WQ;
+const N_WK: u8 = CP_ALL & !CASTLE_WK;
+const N_BKQ: u8 = CP_ALL & !(CASTLE_BK | CASTLE_BQ);
+const N_BQ: u8 = CP_ALL & !CASTLE_BQ;
+const N_BK: u8 = CP_ALL & !CASTLE_BK;
 
 #[rustfmt::skip]
 // First element in this array is square A1.
+// The N_* constants mark which castling rights are lost
+// if the king or rook moves from that starting square.
 const CASTLING_PERMS: [u8; NR_OF_SQUARES as usize] = [
     N_WQ,  15,  15,  15,  N_WKQ,  15,  15,  N_WK,
     15,    15,  15,  15,  15,     15,  15,  15, 
@@ -51,31 +54,40 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let castling = m.castling();
     let double_step = m.double_step();
     let en_passant = m.en_passant();
-    let promotion_move = promoted != PNONE;
+    let is_promotion = promoted != PNONE;
 
     // If piece was captured with this move then remove it.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
+        // Change castling permissions on rook capture.
         if captured == ROOK && (board.game_state.castling > 0) {
-            adjust_castling_perms_on_rook_capture(board, to);
+            board.zobrist_castling();
+            board.game_state.castling &= CASTLING_PERMS[to as usize];
+            board.zobrist_castling();
         }
     }
 
     // Make the move, taking promotion into account.
     board.remove_piece(us, piece, from);
-    board.put_piece(us, if !promotion_move { piece } else { promoted }, to);
+    board.put_piece(us, if !is_promotion { piece } else { promoted }, to);
 
-    // The king performed a castling move. Make the correct rook move.
-    if castling {
-        let king_square = to;
-        move_rook_during_castling(board, king_square);
-    }
-
-    // Remove castling permissions if king/rook leaves from starting square
-    if CASTLING_PERMS[from as usize] != CASTLING_PERMS_ALL {
+    // Remove castling permissions if king/rook leaves from starting square.
+    // (This will also adjust permissions when castling, because it's the king which moves.)
+    if (CASTLING_PERMS[from as usize] != CP_ALL) && (board.game_state.castling > 0) {
         board.zobrist_castling();
         board.game_state.castling &= CASTLING_PERMS[from as usize];
         board.zobrist_castling();
+    }
+
+    // If the king is castling, then also move the rook.
+    if castling {
+        match to {
+            G1 => board.move_piece(us, ROOK, H1, F1),
+            C1 => board.move_piece(us, ROOK, A1, D1),
+            G8 => board.move_piece(us, ROOK, H8, F8),
+            C8 => board.move_piece(us, ROOK, A8, D8),
+            _ => panic!("Error moving rook during castling."),
+        }
     }
 
     // Every move unsets the up-square (if not unset already).
@@ -93,7 +105,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         board.set_ep_square(to ^ 8);
     }
 
-    // *** Update the remainder of the board state ***
+    // *** Move is legal. Update the remainder of the board state ***
 
     // Swap the side to move.
     board.swap_side();
@@ -110,56 +122,14 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         board.game_state.fullmove_number += 1;
     }
 
-    /*** Validating move: see if "us" is in check ***/
-
+    /*** Validating move: see if "us" is in check. If so, undo everything. ***/
     let king_square = board.get_pieces(KING, us).trailing_zeros() as u8;
-    let is_legal = !info::square_attacked(board, opponent, king_square);
-
-    // We're in check. Undo everything.
-    if !is_legal {
+    if info::square_attacked(board, opponent, king_square) {
         unmake(board);
+        return false;
     }
 
-    is_legal
-}
-
-// This function changes castling permissions according to the rook being captured
-fn adjust_castling_perms_on_rook_capture(board: &mut Board, square: u8) {
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
-    match square {
-        H1 => board.game_state.castling &= !CASTLE_WK,
-        A1 => board.game_state.castling &= !CASTLE_WQ,
-        H8 => board.game_state.castling &= !CASTLE_BK,
-        A8 => board.game_state.castling &= !CASTLE_BQ,
-        _ => (),
-    }
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
-}
-
-// This function moves the correct rook after the king has moved during castling.
-fn move_rook_during_castling(board: &mut Board, king_square: u8) {
-    let us = board.game_state.active_color as usize;
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
-    match king_square {
-        G1 => {
-            board.move_piece(us, ROOK, H1, F1);
-            board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
-        }
-        C1 => {
-            board.move_piece(us, ROOK, A1, D1);
-            board.game_state.castling &= !(CASTLE_WK + CASTLE_WQ);
-        }
-        G8 => {
-            board.move_piece(us, ROOK, H8, F8);
-            board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
-        }
-        C8 => {
-            board.move_piece(us, ROOK, A8, D8);
-            board.game_state.castling &= !(CASTLE_BK + CASTLE_BQ);
-        }
-        _ => panic!("Error: Move rook during castling."),
-    }
-    board.game_state.zobrist_key ^= board.zobrist_randoms.castling(board.game_state.castling);
+    true
 }
 
 /*** ================================================================================ ***/
@@ -218,6 +188,8 @@ pub fn unmake(board: &mut Board) {
     // restore the previous board state.
     board.game_state = stored;
 }
+
+// ===== Helper functions to reverse piece moves without doing zobrist updates. =====
 
 // Removes a piece from the board.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {

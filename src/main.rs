@@ -7,7 +7,7 @@ mod movegen;
 mod utils;
 
 use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
-use extra::perft;
+use extra::{perft, perftsuite};
 use interface::console;
 use movegen::MoveGenerator;
 use std::sync::Arc;
