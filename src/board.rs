@@ -3,7 +3,7 @@ pub mod playmove;
 pub mod representation;
 pub mod zobrist;
 
-use crate::defs::{Bitboard, NR_OF_FILES, NR_OF_RANKS};
+use crate::defs::{Bitboard, Square, NR_OF_FILES, NR_OF_RANKS};
 
 // Piece location: (file, rank)
 pub type Location = (u8, u8);
@@ -50,14 +50,14 @@ pub const BB_RANKS: [Bitboard; NR_OF_RANKS as usize] = [
 ];
 
 // Compute on which file and rank a given square is.
-pub fn square_on_file_rank(square: u8) -> Location {
+pub fn square_on_file_rank(square: Square) -> Location {
     let file = square % 8; // square mod 8
     let rank = square / 8; // square div 8
     (file, rank)
 }
 
 // Compute if a given square is or isn't on the given rank.
-pub fn square_on_rank(square: u8, rank: u8) -> bool {
+pub fn square_on_rank(square: Square, rank: Square) -> bool {
     let start = (rank) * 8;
     let end = start + 7;
     (start..=end).contains(&square)

@@ -1,7 +1,7 @@
 use super::representation::Board;
 use crate::defs::{
-    Piece, Side, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8,
-    G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
+    Piece, Side, Square, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8,
+    F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::movegen::{info, movedefs::Move};
 use crate::utils::bits;
@@ -190,14 +190,14 @@ pub fn unmake(board: &mut Board) {
 // ===== Helper functions to reverse piece moves without doing zobrist updates. =====
 
 // Removes a piece from the board.
-fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     bits::clear_bit(&mut board.bb_side[side][piece], square);
     bits::clear_bit(&mut board.bb_pieces[side], square);
     board.piece_list[square as usize] = PNONE;
 }
 
 // Puts a piece onto the board.
-fn put_piece(board: &mut Board, side: Side, piece: Piece, square: u8) {
+fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     bits::set_bit(&mut board.bb_side[side][piece], square);
     bits::set_bit(&mut board.bb_pieces[side], square);
     board.piece_list[square as usize] = piece;

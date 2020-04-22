@@ -9,7 +9,9 @@ mod rays;
 
 // TODO: Rewrite comments for move generator
 use crate::board::representation::Board;
-use crate::defs::{Bitboard, Piece, Side, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK};
+use crate::defs::{
+    Bitboard, Piece, Side, Square, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK,
+};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
 use movedefs::MoveList;
@@ -66,7 +68,7 @@ impl MoveGenerator {
     // ===== Private functions for use by submodules ===== //
 
     /** Return non-slider (King, Knight) attacks for the given square. */
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: Square) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -77,7 +79,12 @@ impl MoveGenerator {
     }
 
     /** Return slider attacsk for Rook, Bishop and Queen using Magic. */
-    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occupancy: Bitboard) -> Bitboard {
+    pub fn get_slider_attacks(
+        &self,
+        piece: Piece,
+        square: Square,
+        occupancy: Bitboard,
+    ) -> Bitboard {
         let sq = square as usize;
 
         match piece {
@@ -99,7 +106,7 @@ impl MoveGenerator {
     }
 
     /** Return pawn attacks for the given square. */
-    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+    pub fn get_pawn_attacks(&self, side: Side, square: Square) -> Bitboard {
         self._pawns[side][square as usize]
     }
 }

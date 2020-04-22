@@ -11,7 +11,7 @@
 */
 use super::rays;
 use crate::board::{self, Direction, Location, BB_FILES, BB_RANKS};
-use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::defs::{Bitboard, Square, FILE_A, FILE_H, RANK_1, RANK_8};
 
 /**
  * Explanation of create_rook mask, step by step.
@@ -24,7 +24,7 @@ use crate::defs::{Bitboard, FILE_A, FILE_H, RANK_1, RANK_8};
  * Create the rook's mask by combining its file and rank bitboards.
  * For the final result: exclude the edge squares and rook's square from the mask.
  */
-pub fn create_rook_mask(square: u8) -> Bitboard {
+pub fn create_rook_mask(square: Square) -> Bitboard {
     let location = board::square_on_file_rank(square);
     let bb_rook_square = 1u64 << square;
     let bb_edges = edges_without_piece(location);
@@ -42,7 +42,7 @@ pub fn create_rook_mask(square: u8) -> Bitboard {
  * As a final result, the four rays are combined, to generate all bishop moves from that square,
  * on an empty board. Then the edges are clipped off, as they are not needed in the mask.
 */
-pub fn create_bishop_mask(square: u8) -> Bitboard {
+pub fn create_bishop_mask(square: Square) -> Bitboard {
     let location = board::square_on_file_rank(square);
     let bb_edges = edges_without_piece(location);
     let bb_up_left = rays::create_bb_ray(0, square, Direction::UpLeft);

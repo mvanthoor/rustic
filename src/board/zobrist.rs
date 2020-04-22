@@ -1,7 +1,7 @@
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use crate::defs::{Piece, Side, EMPTY, NR_OF_SQUARES};
+use crate::defs::{Piece, Side, Square, EMPTY, NR_OF_SQUARES};
 
 const ALL_SQUARES: usize = NR_OF_SQUARES as usize;
 const ALL_PIECES: usize = 6;
@@ -56,7 +56,7 @@ impl ZobristRandoms {
         zobrist_randoms
     }
 
-    pub fn piece(&self, side: Side, piece: Piece, square: u8) -> u64 {
+    pub fn piece(&self, side: Side, piece: Piece, square: Square) -> u64 {
         self.rnd_pieces[side][piece][square as usize]
     }
 

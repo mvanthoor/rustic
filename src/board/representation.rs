@@ -7,7 +7,7 @@ use super::{
     zobrist::{ZobristKey, ZobristRandoms},
 };
 use crate::defs::{
-    Bitboard, Piece, Side, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE, BLACK, EMPTY,
+    Bitboard, Piece, Side, Square, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE, BLACK, EMPTY,
     FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
@@ -83,7 +83,7 @@ impl Board {
     }
 
     // Remove a piece from the board, for the given side, piece, and square.
-    pub fn remove_piece(&mut self, side: Side, piece: Piece, square: u8) {
+    pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square as usize] = PNONE;
         self.game_state.material[side] -= PIECE_VALUES[piece];
         self.zobrist_piece(side, piece, square);
@@ -92,7 +92,7 @@ impl Board {
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
-    pub fn put_piece(&mut self, side: Side, piece: Piece, square: u8) {
+    pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
         bits::set_bit(&mut self.bb_side[side][piece], square);
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.zobrist_piece(side, piece, square);
@@ -107,7 +107,7 @@ impl Board {
     }
 
     // Set a square as being the current ep-square.
-    pub fn set_ep_square(&mut self, square: u8) {
+    pub fn set_ep_square(&mut self, square: Square) {
         self.zobrist_en_passant();
         self.game_state.en_passant = Some(square);
         self.zobrist_en_passant();
@@ -202,21 +202,21 @@ impl Board {
         self.move_generator.gen_all_moves(self, ml);
     }
 
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: u8) -> Bitboard {
+    pub fn get_non_slider_attacks(&self, piece: Piece, square: Square) -> Bitboard {
         self.move_generator.get_non_slider_attacks(piece, square)
     }
 
-    pub fn get_slider_attacks(&self, piece: Piece, square: u8, occ: Bitboard) -> Bitboard {
+    pub fn get_slider_attacks(&self, piece: Piece, square: Square, occ: Bitboard) -> Bitboard {
         self.move_generator.get_slider_attacks(piece, square, occ)
     }
 
-    pub fn get_pawn_attacks(&self, side: Side, square: u8) -> Bitboard {
+    pub fn get_pawn_attacks(&self, side: Side, square: Square) -> Bitboard {
         self.move_generator.get_pawn_attacks(side, square)
     }
 
     // ========== Zobrist Randoms passthrough ==========
 
-    pub fn zobrist_piece(&mut self, side: Side, piece: Piece, square: u8) {
+    pub fn zobrist_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
     }
 

@@ -1,5 +1,5 @@
 use crate::board::representation::Board;
-use crate::defs::{Side, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
+use crate::defs::{Side, Square, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
 
 /**
  * square_attacked reports true or false regarding the question if a square is attacekd by the
@@ -20,7 +20,7 @@ use crate::defs::{Side, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
  */
 #[cfg_attr(debug_assertions, inline(never))]
 #[cfg_attr(not(debug_assertions), inline(always))]
-pub fn square_attacked(board: &Board, attacker: Side, square: u8) -> bool {
+pub fn square_attacked(board: &Board, attacker: Side, square: Square) -> bool {
     let pieces = board.bb_side[attacker];
     let occupancy = board.occupancy();
     let bb_king = board.get_non_slider_attacks(KING, square);

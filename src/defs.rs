@@ -12,6 +12,7 @@ pub const AUTHOR: &str = "Marcel Vanthoor";
 pub type Bitboard = u64;
 pub type Piece = usize;
 pub type Side = usize;
+pub type Square = u8;
 
 pub const WHITE: Side = 0;
 pub const BLACK: Side = 1;

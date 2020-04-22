@@ -5,7 +5,7 @@
 */
 use super::rays;
 use crate::board::Direction;
-use crate::defs::Bitboard;
+use crate::defs::{Bitboard, Square};
 
 pub type BlockerBoards = Vec<Bitboard>;
 pub type AttackBoards = Vec<Bitboard>;
@@ -42,14 +42,14 @@ pub fn create_blocker_boards(mask: Bitboard) -> BlockerBoards {
  * belonging to that blocker board. The 'length' parameter is the length of the given
  * array of blocker boards.
 */
-pub fn create_rook_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards {
+pub fn create_rook_attack_boards(square: Square, blockers: &[Bitboard]) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
-        let bb_attacks = rays::create_bb_ray(*b, sq, Direction::Up)
-            | rays::create_bb_ray(*b, sq, Direction::Right)
-            | rays::create_bb_ray(*b, sq, Direction::Down)
-            | rays::create_bb_ray(*b, sq, Direction::Left);
+        let bb_attacks = rays::create_bb_ray(*b, square, Direction::Up)
+            | rays::create_bb_ray(*b, square, Direction::Right)
+            | rays::create_bb_ray(*b, square, Direction::Down)
+            | rays::create_bb_ray(*b, square, Direction::Left);
         bb_attack_boards.push(bb_attacks);
     }
 
@@ -57,14 +57,14 @@ pub fn create_rook_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards 
 }
 
 /* Same as the function above, but for the bishop. */
-pub fn create_bishop_attack_boards(sq: u8, blockers: &[Bitboard]) -> AttackBoards {
+pub fn create_bishop_attack_boards(square: Square, blockers: &[Bitboard]) -> AttackBoards {
     let mut bb_attack_boards: AttackBoards = Vec::new();
 
     for b in blockers.iter() {
-        let bb_attacks = rays::create_bb_ray(*b, sq, Direction::UpLeft)
-            | rays::create_bb_ray(*b, sq, Direction::UpRight)
-            | rays::create_bb_ray(*b, sq, Direction::DownRight)
-            | rays::create_bb_ray(*b, sq, Direction::DownLeft);
+        let bb_attacks = rays::create_bb_ray(*b, square, Direction::UpLeft)
+            | rays::create_bb_ray(*b, square, Direction::UpRight)
+            | rays::create_bb_ray(*b, square, Direction::DownRight)
+            | rays::create_bb_ray(*b, square, Direction::DownLeft);
         bb_attack_boards.push(bb_attacks);
     }
 

@@ -1,7 +1,8 @@
 use crate::board::representation::Board;
 use crate::defs::{
-    Bitboard, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ,
-    KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
+    Bitboard, Square, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
+    CASTLE_WQ, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK,
+    SQUARE_NAME, WHITE,
 };
 use crate::movegen::{magics::Magics, movedefs::Move};
 
@@ -66,10 +67,10 @@ pub fn move_data(m: Move) {
 
 // This function prints a found magic number and its stats.
 #[allow(dead_code)]
-pub fn found_magic(sq: u8, m: Magics, offset: u64, end: u64, attempts: u64) {
+pub fn found_magic(square: Square, m: Magics, offset: u64, end: u64, attempts: u64) {
     println!(
         "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
-        SQUARE_NAME[sq as usize], m.magic, offset, end, attempts
+        SQUARE_NAME[square as usize], m.magic, offset, end, attempts
     );
 }
 
