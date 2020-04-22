@@ -28,11 +28,9 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
-/**
- * "Shift" is an enumeration containing the offsets of the
- * data fields within the u64 integer containing the
- * the information about a move.
- */
+/* "Shift" is an enum which contains the number of bits that needed to be shifted to store
+ * move data in a specific place within the u64 integer. This makes sure that, should the
+ * format change, the location needs to be changed only within the integer. */
 pub enum Shift {
     Piece = 0,
     FromSq = 3,
@@ -44,11 +42,14 @@ pub enum Shift {
     Castling = 23,
 }
 
+/* This struct contains the move data. It's a struct so it can be instantiated, and then
+ * it can provide all of the methods associated with it to easily decode the move data. */
 #[derive(Copy, Clone)]
 pub struct Move {
     pub data: u64,
 }
 
+// These functions decode the move data.
 impl Move {
     pub fn piece(self) -> u8 {
         ((self.data >> Shift::Piece as u64) & 0x7) as u8

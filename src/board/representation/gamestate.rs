@@ -1,6 +1,9 @@
 use crate::movegen::movedefs::Move;
 
-// TODO: Update comments
+// This is simply a struct that collects all the variables holding the game sate.
+// It makes it very easy to make a backup of the game state during make(), and
+// restore it when performing unmake(). It prevents having to backup and restore
+// each game state variable one by one.
 
 #[derive(Clone, Copy)]
 pub struct GameState {

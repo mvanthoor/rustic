@@ -1,4 +1,5 @@
-pub mod blockatt;
+pub mod attackboards;
+pub mod blockerboards;
 mod gen;
 pub mod info;
 mod init;

@@ -1,5 +1,5 @@
 use super::{
-    blockatt,
+    attackboards, blockerboards,
     magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS},
     masks, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
@@ -126,11 +126,11 @@ pub fn init_magics(mg: &mut MoveGenerator, piece: Piece) {
         let bits = mask.count_ones(); // Number of set bits in the mask
         let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
         let end = offset + permutations - 1; // End point in the attack table.
-        let blocker_boards = blockatt::create_blocker_boards(mask);
+        let blocker_boards = blockerboards::create_blocker_boards(mask);
         let attack_boards = if is_rook {
-            blockatt::create_rook_attack_boards(sq, &blocker_boards)
+            attackboards::create_rook_attack_boards(sq, &blocker_boards)
         } else {
-            blockatt::create_bishop_attack_boards(sq, &blocker_boards)
+            attackboards::create_bishop_attack_boards(sq, &blocker_boards)
         };
         let mut mcurrent: Magics = Default::default();
 

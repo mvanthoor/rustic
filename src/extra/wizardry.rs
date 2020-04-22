@@ -1,6 +1,8 @@
 use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, EMPTY, PIECE_NAME, ROOK};
 use crate::extra::print;
-use crate::movegen::{blockatt, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
+use crate::movegen::{
+    attackboards, blockerboards, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
+};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
@@ -35,13 +37,13 @@ pub fn find_magics(piece: Piece) {
         let end = offset + permutations - 1; // End index in the attack table.
 
         // Create blocker board for the current mask.
-        let blocker_boards = blockatt::create_blocker_boards(mask);
+        let blocker_boards = blockerboards::create_blocker_boards(mask);
 
         // Create attack board for the current square/blocker combo (either rook or bishop).
         let attack_boards = if is_rook {
-            blockatt::create_rook_attack_boards(sq, &blocker_boards)
+            attackboards::create_rook_attack_boards(sq, &blocker_boards)
         } else {
-            blockatt::create_bishop_attack_boards(sq, &blocker_boards)
+            attackboards::create_bishop_attack_boards(sq, &blocker_boards)
         };
 
         // Done calculating needed data. Create a new magic.
