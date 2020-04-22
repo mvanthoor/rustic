@@ -1,5 +1,3 @@
-use std::mem;
-
 /*
 Move format explanation
 
@@ -44,39 +42,6 @@ pub enum Shift {
     EnPassant = 21,
     DoubleStep = 22,
     Castling = 23,
-}
-
-/** This part defines the movelist, and the move and its functions */
-pub const MAX_MOVES: u8 = 255;
-
-#[derive(Copy, Clone)]
-pub struct MoveList {
-    list: [Move; MAX_MOVES as usize],
-    count: u8,
-}
-
-impl MoveList {
-    pub fn new() -> MoveList {
-        MoveList {
-            list: unsafe { mem::MaybeUninit::uninit().assume_init() },
-            count: 0,
-        }
-    }
-
-    pub fn push(&mut self, m: Move) {
-        assert!(self.count < MAX_MOVES, "Move list already full.");
-        self.list[self.count as usize] = m;
-        self.count += 1;
-    }
-
-    pub fn len(&self) -> u8 {
-        self.count
-    }
-
-    pub fn get_move(&self, index: u8) -> Move {
-        assert!(index <= self.count, "Move list index out of range.");
-        self.list[index as usize]
-    }
 }
 
 #[derive(Copy, Clone)]

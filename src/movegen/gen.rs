@@ -2,7 +2,8 @@
 
 use super::{
     info,
-    movedefs::{Move, MoveList, Shift},
+    movedefs::{Move, Shift},
+    movelist::MoveList,
 };
 use crate::board::{self, representation::Board, BB_RANKS};
 use crate::defs::{

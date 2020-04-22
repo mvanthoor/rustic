@@ -11,7 +11,7 @@ use crate::defs::{
     FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
-use crate::movegen::{movedefs::MoveList, MoveGenerator};
+use crate::movegen::{movelist::MoveList, MoveGenerator};
 use crate::utils::bits;
 use gamestate::GameState;
 use history::History;

@@ -3,7 +3,7 @@
 use crate::board::{playmove, representation::Board};
 use crate::defs::{Piece, ENGINE, PNONE};
 use crate::extra::{perft, perftsuite, print};
-use crate::movegen::movedefs::MoveList;
+use crate::movegen::movelist::MoveList;
 use crate::utils::parse;
 use if_chain::if_chain;
 use std::{io, io::Write};

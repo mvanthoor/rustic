@@ -5,6 +5,7 @@ mod init;
 pub mod magics;
 pub mod masks;
 pub mod movedefs;
+pub mod movelist;
 mod rays;
 
 // TODO: Rewrite comments for move generator
@@ -14,7 +15,7 @@ use crate::defs::{
 };
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
-use movedefs::MoveList;
+use movelist::MoveList;
 
 const WHITE_BLACK: usize = 2;
 const NSQ: usize = NR_OF_SQUARES as usize;
