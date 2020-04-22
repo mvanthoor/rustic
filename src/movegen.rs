@@ -75,7 +75,7 @@ impl MoveGenerator {
         match piece {
             KING => self._king[sq],
             KNIGHT => self._knight[sq],
-            _ => 0,
+            _ => panic!("Not a king or a knight: {}", piece),
         }
     }
 
@@ -102,7 +102,7 @@ impl MoveGenerator {
                 let b_index = self._bishop_magics[sq].get_index(occupancy);
                 self._rook[r_index] ^ self._bishop[b_index]
             }
-            _ => 0,
+            _ => panic!("Not a sliding piece: {}", piece),
         }
     }
 
