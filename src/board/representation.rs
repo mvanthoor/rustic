@@ -24,6 +24,7 @@ pub struct Board {
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NR_OF_SQUARES as usize],
+    pub material_count: [u16; EACH_SIDE as usize],
     zobrist_randoms: Arc<ZobristRandoms>,
     move_generator: Arc<MoveGenerator>,
 }
@@ -38,6 +39,7 @@ impl Board {
             history: History::new(),
             zobrist_randoms: zr,
             piece_list: [PNONE; NR_OF_SQUARES as usize],
+            material_count: [0; EACH_SIDE as usize],
             move_generator: mg,
         }
     }
@@ -59,8 +61,8 @@ impl Board {
         self.game_state.zobrist_key = self.init_zobrist_key();
 
         let material = material::count(&self);
-        self.game_state.material[WHITE] = material.0;
-        self.game_state.material[BLACK] = material.1;
+        self.material_count[WHITE] = material.0;
+        self.material_count[BLACK] = material.1;
     }
 
     // Reset the board.
@@ -85,7 +87,7 @@ impl Board {
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square as usize] = PNONE;
-        self.game_state.material[side] -= PIECE_VALUES[piece];
+        self.material_count[side] -= PIECE_VALUES[piece];
         self.zobrist_piece(side, piece, square);
         bits::clear_bit(&mut self.bb_side[side][piece], square);
         bits::clear_bit(&mut self.bb_pieces[side], square);
@@ -96,7 +98,7 @@ impl Board {
         bits::set_bit(&mut self.bb_side[side][piece], square);
         bits::set_bit(&mut self.bb_pieces[side], square);
         self.zobrist_piece(side, piece, square);
-        self.game_state.material[side] += PIECE_VALUES[piece];
+        self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square as usize] = piece;
     }
 

@@ -6,7 +6,6 @@ use crate::movegen::movedefs::Move;
 // each game state variable one by one.
 
 #[derive(Clone, Copy)]
-#[repr(C)]
 pub struct GameState {
     pub active_color: u8,
     pub castling: u8,
@@ -15,13 +14,11 @@ pub struct GameState {
     pub fullmove_number: u16,
     pub zobrist_key: u64,
     pub this_move: Move,
-    pub material: [u16; 2],
 }
 
 impl GameState {
     pub fn new() -> GameState {
         GameState {
-            material: [0; 2],
             active_color: 0,
             castling: 0,
             en_passant: None,
