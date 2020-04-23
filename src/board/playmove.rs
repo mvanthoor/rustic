@@ -57,10 +57,19 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let en_passant = m.en_passant();
     let is_promotion = promoted != PNONE;
 
-    // If piece was captured with this move then remove it.
+    // Assume this is not a pawn move or a capture.
+    board.game_state.halfmove_clock += 1;
+
+    // Every move except double_step unsets the up-square.
+    if board.game_state.en_passant != None {
+        board.clear_ep_square();
+    }
+
+    // If a piece was captured with this move then remove it. Also reset halfmove_clock.
     if captured != PNONE {
         board.remove_piece(opponent, captured, to);
-        // Change castling permissions on rook capture.
+        board.game_state.halfmove_clock = 0;
+        // Change castling permissions on rook capture in the corner.
         if captured == ROOK && (board.game_state.castling > 0) {
             board.zobrist_castling();
             board.game_state.castling &= CASTLING_PERMS[to as usize];
@@ -68,12 +77,28 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         }
     }
 
-    // Make the move, taking promotion into account.
-    board.remove_piece(us, piece, from);
-    board.put_piece(us, if !is_promotion { piece } else { promoted }, to);
+    // Make the move. Just move the piece if it's not a pawn.
+    if !(piece == PAWN) {
+        board.move_piece(us, piece, from, to);
+    } else {
+        // It's a pawn move. Take promotion into account and reset halfmove_clock.
+        board.remove_piece(us, piece, from);
+        board.put_piece(us, if !is_promotion { piece } else { promoted }, to);
+        board.game_state.halfmove_clock = 0;
+
+        // After an en-passant maneuver, the opponent's pawn must also be removed.
+        if en_passant {
+            board.remove_piece(opponent, PAWN, to ^ 8);
+        }
+
+        // A double-step is the only move that sets the ep-square.
+        if double_step {
+            board.set_ep_square(to ^ 8);
+        }
+    }
 
     // Remove castling permissions if king/rook leaves from starting square.
-    // (This will also adjust permissions when castling, because it's the king which moves.)
+    // (This will also adjust permissions when castling, because the king moves.)
     if (CASTLING_PERMS[from as usize] != CP_ALL) && (board.game_state.castling > 0) {
         board.zobrist_castling();
         board.game_state.castling &= CASTLING_PERMS[from as usize];
@@ -91,30 +116,8 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         }
     }
 
-    // Every move unsets the up-square (if not unset already).
-    if board.game_state.en_passant != None {
-        board.clear_ep_square();
-    }
-
-    // After an en-passant maneuver, the opponent's pawn has yet to be removed.
-    if en_passant {
-        board.remove_piece(opponent, PAWN, to ^ 8);
-    }
-
-    // A double-step is the only move that sets the ep-square.
-    if double_step {
-        board.set_ep_square(to ^ 8);
-    }
-
     // Swap the side to move.
     board.swap_side();
-
-    // Update the move counter
-    if (piece == PAWN) || (captured != PNONE) {
-        board.game_state.halfmove_clock = 0;
-    } else {
-        board.game_state.halfmove_clock += 1;
-    }
 
     // Increase full move number if black has moved
     if us == BLACK {
