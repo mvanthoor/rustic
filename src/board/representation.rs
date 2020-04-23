@@ -7,8 +7,8 @@ use super::{
     zobrist::{ZobristKey, ZobristRandoms},
 };
 use crate::defs::{
-    Bitboard, Piece, Side, Square, BITBOARDS_FOR_PIECES, BITBOARDS_PER_SIDE, BLACK, EMPTY,
-    FEN_START_POSITION, NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
+    Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
+    NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
 use crate::movegen::{movelist::MoveList, MoveGenerator};
@@ -19,8 +19,8 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Board {
-    pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
-    pub bb_pieces: [Bitboard; BITBOARDS_FOR_PIECES as usize],
+    pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; EACH_SIDE as usize],
+    pub bb_pieces: [Bitboard; EACH_SIDE as usize],
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NR_OF_SQUARES as usize],
@@ -32,8 +32,8 @@ impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Board {
         Board {
-            bb_side: [[EMPTY; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize],
-            bb_pieces: [EMPTY; BITBOARDS_FOR_PIECES as usize],
+            bb_side: [[EMPTY; NR_OF_PIECES as usize]; EACH_SIDE as usize],
+            bb_pieces: [EMPTY; EACH_SIDE as usize],
             game_state: GameState::new(),
             history: History::new(),
             zobrist_randoms: zr,
@@ -65,8 +65,8 @@ impl Board {
 
     // Reset the board.
     pub fn reset(&mut self) {
-        self.bb_side = [[0; NR_OF_PIECES as usize]; BITBOARDS_PER_SIDE as usize];
-        self.bb_pieces = [EMPTY; BITBOARDS_FOR_PIECES as usize];
+        self.bb_side = [[0; NR_OF_PIECES as usize]; EACH_SIDE as usize];
+        self.bb_pieces = [EMPTY; EACH_SIDE as usize];
         self.piece_list = [PNONE; NR_OF_SQUARES as usize];
         self.game_state = GameState::new();
         self.history.clear();
