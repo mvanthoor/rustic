@@ -20,7 +20,6 @@ impl MoveList {
     }
 
     pub fn push(&mut self, m: Move) {
-        assert!(self.count < MAX_MOVES, "Move list already full.");
         self.list[self.count as usize] = m;
         self.count += 1;
     }
@@ -30,7 +29,6 @@ impl MoveList {
     }
 
     pub fn get_move(&self, index: u8) -> Move {
-        assert!(index <= self.count, "Move list index out of range.");
         self.list[index as usize]
     }
 }
