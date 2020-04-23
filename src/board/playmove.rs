@@ -140,14 +140,14 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 #[cfg_attr(debug_assertions, inline(never))]
 #[cfg_attr(not(debug_assertions), inline(always))]
 pub fn unmake(board: &mut Board) {
-    let stored = board.history.pop();
+    board.game_state = board.history.pop();
 
     // Set "us" and "opponent"
-    let us = stored.active_color as usize;
+    let us = board.game_state.active_color as usize;
     let opponent = (us ^ 1) as usize;
 
     // Dissect the move to undo
-    let m = stored.this_move;
+    let m = board.game_state.this_move;
     let piece = m.piece() as usize;
     let from = m.from();
     let to = m.to();
@@ -186,9 +186,6 @@ pub fn unmake(board: &mut Board) {
         let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
         put_piece(board, opponent, PAWN, pawn_square);
     }
-
-    // restore the previous board state.
-    board.game_state = stored;
 }
 
 // ===== Helper functions to reverse piece moves without doing zobrist updates. =====
