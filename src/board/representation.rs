@@ -7,8 +7,8 @@ use super::{
     zobrist::{ZobristKey, ZobristRandoms},
 };
 use crate::defs::{
-    Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
-    NR_OF_SQUARES, PNONE, WHITE,
+    Bitboard, Piece, Side, Square, BB_SQUARES, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION,
+    NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
 use crate::movegen::{movelist::MoveList, MoveGenerator};
@@ -37,13 +37,14 @@ impl Board {
             bb_pieces: [EMPTY; EACH_SIDE as usize],
             game_state: GameState::new(),
             history: History::new(),
-            zobrist_randoms: zr,
             piece_list: [PNONE; NR_OF_SQUARES as usize],
             material_count: [0; EACH_SIDE as usize],
+            zobrist_randoms: zr,
             move_generator: mg,
         }
     }
 
+    // Reads either the passedn FEN-string or the starting position into the board.
     pub fn fen_read(&mut self, fen: Option<&str>) -> Result<(), u8> {
         if let Some(f) = fen {
             fen::read(self, f)
@@ -52,6 +53,7 @@ impl Board {
         }
     }
 
+    // After reading the FEN-string, piece bitboards and lists must be initialized.
     pub fn init(&mut self) {
         let piece_bitboards = self.init_piece_bitboards();
         self.bb_pieces[WHITE] = piece_bitboards.0;
@@ -89,14 +91,14 @@ impl Board {
         self.piece_list[square as usize] = PNONE;
         self.material_count[side] -= PIECE_VALUES[piece];
         self.zobrist_piece(side, piece, square);
-        bits::clear_bit(&mut self.bb_side[side][piece], square);
-        bits::clear_bit(&mut self.bb_pieces[side], square);
+        self.bb_side[side][piece] ^= BB_SQUARES[square as usize];
+        self.bb_pieces[side] ^= BB_SQUARES[square as usize];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        bits::set_bit(&mut self.bb_side[side][piece], square);
-        bits::set_bit(&mut self.bb_pieces[side], square);
+        self.bb_side[side][piece] |= BB_SQUARES[square as usize];
+        self.bb_pieces[side] |= BB_SQUARES[square as usize];
         self.zobrist_piece(side, piece, square);
         self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square as usize] = piece;
@@ -124,12 +126,9 @@ impl Board {
 
     // Swap side from WHITE <==> BLACK
     pub fn swap_side(&mut self) {
-        let us = self.game_state.active_color as usize;
-        let opponent = us ^ 1;
-
-        self.zobrist_side(us);
-        self.zobrist_side(opponent);
-        self.game_state.active_color = opponent as u8;
+        self.zobrist_side();
+        self.game_state.active_color ^= 1;
+        self.zobrist_side();
     }
 
     // This function creates bitboards per side, containing all the pieces of that side.
@@ -232,7 +231,8 @@ impl Board {
         self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(gs_ep);
     }
 
-    pub fn zobrist_side(&mut self, side: Side) {
-        self.game_state.zobrist_key ^= self.zobrist_randoms.side(side);
+    pub fn zobrist_side(&mut self) {
+        let gs_side = self.game_state.active_color as usize;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.side(gs_side);
     }
 }

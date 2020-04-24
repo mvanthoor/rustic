@@ -1,15 +1,13 @@
 use super::representation::Board;
 use crate::defs::{
-    Piece, Side, Square, A1, A8, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1, D8,
-    F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
+    Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
+    CASTLE_WQ, D1, D8, F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};
-use crate::utils::bits;
 
-// Full castling permissions are 1111, or value 15.
-// CP_ALL = All castling permissions for both sides.
-// N_WKQ = Not White Kingside/Queenside, and so on.
+// Full castling permissions are 1111, or value 15. CP_ALL = All castling
+// permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
 const CP_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
 const N_WKQ: u8 = CP_ALL & !(CASTLE_WK | CASTLE_WQ);
 const N_WQ: u8 = CP_ALL & !CASTLE_WQ;
@@ -19,9 +17,8 @@ const N_BQ: u8 = CP_ALL & !CASTLE_BQ;
 const N_BK: u8 = CP_ALL & !CASTLE_BK;
 
 #[rustfmt::skip]
-// First element in this array is square A1.
-// The N_* constants mark which castling rights are lost
-// if the king or rook moves from that starting square.
+// First element in this array is square A1. The N_* constants mark which
+// castling rights are lost if the king or rook moves from that starting square.
 const CASTLING_PERMS: [u8; NR_OF_SQUARES as usize] = [
     N_WQ,  15,  15,  15,  N_WKQ,  15,  15,  N_WK,
     15,    15,  15,  15,  15,     15,  15,  15, 
@@ -183,8 +180,8 @@ pub fn unmake(board: &mut Board) {
 
     // If this was an e-passant move, put the opponent's pawn back
     if en_passant {
-        let pawn_square = if us == WHITE { to - 8 } else { to + 8 };
-        put_piece(board, opponent, PAWN, pawn_square);
+        let ep_square = if us == WHITE { to - 8 } else { to + 8 };
+        put_piece(board, opponent, PAWN, ep_square);
     }
 }
 
@@ -192,16 +189,16 @@ pub fn unmake(board: &mut Board) {
 
 // Removes a piece from the board.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    bits::clear_bit(&mut board.bb_side[side][piece], square);
-    bits::clear_bit(&mut board.bb_pieces[side], square);
+    board.bb_side[side][piece] ^= BB_SQUARES[square as usize];
+    board.bb_pieces[side] ^= BB_SQUARES[square as usize];
     board.piece_list[square as usize] = PNONE;
     board.material_count[side] -= PIECE_VALUES[piece];
 }
 
 // Puts a piece onto the board.
 fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    bits::set_bit(&mut board.bb_side[side][piece], square);
-    bits::set_bit(&mut board.bb_pieces[side], square);
+    board.bb_side[side][piece] |= BB_SQUARES[square as usize];
+    board.bb_pieces[side] |= BB_SQUARES[square as usize];
     board.piece_list[square as usize] = piece;
     board.material_count[side] += PIECE_VALUES[piece];
 }
