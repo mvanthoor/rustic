@@ -41,16 +41,16 @@ impl ZobristRandoms {
             }
         }
 
-        for permission in 0..ALL_CASTLING_PERMISSIONS {
-            zobrist_randoms.rnd_castling[permission] = random.gen::<u64>();
+        for permission in zobrist_randoms.rnd_castling.iter_mut() {
+            *permission = random.gen::<u64>();
         }
 
-        for side in 0..ALL_SIDES {
-            zobrist_randoms.rnd_sides[side] = random.gen::<u64>();
+        for side in zobrist_randoms.rnd_sides.iter_mut() {
+            *side = random.gen::<u64>();
         }
 
-        for i in 0..(ALL_SQUARES + 1) {
-            zobrist_randoms.rnd_en_passant[i] = random.gen::<u64>();
+        for ep in zobrist_randoms.rnd_en_passant.iter_mut() {
+            *ep = random.gen::<u64>();
         }
 
         zobrist_randoms
