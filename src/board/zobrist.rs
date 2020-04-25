@@ -1,12 +1,14 @@
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use crate::defs::{Piece, Side, Square, EMPTY, NR_OF_SQUARES};
+use crate::defs::{
+    Piece, Side, Square, EACH_SIDE, EMPTY, NR_OF_CASTLING_PERMISSIONS, NR_OF_PIECES, NR_OF_SQUARES,
+};
 
 const ALL_SQUARES: usize = NR_OF_SQUARES as usize;
-const ALL_PIECES: usize = 6;
-const ALL_SIDES: usize = 2;
-const ALL_CASTLING_PERMISSIONS: usize = 16;
+const ALL_PIECES: usize = NR_OF_PIECES as usize;
+const ALL_SIDES: usize = EACH_SIDE as usize;
+const ALL_CASTLING_PERMISSIONS: usize = NR_OF_CASTLING_PERMISSIONS as usize;
 
 /* Random number for all sides for all pieces on all squares */
 type PieceRandoms = [[[u64; ALL_SQUARES]; ALL_PIECES]; ALL_SIDES];
@@ -33,10 +35,10 @@ impl ZobristRandoms {
             rnd_en_passant: [EMPTY; ALL_SQUARES + 1],
         };
 
-        for side in 0..ALL_SIDES {
-            for piece in 0..ALL_PIECES {
-                for square in 0..ALL_SQUARES {
-                    zobrist_randoms.rnd_pieces[side][piece][square] = random.gen::<u64>();
+        for side in zobrist_randoms.rnd_pieces.iter_mut() {
+            for piece in side.iter_mut() {
+                for square in piece.iter_mut() {
+                    *square = random.gen::<u64>();
                 }
             }
         }
@@ -56,11 +58,11 @@ impl ZobristRandoms {
         zobrist_randoms
     }
 
-    pub fn piece(&self, side: Side, piece: Piece, square: Square) -> u64 {
+    pub fn piece(&self, side: Side, piece: Piece, square: Square) -> ZobristKey {
         self.rnd_pieces[side][piece][square as usize]
     }
 
-    pub fn castling(&self, castling_permissions: u8) -> u64 {
+    pub fn castling(&self, castling_permissions: u8) -> ZobristKey {
         self.rnd_castling[castling_permissions as usize]
     }
 
@@ -68,7 +70,7 @@ impl ZobristRandoms {
         self.rnd_sides[side]
     }
 
-    pub fn en_passant(&self, en_passant: Option<u8>) -> u64 {
+    pub fn en_passant(&self, en_passant: Option<u8>) -> ZobristKey {
         if let Some(ep) = en_passant {
             self.rnd_en_passant[ep as usize]
         } else {

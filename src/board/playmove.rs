@@ -1,33 +1,33 @@
 use super::representation::Board;
 use crate::defs::{
-    Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
-    CASTLE_WQ, D1, D8, F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
+    Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, CASTLE_ALL, CASTLE_BK, CASTLE_BQ,
+    CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK,
+    WHITE,
 };
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};
 
-// Full castling permissions are 1111, or value 15. CP_ALL = All castling
+// Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
 // permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
-const CP_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
-const N_WKQ: u8 = CP_ALL & !(CASTLE_WK | CASTLE_WQ);
-const N_WQ: u8 = CP_ALL & !CASTLE_WQ;
-const N_WK: u8 = CP_ALL & !CASTLE_WK;
-const N_BKQ: u8 = CP_ALL & !(CASTLE_BK | CASTLE_BQ);
-const N_BQ: u8 = CP_ALL & !CASTLE_BQ;
-const N_BK: u8 = CP_ALL & !CASTLE_BK;
+const N_WKQ: u8 = CASTLE_ALL & !(CASTLE_WK | CASTLE_WQ);
+const N_WQ: u8 = CASTLE_ALL & !CASTLE_WQ;
+const N_WK: u8 = CASTLE_ALL & !CASTLE_WK;
+const N_BKQ: u8 = CASTLE_ALL & !(CASTLE_BK | CASTLE_BQ);
+const N_BQ: u8 = CASTLE_ALL & !CASTLE_BQ;
+const N_BK: u8 = CASTLE_ALL & !CASTLE_BK;
 
 #[rustfmt::skip]
 // First element in this array is square A1. The N_* constants mark which
 // castling rights are lost if the king or rook moves from that starting square.
 const CASTLING_PERMS: [u8; NR_OF_SQUARES as usize] = [
-    N_WQ,  15,  15,  15,  N_WKQ,  15,  15,  N_WK,
-    15,    15,  15,  15,  15,     15,  15,  15, 
-    15,    15,  15,  15,  15,     15,  15,  15, 
-    15,    15,  15,  15,  15,     15,  15,  15, 
-    15,    15,  15,  15,  15,     15,  15,  15,
-    15,    15,  15,  15,  15,     15,  15,  15, 
-    15,    15,  15,  15,  15,     15,  15,  15, 
-    N_BQ,  15,  15,  15,  N_BKQ,  15,  15,  N_BK,
+    N_WQ, 15,  15,  15,  N_WKQ, 15,  15,  N_WK,
+    15,   15,  15,  15,  15,    15,  15,  15, 
+    15,   15,  15,  15,  15,    15,  15,  15, 
+    15,   15,  15,  15,  15,    15,  15,  15, 
+    15,   15,  15,  15,  15,    15,  15,  15,
+    15,   15,  15,  15,  15,    15,  15,  15, 
+    15,   15,  15,  15,  15,    15,  15,  15, 
+    N_BQ, 15,  15,  15,  N_BKQ, 15,  15,  N_BK,
 ];
 
 // TODO: Update comments
@@ -96,7 +96,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Remove castling permissions if king/rook leaves from starting square.
     // (This will also adjust permissions when castling, because the king moves.)
-    if (CASTLING_PERMS[from as usize] != CP_ALL) && (board.game_state.castling > 0) {
+    if (CASTLING_PERMS[from as usize] != CASTLE_ALL) && (board.game_state.castling > 0) {
         board.zobrist_castling();
         board.game_state.castling &= CASTLING_PERMS[from as usize];
         board.zobrist_castling();

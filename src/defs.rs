@@ -87,6 +87,8 @@ pub const CASTLE_WK: u8 = 1;
 pub const CASTLE_WQ: u8 = 2;
 pub const CASTLE_BK: u8 = 4;
 pub const CASTLE_BQ: u8 = 8;
+pub const CASTLE_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
+pub const NR_OF_CASTLING_PERMISSIONS: u8 = 16; // 0-15
 
 pub const EMPTY: u64 = 0;
 pub const MAX_GAME_MOVES: usize = 2048;
