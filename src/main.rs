@@ -4,10 +4,10 @@ mod evaluation;
 mod extra;
 mod interface;
 mod movegen;
+mod search;
 mod utils;
 
 use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
-use extra::{perft, perftsuite};
 use interface::console;
 use movegen::MoveGenerator;
 use std::sync::Arc;
@@ -23,7 +23,7 @@ fn main() {
     utils::engine_info();
 
     match setup_result {
-        Ok(()) => perft::run(&board, 7), //while console::get_input(&mut board) != 0 {},
+        Ok(()) => while console::get_input(&mut board) != 0 {},
         Err(e) => println!("Error in FEN-part: {}", ERR_FEN_PARTS[e as usize]),
     }
 }

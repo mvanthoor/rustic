@@ -51,6 +51,10 @@ pub struct Move {
 
 // These functions decode the move data.
 impl Move {
+    pub fn new() -> Self {
+        Self { data: 0 }
+    }
+
     pub fn piece(self) -> u8 {
         ((self.data >> Shift::Piece as u64) & 0x7) as u8
     }

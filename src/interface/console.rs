@@ -1,9 +1,10 @@
 // TODO: Update comments
 
 use crate::board::{playmove, representation::Board};
-use crate::defs::{Piece, ENGINE, PNONE};
+use crate::defs::{Piece, ENGINE, PNONE, SQUARE_NAME};
 use crate::extra::{perft, perftsuite, print};
-use crate::movegen::movelist::MoveList;
+use crate::movegen::{movedefs::Move, movelist::MoveList};
+use crate::search;
 use crate::utils::parse;
 use if_chain::if_chain;
 use std::{io, io::Write};
@@ -52,8 +53,21 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
         "suite" => cmd_suite(),
         "clear" => cmd_clear(),
         "t" => cmd_take_move(board),
+        "m" => cmd_search(board),
         _ => cmd_make_move(board, input),
     }
+}
+
+fn cmd_search(board: &mut Board) -> u64 {
+    let m: Move = search::search(board, 1);
+    playmove::make(board, m);
+    println!(
+        "{} has moved: {}{}",
+        ENGINE,
+        SQUARE_NAME[m.from() as usize],
+        SQUARE_NAME[m.to() as usize]
+    );
+    CMD_CONTINUE
 }
 
 fn cmd_clear() -> u64 {
@@ -85,7 +99,7 @@ fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
         Err(e) => println!("Parsing error: {}", ERR_MV_STRINGS[e as usize]),
     }
     match try_move_result {
-        Ok(()) => println!("Move played."),
+        Ok(()) => println!("Player has moved."),
         Err(()) if parse_move_result.is_ok() => println!("Illegal move."),
         Err(_) => (),
     }
