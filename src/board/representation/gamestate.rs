@@ -17,8 +17,8 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new() -> GameState {
-        GameState {
+    pub fn new() -> Self {
+        Self {
             active_color: 0,
             castling: 0,
             en_passant: None,

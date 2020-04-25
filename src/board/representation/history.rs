@@ -19,8 +19,8 @@ pub struct History {
 }
 
 impl History {
-    pub fn new() -> History {
-        History {
+    pub fn new() -> Self {
+        Self {
             list: [GameState::new(); MAX_GAME_MOVES as usize],
             count: 0,
         }

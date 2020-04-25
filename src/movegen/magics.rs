@@ -66,8 +66,8 @@ pub struct Magics {
 }
 
 impl Default for Magics {
-    fn default() -> Magics {
-        Magics {
+    fn default() -> Self {
+        Self {
             mask: 0,
             shift: 0,
             offset: 0,

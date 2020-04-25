@@ -12,8 +12,8 @@ pub struct MoveList {
 }
 
 impl MoveList {
-    pub fn new() -> MoveList {
-        MoveList {
+    pub fn new() -> Self {
+        Self {
             list: unsafe { mem::MaybeUninit::uninit().assume_init() },
             count: 0,
         }

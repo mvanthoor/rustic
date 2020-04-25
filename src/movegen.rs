@@ -43,9 +43,9 @@ pub struct MoveGenerator {
 // impl Default for MoveGenerator {}
 
 impl MoveGenerator {
-    pub fn new() -> MoveGenerator {
+    pub fn new() -> Self {
         let magics: Magics = Default::default();
-        let mut mg = MoveGenerator {
+        let mut mg = Self {
             _king: [EMPTY; NSQ],
             _knight: [EMPTY; NSQ],
             _pawns: [[EMPTY; NSQ]; WHITE_BLACK],

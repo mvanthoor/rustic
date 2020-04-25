@@ -31,8 +31,8 @@ pub struct Board {
 
 impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
-    pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Board {
-        Board {
+    pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Self {
+        Self {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; EACH_SIDE as usize],
             bb_pieces: [EMPTY; EACH_SIDE as usize],
             game_state: GameState::new(),
