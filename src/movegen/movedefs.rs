@@ -6,19 +6,24 @@ Move format explanation
 Field       :   bits     Decimal values
 ============================================
 PIECE       :   3        0-7 (use only 0-6)
-FROM SQUARE :   6        0-63
-TO SQUARE   :   6        0-63
+FROM        :   6        0-63
+TO          :   6        0-63
 CAPTURE     :   3        0-7 (captured piece)
 PROMOTION   :   3        0-7 (piece promoted to)
 ENPASSANT   :   1        0-1
 DOUBLESTEP  :   1        0-1
 CASTLING    :   1        0-1
+EVALSCORE   :   14       0-16383
 
+Field:      PROMOTION   CAPTURE     TO          FROM        PIECE
+Bits:       3           3           6           6           3
+Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
+& Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
-Field:      CASTLING    DOUBLESTEP  ENPASSANT   PROMOTION   CAPTURE     TO          FROM        PIECE
-            1           1           1           111         111         111111      111111      111
-Shift:      23 bits     22 bits     21 bits     18 bits     15 bits     9 bits      3 bits      0 bits
-& Value:    0x1         0x1 (1)     0x1 (1)     0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
+Field:      EVALSCORE   CASTLING    DOUBLESTEP  ENPASSANT
+            14          1           1           1
+Shift:      24 bits     23 bits     22 bits     21 bits
+& Value:    0x3FFF      0x1         0x1 (1)     0x1 (1)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -40,6 +45,7 @@ pub enum Shift {
     EnPassant = 21,
     DoubleStep = 22,
     Castling = 23,
+    EvalScore = 24,
 }
 
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
@@ -85,5 +91,9 @@ impl Move {
 
     pub fn castling(self) -> bool {
         ((self.data >> Shift::Castling as u64) & 0x1) as u8 == 1
+    }
+
+    pub fn eval_sore(self) -> u16 {
+        ((self.data >> Shift::EvalScore as u64) & 0x3FFF) as u16
     }
 }
