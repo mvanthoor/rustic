@@ -30,7 +30,7 @@ pub fn init_king(mg: &mut MoveGenerator) {
             | (bb_square & !BB_RANKS[RANK_1]) >> 8
             | (bb_square & !BB_FILES[FILE_A] & !BB_RANKS[RANK_1]) >> 9
             | (bb_square & !BB_FILES[FILE_A]) >> 1;
-        mg._king[sq as usize] = bb_moves;
+        mg.king[sq as usize] = bb_moves;
     }
 }
 
@@ -53,7 +53,7 @@ pub fn init_knight(mg: &mut MoveGenerator) {
             | (bb_square & !BB_RANKS[RANK_1] & !BB_RANKS[RANK_2] & !BB_FILES[FILE_H]) >> 15
             | (bb_square & !BB_FILES[FILE_A] & !BB_FILES[FILE_B] & !BB_RANKS[RANK_1]) >> 10
             | (bb_square & !BB_FILES[FILE_G] & !BB_FILES[FILE_H] & !BB_RANKS[RANK_1]) >> 6;
-        mg._knight[sq as usize] = bb_moves;
+        mg.knight[sq as usize] = bb_moves;
     }
 }
 
@@ -67,8 +67,8 @@ pub fn init_pawns(mg: &mut MoveGenerator) {
         let bb_square = 1u64 << sq;
         let w = (bb_square & !BB_FILES[FILE_A]) << 7 | (bb_square & !BB_FILES[FILE_H]) << 9;
         let b = (bb_square & !BB_FILES[FILE_A]) >> 9 | (bb_square & !BB_FILES[FILE_H]) >> 7;
-        mg._pawns[WHITE][sq as usize] = w;
-        mg._pawns[BLACK][sq as usize] = b;
+        mg.pawns[WHITE][sq as usize] = w;
+        mg.pawns[BLACK][sq as usize] = b;
     }
 }
 
@@ -147,9 +147,9 @@ pub fn init_magics(mg: &mut MoveGenerator, piece: Piece) {
             let next = i as usize;
             let index = mcurrent.get_index(blocker_boards[next]);
             let table: &mut [Bitboard] = if is_rook {
-                &mut mg._rook[..]
+                &mut mg.rook[..]
             } else {
-                &mut mg._bishop[..]
+                &mut mg.bishop[..]
             };
             if table[index] == EMPTY {
                 let fail_low = index < offset as usize;
@@ -163,9 +163,9 @@ pub fn init_magics(mg: &mut MoveGenerator, piece: Piece) {
         // No failures  during indexing.
         // Store this magic, then do the next one.
         if is_rook {
-            mg._rook_magics[sq as usize] = mcurrent;
+            mg.rook_magics[sq as usize] = mcurrent;
         } else {
-            mg._bishop_magics[sq as usize] = mcurrent
+            mg.bishop_magics[sq as usize] = mcurrent
         }
         offset += permutations;
     }

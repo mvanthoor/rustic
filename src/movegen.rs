@@ -31,13 +31,13 @@ pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop 
  * init_magics() function.
 */
 pub struct MoveGenerator {
-    _king: [Bitboard; NSQ],
-    _knight: [Bitboard; NSQ],
-    _pawns: [[Bitboard; NSQ]; WHITE_BLACK],
-    _rook: Vec<Bitboard>,
-    _bishop: Vec<Bitboard>,
-    _rook_magics: [Magics; NSQ],
-    _bishop_magics: [Magics; NSQ],
+    king: [Bitboard; NSQ],
+    knight: [Bitboard; NSQ],
+    pawns: [[Bitboard; NSQ]; WHITE_BLACK],
+    rook: Vec<Bitboard>,
+    bishop: Vec<Bitboard>,
+    rook_magics: [Magics; NSQ],
+    bishop_magics: [Magics; NSQ],
 }
 
 // impl Default for MoveGenerator {}
@@ -46,13 +46,13 @@ impl MoveGenerator {
     pub fn new() -> Self {
         let magics: Magics = Default::default();
         let mut mg = Self {
-            _king: [EMPTY; NSQ],
-            _knight: [EMPTY; NSQ],
-            _pawns: [[EMPTY; NSQ]; WHITE_BLACK],
-            _rook: vec![EMPTY; ROOK_TABLE_SIZE],
-            _bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
-            _rook_magics: [magics; NSQ],
-            _bishop_magics: [magics; NSQ],
+            king: [EMPTY; NSQ],
+            knight: [EMPTY; NSQ],
+            pawns: [[EMPTY; NSQ]; WHITE_BLACK],
+            rook: vec![EMPTY; ROOK_TABLE_SIZE],
+            bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
+            rook_magics: [magics; NSQ],
+            bishop_magics: [magics; NSQ],
         };
         init_king(&mut mg);
         init_knight(&mut mg);
@@ -74,8 +74,8 @@ impl MoveGenerator {
         let sq = square as usize;
 
         match piece {
-            KING => self._king[sq],
-            KNIGHT => self._knight[sq],
+            KING => self.king[sq],
+            KNIGHT => self.knight[sq],
             _ => panic!("Not a king or a knight: {}", piece),
         }
     }
@@ -91,17 +91,17 @@ impl MoveGenerator {
 
         match piece {
             ROOK => {
-                let index = self._rook_magics[sq].get_index(occupancy);
-                self._rook[index]
+                let index = self.rook_magics[sq].get_index(occupancy);
+                self.rook[index]
             }
             BISHOP => {
-                let index = self._bishop_magics[sq].get_index(occupancy);
-                self._bishop[index]
+                let index = self.bishop_magics[sq].get_index(occupancy);
+                self.bishop[index]
             }
             QUEEN => {
-                let r_index = self._rook_magics[sq].get_index(occupancy);
-                let b_index = self._bishop_magics[sq].get_index(occupancy);
-                self._rook[r_index] ^ self._bishop[b_index]
+                let r_index = self.rook_magics[sq].get_index(occupancy);
+                let b_index = self.bishop_magics[sq].get_index(occupancy);
+                self.rook[r_index] ^ self.bishop[b_index]
             }
             _ => panic!("Not a sliding piece: {}", piece),
         }
@@ -109,6 +109,6 @@ impl MoveGenerator {
 
     /** Return pawn attacks for the given square. */
     pub fn get_pawn_attacks(&self, side: Side, square: Square) -> Bitboard {
-        self._pawns[side][square as usize]
+        self.pawns[side][square as usize]
     }
 }
