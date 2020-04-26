@@ -59,7 +59,7 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
 }
 
 fn cmd_search(board: &mut Board) -> u64 {
-    let m: Move = search::search(board, 1);
+    let m: Move = search::alpha_beta(board, 1);
     playmove::make(board, m);
     println!(
         "{} has moved: {}{}",
