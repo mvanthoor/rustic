@@ -4,7 +4,7 @@ use crate::board::{playmove, representation::Board};
 use crate::defs::{Piece, ENGINE, PNONE, SQUARE_NAME};
 use crate::extra::{perft, perftsuite, print};
 use crate::movegen::{movedefs::Move, movelist::MoveList};
-use crate::search;
+use crate::search::{self, SearchInfo};
 use crate::utils::parse;
 use if_chain::if_chain;
 use std::{io, io::Write};
@@ -59,7 +59,8 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
 }
 
 fn cmd_search(board: &mut Board) -> u64 {
-    let m: Move = search::alpha_beta(board, 1);
+    let mut info = SearchInfo::new();
+    let m: Move = search::alpha_beta(board, &mut info, 1);
     playmove::make(board, m);
     println!(
         "{} has moved: {}{}",

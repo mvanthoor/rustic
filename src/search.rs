@@ -3,7 +3,17 @@ use crate::evaluation;
 use crate::evaluation::EvalScore;
 use crate::movegen::{movedefs::Move, movelist::MoveList};
 
-pub fn alpha_beta(board: &mut Board, depth: u64) -> Move {
+pub struct SearchInfo {
+    depth: usize,
+}
+
+impl SearchInfo {
+    pub fn new() -> Self {
+        Self { depth: 0 }
+    }
+}
+
+pub fn alpha_beta(board: &mut Board, info: &mut SearchInfo, depth: u64) -> Move {
     let mut move_list = MoveList::new();
     let mut best_move = Move::new();
     let mut best_eval: EvalScore = i64::MIN;
