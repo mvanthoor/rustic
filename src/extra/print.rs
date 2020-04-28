@@ -1,8 +1,7 @@
 use crate::board::representation::Board;
 use crate::defs::{
-    Bitboard, Square, ALL_FILES, ALL_RANKS, BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK,
-    CASTLE_WQ, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK,
-    SQUARE_NAME, WHITE,
+    Bitboard, Castling, Square, ALL_FILES, ALL_RANKS, BISHOP, BLACK, KING, KNIGHT, NR_OF_FILES,
+    NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegen::{magics::Magics, movedefs::Move};
 
@@ -195,10 +194,10 @@ fn castling_as_string(permissions: u8) -> String {
     let mut castling_as_string: String = String::from("");
     let p = permissions;
 
-    castling_as_string += if p & CASTLE_WK > 0 { "K" } else { "" };
-    castling_as_string += if p & CASTLE_WQ > 0 { "Q" } else { "" };
-    castling_as_string += if p & CASTLE_BK > 0 { "k" } else { "" };
-    castling_as_string += if p & CASTLE_BQ > 0 { "q" } else { "" };
+    castling_as_string += if p & Castling::WK > 0 { "K" } else { "" };
+    castling_as_string += if p & Castling::WQ > 0 { "Q" } else { "" };
+    castling_as_string += if p & Castling::BK > 0 { "k" } else { "" };
+    castling_as_string += if p & Castling::BQ > 0 { "q" } else { "" };
 
     castling_as_string
 }

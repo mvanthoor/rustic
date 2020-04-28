@@ -7,9 +7,8 @@ use super::{
 };
 use crate::board::{self, representation::Board, BB_RANKS};
 use crate::defs::{
-    Bitboard, Piece, B1, B8, BISHOP, BLACK, C1, C8, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, D1,
-    D8, E1, E8, F1, F8, G1, G8, KING, KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8,
-    ROOK, WHITE,
+    Bitboard, Castling, Piece, B1, B8, BISHOP, BLACK, C1, C8, D1, D8, E1, E8, F1, F8, G1, G8, KING,
+    KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8, ROOK, WHITE,
 };
 use crate::utils::bits;
 
@@ -88,15 +87,15 @@ fn pawns(board: &Board, list: &mut MoveList) {
 fn castling(board: &Board, list: &mut MoveList) {
     let side = board.game_state.active_color as usize;
     let opponent = side ^ 1;
-    let castle_perms_white = (board.game_state.castling & (CASTLE_WK | CASTLE_WQ)) > 0;
-    let castle_perms_black = (board.game_state.castling & (CASTLE_BK | CASTLE_BQ)) > 0;
+    let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
+    let castle_perms_black = (board.game_state.castling & (Castling::BK | Castling::BQ)) > 0;
     let bb_occupancy = board.occupancy();
     let mut bb_king = board.get_pieces(KING, side);
     let from = bits::next(&mut bb_king);
 
     if side == WHITE && castle_perms_white {
         // Kingside
-        if board.game_state.castling & CASTLE_WK > 0 {
+        if board.game_state.castling & Castling::WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F1) | (1u64 << G1);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
@@ -109,7 +108,7 @@ fn castling(board: &Board, list: &mut MoveList) {
             }
         }
 
-        if board.game_state.castling & CASTLE_WQ > 0 {
+        if board.game_state.castling & Castling::WQ > 0 {
             // Queenside
             let bb_queenside_blockers: u64 = (1u64 << B1) | (1u64 << C1) | (1u64 << D1);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
@@ -124,7 +123,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         }
     } else if side == BLACK && castle_perms_black {
         // Kingside
-        if board.game_state.castling & CASTLE_BK > 0 {
+        if board.game_state.castling & Castling::BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << F8) | (1u64 << G8);
             let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
@@ -138,7 +137,7 @@ fn castling(board: &Board, list: &mut MoveList) {
         }
 
         // Queenside
-        if board.game_state.castling & CASTLE_BQ > 0 {
+        if board.game_state.castling & Castling::BQ > 0 {
             let bb_queenside_blockers: u64 = (1u64 << B8) | (1u64 << C8) | (1u64 << D8);
             let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 

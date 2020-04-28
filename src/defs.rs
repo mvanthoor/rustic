@@ -83,11 +83,14 @@ pub const KNIGHT: Piece = 4;
 pub const PAWN: Piece = 5;
 pub const PNONE: Piece = 6;
 
-pub const CASTLE_WK: u8 = 1;
-pub const CASTLE_WQ: u8 = 2;
-pub const CASTLE_BK: u8 = 4;
-pub const CASTLE_BQ: u8 = 8;
-pub const CASTLE_ALL: u8 = CASTLE_WK | CASTLE_WQ | CASTLE_BK | CASTLE_BQ;
+pub struct Castling;
+impl Castling {
+    pub const WK: u8 = 1;
+    pub const WQ: u8 = 2;
+    pub const BK: u8 = 4;
+    pub const BQ: u8 = 8;
+    pub const ALL: u8 = 15;
+}
 pub const NR_OF_CASTLING_PERMISSIONS: u8 = 16; // 0-15
 
 pub const EMPTY: u64 = 0;

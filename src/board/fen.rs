@@ -1,8 +1,7 @@
 // TODO: Update comment
 use crate::board::representation::Board;
 use crate::defs::{
-    BISHOP, BLACK, CASTLE_BK, CASTLE_BQ, CASTLE_WK, CASTLE_WQ, FILE_A, KING, KNIGHT,
-    MAX_GAME_MOVES, PAWN, QUEEN, RANK_8, ROOK, WHITE,
+    Castling, BISHOP, BLACK, FILE_A, KING, KNIGHT, MAX_GAME_MOVES, PAWN, QUEEN, RANK_8, ROOK, WHITE,
 };
 use crate::parse;
 use if_chain::if_chain;
@@ -139,10 +138,10 @@ fn castling(board: &mut Board, part: &str) -> bool {
             if CASTLE_RIGHTS.contains(c) {
                 char_ok += 1;
                 match c {
-                    'K' => board.game_state.castling |= CASTLE_WK,
-                    'Q' => board.game_state.castling |= CASTLE_WQ,
-                    'k' => board.game_state.castling |= CASTLE_BK,
-                    'q' => board.game_state.castling |= CASTLE_BQ,
+                    'K' => board.game_state.castling |= Castling::WK,
+                    'Q' => board.game_state.castling |= Castling::WQ,
+                    'k' => board.game_state.castling |= Castling::BK,
+                    'q' => board.game_state.castling |= Castling::BQ,
                     _ => (),
                 }
             }

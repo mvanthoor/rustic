@@ -1,20 +1,19 @@
 use super::representation::Board;
 use crate::defs::{
-    Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, CASTLE_ALL, CASTLE_BK, CASTLE_BQ,
-    CASTLE_WK, CASTLE_WQ, D1, D8, F1, F8, G1, G8, H1, H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK,
-    WHITE,
+    Castling, Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, D1, D8, F1, F8, G1, G8, H1,
+    H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
 // permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
-const N_WKQ: u8 = CASTLE_ALL & !(CASTLE_WK | CASTLE_WQ);
-const N_WQ: u8 = CASTLE_ALL & !CASTLE_WQ;
-const N_WK: u8 = CASTLE_ALL & !CASTLE_WK;
-const N_BKQ: u8 = CASTLE_ALL & !(CASTLE_BK | CASTLE_BQ);
-const N_BQ: u8 = CASTLE_ALL & !CASTLE_BQ;
-const N_BK: u8 = CASTLE_ALL & !CASTLE_BK;
+const N_WKQ: u8 = Castling::ALL & !(Castling::WK | Castling::WQ);
+const N_BKQ: u8 = Castling::ALL & !(Castling::BK | Castling::BQ);
+const N_WK: u8 = Castling::ALL & !Castling::WK;
+const N_WQ: u8 = Castling::ALL & !Castling::WQ;
+const N_BK: u8 = Castling::ALL & !Castling::BK;
+const N_BQ: u8 = Castling::ALL & !Castling::BQ;
 
 #[rustfmt::skip]
 // First element in this array is square A1. The N_* constants mark which
@@ -96,7 +95,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Remove castling permissions if king/rook leaves from starting square.
     // (This will also adjust permissions when castling, because the king moves.)
-    if (CASTLING_PERMS[from as usize] != CASTLE_ALL) && (board.game_state.castling > 0) {
+    if (CASTLING_PERMS[from as usize] != Castling::ALL) && (board.game_state.castling > 0) {
         board.zobrist_castling();
         board.game_state.castling &= CASTLING_PERMS[from as usize];
         board.zobrist_castling();
