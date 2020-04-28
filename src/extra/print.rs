@@ -1,7 +1,7 @@
-use crate::board::representation::Board;
+use crate::board::{representation::Board, ALL_FILES, ALL_RANKS};
 use crate::defs::{
-    Bitboard, Castling, Square, ALL_FILES, ALL_RANKS, BISHOP, BLACK, KING, KNIGHT, NR_OF_FILES,
-    NR_OF_SQUARES, PAWN, PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
+    Bitboard, Castling, Square, BISHOP, BLACK, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN,
+    PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
 };
 use crate::movegen::{magics::Magics, movedefs::Move};
 

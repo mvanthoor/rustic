@@ -1,5 +1,5 @@
-use crate::defs::{Bitboard, Square, FILE_A, FILE_H, RANK_1, RANK_8};
-use crate::{board, board::Direction};
+use crate::board::{self, Direction, File, Rank};
+use crate::defs::{Bitboard, Square};
 
 // TODO: Update comment
 pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
@@ -12,7 +12,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
         done = true;
         match direction {
             Direction::Up => {
-                if rank != RANK_8 {
+                if rank != Rank::R8 {
                     bb_square <<= 8;
                     bb_ray |= bb_square;
                     rank += 1;
@@ -20,7 +20,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::Right => {
-                if file != FILE_H {
+                if file != File::H {
                     bb_square <<= 1;
                     bb_ray |= bb_square;
                     file += 1;
@@ -28,7 +28,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::Down => {
-                if rank != RANK_1 {
+                if rank != Rank::R1 {
                     bb_square >>= 8;
                     bb_ray |= bb_square;
                     rank -= 1;
@@ -36,7 +36,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::Left => {
-                if file != FILE_A {
+                if file != File::A {
                     bb_square >>= 1;
                     bb_ray |= bb_square;
                     file -= 1;
@@ -44,7 +44,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::UpLeft => {
-                if (rank != RANK_8) && (file != FILE_A) {
+                if (rank != Rank::R8) && (file != File::A) {
                     bb_square <<= 7;
                     bb_ray |= bb_square;
                     rank += 1;
@@ -53,7 +53,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::UpRight => {
-                if (rank != RANK_8) && (file != FILE_H) {
+                if (rank != Rank::R8) && (file != File::H) {
                     bb_square <<= 9;
                     bb_ray |= bb_square;
                     rank += 1;
@@ -62,7 +62,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::DownRight => {
-                if (rank != RANK_1) && (file != FILE_H) {
+                if (rank != Rank::R1) && (file != File::H) {
                     bb_square >>= 7;
                     bb_ray |= bb_square;
                     rank -= 1;
@@ -71,7 +71,7 @@ pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> B
                 }
             }
             Direction::DownLeft => {
-                if (rank != RANK_1) && (file != FILE_A) {
+                if (rank != Rank::R1) && (file != File::A) {
                     bb_square >>= 9;
                     bb_ray |= bb_square;
                     rank -= 1;

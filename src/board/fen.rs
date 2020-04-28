@@ -1,7 +1,7 @@
 // TODO: Update comment
-use crate::board::representation::Board;
+use crate::board::{representation::Board, File, Rank};
 use crate::defs::{
-    Castling, BISHOP, BLACK, FILE_A, KING, KNIGHT, MAX_GAME_MOVES, PAWN, QUEEN, RANK_8, ROOK, WHITE,
+    Castling, BISHOP, BLACK, KING, KNIGHT, MAX_GAME_MOVES, PAWN, QUEEN, ROOK, WHITE,
 };
 use crate::parse;
 use if_chain::if_chain;
@@ -64,8 +64,8 @@ pub fn read(board: &mut Board, fen_string: &str) -> Result<(), u8> {
 
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
 fn pieces(board: &mut Board, part: &str) -> bool {
-    let mut rank = RANK_8 as u8;
-    let mut file = FILE_A as u8;
+    let mut rank = Rank::R8 as u8;
+    let mut file = File::A as u8;
     let mut result = true;
 
     for c in part.chars() {

@@ -5,10 +5,11 @@ mod history;
 use super::{
     fen,
     zobrist::{ZobristKey, ZobristRandoms},
+    BB_SQUARES,
 };
 use crate::defs::{
-    Bitboard, Piece, Side, Square, BB_SQUARES, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION,
-    NR_OF_PIECES, NR_OF_SQUARES, PNONE, WHITE,
+    Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
+    NR_OF_SQUARES, PNONE, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
 use crate::movegen::{movelist::MoveList, MoveGenerator};

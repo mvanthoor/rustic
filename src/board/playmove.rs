@@ -1,7 +1,7 @@
-use super::representation::Board;
+use super::{representation::Board, BB_SQUARES};
 use crate::defs::{
-    Castling, Piece, Side, Square, A1, A8, BB_SQUARES, BLACK, C1, C8, D1, D8, F1, F8, G1, G8, H1,
-    H8, KING, NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
+    Castling, Piece, Side, Square, A1, A8, BLACK, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, KING,
+    NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
 };
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};

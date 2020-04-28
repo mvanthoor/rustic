@@ -5,10 +5,10 @@ use super::{
     movedefs::{Move, Shift},
     movelist::MoveList,
 };
-use crate::board::{self, representation::Board, BB_RANKS};
+use crate::board::{self, representation::Board, Rank, BB_RANKS};
 use crate::defs::{
     Bitboard, Castling, Piece, B1, B8, BISHOP, BLACK, C1, C8, D1, D8, E1, E8, F1, F8, G1, G8, KING,
-    KNIGHT, PAWN, PNONE, QUEEN, RANK_1, RANK_4, RANK_5, RANK_8, ROOK, WHITE,
+    KNIGHT, PAWN, PNONE, QUEEN, ROOK, WHITE,
 };
 use crate::utils::bits;
 
@@ -56,9 +56,9 @@ fn pawns(board: &Board, list: &mut MoveList) {
     let bb_opponent_pieces = board.bb_pieces[side ^ 1];
     let bb_empty = !board.occupancy();
     let bb_fourth = if side == WHITE {
-        BB_RANKS[RANK_4]
+        BB_RANKS[Rank::R4]
     } else {
-        BB_RANKS[RANK_5]
+        BB_RANKS[Rank::R5]
     };
     let mut bb_pawns = board.get_pieces(PAWN, side);
     let direction = if side == WHITE { UP } else { DOWN };
@@ -156,7 +156,7 @@ fn castling(board: &Board, list: &mut MoveList) {
 fn add_move(board: &Board, piece: Piece, from: u8, to: Bitboard, list: &mut MoveList) {
     let mut bb_to = to;
     let side = board.game_state.active_color as usize;
-    let promotion_rank = (if side == WHITE { RANK_8 } else { RANK_1 }) as u8;
+    let promotion_rank = (if side == WHITE { Rank::R8 } else { Rank::R1 }) as u8;
 
     // As long as there are still to-squres in bb_to, this piece has moves to add.
     while bb_to > 0 {

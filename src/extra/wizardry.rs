@@ -1,4 +1,5 @@
-use crate::defs::{Bitboard, Piece, ALL_SQUARES, BISHOP, EMPTY, PIECE_NAME, ROOK};
+use crate::board::ALL_SQUARES;
+use crate::defs::{Bitboard, Piece, BISHOP, EMPTY, PIECE_NAME, ROOK};
 use crate::extra::print;
 use crate::movegen::{
     attackboards, blockerboards, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,

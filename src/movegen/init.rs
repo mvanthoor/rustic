@@ -3,11 +3,8 @@ use super::{
     magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS},
     masks, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
-use crate::board::{BB_FILES, BB_RANKS};
-use crate::defs::{
-    Bitboard, Piece, ALL_SQUARES, BISHOP, BLACK, EMPTY, FILE_A, FILE_B, FILE_G, FILE_H, RANK_1,
-    RANK_2, RANK_7, RANK_8, ROOK, WHITE,
-};
+use crate::board::{File, Rank, ALL_SQUARES, BB_FILES, BB_RANKS};
+use crate::defs::{Bitboard, Piece, BISHOP, BLACK, EMPTY, ROOK, WHITE};
 
 /**
  * Generate all the possible king moves for each square.
@@ -22,14 +19,14 @@ pub fn init_king(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
-            (bb_square & !BB_FILES[FILE_A] & !BB_RANKS[RANK_8]) << 7
-            | (bb_square & !BB_RANKS[RANK_8]) << 8
-            | (bb_square & !BB_FILES[FILE_H] & !BB_RANKS[RANK_8]) << 9
-            | (bb_square & !BB_FILES[FILE_H]) << 1
-            | (bb_square & !BB_FILES[FILE_H] & !BB_RANKS[RANK_1]) >> 7
-            | (bb_square & !BB_RANKS[RANK_1]) >> 8
-            | (bb_square & !BB_FILES[FILE_A] & !BB_RANKS[RANK_1]) >> 9
-            | (bb_square & !BB_FILES[FILE_A]) >> 1;
+            (bb_square & !BB_FILES[File::A] & !BB_RANKS[Rank::R8]) << 7
+            | (bb_square & !BB_RANKS[Rank::R8]) << 8
+            | (bb_square & !BB_FILES[File::H] & !BB_RANKS[Rank::R8]) << 9
+            | (bb_square & !BB_FILES[File::H]) << 1
+            | (bb_square & !BB_FILES[File::H] & !BB_RANKS[Rank::R1]) >> 7
+            | (bb_square & !BB_RANKS[Rank::R1]) >> 8
+            | (bb_square & !BB_FILES[File::A] & !BB_RANKS[Rank::R1]) >> 9
+            | (bb_square & !BB_FILES[File::A]) >> 1;
         mg.king[sq as usize] = bb_moves;
     }
 }
@@ -45,14 +42,14 @@ pub fn init_knight(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
-            (bb_square & !BB_RANKS[RANK_8] & !BB_RANKS[RANK_7] & !BB_FILES[FILE_A]) << 15
-            | (bb_square & !BB_RANKS[RANK_8] & !BB_RANKS[RANK_7] & !BB_FILES[FILE_H]) << 17
-            | (bb_square & !BB_FILES[FILE_A] & !BB_FILES[FILE_B] & !BB_RANKS[RANK_8]) << 6
-            | (bb_square & !BB_FILES[FILE_G] & !BB_FILES[FILE_H] & !BB_RANKS[RANK_8]) << 10
-            | (bb_square & !BB_RANKS[RANK_1] & !BB_RANKS[RANK_2] & !BB_FILES[FILE_A]) >> 17
-            | (bb_square & !BB_RANKS[RANK_1] & !BB_RANKS[RANK_2] & !BB_FILES[FILE_H]) >> 15
-            | (bb_square & !BB_FILES[FILE_A] & !BB_FILES[FILE_B] & !BB_RANKS[RANK_1]) >> 10
-            | (bb_square & !BB_FILES[FILE_G] & !BB_FILES[FILE_H] & !BB_RANKS[RANK_1]) >> 6;
+            (bb_square & !BB_RANKS[Rank::R8] & !BB_RANKS[Rank::R7] & !BB_FILES[File::A]) << 15
+            | (bb_square & !BB_RANKS[Rank::R8] & !BB_RANKS[Rank::R7] & !BB_FILES[File::H]) << 17
+            | (bb_square & !BB_FILES[File::A] & !BB_FILES[File::B] & !BB_RANKS[Rank::R8]) << 6
+            | (bb_square & !BB_FILES[File::G] & !BB_FILES[File::H] & !BB_RANKS[Rank::R8]) << 10
+            | (bb_square & !BB_RANKS[Rank::R1] & !BB_RANKS[Rank::R2] & !BB_FILES[File::A]) >> 17
+            | (bb_square & !BB_RANKS[Rank::R1] & !BB_RANKS[Rank::R2] & !BB_FILES[File::H]) >> 15
+            | (bb_square & !BB_FILES[File::A] & !BB_FILES[File::B] & !BB_RANKS[Rank::R1]) >> 10
+            | (bb_square & !BB_FILES[File::G] & !BB_FILES[File::H] & !BB_RANKS[Rank::R1]) >> 6;
         mg.knight[sq as usize] = bb_moves;
     }
 }
@@ -65,8 +62,8 @@ pub fn init_knight(mg: &mut MoveGenerator) {
 pub fn init_pawns(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
-        let w = (bb_square & !BB_FILES[FILE_A]) << 7 | (bb_square & !BB_FILES[FILE_H]) << 9;
-        let b = (bb_square & !BB_FILES[FILE_A]) >> 9 | (bb_square & !BB_FILES[FILE_H]) >> 7;
+        let w = (bb_square & !BB_FILES[File::A]) << 7 | (bb_square & !BB_FILES[File::H]) << 9;
+        let b = (bb_square & !BB_FILES[File::A]) >> 9 | (bb_square & !BB_FILES[File::H]) >> 7;
         mg.pawns[WHITE][sq as usize] = w;
         mg.pawns[BLACK][sq as usize] = b;
     }

@@ -10,8 +10,8 @@
 // account.
 
 use super::rays;
-use crate::board::{self, Direction, Location, BB_FILES, BB_RANKS};
-use crate::defs::{Bitboard, Square, FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::board::{self, Direction, File, Location, Rank, BB_FILES, BB_RANKS};
+use crate::defs::{Bitboard, Square};
 
 // Explanation of create_rook mask, step by step. Get the location of square the
 // rook is on, as a (file, rank) tuple. Create the bitboards for files, ranks,
@@ -55,8 +55,8 @@ fn edges_without_piece(location: Location) -> Bitboard {
     let bb_piece_file = BB_FILES[location.0 as usize];
     let bb_piece_rank = BB_RANKS[location.1 as usize];
 
-    (BB_FILES[FILE_A] & !bb_piece_file)
-        | (BB_FILES[FILE_H] & !bb_piece_file)
-        | (BB_RANKS[RANK_1] & !bb_piece_rank)
-        | (BB_RANKS[RANK_8] & !bb_piece_rank)
+    (BB_FILES[File::A] & !bb_piece_file)
+        | (BB_FILES[File::H] & !bb_piece_file)
+        | (BB_RANKS[Rank::R1] & !bb_piece_rank)
+        | (BB_RANKS[Rank::R8] & !bb_piece_rank)
 }
