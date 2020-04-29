@@ -70,6 +70,7 @@ pub fn found_magic(square: Square, m: Magics, offset: u64, end: u64, attempts: u
     );
 }
 
+#[allow(dead_code)]
 pub fn horizontal_line(c: char, length: u8) {
     for _ in 0..length {
         print!("{}", c);

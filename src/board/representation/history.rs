@@ -19,6 +19,7 @@ pub struct History {
 }
 
 impl History {
+    // Create a new history array containing game states.
     pub fn new() -> Self {
         Self {
             list: [GameState::new(); MAX_GAME_MOVES as usize],
@@ -26,21 +27,32 @@ impl History {
         }
     }
 
+    // Wipe the entire array.
     pub fn clear(&mut self) {
         self.list = [GameState::new(); MAX_GAME_MOVES as usize];
         self.count = 0;
     }
 
+    // Put a new game state into the array.
     pub fn push(&mut self, g: GameState) {
         self.list[self.count] = g;
         self.count += 1;
     }
 
+    // Return the last game state and decremnt the counter. The game state is
+    // not deleted from the array. If necessary, another game state will just
+    // overwrite it.
     pub fn pop(&mut self) -> GameState {
         self.count -= 1;
         self.list[self.count]
     }
 
+    // Returns the number of items in the history array. As make/unmake always
+    // push/pop the same amount during search, this function is only needed for
+    // checking if the array is not empty when taking back moves from the
+    // console. Therefore the code can be unused if the console isn't compiled
+    // into the engine.
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.count
     }

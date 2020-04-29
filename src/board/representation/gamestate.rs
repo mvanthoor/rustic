@@ -1,4 +1,3 @@
-use crate::defs::Square;
 use crate::movegen::movedefs::Move;
 
 // This is simply a struct that collects all the variables holding the game sate.
