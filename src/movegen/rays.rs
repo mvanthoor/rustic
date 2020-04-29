@@ -1,7 +1,13 @@
 use crate::board::{self, Direction, Files, Ranks};
 use crate::defs::{Bitboard, Square};
 
-// TODO: Update comment
+// This is a long function, but fortunately it's easy to understand. It creates
+// a ray for a sliding piece, in one of 8 directions: up, left, right, down,
+// upleft, upright, downleft, downright. (Some programs call it N, E, S, W, NW,
+// NE, SE, SW.) The function starts at the given square, in a given direction,
+// and then it keeps iterating in that direction until it either hits a piece,
+// or the edge of the board. Therefore, in each call, only one of the eight
+// blocks of this function wille be executed.
 pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
     let mut file = board::square_on_file_rank(square).0 as usize;
     let mut rank = board::square_on_file_rank(square).1 as usize;

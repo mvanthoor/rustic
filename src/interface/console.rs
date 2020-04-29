@@ -1,4 +1,6 @@
-// TODO: Update comments
+// This is the engine's console interface. It can be compiled into the program
+// as an optional feature, for playing in a console window. It can also call
+// various test routines.
 
 use crate::board::{playmove, representation::Board, Pieces, SQUARE_NAME};
 use crate::defs::{Piece, Square, ENGINE};
@@ -28,6 +30,7 @@ const ERR_MV_STRINGS: [&str; 4] = [
 type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 type PotentialMove = (Square, Square, Piece);
 
+// TODO: Update comment.
 pub fn get_input(board: &mut Board) -> u64 {
     let mut input = String::new();
 
@@ -45,6 +48,7 @@ pub fn get_input(board: &mut Board) -> u64 {
     }
 }
 
+// TODO: Update comment.
 pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
     parse::strip_newline(input);
     match &input[..] {
@@ -58,6 +62,7 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
     }
 }
 
+// TODO: Update comment.
 fn cmd_search(board: &mut Board) -> u64 {
     let mut info = SearchInfo::new();
     let m: Move = search::alpha_beta(board, &mut info, 1);
@@ -71,20 +76,24 @@ fn cmd_search(board: &mut Board) -> u64 {
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn cmd_clear() -> u64 {
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn cmd_perft(board: &Board) -> u64 {
     perft::run(board, 7);
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn cmd_suite() -> u64 {
     perftsuite::run_all_tests();
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn cmd_take_move(board: &mut Board) -> u64 {
     if board.history.len() >= 1 {
         playmove::unmake(board);
@@ -92,6 +101,7 @@ fn cmd_take_move(board: &mut Board) -> u64 {
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
     let parse_move_result = parse_move(input);
     let mut try_move_result = Err(());
@@ -107,6 +117,7 @@ fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
     CMD_CONTINUE
 }
 
+// TODO: Update comment.
 fn parse_move(input: &str) -> ParseMoveResult {
     let length = input.len();
     let mut from: Square = 0;

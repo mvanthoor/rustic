@@ -1,4 +1,4 @@
-// TODO: Update comments
+// representation.rs contains the board representation.
 mod gamestate;
 mod history;
 
@@ -18,6 +18,15 @@ use gamestate::GameState;
 use history::History;
 use std::sync::Arc;
 
+// The actual board.
+// bb_side: contains a bitboard for each piece, for each side.
+// bb_pieces: contains one bitboard per side, marking where pieces are placed.
+// game_state: contains the current game state.
+// history: is an array of game states. It has the history of the entire game.
+// piece_list: array of pieces on squares, denoting where each piece is located.
+// material_count: material point count for each side.
+// zobrist_randoms: used for zobrist hashing. Has forwarding functions.
+// move_generator: generates moves. Has forwarding functions.
 #[derive(Clone)]
 pub struct Board {
     pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; EACH_SIDE as usize],
@@ -198,7 +207,7 @@ impl Board {
         key
     }
 
-    // ========== Move Generator passthrough ==========
+    // ========== Move Generator forwarding functions ==========
 
     pub fn gen_all_moves(&self, ml: &mut MoveList) {
         self.move_generator.gen_all_moves(self, ml);
@@ -216,7 +225,7 @@ impl Board {
         self.move_generator.get_pawn_attacks(side, square)
     }
 
-    // ========== Zobrist Randoms passthrough ==========
+    // ========== Zobrist Randoms forwarding functions ==========
 
     pub fn zobrist_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);

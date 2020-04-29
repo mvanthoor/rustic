@@ -1,3 +1,5 @@
+// playmove.rs contains make() and unmake(), to execute and reverse moves on the
+// board. make() executes the given move, unmake() reverses the last move made.
 use super::{representation::Board, Pieces, Squares, BB_SQUARES};
 use crate::defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES, WHITE};
 use crate::evaluation::evaldefs::PIECE_VALUES;
@@ -26,7 +28,8 @@ const CASTLING_PERMS: [u8; NR_OF_SQUARES] = [
     N_BQ, 15,  15,  15,  N_BKQ, 15,  15,  N_BK,
 ];
 
-// TODO: Update comments
+// Make() executes the given move and checks if it is legal. If it's not legal,
+// the move is immediately reversed using unmake(), and the board is not changed.
 #[cfg_attr(debug_assertions, inline(never))]
 #[cfg_attr(not(debug_assertions), inline(always))]
 pub fn make(board: &mut Board, m: Move) -> bool {
@@ -130,7 +133,8 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
 /*** ================================================================================ ***/
 
-// TODO: Update comments
+// Unmake() reverses the last move. The game state is restored by popping it
+// from the history array, all variables at once.
 #[cfg_attr(debug_assertions, inline(never))]
 #[cfg_attr(not(debug_assertions), inline(always))]
 pub fn unmake(board: &mut Board) {

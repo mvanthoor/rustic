@@ -6,8 +6,6 @@ use crate::defs::{BLACK, WHITE};
 
 pub type EvalScore = i64;
 
-// TODO: Write comments
-
 // Evaluate the current position. Calculate the evaluation from White's point of
 // view (shorthand: "pov"). Thus, a final score of +50 is good for white, -50 is
 // good for black. At the end, if it is black that has just moved and is now

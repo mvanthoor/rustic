@@ -37,8 +37,6 @@ pub struct MoveGenerator {
     bishop_magics: [Magics; NR_OF_SQUARES],
 }
 
-// impl Default for MoveGenerator {}
-
 impl MoveGenerator {
     pub fn new() -> Self {
         let magics: Magics = Default::default();
