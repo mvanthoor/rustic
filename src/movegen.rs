@@ -10,16 +10,13 @@ pub mod movelist;
 mod rays;
 
 // TODO: Rewrite comments for move generator
-use crate::board::representation::Board;
-use crate::defs::{
-    Bitboard, Piece, Side, Square, BISHOP, EMPTY, KING, KNIGHT, NR_OF_SQUARES, QUEEN, ROOK,
-};
+use crate::board::{representation::Board, Pieces};
+use crate::defs::{Bitboard, Piece, Side, Square, EMPTY, NR_OF_SQUARES};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
 use movelist::MoveList;
 
 const WHITE_BLACK: usize = 2;
-const NSQ: usize = NR_OF_SQUARES as usize;
 pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
@@ -31,13 +28,13 @@ pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop 
  * init_magics() function.
 */
 pub struct MoveGenerator {
-    king: [Bitboard; NSQ],
-    knight: [Bitboard; NSQ],
-    pawns: [[Bitboard; NSQ]; WHITE_BLACK],
+    king: [Bitboard; NR_OF_SQUARES],
+    knight: [Bitboard; NR_OF_SQUARES],
+    pawns: [[Bitboard; NR_OF_SQUARES]; WHITE_BLACK],
     rook: Vec<Bitboard>,
     bishop: Vec<Bitboard>,
-    rook_magics: [Magics; NSQ],
-    bishop_magics: [Magics; NSQ],
+    rook_magics: [Magics; NR_OF_SQUARES],
+    bishop_magics: [Magics; NR_OF_SQUARES],
 }
 
 // impl Default for MoveGenerator {}
@@ -46,19 +43,19 @@ impl MoveGenerator {
     pub fn new() -> Self {
         let magics: Magics = Default::default();
         let mut mg = Self {
-            king: [EMPTY; NSQ],
-            knight: [EMPTY; NSQ],
-            pawns: [[EMPTY; NSQ]; WHITE_BLACK],
+            king: [EMPTY; NR_OF_SQUARES],
+            knight: [EMPTY; NR_OF_SQUARES],
+            pawns: [[EMPTY; NR_OF_SQUARES]; WHITE_BLACK],
             rook: vec![EMPTY; ROOK_TABLE_SIZE],
             bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
-            rook_magics: [magics; NSQ],
-            bishop_magics: [magics; NSQ],
+            rook_magics: [magics; NR_OF_SQUARES],
+            bishop_magics: [magics; NR_OF_SQUARES],
         };
         init_king(&mut mg);
         init_knight(&mut mg);
         init_pawns(&mut mg);
-        init_magics(&mut mg, ROOK);
-        init_magics(&mut mg, BISHOP);
+        init_magics(&mut mg, Pieces::ROOK);
+        init_magics(&mut mg, Pieces::BISHOP);
         mg
     }
 
@@ -71,11 +68,9 @@ impl MoveGenerator {
 
     /** Return non-slider (King, Knight) attacks for the given square. */
     pub fn get_non_slider_attacks(&self, piece: Piece, square: Square) -> Bitboard {
-        let sq = square as usize;
-
         match piece {
-            KING => self.king[sq],
-            KNIGHT => self.knight[sq],
+            Pieces::KING => self.king[square],
+            Pieces::KNIGHT => self.knight[square],
             _ => panic!("Not a king or a knight: {}", piece),
         }
     }
@@ -87,20 +82,18 @@ impl MoveGenerator {
         square: Square,
         occupancy: Bitboard,
     ) -> Bitboard {
-        let sq = square as usize;
-
         match piece {
-            ROOK => {
-                let index = self.rook_magics[sq].get_index(occupancy);
+            Pieces::ROOK => {
+                let index = self.rook_magics[square].get_index(occupancy);
                 self.rook[index]
             }
-            BISHOP => {
-                let index = self.bishop_magics[sq].get_index(occupancy);
+            Pieces::BISHOP => {
+                let index = self.bishop_magics[square].get_index(occupancy);
                 self.bishop[index]
             }
-            QUEEN => {
-                let r_index = self.rook_magics[sq].get_index(occupancy);
-                let b_index = self.bishop_magics[sq].get_index(occupancy);
+            Pieces::QUEEN => {
+                let r_index = self.rook_magics[square].get_index(occupancy);
+                let b_index = self.bishop_magics[square].get_index(occupancy);
                 self.rook[r_index] ^ self.bishop[b_index]
             }
             _ => panic!("Not a sliding piece: {}", piece),
@@ -109,6 +102,6 @@ impl MoveGenerator {
 
     /** Return pawn attacks for the given square. */
     pub fn get_pawn_attacks(&self, side: Side, square: Square) -> Bitboard {
-        self.pawns[side][square as usize]
+        self.pawns[side][square]
     }
 }

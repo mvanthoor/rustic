@@ -1,5 +1,5 @@
-use crate::board::representation::Board;
-use crate::defs::{Side, Square, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
+use crate::board::{representation::Board, Pieces};
+use crate::defs::{Side, Square};
 
 /**
  * square_attacked reports true or false regarding the question if a square is attacekd by the
@@ -23,17 +23,17 @@ use crate::defs::{Side, Square, BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK};
 pub fn square_attacked(board: &Board, attacker: Side, square: Square) -> bool {
     let pieces = board.bb_side[attacker];
     let occupancy = board.occupancy();
-    let bb_king = board.get_non_slider_attacks(KING, square);
-    let bb_rook = board.get_slider_attacks(ROOK, square, occupancy);
-    let bb_bishop = board.get_slider_attacks(BISHOP, square, occupancy);
-    let bb_knight = board.get_non_slider_attacks(KNIGHT, square);
+    let bb_king = board.get_non_slider_attacks(Pieces::KING, square);
+    let bb_rook = board.get_slider_attacks(Pieces::ROOK, square, occupancy);
+    let bb_bishop = board.get_slider_attacks(Pieces::BISHOP, square, occupancy);
+    let bb_knight = board.get_non_slider_attacks(Pieces::KNIGHT, square);
     let bb_pawns = board.get_pawn_attacks(attacker ^ 1, square);
     let bb_queen = bb_rook | bb_bishop;
 
-    (bb_king & pieces[KING] > 0)
-        || (bb_rook & pieces[ROOK] > 0)
-        || (bb_queen & pieces[QUEEN] > 0)
-        || (bb_bishop & pieces[BISHOP] > 0)
-        || (bb_knight & pieces[KNIGHT] > 0)
-        || (bb_pawns & pieces[PAWN] > 0)
+    (bb_king & pieces[Pieces::KING] > 0)
+        || (bb_rook & pieces[Pieces::ROOK] > 0)
+        || (bb_queen & pieces[Pieces::QUEEN] > 0)
+        || (bb_bishop & pieces[Pieces::BISHOP] > 0)
+        || (bb_knight & pieces[Pieces::KNIGHT] > 0)
+        || (bb_pawns & pieces[Pieces::PAWN] > 0)
 }

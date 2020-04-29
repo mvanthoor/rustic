@@ -5,11 +5,11 @@ mod history;
 use super::{
     fen,
     zobrist::{ZobristKey, ZobristRandoms},
-    BB_SQUARES,
+    Pieces, BB_SQUARES,
 };
 use crate::defs::{
     Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
-    NR_OF_SQUARES, PNONE, WHITE,
+    NR_OF_SQUARES, WHITE,
 };
 use crate::evaluation::{evaldefs::PIECE_VALUES, material};
 use crate::movegen::{movelist::MoveList, MoveGenerator};
@@ -24,7 +24,7 @@ pub struct Board {
     pub bb_pieces: [Bitboard; EACH_SIDE as usize],
     pub game_state: GameState,
     pub history: History,
-    pub piece_list: [Piece; NR_OF_SQUARES as usize],
+    pub piece_list: [Piece; NR_OF_SQUARES],
     pub material_count: [u16; EACH_SIDE as usize],
     zobrist_randoms: Arc<ZobristRandoms>,
     move_generator: Arc<MoveGenerator>,
@@ -38,7 +38,7 @@ impl Board {
             bb_pieces: [EMPTY; EACH_SIDE as usize],
             game_state: GameState::new(),
             history: History::new(),
-            piece_list: [PNONE; NR_OF_SQUARES as usize],
+            piece_list: [Pieces::NONE; NR_OF_SQUARES],
             material_count: [0; EACH_SIDE as usize],
             zobrist_randoms: zr,
             move_generator: mg,
@@ -72,7 +72,7 @@ impl Board {
     pub fn reset(&mut self) {
         self.bb_side = [[0; NR_OF_PIECES as usize]; EACH_SIDE as usize];
         self.bb_pieces = [EMPTY; EACH_SIDE as usize];
-        self.piece_list = [PNONE; NR_OF_SQUARES as usize];
+        self.piece_list = [Pieces::NONE; NR_OF_SQUARES];
         self.game_state = GameState::new();
         self.history.clear();
     }
@@ -89,24 +89,24 @@ impl Board {
 
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.piece_list[square as usize] = PNONE;
+        self.piece_list[square] = Pieces::NONE;
         self.material_count[side] -= PIECE_VALUES[piece];
         self.zobrist_piece(side, piece, square);
-        self.bb_side[side][piece] ^= BB_SQUARES[square as usize];
-        self.bb_pieces[side] ^= BB_SQUARES[square as usize];
+        self.bb_side[side][piece] ^= BB_SQUARES[square];
+        self.bb_pieces[side] ^= BB_SQUARES[square];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.bb_side[side][piece] |= BB_SQUARES[square as usize];
-        self.bb_pieces[side] |= BB_SQUARES[square as usize];
+        self.bb_side[side][piece] |= BB_SQUARES[square];
+        self.bb_pieces[side] |= BB_SQUARES[square];
         self.zobrist_piece(side, piece, square);
         self.material_count[side] += PIECE_VALUES[piece];
-        self.piece_list[square as usize] = piece;
+        self.piece_list[square] = piece;
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
-    pub fn move_piece(&mut self, side: Side, piece: Piece, from: u8, to: u8) {
+    pub fn move_piece(&mut self, side: Side, piece: Piece, from: Square, to: Square) {
         self.remove_piece(side, piece, from);
         self.put_piece(side, piece, to);
     }
@@ -114,7 +114,7 @@ impl Board {
     // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: Square) {
         self.zobrist_en_passant();
-        self.game_state.en_passant = Some(square);
+        self.game_state.en_passant = Some(square as u8);
         self.zobrist_en_passant();
     }
 
@@ -146,10 +146,10 @@ impl Board {
     }
 
     // Build initial piece list with piece locations.
-    fn init_piece_list(&self) -> [Piece; NR_OF_SQUARES as usize] {
+    fn init_piece_list(&self) -> [Piece; NR_OF_SQUARES] {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
-        let mut piece_list: [Piece; NR_OF_SQUARES as usize] = [PNONE; NR_OF_SQUARES as usize];
+        let mut piece_list: [Piece; NR_OF_SQUARES] = [Pieces::NONE; NR_OF_SQUARES];
 
         for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
             let mut white = *w; // White pieces of type "p"
@@ -157,12 +157,12 @@ impl Board {
 
             while white > 0 {
                 let square = bits::next(&mut white);
-                piece_list[square as usize] = p;
+                piece_list[square] = p;
             }
 
             while black > 0 {
                 let square = bits::next(&mut black);
-                piece_list[square as usize] = p;
+                piece_list[square] = p;
             }
         }
 

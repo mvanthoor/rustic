@@ -33,6 +33,8 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
+use crate::defs::{Piece, Square};
+
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store
  * move data in a specific place within the u64 integer. This makes sure that, should the
  * format change, the location needs to be changed only within the integer. */
@@ -61,24 +63,24 @@ impl Move {
         Self { data: 0 }
     }
 
-    pub fn piece(self) -> u8 {
-        ((self.data >> Shift::Piece as u64) & 0x7) as u8
+    pub fn piece(self) -> Piece {
+        ((self.data >> Shift::Piece as u64) & 0x7) as Piece
     }
 
-    pub fn from(self) -> u8 {
-        ((self.data >> Shift::FromSq as u64) & 0x3F) as u8
+    pub fn from(self) -> Square {
+        ((self.data >> Shift::FromSq as u64) & 0x3F) as Square
     }
 
-    pub fn to(self) -> u8 {
-        ((self.data >> Shift::ToSq as u64) & 0x3F) as u8
+    pub fn to(self) -> Square {
+        ((self.data >> Shift::ToSq as u64) & 0x3F) as Square
     }
 
-    pub fn captured(self) -> u8 {
-        ((self.data >> Shift::Capture as u64) & 0x7) as u8
+    pub fn captured(self) -> Piece {
+        ((self.data >> Shift::Capture as u64) & 0x7) as Piece
     }
 
-    pub fn promoted(self) -> u8 {
-        ((self.data >> Shift::Promotion as u64) & 0x7) as u8
+    pub fn promoted(self) -> Piece {
+        ((self.data >> Shift::Promotion as u64) & 0x7) as Piece
     }
 
     pub fn en_passant(self) -> bool {

@@ -1,11 +1,8 @@
-use crate::board::{representation::Board, ALL_FILES, ALL_RANKS};
-use crate::defs::{
-    Bitboard, Castling, Square, BISHOP, BLACK, KING, KNIGHT, NR_OF_FILES, NR_OF_SQUARES, PAWN,
-    PIECE_NAME, QUEEN, ROOK, SQUARE_NAME, WHITE,
-};
+use crate::board::{representation::Board, Pieces, ALL_FILES, ALL_RANKS, PIECE_NAME, SQUARE_NAME};
+use crate::defs::{Bitboard, Castling, Square, BLACK, NR_OF_FILES, NR_OF_SQUARES, WHITE};
 use crate::movegen::{magics::Magics, movedefs::Move};
 
-type AsciiBoard = [char; NR_OF_SQUARES as usize];
+type AsciiBoard = [char; NR_OF_SQUARES];
 
 const ASCII_EMPTY_SQUARE: char = '.';
 const CHAR_WK: char = 'K';
@@ -25,7 +22,7 @@ const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 // Prints the current position to the screen.
 #[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES as usize];
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES];
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
     metadata(board);
@@ -53,11 +50,11 @@ pub fn movelist(moves: &[Move]) {
 pub fn move_data(m: Move) {
     println!(
         "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
-        PIECE_CHAR[m.piece() as usize],
-        SQUARE_NAME[m.from() as usize],
-        SQUARE_NAME[m.to() as usize],
-        PIECE_NAME[m.captured() as usize],
-        PIECE_NAME[m.promoted() as usize],
+        PIECE_CHAR[m.piece()],
+        SQUARE_NAME[m.from()],
+        SQUARE_NAME[m.to()],
+        PIECE_NAME[m.captured()],
+        PIECE_NAME[m.promoted()],
         m.en_passant(),
         m.double_step(),
         m.castling(),
@@ -69,7 +66,7 @@ pub fn move_data(m: Move) {
 pub fn found_magic(square: Square, m: Magics, offset: u64, end: u64, attempts: u64) {
     println!(
         "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
-        SQUARE_NAME[square as usize], m.magic, offset, end, attempts
+        SQUARE_NAME[square], m.magic, offset, end, attempts
     );
 }
 
@@ -88,27 +85,27 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
 
     for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
         match piece {
-            KING => {
+            Pieces::KING => {
                 put_character_on_square(*w, ascii_board, CHAR_WK);
                 put_character_on_square(*b, ascii_board, CHAR_BK);
             }
-            QUEEN => {
+            Pieces::QUEEN => {
                 put_character_on_square(*w, ascii_board, CHAR_WQ);
                 put_character_on_square(*b, ascii_board, CHAR_BQ);
             }
-            ROOK => {
+            Pieces::ROOK => {
                 put_character_on_square(*w, ascii_board, CHAR_WR);
                 put_character_on_square(*b, ascii_board, CHAR_BR);
             }
-            BISHOP => {
+            Pieces::BISHOP => {
                 put_character_on_square(*w, ascii_board, CHAR_WB);
                 put_character_on_square(*b, ascii_board, CHAR_BB);
             }
-            KNIGHT => {
+            Pieces::KNIGHT => {
                 put_character_on_square(*w, ascii_board, CHAR_WN);
                 put_character_on_square(*b, ascii_board, CHAR_BN);
             }
-            PAWN => {
+            Pieces::PAWN => {
                 put_character_on_square(*w, ascii_board, CHAR_WP);
                 put_character_on_square(*b, ascii_board, CHAR_BP);
             }

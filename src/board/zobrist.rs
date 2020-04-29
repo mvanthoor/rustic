@@ -5,7 +5,7 @@ use crate::defs::{
     Piece, Side, Square, EACH_SIDE, EMPTY, NR_OF_CASTLING_PERMISSIONS, NR_OF_PIECES, NR_OF_SQUARES,
 };
 
-const ALL_SQUARES: usize = NR_OF_SQUARES as usize;
+const ALL_SQUARES: usize = NR_OF_SQUARES;
 const ALL_PIECES: usize = NR_OF_PIECES as usize;
 const ALL_SIDES: usize = EACH_SIDE as usize;
 const ALL_CASTLING_PERMISSIONS: usize = NR_OF_CASTLING_PERMISSIONS as usize;
@@ -59,7 +59,7 @@ impl ZobristRandoms {
     }
 
     pub fn piece(&self, side: Side, piece: Piece, square: Square) -> ZobristKey {
-        self.rnd_pieces[side][piece][square as usize]
+        self.rnd_pieces[side][piece][square]
     }
 
     pub fn castling(&self, castling_permissions: u8) -> ZobristKey {

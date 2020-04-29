@@ -1,7 +1,7 @@
 // TODO: Update comments
 
-use crate::board::{playmove, representation::Board};
-use crate::defs::{Piece, ENGINE, PNONE, SQUARE_NAME};
+use crate::board::{playmove, representation::Board, Pieces, SQUARE_NAME};
+use crate::defs::{Piece, Square, ENGINE};
 use crate::extra::{perft, perftsuite, print};
 use crate::movegen::{movedefs::Move, movelist::MoveList};
 use crate::search::{self, SearchInfo};
@@ -25,8 +25,8 @@ const ERR_MV_STRINGS: [&str; 4] = [
     "Move length is wrong.",
 ];
 
-type ParseMoveResult = Result<(u8, u8, u8), u8>;
-type PotentialMove = (u8, u8, u8);
+type ParseMoveResult = Result<(Square, Square, Piece), u8>;
+type PotentialMove = (Square, Square, Piece);
 
 pub fn get_input(board: &mut Board) -> u64 {
     let mut input = String::new();
@@ -109,9 +109,9 @@ fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
 
 fn parse_move(input: &str) -> ParseMoveResult {
     let length = input.len();
-    let mut from: u8 = 0;
-    let mut to: u8 = 0;
-    let mut promotion_piece: Piece = PNONE;
+    let mut from: Square = 0;
+    let mut to: Square = 0;
+    let mut promotion_piece: Piece = Pieces::NONE;
     let mut result: ParseMoveResult = Err(ERR_MV_NO_ERROR);
 
     // Check if chars 1-2 and 3-4 are actually represent squares.
@@ -148,7 +148,7 @@ fn parse_move(input: &str) -> ParseMoveResult {
 
     // If there is no error, then result becomes Ok(); this is a potential move.
     if result == Err(ERR_MV_NO_ERROR) {
-        result = Ok((from, to, promotion_piece as u8));
+        result = Ok((from, to, promotion_piece));
     }
     result
 }
@@ -160,12 +160,12 @@ fn try_move(board: &mut Board, potential_move: PotentialMove) -> Result<(), ()> 
 
     board.gen_all_moves(&mut move_list);
     for i in 0..move_list.len() {
-        let move_from_list = move_list.get_move(i);
+        let current_move = move_list.get_move(i);
         if_chain! {
-            if potential_move.0 == move_from_list.from();
-            if potential_move.1 == move_from_list.to();
-            if potential_move.2 == move_from_list.promoted();
-            if playmove::make(board, move_from_list);
+            if potential_move.0 == current_move.from();
+            if potential_move.1 == current_move.to();
+            if potential_move.2 == current_move.promoted();
+            if playmove::make(board, current_move);
             then {
                 result = Ok(());
                 break;

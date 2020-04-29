@@ -1,5 +1,5 @@
-use crate::board::ALL_SQUARES;
-use crate::defs::{Bitboard, Piece, BISHOP, EMPTY, PIECE_NAME, ROOK};
+use crate::board::{Pieces, ALL_SQUARES, PIECE_NAME};
+use crate::defs::{Bitboard, Piece, EMPTY};
 use crate::extra::print;
 use crate::movegen::{
     attackboards, blockerboards, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
@@ -15,8 +15,13 @@ use rand::{Rng, SeedableRng};
 */
 #[allow(dead_code)]
 pub fn find_magics(piece: Piece) {
-    assert!(piece == ROOK || piece == BISHOP, "Illegal piece: {}", 0);
-    let is_rook = piece == ROOK;
+    assert!(
+        piece == Pieces::ROOK || piece == Pieces::BISHOP,
+        "Illegal piece: {}",
+        piece
+    );
+
+    let is_rook = piece == Pieces::ROOK;
     let mut rook_table: Vec<Bitboard> = vec![EMPTY; ROOK_TABLE_SIZE];
     let mut bishop_table: Vec<Bitboard> = vec![EMPTY; BISHOP_TABLE_SIZE];
     let mut random = SmallRng::from_entropy();

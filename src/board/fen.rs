@@ -1,8 +1,6 @@
 // TODO: Update comment
-use crate::board::{representation::Board, File, Rank};
-use crate::defs::{
-    Castling, BISHOP, BLACK, KING, KNIGHT, MAX_GAME_MOVES, PAWN, QUEEN, ROOK, WHITE,
-};
+use crate::board::{representation::Board, Files, Pieces, Ranks, Squares};
+use crate::defs::{Castling, Square, BLACK, MAX_GAME_MOVES, WHITE};
 use crate::parse;
 use if_chain::if_chain;
 use std::ops::RangeInclusive;
@@ -21,8 +19,8 @@ pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS as usize + 1] = [
 /** Definitions used by the FEN-reader */
 const NR_OF_FEN_PARTS: usize = 6;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
-const EP_SQUARES_WHITE: RangeInclusive<u8> = 16..=23;
-const EP_SQUARES_BLACK: RangeInclusive<u8> = 40..=47;
+const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
+const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
 const WHITE_OR_BLACK: &str = "wb";
 const CASTLE_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
@@ -64,25 +62,25 @@ pub fn read(board: &mut Board, fen_string: &str) -> Result<(), u8> {
 
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
 fn pieces(board: &mut Board, part: &str) -> bool {
-    let mut rank = Rank::R8 as u8;
-    let mut file = File::A as u8;
+    let mut rank = Ranks::R8 as u8;
+    let mut file = Files::A as u8;
     let mut result = true;
 
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_side[BLACK][KING] |= 1u64 << square,
-            'q' => board.bb_side[BLACK][QUEEN] |= 1u64 << square,
-            'r' => board.bb_side[BLACK][ROOK] |= 1u64 << square,
-            'b' => board.bb_side[BLACK][BISHOP] |= 1u64 << square,
-            'n' => board.bb_side[BLACK][KNIGHT] |= 1u64 << square,
-            'p' => board.bb_side[BLACK][PAWN] |= 1u64 << square,
-            'K' => board.bb_side[WHITE][KING] |= 1u64 << square,
-            'Q' => board.bb_side[WHITE][QUEEN] |= 1u64 << square,
-            'R' => board.bb_side[WHITE][ROOK] |= 1u64 << square,
-            'B' => board.bb_side[WHITE][BISHOP] |= 1u64 << square,
-            'N' => board.bb_side[WHITE][KNIGHT] |= 1u64 << square,
-            'P' => board.bb_side[WHITE][PAWN] |= 1u64 << square,
+            'k' => board.bb_side[BLACK][Pieces::KING] |= 1u64 << square,
+            'q' => board.bb_side[BLACK][Pieces::QUEEN] |= 1u64 << square,
+            'r' => board.bb_side[BLACK][Pieces::ROOK] |= 1u64 << square,
+            'b' => board.bb_side[BLACK][Pieces::BISHOP] |= 1u64 << square,
+            'n' => board.bb_side[BLACK][Pieces::KNIGHT] |= 1u64 << square,
+            'p' => board.bb_side[BLACK][Pieces::PAWN] |= 1u64 << square,
+            'K' => board.bb_side[WHITE][Pieces::KING] |= 1u64 << square,
+            'Q' => board.bb_side[WHITE][Pieces::QUEEN] |= 1u64 << square,
+            'R' => board.bb_side[WHITE][Pieces::ROOK] |= 1u64 << square,
+            'B' => board.bb_side[WHITE][Pieces::BISHOP] |= 1u64 << square,
+            'N' => board.bb_side[WHITE][Pieces::KNIGHT] |= 1u64 << square,
+            'P' => board.bb_side[WHITE][Pieces::PAWN] |= 1u64 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
@@ -168,7 +166,7 @@ fn ep(board: &mut Board, part: &str) -> bool {
         let square = parse::algebraic_square_to_number(part);
         match square {
             Ok(s) if EP_SQUARES_WHITE.contains(&s) || EP_SQUARES_BLACK.contains(&s) => {
-                board.game_state.en_passant = Some(s);
+                board.game_state.en_passant = Some(s as u8);
                 char_ok += 2;
             }
             Ok(_) | Err(_) => (),

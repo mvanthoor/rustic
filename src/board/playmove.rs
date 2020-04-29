@@ -1,8 +1,5 @@
-use super::{representation::Board, BB_SQUARES};
-use crate::defs::{
-    Castling, Piece, Side, Square, A1, A8, BLACK, C1, C8, D1, D8, F1, F8, G1, G8, H1, H8, KING,
-    NR_OF_SQUARES, PAWN, PNONE, ROOK, WHITE,
-};
+use super::{representation::Board, Pieces, Squares, BB_SQUARES};
+use crate::defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES, WHITE};
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};
 
@@ -18,7 +15,7 @@ const N_BQ: u8 = Castling::ALL & !Castling::BQ;
 #[rustfmt::skip]
 // First element in this array is square A1. The N_* constants mark which
 // castling rights are lost if the king or rook moves from that starting square.
-const CASTLING_PERMS: [u8; NR_OF_SQUARES as usize] = [
+const CASTLING_PERMS: [u8; NR_OF_SQUARES] = [
     N_WQ, 15,  15,  15,  N_WKQ, 15,  15,  N_WK,
     15,   15,  15,  15,  15,    15,  15,  15, 
     15,   15,  15,  15,  15,    15,  15,  15, 
@@ -43,15 +40,16 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let opponent = (us ^ 1) as usize;
 
     // Dissect the move so we don't need "m.function()" and type casts everywhere.
-    let piece = m.piece() as usize;
+    let piece = m.piece();
     let from = m.from();
     let to = m.to();
-    let captured = m.captured() as usize;
-    let promoted = m.promoted() as usize;
+    let captured = m.captured();
+    let promoted = m.promoted();
     let castling = m.castling();
     let double_step = m.double_step();
     let en_passant = m.en_passant();
-    let is_promotion = promoted != PNONE;
+    let is_promotion = promoted != Pieces::NONE;
+    let is_capture = captured != Pieces::NONE;
 
     // Assume this is not a pawn move or a capture.
     board.game_state.halfmove_clock += 1;
@@ -62,11 +60,11 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     }
 
     // If a piece was captured with this move then remove it. Also reset halfmove_clock.
-    if captured != PNONE {
+    if is_capture {
         board.remove_piece(opponent, captured, to);
         board.game_state.halfmove_clock = 0;
         // Change castling permissions on rook capture in the corner.
-        if captured == ROOK && (board.game_state.castling > 0) {
+        if captured == Pieces::ROOK && (board.game_state.castling > 0) {
             board.zobrist_castling();
             board.game_state.castling &= CASTLING_PERMS[to as usize];
             board.zobrist_castling();
@@ -74,7 +72,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     }
 
     // Make the move. Just move the piece if it's not a pawn.
-    if !(piece == PAWN) {
+    if !(piece == Pieces::PAWN) {
         board.move_piece(us, piece, from, to);
     } else {
         // It's a pawn move. Take promotion into account and reset halfmove_clock.
@@ -84,7 +82,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
         // After an en-passant maneuver, the opponent's pawn must also be removed.
         if en_passant {
-            board.remove_piece(opponent, PAWN, to ^ 8);
+            board.remove_piece(opponent, Pieces::PAWN, to ^ 8);
         }
 
         // A double-step is the only move that sets the ep-square.
@@ -104,10 +102,10 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     // If the king is castling, then also move the rook.
     if castling {
         match to {
-            G1 => board.move_piece(us, ROOK, H1, F1),
-            C1 => board.move_piece(us, ROOK, A1, D1),
-            G8 => board.move_piece(us, ROOK, H8, F8),
-            C8 => board.move_piece(us, ROOK, A8, D8),
+            Squares::G1 => board.move_piece(us, Pieces::ROOK, Squares::H1, Squares::F1),
+            Squares::C1 => board.move_piece(us, Pieces::ROOK, Squares::A1, Squares::D1),
+            Squares::G8 => board.move_piece(us, Pieces::ROOK, Squares::H8, Squares::F8),
+            Squares::C8 => board.move_piece(us, Pieces::ROOK, Squares::A8, Squares::D8),
             _ => panic!("Error moving rook during castling."),
         }
     }
@@ -121,7 +119,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     }
 
     /*** Validating move: see if "us" is in check. If so, undo everything. ***/
-    let king_square = board.get_pieces(KING, us).trailing_zeros() as u8;
+    let king_square = board.get_pieces(Pieces::KING, us).trailing_zeros() as Square;
     if info::square_attacked(board, opponent, king_square) {
         unmake(board);
         return false;
@@ -144,43 +142,43 @@ pub fn unmake(board: &mut Board) {
 
     // Dissect the move to undo
     let m = board.game_state.this_move;
-    let piece = m.piece() as usize;
+    let piece = m.piece();
     let from = m.from();
     let to = m.to();
-    let captured = m.captured() as usize;
-    let promoted = m.promoted() as usize;
+    let captured = m.captured();
+    let promoted = m.promoted();
     let castling = m.castling();
     let en_passant = m.en_passant();
 
     // Moving backwards...
-    if promoted == PNONE {
+    if promoted == Pieces::NONE {
         reverse_move(board, us, piece, to, from);
     } else {
         remove_piece(board, us, promoted, to);
-        put_piece(board, us, PAWN, from);
+        put_piece(board, us, Pieces::PAWN, from);
     }
 
     // The king's move was already undone as a normal move.
     // Now undo the correct castling rook move.
     if castling {
         match to {
-            G1 => reverse_move(board, us, ROOK, F1, H1),
-            C1 => reverse_move(board, us, ROOK, D1, A1),
-            G8 => reverse_move(board, us, ROOK, F8, H8),
-            C8 => reverse_move(board, us, ROOK, D8, A8),
+            Squares::G1 => reverse_move(board, us, Pieces::ROOK, Squares::F1, Squares::H1),
+            Squares::C1 => reverse_move(board, us, Pieces::ROOK, Squares::D1, Squares::A1),
+            Squares::G8 => reverse_move(board, us, Pieces::ROOK, Squares::F8, Squares::H8),
+            Squares::C8 => reverse_move(board, us, Pieces::ROOK, Squares::D8, Squares::A8),
             _ => panic!("Error: Reversing castling rook move."),
         };
     }
 
     // If a piece was captured, put it back onto the to-square
-    if captured != PNONE {
+    if captured != Pieces::NONE {
         put_piece(board, opponent, captured, to);
     }
 
     // If this was an e-passant move, put the opponent's pawn back
     if en_passant {
         let ep_square = if us == WHITE { to - 8 } else { to + 8 };
-        put_piece(board, opponent, PAWN, ep_square);
+        put_piece(board, opponent, Pieces::PAWN, ep_square);
     }
 }
 
@@ -188,22 +186,22 @@ pub fn unmake(board: &mut Board) {
 
 // Removes a piece from the board.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_side[side][piece] ^= BB_SQUARES[square as usize];
-    board.bb_pieces[side] ^= BB_SQUARES[square as usize];
-    board.piece_list[square as usize] = PNONE;
+    board.bb_side[side][piece] ^= BB_SQUARES[square];
+    board.bb_pieces[side] ^= BB_SQUARES[square];
+    board.piece_list[square] = Pieces::NONE;
     board.material_count[side] -= PIECE_VALUES[piece];
 }
 
 // Puts a piece onto the board.
 fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_side[side][piece] |= BB_SQUARES[square as usize];
-    board.bb_pieces[side] |= BB_SQUARES[square as usize];
-    board.piece_list[square as usize] = piece;
+    board.bb_side[side][piece] |= BB_SQUARES[square];
+    board.bb_pieces[side] |= BB_SQUARES[square];
+    board.piece_list[square] = piece;
     board.material_count[side] += PIECE_VALUES[piece];
 }
 
 // Moves a piece from one square to the other.
-fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: u8, put: u8) {
+fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
     remove_piece(board, side, piece, remove);
     put_piece(board, side, piece, put);
 }

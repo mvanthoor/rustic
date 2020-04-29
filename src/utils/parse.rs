@@ -1,4 +1,5 @@
-use crate::defs::{Piece, BISHOP, KNIGHT, QUEEN, ROOK};
+use crate::board::Pieces;
+use crate::defs::{Piece, Square};
 
 pub const ASCII_VALUE_OF_LOWERCASE_A: u8 = 97;
 pub const ASCII_VALUE_OF_1: u8 = 49;
@@ -19,9 +20,9 @@ pub fn strip_newline(input: &mut String) {
     *input = s;
 }
 
-pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<u8, ()> {
+pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<Square, ()> {
     let length = algebraic_square.len();
-    let mut result: Result<u8, ()> = Err(());
+    let mut result: Result<Square, ()> = Err(());
 
     if length == 2 {
         let mut file = 0;
@@ -40,7 +41,7 @@ pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<u8, ()> {
         }
 
         if char_ok == length {
-            let square_nr = (rank * 8) + file;
+            let square_nr = ((rank * 8) + file) as Square;
             result = Ok(square_nr);
         }
     }
@@ -51,10 +52,10 @@ pub fn promotion_piece_letter_to_number(piece_letter: char) -> Result<Piece, ()>
     let mut result: Result<Piece, ()> = Err(());
     if let Some(p) = piece_letter.to_lowercase().next() {
         match p {
-            'q' => result = Ok(QUEEN),
-            'r' => result = Ok(ROOK),
-            'b' => result = Ok(BISHOP),
-            'n' => result = Ok(KNIGHT),
+            'q' => result = Ok(Pieces::QUEEN),
+            'r' => result = Ok(Pieces::ROOK),
+            'b' => result = Ok(Pieces::BISHOP),
+            'n' => result = Ok(Pieces::KNIGHT),
             _ => (),
         }
     }
