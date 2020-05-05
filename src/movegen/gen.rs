@@ -24,10 +24,10 @@ pub fn all_moves(board: &Board, list: &mut MoveList) {
 
 /// This function generates pseudo-legal moves for the given piece type.
 fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
-    let side = board.game_state.active_color as usize;
+    let us = board.game_state.active_color as usize;
     let bb_occupancy = board.occupancy();
-    let bb_own_pieces = board.bb_pieces[side];
-    let mut bb_pieces = board.get_pieces(piece, side);
+    let bb_own_pieces = board.bb_pieces[us];
+    let mut bb_pieces = board.get_pieces(piece, us);
 
     // Generate moves for each piece of the type passed into the function.
     while bb_pieces > 0 {
