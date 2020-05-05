@@ -48,19 +48,16 @@ fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
 
 // This function generates all the pawn moves.
 fn pawns(board: &Board, list: &mut MoveList) {
-    const UP: i8 = 8;
-    const DOWN: i8 = -8;
-
-    let side = board.game_state.active_color as usize;
-    let bb_opponent_pieces = board.bb_pieces[side ^ 1];
+    let us = board.game_state.active_color as usize;
+    let bb_opponent_pieces = board.bb_pieces[us ^ 1];
     let bb_empty = !board.occupancy();
-    let bb_fourth = if side == WHITE {
+    let bb_fourth = if us == WHITE {
         BB_RANKS[Ranks::R4]
     } else {
         BB_RANKS[Ranks::R5]
     };
-    let mut bb_pawns = board.get_pieces(Pieces::PAWN, side);
-    let direction = if side == WHITE { UP } else { DOWN };
+    let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
+    let direction = if us == WHITE { 8 } else { -8 };
 
     // As long as there are pawns, generate moves for each of them.
     while bb_pawns > 0 {
@@ -68,12 +65,11 @@ fn pawns(board: &Board, list: &mut MoveList) {
         let bb_push = 1u64 << (from as i8 + direction);
         let bb_one_step = bb_push & bb_empty;
         let bb_two_step = bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
-        let bb_targets = board.get_pawn_attacks(side, from);
+        let bb_targets = board.get_pawn_attacks(us, from);
         let bb_captures = bb_targets & bb_opponent_pieces;
-        let bb_ep_capture = if let Some(ep) = board.game_state.en_passant {
-            bb_targets & (1u64 << ep)
-        } else {
-            0
+        let bb_ep_capture = match board.game_state.en_passant {
+            Some(ep) => bb_targets & (1u64 << ep),
+            None => 0,
         };
 
         // Gather all moves for the pawn into one bitboard.
