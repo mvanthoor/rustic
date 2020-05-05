@@ -80,15 +80,15 @@ fn pawns(board: &Board, list: &mut MoveList) {
 
 // This function generates castling moves (king part only).
 fn castling(board: &Board, list: &mut MoveList) {
-    let side = board.game_state.active_color as usize;
-    let opponent = side ^ 1;
+    let us = board.game_state.active_color as usize;
+    let opponent = us ^ 1;
     let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
     let castle_perms_black = (board.game_state.castling & (Castling::BK | Castling::BQ)) > 0;
     let bb_occupancy = board.occupancy();
-    let mut bb_king = board.get_pieces(Pieces::KING, side);
+    let mut bb_king = board.get_pieces(Pieces::KING, us);
     let from = bits::next(&mut bb_king);
 
-    if side == WHITE && castle_perms_white {
+    if us == WHITE && castle_perms_white {
         // Kingside
         if board.game_state.castling & Castling::WK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << Squares::F1) | (1u64 << Squares::G1);
@@ -117,7 +117,9 @@ fn castling(board: &Board, list: &mut MoveList) {
                 add_move(board, Pieces::KING, from, to, list);
             }
         }
-    } else if side == BLACK && castle_perms_black {
+    }
+
+    if us == BLACK && castle_perms_black {
         // Kingside
         if board.game_state.castling & Castling::BK > 0 {
             let bb_kingside_blockers: u64 = (1u64 << Squares::F8) | (1u64 << Squares::G8);
