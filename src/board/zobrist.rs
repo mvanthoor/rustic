@@ -35,25 +35,28 @@ impl ZobristRandoms {
             rnd_en_passant: [EMPTY; ALL_SQUARES + 1],
         };
 
-        for side in zobrist_randoms.rnd_pieces.iter_mut() {
-            for piece in side.iter_mut() {
-                for square in piece.iter_mut() {
-                    *square = random.gen::<u64>();
-                }
-            }
-        }
+        zobrist_randoms.rnd_pieces.iter_mut().for_each(|side| {
+            side.iter_mut().for_each(|piece| {
+                piece
+                    .iter_mut()
+                    .for_each(|square| *square = random.gen::<u64>())
+            })
+        });
 
-        for permission in zobrist_randoms.rnd_castling.iter_mut() {
-            *permission = random.gen::<u64>();
-        }
+        zobrist_randoms
+            .rnd_castling
+            .iter_mut()
+            .for_each(|permission| *permission = random.gen::<u64>());
 
-        for side in zobrist_randoms.rnd_sides.iter_mut() {
-            *side = random.gen::<u64>();
-        }
+        zobrist_randoms
+            .rnd_sides
+            .iter_mut()
+            .for_each(|side| *side = random.gen::<u64>());
 
-        for ep in zobrist_randoms.rnd_en_passant.iter_mut() {
-            *ep = random.gen::<u64>();
-        }
+        zobrist_randoms
+            .rnd_en_passant
+            .iter_mut()
+            .for_each(|ep| *ep = random.gen::<u64>());
 
         zobrist_randoms
     }
@@ -71,10 +74,9 @@ impl ZobristRandoms {
     }
 
     pub fn en_passant(&self, en_passant: Option<u8>) -> ZobristKey {
-        if let Some(ep) = en_passant {
-            self.rnd_en_passant[ep as usize]
-        } else {
-            self.rnd_en_passant[ALL_SQUARES]
+        match en_passant {
+            Some(ep) => self.rnd_en_passant[ep as usize],
+            None => self.rnd_en_passant[ALL_SQUARES],
         }
     }
 }
