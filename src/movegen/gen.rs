@@ -156,8 +156,8 @@ fn castling(board: &Board, list: &mut MoveList) {
 // This function turns the given parameters into actual moves and puts them into the move list.
 fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut MoveList) {
     let mut bb_to = to;
-    let side = board.game_state.active_color as usize;
-    let promotion_rank = if side == WHITE { Ranks::R8 } else { Ranks::R1 };
+    let us = board.game_state.active_color as usize;
+    let promotion_rank = if us == WHITE { Ranks::R8 } else { Ranks::R1 };
     let is_pawn = piece == Pieces::PAWN;
 
     // As long as there are still to-squres in bb_to, this piece has moves to add.
@@ -173,24 +173,28 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
         let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 
         // Gather all data for this move into one 64-bit integer.
+        let no_promotion_piece = (Pieces::NONE as u64) << (Shift::Promotion as u64);
         let move_data = (piece as u64)
             | ((from as u64) << Shift::FromSq as u64)
             | ((to_square as u64) << Shift::ToSq as u64)
             | ((capture as u64) << Shift::Capture as u64)
             | ((en_passant as u64) << Shift::EnPassant as u64)
             | ((double_step as u64) << Shift::DoubleStep as u64)
-            | ((castling as u64) << Shift::Castling as u64);
+            | ((castling as u64) << Shift::Castling as u64)
+            | no_promotion_piece;
 
-        match promotion {
-            true => {
+        // If no promomotion, just push the move to the move list. Otherwise,
+        // remove the no_promotion_piece from move_data. Then iterate over the
+        // promotion pieces, and push each promotion option to the move list.
+        match !promotion {
+            true => list.push(Move { data: move_data }),
+            false => {
+                let reset = move_data ^ no_promotion_piece;
                 PROMOTION_PIECES.iter().for_each(|piece| {
-                    let d = move_data | ((*piece as u64) << Shift::Promotion as u64);
+                    let current = (*piece as u64) << (Shift::Promotion as u64);
+                    let d = reset | current;
                     list.push(Move { data: d })
                 });
-            }
-            false => {
-                let d = move_data | ((Pieces::NONE as u64) << Shift::Promotion as u64);
-                list.push(Move { data: d });
             }
         }
     }
