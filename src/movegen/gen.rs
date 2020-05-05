@@ -158,18 +158,18 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
     let mut bb_to = to;
     let side = board.game_state.active_color as usize;
     let promotion_rank = if side == WHITE { Ranks::R8 } else { Ranks::R1 };
+    let is_pawn = piece == Pieces::PAWN;
 
     // As long as there are still to-squres in bb_to, this piece has moves to add.
     while bb_to > 0 {
         let to_square = bits::next(&mut bb_to);
         let capture = board.piece_list[to_square];
-        let promotion = (piece == Pieces::PAWN) && board::square_on_rank(to_square, promotion_rank);
-        let en_passant = if let Some(square) = board.game_state.en_passant {
-            (piece == Pieces::PAWN) && (square as usize == to_square)
-        } else {
-            false
+        let en_passant = match board.game_state.en_passant {
+            Some(square) => is_pawn && (square as usize == to_square),
+            None => false,
         };
-        let double_step = (piece == Pieces::PAWN) && ((to_square as i8 - from as i8).abs() == 16);
+        let promotion = is_pawn && board::square_on_rank(to_square, promotion_rank);
+        let double_step = is_pawn && ((to_square as i8 - from as i8).abs() == 16);
         let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 
         // Gather all data for this move into one 64-bit integer.
@@ -181,19 +181,16 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
             | ((double_step as u64) << Shift::DoubleStep as u64)
             | ((castling as u64) << Shift::Castling as u64);
 
-        if !promotion {
-            // No promotion: add this move.
-            let m = Move {
-                data: move_data | ((Pieces::NONE as u64) << Shift::Promotion as u64),
-            };
-            list.push(m);
-        } else {
-            // Promotion. Add one move for each piece to promote to.
-            for piece in PROMOTION_PIECES.iter() {
-                let m = Move {
-                    data: move_data | ((*piece as u64) << Shift::Promotion as u64),
-                };
-                list.push(m);
+        match promotion {
+            true => {
+                PROMOTION_PIECES.iter().for_each(|piece| {
+                    let d = move_data | ((*piece as u64) << Shift::Promotion as u64);
+                    list.push(Move { data: d })
+                });
+            }
+            false => {
+                let d = move_data | ((Pieces::NONE as u64) << Shift::Promotion as u64);
+                list.push(Move { data: d });
             }
         }
     }
