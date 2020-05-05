@@ -13,17 +13,17 @@ const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHO
 
 // This function generates all pseudo-legal moves for the current board and side to move.
 pub fn all_moves(board: &Board, list: &mut MoveList) {
-    piece(Pieces::KING, board, list);
-    piece(Pieces::KNIGHT, board, list);
-    piece(Pieces::ROOK, board, list);
-    piece(Pieces::BISHOP, board, list);
-    piece(Pieces::QUEEN, board, list);
+    piece(board, Pieces::KING, list);
+    piece(board, Pieces::KNIGHT, list);
+    piece(board, Pieces::ROOK, list);
+    piece(board, Pieces::BISHOP, list);
+    piece(board, Pieces::QUEEN, list);
     pawns(board, list);
     castling(board, list);
 }
 
 /// This function generates pseudo-legal moves for the given piece type.
-fn piece(piece: Piece, board: &Board, list: &mut MoveList) {
+fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
     let side = board.game_state.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[side];
