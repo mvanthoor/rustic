@@ -33,11 +33,8 @@ fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
     while bb_pieces > 0 {
         let from = bits::next(&mut bb_pieces);
         let bb_target = match piece {
-            Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
-                board.get_slider_attacks(piece, from, bb_occupancy)
-            }
             Pieces::KING | Pieces::KNIGHT => board.get_non_slider_attacks(piece, from),
-            _ => 0,
+            _ => board.get_slider_attacks(piece, from, bb_occupancy),
         };
 
         // A piece can move to where there is no piece of our own.
@@ -171,14 +168,14 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
         let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 
         // Gather all data for this move into one 64-bit integer.
-        let no_promotion_piece = (Pieces::NONE as u64) << (Shift::Promotion as u64);
-        let move_data = (piece as u64)
-            | ((from as u64) << Shift::FromSq as u64)
-            | ((to_square as u64) << Shift::ToSq as u64)
-            | ((capture as u64) << Shift::Capture as u64)
-            | ((en_passant as u64) << Shift::EnPassant as u64)
-            | ((double_step as u64) << Shift::DoubleStep as u64)
-            | ((castling as u64) << Shift::Castling as u64)
+        let no_promotion_piece = Pieces::NONE << Shift::PROMOTION;
+        let move_data = (piece)
+            | from << Shift::FROM_SQ
+            | to_square << Shift::TO_SQ
+            | capture << Shift::CAPTURE
+            | (en_passant as usize) << Shift::EN_PASSANT
+            | (double_step as usize) << Shift::DOUBLE_STEP
+            | (castling as usize) << Shift::CASTLING
             | no_promotion_piece;
 
         // If no promomotion, just push the move to the move list. Otherwise,
@@ -189,7 +186,7 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
             false => {
                 let reset = move_data ^ no_promotion_piece;
                 PROMOTION_PIECES.iter().for_each(|piece| {
-                    let current = (*piece as u64) << (Shift::Promotion as u64);
+                    let current = *piece << Shift::PROMOTION;
                     let d = reset | current;
                     list.push(Move { data: d })
                 });

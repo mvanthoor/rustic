@@ -38,23 +38,24 @@ use crate::defs::{Piece, Square};
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store
  * move data in a specific place within the u64 integer. This makes sure that, should the
  * format change, the location needs to be changed only within the integer. */
-pub enum Shift {
-    Piece = 0,
-    FromSq = 3,
-    ToSq = 9,
-    Capture = 15,
-    Promotion = 18,
-    EnPassant = 21,
-    DoubleStep = 22,
-    Castling = 23,
-    EvalScore = 24,
+pub struct Shift;
+impl Shift {
+    pub const PIECE: usize = 0;
+    pub const FROM_SQ: usize = 3;
+    pub const TO_SQ: usize = 9;
+    pub const CAPTURE: usize = 15;
+    pub const PROMOTION: usize = 18;
+    pub const EN_PASSANT: usize = 21;
+    pub const DOUBLE_STEP: usize = 22;
+    pub const CASTLING: usize = 23;
+    pub const EVAL_SCORE: usize = 24;
 }
 
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
  * it can provide all of the methods associated with it to easily decode the move data. */
 #[derive(Copy, Clone)]
 pub struct Move {
-    pub data: u64,
+    pub data: usize,
 }
 
 // These functions decode the move data.
@@ -64,38 +65,38 @@ impl Move {
     }
 
     pub fn piece(self) -> Piece {
-        ((self.data >> Shift::Piece as u64) & 0x7) as Piece
+        ((self.data >> Shift::PIECE as u64) & 0x7) as Piece
     }
 
     pub fn from(self) -> Square {
-        ((self.data >> Shift::FromSq as u64) & 0x3F) as Square
+        ((self.data >> Shift::FROM_SQ as u64) & 0x3F) as Square
     }
 
     pub fn to(self) -> Square {
-        ((self.data >> Shift::ToSq as u64) & 0x3F) as Square
+        ((self.data >> Shift::TO_SQ as u64) & 0x3F) as Square
     }
 
     pub fn captured(self) -> Piece {
-        ((self.data >> Shift::Capture as u64) & 0x7) as Piece
+        ((self.data >> Shift::CAPTURE as u64) & 0x7) as Piece
     }
 
     pub fn promoted(self) -> Piece {
-        ((self.data >> Shift::Promotion as u64) & 0x7) as Piece
+        ((self.data >> Shift::PROMOTION as u64) & 0x7) as Piece
     }
 
     pub fn en_passant(self) -> bool {
-        ((self.data >> Shift::EnPassant as u64) & 0x1) as u8 == 1
+        ((self.data >> Shift::EN_PASSANT as u64) & 0x1) as u8 == 1
     }
 
     pub fn double_step(self) -> bool {
-        ((self.data >> Shift::DoubleStep as u64) & 0x1) as u8 == 1
+        ((self.data >> Shift::DOUBLE_STEP as u64) & 0x1) as u8 == 1
     }
 
     pub fn castling(self) -> bool {
-        ((self.data >> Shift::Castling as u64) & 0x1) as u8 == 1
+        ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
     pub fn eval_sore(self) -> u16 {
-        ((self.data >> Shift::EvalScore as u64) & 0x3FFF) as u16
+        ((self.data >> Shift::EVAL_SCORE as u64) & 0x3FFF) as u16
     }
 }
