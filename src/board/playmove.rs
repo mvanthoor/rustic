@@ -96,7 +96,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Remove castling permissions if king/rook leaves from starting square.
     // (This will also adjust permissions when castling, because the king moves.)
-    if (CASTLING_PERMS[from as usize] != Castling::ALL) && (board.game_state.castling > 0) {
+    if (piece == Pieces::KING || piece == Pieces::ROOK) && board.game_state.castling > 0 {
         board.zobrist_castling();
         board.game_state.castling &= CASTLING_PERMS[from as usize];
         board.zobrist_castling();
