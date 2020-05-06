@@ -56,10 +56,9 @@ impl Board {
 
     // Reads either the passedn FEN-string or the starting position into the board.
     pub fn fen_read(&mut self, fen: Option<&str>) -> Result<(), u8> {
-        if let Some(f) = fen {
-            fen::read(self, f)
-        } else {
-            fen::read(self, FEN_START_POSITION)
+        match fen {
+            Some(f) => fen::read(self, f),
+            None => fen::read(self, FEN_START_POSITION),
         }
     }
 
@@ -209,7 +208,7 @@ impl Board {
 
     // ========== Move Generator forwarding functions ==========
 
-    pub fn gen_all_moves(&self, ml: &mut MoveList) {
+    pub fn gen_all_moves(&mut self, ml: &mut MoveList) {
         self.move_generator.gen_all_moves(self, ml);
     }
 
