@@ -1,7 +1,7 @@
 // playmove.rs contains make() and unmake(), to execute and reverse moves on the
 // board. make() executes the given move, unmake() reverses the last move made.
 use super::{representation::Board, Pieces, Squares, BB_SQUARES};
-use crate::defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES, WHITE};
+use crate::defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES};
 use crate::evaluation::evaldefs::PIECE_VALUES;
 use crate::movegen::{info, movedefs::Move};
 
@@ -40,7 +40,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Set "us" and "opponent"
     let us = board.game_state.active_color as usize;
-    let opponent = (us ^ 1) as usize;
+    let opponent = us ^ 1;
 
     // Dissect the move so we don't need "m.function()" and type casts everywhere.
     let piece = m.piece();
@@ -145,7 +145,7 @@ pub fn unmake(board: &mut Board) {
 
     // Set "us" and "opponent"
     let us = board.game_state.active_color as usize;
-    let opponent = (us ^ 1) as usize;
+    let opponent = us ^ 1;
 
     // Dissect the move to undo
     let m = board.game_state.this_move;
