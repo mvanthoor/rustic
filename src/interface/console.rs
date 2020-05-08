@@ -2,17 +2,15 @@
 // as an optional feature, for playing in a console window. It can also call
 // various test routines.
 
-use crate::board::{
-    defs::{Pieces, SQUARE_NAME},
-    playmove,
-    representation::Board,
+use crate::{
+    board::{defs::Pieces, playmove, representation::Board},
+    defs::{Piece, Square, ENGINE},
+    extra::{perft, perftsuite, print},
+    misc::parse,
+    movegen::movelist::MoveList,
 };
-use crate::defs::{Piece, Square, ENGINE};
-use crate::extra::{perft, perftsuite, print};
-use crate::misc::parse;
-use crate::movegen::{movedefs::Move, movelist::MoveList};
 use if_chain::if_chain;
-use std::{io, io::Write};
+use std::io::{self, Write};
 
 const CMD_STR_ERR_IO: &str = "Command-line i/o error";
 const CMD_QUIT: u64 = 0;
@@ -60,15 +58,8 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
         "suite" => cmd_suite(),
         "clear" => cmd_clear(),
         "t" => cmd_take_move(board),
-        "s" => cmd_search(board),
         _ => cmd_make_move(board, input),
     }
-}
-
-// TODO: Update comment.
-fn cmd_search(board: &mut Board) -> u64 {
-    println!("Searching...");
-    CMD_CONTINUE
 }
 
 // TODO: Update comment.

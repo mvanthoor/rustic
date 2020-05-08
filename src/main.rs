@@ -7,7 +7,7 @@ mod misc;
 mod movegen;
 
 use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
-use extra::perft;
+use interface::console;
 use misc::info;
 use movegen::MoveGenerator;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ fn main() {
     info::about_engine();
 
     match setup_result {
-        Ok(()) => perft::run(&board, 6), //while console::get_input(&mut board) != 0 {},
+        Ok(()) => while console::get_input(&mut board) != 0 {},
         Err(e) => println!("Error in FEN-part: {}", ERR_FEN_PARTS[e as usize]),
     }
 }
