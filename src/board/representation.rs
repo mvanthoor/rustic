@@ -208,7 +208,7 @@ impl Board {
 
     // ========== Move Generator forwarding functions ==========
 
-    pub fn gen_all_moves(&mut self, ml: &mut MoveList) {
+    pub fn gen_all_moves(&self, ml: &mut MoveList) {
         self.move_generator.gen_all_moves(self, ml);
     }
 
