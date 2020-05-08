@@ -3,8 +3,10 @@ use super::{
     magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS},
     masks, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
-use crate::board::defs::{Files, Pieces, Ranks, ALL_SQUARES, BB_FILES, BB_RANKS};
-use crate::defs::{Bitboard, Piece, BLACK, EMPTY, WHITE};
+use crate::{
+    board::defs::{Files, Pieces, Ranks, ALL_SQUARES, BB_FILES, BB_RANKS},
+    defs::{Bitboard, Piece, BLACK, EMPTY, WHITE},
+};
 
 /**
  * Generate all the possible king moves for each square.

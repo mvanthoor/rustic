@@ -1,5 +1,7 @@
-use crate::board::{defs::Pieces, representation::Board};
-use crate::defs::{Side, Square};
+use crate::{
+    board::{defs::Pieces, representation::Board},
+    defs::{Side, Square},
+};
 
 /**
  * square_attacked reports true or false regarding the question if a square is attacekd by the

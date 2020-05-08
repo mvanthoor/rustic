@@ -8,7 +8,7 @@ use super::{
 use crate::{
     defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},
     evaluation::defs::PIECE_VALUES,
-    movegen::{info, movedefs::Move},
+    movegen::{defs::Move, info},
 };
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling

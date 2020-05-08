@@ -1,8 +1,10 @@
-use crate::board::{
-    defs::{Direction, Files, Ranks},
-    utils,
+use crate::{
+    board::{
+        defs::{Direction, Files, Ranks},
+        utils,
+    },
+    defs::{Bitboard, Square},
 };
-use crate::defs::{Bitboard, Square};
 
 // This is a long function, but fortunately it's easy to understand. It creates
 // a ray for a sliding piece, in one of 8 directions: up, left, right, down,

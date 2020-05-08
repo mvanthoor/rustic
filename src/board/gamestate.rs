@@ -1,4 +1,4 @@
-use crate::movegen::movedefs::Move;
+use crate::movegen::defs::Move;
 
 // This is simply a struct that collects all the variables holding the game sate.
 // It makes it very easy to make a backup of the game state during make(), and

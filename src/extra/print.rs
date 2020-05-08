@@ -4,7 +4,7 @@ use crate::{
         representation::Board,
     },
     defs::{Bitboard, Castling, Square, BLACK, NR_OF_FILES, NR_OF_SQUARES, WHITE},
-    movegen::{magics::Magics, movedefs::Move},
+    movegen::{defs::Move, magics::Magics},
 };
 
 type AsciiBoard = [char; NR_OF_SQUARES];

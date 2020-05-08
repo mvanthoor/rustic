@@ -1,6 +1,8 @@
 use super::rays;
-use crate::board::defs::Direction;
-use crate::defs::{Bitboard, Square};
+use crate::{
+    board::defs::Direction,
+    defs::{Bitboard, Square},
+};
 
 pub type AttackBoards = Vec<Bitboard>;
 

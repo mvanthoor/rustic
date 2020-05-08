@@ -1,11 +1,11 @@
 pub mod attackboards;
 pub mod blockerboards;
+pub mod defs;
 mod gen;
 pub mod info;
 mod init;
 pub mod magics;
 pub mod masks;
-pub mod movedefs;
 pub mod movelist;
 mod rays;
 

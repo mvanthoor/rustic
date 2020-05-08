@@ -10,11 +10,13 @@
 // account.
 
 use super::rays;
-use crate::board::{
-    defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS},
-    utils,
+use crate::{
+    board::{
+        defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS},
+        utils,
+    },
+    defs::{Bitboard, Square},
 };
-use crate::defs::{Bitboard, Square};
 
 // Explanation of create_rook mask, step by step. Get the location of square the
 // rook is on, as a (file, rank) tuple. Create the bitboards for files, ranks,

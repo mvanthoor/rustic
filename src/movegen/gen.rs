@@ -1,17 +1,19 @@
 // gen.rs is the file generating pseudo-legal moves for the current board position.
 
 use super::{
+    defs::{Move, Shift},
     info,
-    movedefs::{Move, Shift},
     movelist::MoveList,
 };
-use crate::board::{
-    defs::{Pieces, Ranks, Squares, BB_RANKS},
-    representation::Board,
-    utils,
+use crate::{
+    board::{
+        defs::{Pieces, Ranks, Squares, BB_RANKS},
+        representation::Board,
+        utils,
+    },
+    defs::{Bitboard, Castling, Piece, Square, BLACK, WHITE},
+    misc::bits,
 };
-use crate::defs::{Bitboard, Castling, Piece, Square, BLACK, WHITE};
-use crate::misc::bits;
 
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
 
