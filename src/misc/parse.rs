@@ -6,6 +6,7 @@ pub const ASCII_VALUE_OF_1: u8 = 49;
 pub const COORDINATE_LETTERS: &str = "abcdefgh";
 pub const COORDINATE_NUMBERS: &str = "12345678";
 
+#[allow(dead_code)]
 pub fn strip_newline(input: &mut String) {
     let mut s = input.trim().to_string();
     for _ in 0..2 {
@@ -48,6 +49,7 @@ pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<Square, ()> 
     result
 }
 
+#[allow(dead_code)]
 pub fn promotion_piece_letter_to_number(piece_letter: char) -> Result<Piece, ()> {
     let mut result: Result<Piece, ()> = Err(());
     if let Some(p) = piece_letter.to_lowercase().next() {
