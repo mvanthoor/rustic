@@ -1,9 +1,9 @@
-mod large_epd;
-
-use crate::board::{representation::Board, zobrist::ZobristRandoms};
-use crate::extra::{perft, print};
-use crate::movegen::MoveGenerator;
-use large_epd::LARGE_PERFT_SUITE;
+use super::large_epd::LARGE_PERFT_SUITE;
+use crate::{
+    board::{representation::Board, zobrist::ZobristRandoms},
+    extra::{perft, print},
+    movegen::MoveGenerator,
+};
 use std::{sync::Arc, time::Instant};
 
 const SEMI_COLON: char = ';';

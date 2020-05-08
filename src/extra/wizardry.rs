@@ -1,8 +1,10 @@
-use crate::board::defs::{Pieces, ALL_SQUARES, PIECE_NAME};
-use crate::defs::{Bitboard, Piece, EMPTY};
-use crate::extra::print;
-use crate::movegen::{
-    attackboards, blockerboards, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
+use crate::{
+    board::defs::{Pieces, ALL_SQUARES, PIECE_NAME},
+    defs::{Bitboard, Piece, EMPTY},
+    extra::print,
+    movegen::{
+        attackboards, blockerboards, magics::Magics, masks, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
+    },
 };
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};

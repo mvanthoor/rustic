@@ -1,6 +1,8 @@
-use crate::board::{playmove, representation::Board};
-use crate::extra::print;
-use crate::movegen::movelist::MoveList;
+use crate::{
+    board::{playmove, representation::Board},
+    extra::print,
+    movegen::movelist::MoveList,
+};
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
