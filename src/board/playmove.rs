@@ -184,8 +184,7 @@ pub fn unmake(board: &mut Board) {
 
     // If this was an e-passant move, put the opponent's pawn back
     if en_passant {
-        let ep_square = if us == WHITE { to - 8 } else { to + 8 };
-        put_piece(board, opponent, Pieces::PAWN, ep_square);
+        put_piece(board, opponent, Pieces::PAWN, to ^ 8);
     }
 }
 
