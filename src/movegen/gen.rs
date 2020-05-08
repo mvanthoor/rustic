@@ -5,9 +5,13 @@ use super::{
     movedefs::{Move, Shift},
     movelist::MoveList,
 };
-use crate::board::{self, representation::Board, Pieces, Ranks, Squares, BB_RANKS};
+use crate::board::{
+    defs::{Pieces, Ranks, Squares, BB_RANKS},
+    representation::Board,
+    utils,
+};
 use crate::defs::{Bitboard, Castling, Piece, Square, BLACK, WHITE};
-use crate::utils::bits;
+use crate::misc::bits;
 
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
 
@@ -166,7 +170,7 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
             Some(square) => is_pawn && (square as usize == to_square),
             None => false,
         };
-        let promotion = is_pawn && board::square_on_rank(to_square, promotion_rank);
+        let promotion = is_pawn && utils::square_on_rank(to_square, promotion_rank);
         let double_step = is_pawn && ((to_square as i8 - from as i8).abs() == 16);
         let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 

@@ -1,4 +1,4 @@
-use crate::board::{Pieces, ALL_SQUARES, PIECE_NAME};
+use crate::board::defs::{Pieces, ALL_SQUARES, PIECE_NAME};
 use crate::defs::{Bitboard, Piece, EMPTY};
 use crate::extra::print;
 use crate::movegen::{

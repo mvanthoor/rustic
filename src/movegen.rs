@@ -10,7 +10,7 @@ pub mod movelist;
 mod rays;
 
 // TODO: Rewrite comments for move generator
-use crate::board::{representation::Board, Pieces};
+use crate::board::{defs::Pieces, representation::Board};
 use crate::defs::{Bitboard, Piece, Side, Square, EMPTY, NR_OF_SQUARES};
 use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;

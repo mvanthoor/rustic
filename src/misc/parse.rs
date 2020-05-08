@@ -1,4 +1,4 @@
-use crate::board::Pieces;
+use crate::board::defs::Pieces;
 use crate::defs::{Piece, Square};
 
 pub const ASCII_VALUE_OF_LOWERCASE_A: u8 = 97;

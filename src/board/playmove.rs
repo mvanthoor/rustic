@@ -1,9 +1,15 @@
 // playmove.rs contains make() and unmake(), to execute and reverse moves on the
 // board. make() executes the given move, unmake() reverses the last move made.
-use super::{representation::Board, Pieces, Squares, BB_SQUARES};
-use crate::defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES};
-use crate::evaluation::evaldefs::PIECE_VALUES;
-use crate::movegen::{info, movedefs::Move};
+
+use super::{
+    defs::{Pieces, Squares, BB_SQUARES},
+    representation::Board,
+};
+use crate::{
+    defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},
+    evaluation::evaldefs::PIECE_VALUES,
+    movegen::{info, movedefs::Move},
+};
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
 // permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.

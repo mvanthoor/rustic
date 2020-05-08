@@ -1,32 +1,22 @@
-// representation.rs contains the board representation.
-mod gamestate;
-mod history;
-
 use super::{
+    defs::{Pieces, BB_SQUARES},
     fen,
+    gamestate::GameState,
+    history::History,
     zobrist::{ZobristKey, ZobristRandoms},
-    Pieces, BB_SQUARES,
 };
-use crate::defs::{
-    Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
-    NR_OF_SQUARES, WHITE,
+use crate::{
+    defs::{
+        Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
+        NR_OF_SQUARES, WHITE,
+    },
+    evaluation::{evaldefs::PIECE_VALUES, material},
+    misc::bits,
+    movegen::{movelist::MoveList, MoveGenerator},
 };
-use crate::evaluation::{evaldefs::PIECE_VALUES, material};
-use crate::movegen::{movelist::MoveList, MoveGenerator};
-use crate::utils::bits;
-use gamestate::GameState;
-use history::History;
 use std::sync::Arc;
 
-// The actual board.
-// bb_side: contains a bitboard for each piece, for each side.
-// bb_pieces: contains one bitboard per side, marking where pieces are placed.
-// game_state: contains the current game state.
-// history: is an array of game states. It has the history of the entire game.
-// piece_list: array of pieces on squares, denoting where each piece is located.
-// material_count: material point count for each side.
-// zobrist_randoms: used for zobrist hashing. Has forwarding functions.
-// move_generator: generates moves. Has forwarding functions.
+// TODO: Update comments
 #[derive(Clone)]
 pub struct Board {
     pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; EACH_SIDE as usize],

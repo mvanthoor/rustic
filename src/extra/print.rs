@@ -1,4 +1,7 @@
-use crate::board::{representation::Board, Pieces, ALL_FILES, ALL_RANKS, PIECE_NAME, SQUARE_NAME};
+use crate::board::{
+    defs::{Pieces, ALL_FILES, ALL_RANKS, PIECE_NAME, SQUARE_NAME},
+    representation::Board,
+};
 use crate::defs::{Bitboard, Castling, Square, BLACK, NR_OF_FILES, NR_OF_SQUARES, WHITE};
 use crate::movegen::{magics::Magics, movedefs::Move};
 

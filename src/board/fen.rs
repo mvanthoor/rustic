@@ -1,8 +1,13 @@
 // fen.rs reads an FEN-string and converts it into a board position.
 // If the procedure fails, the original position is not changed.
-use crate::board::{representation::Board, Files, Pieces, Ranks, Squares};
-use crate::defs::{Castling, Square, BLACK, MAX_GAME_MOVES, WHITE};
-use crate::parse;
+use super::{
+    defs::{Files, Pieces, Ranks, Squares},
+    representation::Board,
+};
+use crate::{
+    defs::{Castling, Square, BLACK, MAX_GAME_MOVES, WHITE},
+    misc::parse,
+};
 use if_chain::if_chain;
 use std::ops::RangeInclusive;
 

@@ -2,12 +2,16 @@
 // as an optional feature, for playing in a console window. It can also call
 // various test routines.
 
-use crate::board::{playmove, representation::Board, Pieces, SQUARE_NAME};
+use crate::board::{
+    defs::{Pieces, SQUARE_NAME},
+    playmove,
+    representation::Board,
+};
 use crate::defs::{Piece, Square, ENGINE};
 use crate::extra::{perft, perftsuite, print};
+use crate::misc::parse;
 use crate::movegen::{movedefs::Move, movelist::MoveList};
 use crate::search::{self, SearchInfo};
-use crate::utils::parse;
 use if_chain::if_chain;
 use std::{io, io::Write};
 

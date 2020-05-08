@@ -1,4 +1,7 @@
-use crate::board::{self, Direction, Files, Ranks};
+use crate::board::{
+    defs::{Direction, Files, Ranks},
+    utils,
+};
 use crate::defs::{Bitboard, Square};
 
 // This is a long function, but fortunately it's easy to understand. It creates
@@ -9,8 +12,8 @@ use crate::defs::{Bitboard, Square};
 // or the edge of the board. Therefore, in each call, only one of the eight
 // blocks of this function wille be executed.
 pub fn create_bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
-    let mut file = board::square_on_file_rank(square).0 as usize;
-    let mut rank = board::square_on_file_rank(square).1 as usize;
+    let mut file = utils::square_on_file_rank(square).0 as usize;
+    let mut rank = utils::square_on_file_rank(square).1 as usize;
     let mut bb_square = 1u64 << square;
     let mut bb_ray = 0;
     let mut done = false;

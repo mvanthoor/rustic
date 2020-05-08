@@ -3,15 +3,15 @@ mod defs;
 mod evaluation;
 mod extra;
 mod interface;
+mod misc;
 mod movegen;
 mod search;
-mod utils;
 
 use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
 use extra::perft;
+use misc::{info, parse};
 use movegen::MoveGenerator;
 use std::sync::Arc;
-use utils::{info, parse};
 
 fn main() {
     let test_pos = Some("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");

@@ -1,4 +1,4 @@
-use crate::board::{representation::Board, Pieces};
+use crate::board::{defs::Pieces, representation::Board};
 use crate::defs::{Side, Square};
 
 /**

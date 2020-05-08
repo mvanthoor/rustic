@@ -1,7 +1,7 @@
 use super::evaldefs::PIECE_VALUES;
 use crate::board::representation::Board;
 use crate::defs::{BLACK, WHITE};
-use crate::utils::bits;
+use crate::misc::bits;
 
 pub fn count(board: &Board) -> (u16, u16) {
     let mut white_material: u16 = 0;
