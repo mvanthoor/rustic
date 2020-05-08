@@ -48,20 +48,20 @@ impl Shift {
     pub const EN_PASSANT: usize = 21;
     pub const DOUBLE_STEP: usize = 22;
     pub const CASTLING: usize = 23;
-    pub const EVAL_SCORE: usize = 24;
+    // pub const EVAL_SCORE: usize = 24;
 }
 
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
  * it can provide all of the methods associated with it to easily decode the move data. */
 #[derive(Copy, Clone)]
 pub struct Move {
-    pub data: usize,
+    data: usize,
 }
 
 // These functions decode the move data.
 impl Move {
-    pub fn new() -> Self {
-        Self { data: 0 }
+    pub fn new(data: usize) -> Self {
+        Self { data }
     }
 
     pub fn piece(self) -> Piece {
@@ -96,7 +96,7 @@ impl Move {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
-    pub fn eval_sore(self) -> u16 {
-        ((self.data >> Shift::EVAL_SCORE as u64) & 0x3FFF) as u16
-    }
+    // pub fn eval_sore(self) -> u16 {
+    //     ((self.data >> Shift::EVAL_SCORE as u64) & 0x3FFF) as u16
+    // }
 }

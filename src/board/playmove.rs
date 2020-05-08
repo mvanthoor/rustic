@@ -40,9 +40,10 @@ const CASTLING_PERMS: [u8; NR_OF_SQUARES] = [
 #[cfg_attr(not(debug_assertions), inline(always))]
 pub fn make(board: &mut Board, m: Move) -> bool {
     // Create the unmake info and store it.
-    let mut current_game_state = board.game_state;
-    current_game_state.this_move = m;
-    board.history.push(current_game_state);
+    // let mut current_game_state = board.game_state;
+    // current_game_state.next_move = m;
+    board.game_state.next_move = m;
+    board.history.push(board.game_state);
 
     // Set "us" and "opponent"
     let us = board.game_state.active_color as usize;
@@ -154,7 +155,7 @@ pub fn unmake(board: &mut Board) {
     let opponent = us ^ 1;
 
     // Dissect the move to undo
-    let m = board.game_state.this_move;
+    let m = board.game_state.next_move;
     let piece = m.piece();
     let from = m.from();
     let to = m.to();

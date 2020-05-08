@@ -191,13 +191,13 @@ fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut 
         // remove the no_promotion_piece from move_data. Then iterate over the
         // promotion pieces, and push each promotion option to the move list.
         match !promotion {
-            true => list.push(Move { data: move_data }),
+            true => list.push(Move::new(move_data)),
             false => {
                 let reset = move_data ^ no_promotion_piece;
                 PROMOTION_PIECES.iter().for_each(|piece| {
                     let current = *piece << Shift::PROMOTION;
                     let d = reset | current;
-                    list.push(Move { data: d })
+                    list.push(Move::new(d))
                 });
             }
         }
