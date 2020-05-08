@@ -34,7 +34,10 @@ fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
         let from = bits::next(&mut bb_pieces);
         let bb_target = match piece {
             Pieces::KING | Pieces::KNIGHT => board.get_non_slider_attacks(piece, from),
-            _ => board.get_slider_attacks(piece, from, bb_occupancy),
+            Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
+                board.get_slider_attacks(piece, from, bb_occupancy)
+            }
+            _ => panic!("Not a sliding piece: {}", piece),
         };
 
         // A piece can move to where there is no piece of our own.
