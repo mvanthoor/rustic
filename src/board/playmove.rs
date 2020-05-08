@@ -51,8 +51,11 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let castling = m.castling();
     let double_step = m.double_step();
     let en_passant = m.en_passant();
+
+    // Shorthands
     let is_promotion = promoted != Pieces::NONE;
     let is_capture = captured != Pieces::NONE;
+    let has_permissions = board.game_state.castling > 0;
 
     // Assume this is not a pawn move or a capture.
     board.game_state.halfmove_clock += 1;
@@ -67,9 +70,9 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         board.remove_piece(opponent, captured, to);
         board.game_state.halfmove_clock = 0;
         // Change castling permissions on rook capture in the corner.
-        if captured == Pieces::ROOK && (board.game_state.castling > 0) {
+        if captured == Pieces::ROOK && has_permissions {
             board.zobrist_castling();
-            board.game_state.castling &= CASTLING_PERMS[to as usize];
+            board.game_state.castling &= CASTLING_PERMS[to];
             board.zobrist_castling();
         }
     }
@@ -96,9 +99,9 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     // Remove castling permissions if king/rook leaves from starting square.
     // (This will also adjust permissions when castling, because the king moves.)
-    if (piece == Pieces::KING || piece == Pieces::ROOK) && board.game_state.castling > 0 {
+    if (piece == Pieces::KING || piece == Pieces::ROOK) && has_permissions {
         board.zobrist_castling();
-        board.game_state.castling &= CASTLING_PERMS[from as usize];
+        board.game_state.castling &= CASTLING_PERMS[from];
         board.zobrist_castling();
     }
 
