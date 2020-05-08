@@ -11,7 +11,6 @@ use crate::defs::{Piece, Square, ENGINE};
 use crate::extra::{perft, perftsuite, print};
 use crate::misc::parse;
 use crate::movegen::{movedefs::Move, movelist::MoveList};
-use crate::search::{self, SearchInfo};
 use if_chain::if_chain;
 use std::{io, io::Write};
 
@@ -61,22 +60,14 @@ pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
         "suite" => cmd_suite(),
         "clear" => cmd_clear(),
         "t" => cmd_take_move(board),
-        "m" => cmd_search(board),
+        "s" => cmd_search(board),
         _ => cmd_make_move(board, input),
     }
 }
 
 // TODO: Update comment.
 fn cmd_search(board: &mut Board) -> u64 {
-    let mut info = SearchInfo::new();
-    let m: Move = search::alpha_beta(board, &mut info, 1);
-    playmove::make(board, m);
-    println!(
-        "{} has moved: {}{}",
-        ENGINE,
-        SQUARE_NAME[m.from() as usize],
-        SQUARE_NAME[m.to() as usize]
-    );
+    println!("Searching...");
     CMD_CONTINUE
 }
 

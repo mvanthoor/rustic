@@ -10,7 +10,7 @@ use crate::{
         Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
         NR_OF_SQUARES, WHITE,
     },
-    evaluation::{evaldefs::PIECE_VALUES, material},
+    evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
     movegen::{movelist::MoveList, MoveGenerator},
 };

@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{
     defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},
-    evaluation::evaldefs::PIECE_VALUES,
+    evaluation::defs::PIECE_VALUES,
     movegen::{info, movedefs::Move},
 };
 

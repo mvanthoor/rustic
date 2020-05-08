@@ -5,11 +5,10 @@ mod extra;
 mod interface;
 mod misc;
 mod movegen;
-mod search;
 
 use board::{fen::ERR_FEN_PARTS, representation::Board, zobrist::ZobristRandoms};
 use extra::perft;
-use misc::{info, parse};
+use misc::info;
 use movegen::MoveGenerator;
 use std::sync::Arc;
 
