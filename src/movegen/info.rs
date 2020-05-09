@@ -1,5 +1,5 @@
 use crate::{
-    board::{defs::Pieces, representation::Board},
+    board::{defs::Pieces, Board},
     defs::{Side, Square},
 };
 

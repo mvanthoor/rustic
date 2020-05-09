@@ -1,6 +1,6 @@
 use super::large_epd::LARGE_PERFT_SUITE;
 use crate::{
-    board::{representation::Board, zobrist::ZobristRandoms},
+    board::{zobrist::ZobristRandoms, Board},
     extra::{perft, print},
     movegen::MoveGenerator,
 };

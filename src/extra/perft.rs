@@ -1,5 +1,5 @@
 use crate::{
-    board::{playmove, representation::Board},
+    board::{playmove, Board},
     extra::print,
     movegen::movelist::MoveList,
 };

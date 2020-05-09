@@ -2,7 +2,7 @@
 // If the procedure fails, the original position is not changed.
 use super::{
     defs::{Files, Pieces, Ranks, Squares},
-    representation::Board,
+    Board,
 };
 use crate::{
     defs::{Castling, Square, BLACK, MAX_GAME_MOVES, WHITE},

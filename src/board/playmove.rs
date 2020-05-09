@@ -3,7 +3,7 @@
 
 use super::{
     defs::{Pieces, Squares, BB_SQUARES},
-    representation::Board,
+    Board,
 };
 use crate::{
     defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},

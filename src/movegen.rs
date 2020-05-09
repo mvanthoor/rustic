@@ -12,8 +12,7 @@ mod rays;
 use crate::{
     board::{
         defs::{Pieces, Ranks, Squares, BB_RANKS},
-        representation::Board,
-        utils,
+        utils, Board,
     },
     defs::{Bitboard, Castling, Piece, Side, Square, BLACK, EMPTY, NR_OF_SQUARES, WHITE},
     misc::bits,

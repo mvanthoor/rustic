@@ -1,6 +1,6 @@
 use super::defs::PIECE_VALUES;
 use crate::{
-    board::representation::Board,
+    board::Board,
     defs::{BLACK, WHITE},
     misc::bits,
 };
