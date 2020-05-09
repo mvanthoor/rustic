@@ -123,9 +123,9 @@ impl MoveGenerator {
         while bb_pieces > 0 {
             let from = bits::next(&mut bb_pieces);
             let bb_target = match piece {
-                Pieces::KING | Pieces::KNIGHT => board.get_non_slider_attacks(piece, from),
+                Pieces::KING | Pieces::KNIGHT => self.get_non_slider_attacks(piece, from),
                 Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
-                    board.get_slider_attacks(piece, from, bb_occupancy)
+                    self.get_slider_attacks(piece, from, bb_occupancy)
                 }
                 _ => panic!("Not a sliding piece: {}", piece),
             };
@@ -155,7 +155,7 @@ impl MoveGenerator {
             let bb_one_step = bb_push & bb_empty;
             let bb_two_step =
                 bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
-            let bb_targets = board.get_pawn_attacks(us, from);
+            let bb_targets = self.get_pawn_attacks(us, from);
             let bb_captures = bb_targets & bb_opponent_pieces;
             let bb_ep_capture = match board.game_state.en_passant {
                 Some(ep) => bb_targets & (1u64 << ep),
