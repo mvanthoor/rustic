@@ -1,12 +1,9 @@
-pub mod attackboards;
-pub mod blockerboards;
+pub mod create;
 pub mod defs;
 pub mod info;
 mod init;
 pub mod magics;
-pub mod masks;
 pub mod movelist;
-mod rays;
 
 // TODO: Rewrite comments for move generator
 use crate::{
