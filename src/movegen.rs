@@ -20,13 +20,6 @@ const WHITE_BLACK: usize = 2;
 pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
-/**
- * The struct "Magics" will hold all of the attack tables for each piece on each square.
- * The _rook and _bishop arrays hold the attack tables for the sliders. _rook_info and
- * _bishop_info hold the magic information, to get the correct attack board from the
- * respective attack table and return it. These tables and info are initialized in the
- * init_magics() function.
-*/
 pub struct MoveGenerator {
     king: [Bitboard; NR_OF_SQUARES],
     knight: [Bitboard; NR_OF_SQUARES],
@@ -59,10 +52,14 @@ impl MoveGenerator {
 
     //** This function takes a board, and generates all moves for the side that is to move. */
     pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
-        gen::all_moves(board, ml);
+        gen::piece(board, Pieces::KING, ml);
+        gen::piece(board, Pieces::KNIGHT, ml);
+        gen::piece(board, Pieces::ROOK, ml);
+        gen::piece(board, Pieces::BISHOP, ml);
+        gen::piece(board, Pieces::QUEEN, ml);
+        gen::pawns(board, ml);
+        gen::castling(board, ml);
     }
-
-    // ===== Private functions for use by submodules ===== //
 
     /** Return non-slider (King, Knight) attacks for the given square. */
     pub fn get_non_slider_attacks(&self, piece: Piece, square: Square) -> Bitboard {

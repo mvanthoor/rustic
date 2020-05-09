@@ -17,19 +17,8 @@ use crate::{
 
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
 
-// This function generates all pseudo-legal moves for the current board and side to move.
-pub fn all_moves(board: &Board, list: &mut MoveList) {
-    piece(board, Pieces::KING, list);
-    piece(board, Pieces::KNIGHT, list);
-    piece(board, Pieces::ROOK, list);
-    piece(board, Pieces::BISHOP, list);
-    piece(board, Pieces::QUEEN, list);
-    pawns(board, list);
-    castling(board, list);
-}
-
 /// This function generates pseudo-legal moves for the given piece type.
-fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
+pub fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
     let us = board.game_state.active_color as usize;
     let bb_occupancy = board.occupancy();
     let bb_own_pieces = board.bb_pieces[us];
@@ -53,7 +42,7 @@ fn piece(board: &Board, piece: Piece, list: &mut MoveList) {
 }
 
 // This function generates all the pawn moves.
-fn pawns(board: &Board, list: &mut MoveList) {
+pub fn pawns(board: &Board, list: &mut MoveList) {
     let us = board.game_state.active_color as usize;
     let bb_opponent_pieces = board.bb_pieces[us ^ 1];
     let bb_empty = !board.occupancy();
@@ -85,7 +74,7 @@ fn pawns(board: &Board, list: &mut MoveList) {
 }
 
 // This function generates castling moves (king part only).
-fn castling(board: &Board, list: &mut MoveList) {
+pub fn castling(board: &Board, list: &mut MoveList) {
     let us = board.game_state.active_color as usize;
     let opponent = us ^ 1;
     let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
@@ -158,7 +147,7 @@ fn castling(board: &Board, list: &mut MoveList) {
 }
 
 // This function turns the given parameters into actual moves and puts them into the move list.
-fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut MoveList) {
+pub fn add_move(board: &Board, piece: Piece, from: Square, to: Bitboard, list: &mut MoveList) {
     let mut bb_to = to;
     let us = board.game_state.active_color as usize;
     let promotion_rank = if us == WHITE { Ranks::R8 } else { Ranks::R1 };
