@@ -8,7 +8,7 @@ use super::{
 use crate::{
     defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},
     evaluation::defs::PIECE_VALUES,
-    movegen::{defs::Move, info},
+    movegen::defs::Move,
 };
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
@@ -132,7 +132,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
 
     /*** Validating move: see if "us" is in check. If so, undo everything. ***/
     let king_square = board.get_pieces(Pieces::KING, us).trailing_zeros() as Square;
-    if info::square_attacked(board, opponent, king_square) {
+    if board.square_attacked(opponent, king_square) {
         unmake(board);
         return false;
     }

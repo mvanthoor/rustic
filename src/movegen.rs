@@ -1,6 +1,5 @@
 pub mod create;
 pub mod defs;
-pub mod info;
 mod init;
 pub mod magics;
 pub mod movelist;
@@ -180,8 +179,8 @@ impl MoveGenerator {
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
-                    && !info::square_attacked(board, opponent, Squares::E1)
-                    && !info::square_attacked(board, opponent, Squares::F1)
+                    && !self.square_attacked(board, opponent, Squares::E1)
+                    && !self.square_attacked(board, opponent, Squares::F1)
                 {
                     let to = (1u64 << from) << 2;
                     self.add_move(board, Pieces::KING, from, to, list);
@@ -195,8 +194,8 @@ impl MoveGenerator {
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
                 if !is_queenside_blocked
-                    && !info::square_attacked(board, opponent, Squares::E1)
-                    && !info::square_attacked(board, opponent, Squares::D1)
+                    && !self.square_attacked(board, opponent, Squares::E1)
+                    && !self.square_attacked(board, opponent, Squares::D1)
                 {
                     let to = (1u64 << from) >> 2;
                     self.add_move(board, Pieces::KING, from, to, list);
@@ -211,8 +210,8 @@ impl MoveGenerator {
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
-                    && !info::square_attacked(board, opponent, Squares::E8)
-                    && !info::square_attacked(board, opponent, Squares::F8)
+                    && !self.square_attacked(board, opponent, Squares::E8)
+                    && !self.square_attacked(board, opponent, Squares::F8)
                 {
                     let to = (1u64 << from) << 2;
                     self.add_move(board, Pieces::KING, from, to, list);
@@ -226,8 +225,8 @@ impl MoveGenerator {
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
                 if !is_queenside_blocked
-                    && !info::square_attacked(board, opponent, Squares::E8)
-                    && !info::square_attacked(board, opponent, Squares::D8)
+                    && !self.square_attacked(board, opponent, Squares::E8)
+                    && !self.square_attacked(board, opponent, Squares::D8)
                 {
                     let to = (1u64 << from) >> 2;
                     self.add_move(board, Pieces::KING, from, to, list);
@@ -287,5 +286,29 @@ impl MoveGenerator {
                 }
             }
         }
+    }
+}
+
+// *** Provide information about the position *** //
+
+impl MoveGenerator {
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn square_attacked(&self, board: &Board, attacker: Side, square: Square) -> bool {
+        let pieces = board.bb_side[attacker];
+        let occupancy = board.occupancy();
+        let bb_king = self.get_non_slider_attacks(Pieces::KING, square);
+        let bb_rook = self.get_slider_attacks(Pieces::ROOK, square, occupancy);
+        let bb_bishop = self.get_slider_attacks(Pieces::BISHOP, square, occupancy);
+        let bb_knight = self.get_non_slider_attacks(Pieces::KNIGHT, square);
+        let bb_pawns = self.get_pawn_attacks(attacker ^ 1, square);
+        let bb_queen = bb_rook | bb_bishop;
+
+        (bb_king & pieces[Pieces::KING] > 0)
+            || (bb_rook & pieces[Pieces::ROOK] > 0)
+            || (bb_queen & pieces[Pieces::QUEEN] > 0)
+            || (bb_bishop & pieces[Pieces::BISHOP] > 0)
+            || (bb_knight & pieces[Pieces::KNIGHT] > 0)
+            || (bb_pawns & pieces[Pieces::PAWN] > 0)
     }
 }

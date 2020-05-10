@@ -201,22 +201,12 @@ impl Board {
         key
     }
 
-    // ========== Move Generator forwarding functions ==========
+    pub fn square_attacked(&self, attacker: Side, square: Square) -> bool {
+        self.move_generator.square_attacked(self, attacker, square)
+    }
 
     pub fn gen_all_moves(&self, ml: &mut MoveList) {
         self.move_generator.gen_all_moves(self, ml);
-    }
-
-    pub fn get_non_slider_attacks(&self, piece: Piece, square: Square) -> Bitboard {
-        self.move_generator.get_non_slider_attacks(piece, square)
-    }
-
-    pub fn get_slider_attacks(&self, piece: Piece, square: Square, occ: Bitboard) -> Bitboard {
-        self.move_generator.get_slider_attacks(piece, square, occ)
-    }
-
-    pub fn get_pawn_attacks(&self, side: Side, square: Square) -> Bitboard {
-        self.move_generator.get_pawn_attacks(side, square)
     }
 
     // ========== Zobrist Randoms forwarding functions ==========
