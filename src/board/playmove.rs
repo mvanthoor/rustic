@@ -6,7 +6,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES},
+    defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES, WHITE},
     evaluation::defs::PIECE_VALUES,
     movegen::defs::Move,
 };
@@ -134,9 +134,11 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let king_square = board.get_pieces(Pieces::KING, us).trailing_zeros() as Square;
     if board.square_attacked(opponent, king_square) {
         unmake(board);
+        checkup(board, m);
         return false;
     }
 
+    checkup(board, m);
     true
 }
 
@@ -216,4 +218,28 @@ fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
 fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
     remove_piece(board, side, piece, remove);
     put_piece(board, side, piece, put);
+}
+
+#[allow(dead_code)]
+fn checkup(board: &Board, m: Move) {
+    let key = board.init_zobrist_key();
+    let count = crate::evaluation::material::count(&board);
+
+    if key != board.game_state.zobrist_key {
+        println!("Error in Zobrist-key.");
+        crate::extra::print::move_data(m);
+        panic!();
+    };
+
+    if count.0 != board.material_count[WHITE] {
+        println!("Error in material count for White.");
+        crate::extra::print::move_data(m);
+        panic!();
+    };
+
+    if count.1 != board.material_count[BLACK] {
+        println!("Error in material count for Black.");
+        crate::extra::print::move_data(m);
+        panic!();
+    };
 }
