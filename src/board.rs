@@ -116,23 +116,27 @@ impl Board {
 
     // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: Square) {
-        self.zobrist_en_passant();
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
         self.game_state.en_passant = Some(square as u8);
-        self.zobrist_en_passant();
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Clear the ep-square. (If the ep-square is None already, nothing changes.)
     pub fn clear_ep_square(&mut self) {
-        self.zobrist_en_passant();
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
         self.game_state.en_passant = None;
-        self.zobrist_en_passant();
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Swap side from WHITE <==> BLACK
     pub fn swap_side(&mut self) {
-        self.zobrist_side();
+        self.game_state.zobrist_key ^= self
+            .zobrist_randoms
+            .side(self.game_state.active_color as usize);
         self.game_state.active_color ^= 1;
-        self.zobrist_side();
+        self.game_state.zobrist_key ^= self
+            .zobrist_randoms
+            .side(self.game_state.active_color as usize);
     }
 
     // This function creates bitboards per side, containing all the pieces of that side.
@@ -214,15 +218,5 @@ impl Board {
     pub fn zobrist_castling(&mut self) {
         let gs_c = self.game_state.castling;
         self.game_state.zobrist_key ^= self.zobrist_randoms.castling(gs_c);
-    }
-
-    pub fn zobrist_en_passant(&mut self) {
-        let gs_ep = self.game_state.en_passant;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(gs_ep);
-    }
-
-    pub fn zobrist_side(&mut self) {
-        let gs_side = self.game_state.active_color as usize;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.side(gs_side);
     }
 }
