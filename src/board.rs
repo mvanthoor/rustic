@@ -94,7 +94,7 @@ impl Board {
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
         self.material_count[side] -= PIECE_VALUES[piece];
-        self.zobrist_piece(side, piece, square);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.bb_side[side][piece] ^= BB_SQUARES[square];
         self.bb_pieces[side] ^= BB_SQUARES[square];
     }
@@ -103,7 +103,7 @@ impl Board {
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.bb_side[side][piece] |= BB_SQUARES[square];
         self.bb_pieces[side] |= BB_SQUARES[square];
-        self.zobrist_piece(side, piece, square);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square] = piece;
     }
@@ -210,10 +210,6 @@ impl Board {
     }
 
     // ========== Zobrist Randoms forwarding functions ==========
-
-    pub fn zobrist_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
-    }
 
     pub fn zobrist_castling(&mut self) {
         let gs_c = self.game_state.castling;
