@@ -34,6 +34,7 @@ pub struct Board {
     move_generator: Arc<MoveGenerator>,
 }
 
+// Public functions for use by other modules.
 impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Self {
@@ -139,7 +140,26 @@ impl Board {
             .side(self.game_state.active_color as usize);
     }
 
-    // This function creates bitboards per side, containing all the pieces of that side.
+    // Update castling permissions and take Zobrist-key into account.
+    pub fn update_castling_permissions(&mut self, new_permissions: u8) {
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
+        self.game_state.castling = new_permissions;
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
+    }
+
+    // True if the given side is attacking the given square.
+    pub fn square_attacked(&self, attacker: Side, square: Square) -> bool {
+        self.move_generator.square_attacked(self, attacker, square)
+    }
+
+    // Generates all pseudo-legal moves and puts them in the given move list.
+    pub fn gen_all_moves(&self, ml: &mut MoveList) {
+        self.move_generator.gen_all_moves(self, ml);
+    }
+}
+
+// Private board functions (for initializating on startup)
+impl Board {
     fn init_piece_bitboards(&self) -> (Bitboard, Bitboard) {
         let mut white: Bitboard = 0;
         let mut black: Bitboard = 0;
@@ -152,7 +172,6 @@ impl Board {
         (white, black)
     }
 
-    // Build initial piece list with piece locations.
     fn init_piece_list(&self) -> [Piece; NR_OF_SQUARES] {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
@@ -176,7 +195,6 @@ impl Board {
         piece_list
     }
 
-    // Create the initial Zobirst Key.
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = &self.zobrist_randoms;
@@ -203,20 +221,5 @@ impl Board {
         key ^= zr.en_passant(self.game_state.en_passant);
 
         key
-    }
-
-    pub fn square_attacked(&self, attacker: Side, square: Square) -> bool {
-        self.move_generator.square_attacked(self, attacker, square)
-    }
-
-    pub fn gen_all_moves(&self, ml: &mut MoveList) {
-        self.move_generator.gen_all_moves(self, ml);
-    }
-
-    // ========== Zobrist Randoms forwarding functions ==========
-
-    pub fn zobrist_castling(&mut self) {
-        let gs_c = self.game_state.castling;
-        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(gs_c);
     }
 }

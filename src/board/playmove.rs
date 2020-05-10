@@ -77,9 +77,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
         board.game_state.halfmove_clock = 0;
         // Change castling permissions on rook capture in the corner.
         if captured == Pieces::ROOK && has_permissions {
-            board.zobrist_castling();
-            board.game_state.castling &= CASTLING_PERMS[to];
-            board.zobrist_castling();
+            board.update_castling_permissions(board.game_state.castling & CASTLING_PERMS[to]);
         }
     }
 
@@ -106,9 +104,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     // Remove castling permissions if king/rook leaves from starting square.
     // (This will also adjust permissions when castling, because the king moves.)
     if (piece == Pieces::KING || piece == Pieces::ROOK) && has_permissions {
-        board.zobrist_castling();
-        board.game_state.castling &= CASTLING_PERMS[from];
-        board.zobrist_castling();
+        board.update_castling_permissions(board.game_state.castling & CASTLING_PERMS[from]);
     }
 
     // If the king is castling, then also move the rook.

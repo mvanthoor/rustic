@@ -23,7 +23,7 @@ fn main() {
     info::about_engine();
 
     match setup_result {
-        Ok(()) => perft::run(&board, 6), //while console::get_input(&mut board) != 0 {},
+        Ok(()) => perft::run(&board, 7), //while console::get_input(&mut board) != 0 {},
         Err(e) => println!("Error in FEN-part: {}", ERR_FEN_PARTS[e as usize]),
     }
 }
