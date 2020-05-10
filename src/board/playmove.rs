@@ -130,11 +130,9 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     let king_square = board.get_pieces(Pieces::KING, us).trailing_zeros() as Square;
     if board.square_attacked(opponent, king_square) {
         unmake(board);
-        checkup(board, m);
         return false;
     }
 
-    checkup(board, m);
     true
 }
 
