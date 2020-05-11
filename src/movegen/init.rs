@@ -17,7 +17,7 @@ use crate::{
  * Do this for each square.
  */
  #[rustfmt::skip]
-pub fn init_king(mg: &mut MoveGenerator) {
+pub fn king(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
@@ -40,7 +40,7 @@ pub fn init_king(mg: &mut MoveGenerator) {
  * instead of those for the king.
  */
  #[rustfmt::skip]
-pub fn init_knight(mg: &mut MoveGenerator) {
+pub fn knight(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
@@ -61,7 +61,7 @@ pub fn init_knight(mg: &mut MoveGenerator) {
  * Same again... generate a move to up-left/up-right, or down-left down-right
  * if the location of the pawn makes that move possible.
  */
-pub fn init_pawns(mg: &mut MoveGenerator) {
+pub fn pawns(mg: &mut MoveGenerator) {
     for sq in ALL_SQUARES {
         let bb_square = 1u64 << sq;
         let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
@@ -111,7 +111,7 @@ pub fn init_pawns(mg: &mut MoveGenerator) {
  * information to calculate the index of the attack board for this piece within the attack
  * table.
  */
-pub fn init_magics(mg: &mut MoveGenerator, piece: Piece) {
+pub fn magics(mg: &mut MoveGenerator, piece: Piece) {
     assert!(
         piece == Pieces::ROOK || piece == Pieces::BISHOP,
         "Illegal piece: {}",

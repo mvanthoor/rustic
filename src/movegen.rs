@@ -7,14 +7,13 @@ pub mod movelist;
 // TODO: Rewrite comments for move generator
 use crate::{
     board::{
-        defs::{Pieces, Ranks, Squares, BB_RANKS},
+        defs::{Pieces, Squares, BB_RANKS},
         utils, Board,
     },
     defs::{Bitboard, Castling, Piece, Side, Square, BLACK, EMPTY, NR_OF_SQUARES, WHITE},
     misc::bits,
 };
 use defs::{Move, Shift};
-use init::{init_king, init_knight, init_magics, init_pawns};
 use magics::Magics;
 use movelist::MoveList;
 
@@ -46,11 +45,11 @@ impl MoveGenerator {
             rook_magics: [magics; NR_OF_SQUARES],
             bishop_magics: [magics; NR_OF_SQUARES],
         };
-        init_king(&mut mg);
-        init_knight(&mut mg);
-        init_pawns(&mut mg);
-        init_magics(&mut mg, Pieces::ROOK);
-        init_magics(&mut mg, Pieces::BISHOP);
+        init::king(&mut mg);
+        init::knight(&mut mg);
+        init::pawns(&mut mg);
+        init::magics(&mut mg, Pieces::ROOK);
+        init::magics(&mut mg, Pieces::BISHOP);
         mg
     }
 
@@ -109,7 +108,7 @@ impl MoveGenerator {
 
 impl MoveGenerator {
     pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList) {
-        let us = board.game_state.active_color as usize;
+        let us = board.us();
         let bb_occupancy = board.occupancy();
         let bb_own_pieces = board.bb_pieces[us];
         let mut bb_pieces = board.get_pieces(piece, us);
@@ -132,24 +131,23 @@ impl MoveGenerator {
     }
 
     pub fn pawns(&self, board: &Board, list: &mut MoveList) {
-        let us = board.game_state.active_color as usize;
-        let bb_opponent_pieces = board.bb_pieces[us ^ 1];
+        const UP: i8 = 8;
+        const DOWN: i8 = -8;
+
+        let us = board.us();
+        let bb_opponent_pieces = board.bb_pieces[board.opponent()];
         let bb_empty = !board.occupancy();
-        let bb_fourth = if us == WHITE {
-            BB_RANKS[Ranks::R4]
-        } else {
-            BB_RANKS[Ranks::R5]
-        };
+        let bb_fourth = BB_RANKS[utils::fourth_rank(us)];
+        let direction = if us == WHITE { UP } else { DOWN };
+        let nr_of_squares = (NR_OF_SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
-        let direction = if us == WHITE { 8 } else { -8 };
 
         // As long as there are pawns, generate moves for each of them.
         while bb_pawns > 0 {
             let from = bits::next(&mut bb_pawns);
             let bb_push = 1u64 << (from as i8 + direction);
             let bb_one_step = bb_push & bb_empty;
-            let bb_two_step =
-                bb_one_step.rotate_left((64 + direction) as u32) & bb_empty & bb_fourth;
+            let bb_two_step = bb_one_step.rotate_left(nr_of_squares) & bb_empty & bb_fourth;
             let bb_targets = self.get_pawn_attacks(us, from);
             let bb_captures = bb_targets & bb_opponent_pieces;
             let bb_ep_capture = match board.game_state.en_passant {
@@ -164,8 +162,8 @@ impl MoveGenerator {
     }
 
     pub fn castling(&self, board: &Board, list: &mut MoveList) {
-        let us = board.game_state.active_color as usize;
-        let opponent = us ^ 1;
+        let us = board.us();
+        let opponent = board.opponent();
         let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
         let castle_perms_black = (board.game_state.castling & (Castling::BK | Castling::BQ)) > 0;
         let bb_occupancy = board.occupancy();
@@ -244,8 +242,8 @@ impl MoveGenerator {
         list: &mut MoveList,
     ) {
         let mut bb_to = to;
-        let us = board.game_state.active_color as usize;
-        let promotion_rank = if us == WHITE { Ranks::R8 } else { Ranks::R1 };
+        let us = board.us();
+        let promotion_rank = utils::promotion_rank(us);
         let is_pawn = piece == Pieces::PAWN;
 
         // As long as there are still to-squres in bb_to, this piece has moves to add.
@@ -279,9 +277,8 @@ impl MoveGenerator {
                 false => {
                     let reset = move_data ^ no_promotion_piece;
                     PROMOTION_PIECES.iter().for_each(|piece| {
-                        let current = *piece << Shift::PROMOTION;
-                        let d = reset | current;
-                        list.push(Move::new(d))
+                        let current_piece = *piece << Shift::PROMOTION;
+                        list.push(Move::new(reset | current_piece))
                     });
                 }
             }

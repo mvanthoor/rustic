@@ -1,5 +1,8 @@
 use super::defs::Location;
-use crate::defs::Square;
+use crate::{
+    board::defs::Ranks,
+    defs::{Side, Square, WHITE},
+};
 
 // Compute on which file and rank a given square is.
 pub fn square_on_file_rank(square: Square) -> Location {
@@ -13,4 +16,20 @@ pub fn square_on_rank(square: Square, rank: Square) -> bool {
     let start = (rank) * 8;
     let end = start + 7;
     (start..=end).contains(&square)
+}
+
+pub fn fourth_rank(side: Side) -> usize {
+    if side == WHITE {
+        Ranks::R4
+    } else {
+        Ranks::R5
+    }
+}
+
+pub fn promotion_rank(side: Side) -> usize {
+    if side == WHITE {
+        Ranks::R8
+    } else {
+        Ranks::R1
+    }
 }

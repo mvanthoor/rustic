@@ -91,6 +91,14 @@ impl Board {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
     }
 
+    pub fn us(&self) -> usize {
+        self.game_state.active_color as usize
+    }
+
+    pub fn opponent(&self) -> usize {
+        (self.game_state.active_color ^ 1) as usize
+    }
+
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
