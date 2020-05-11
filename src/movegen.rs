@@ -173,7 +173,7 @@ impl MoveGenerator {
         if us == WHITE && castle_perms_white {
             // Kingside
             if board.game_state.castling & Castling::WK > 0 {
-                let bb_kingside_blockers: u64 = (1u64 << Squares::F1) | (1u64 << Squares::G1);
+                let bb_kingside_blockers = (1u64 << Squares::F1) | (1u64 << Squares::G1);
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
@@ -187,7 +187,7 @@ impl MoveGenerator {
 
             if board.game_state.castling & Castling::WQ > 0 {
                 // Queenside
-                let bb_queenside_blockers: u64 =
+                let bb_queenside_blockers =
                     (1u64 << Squares::B1) | (1u64 << Squares::C1) | (1u64 << Squares::D1);
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
@@ -204,7 +204,7 @@ impl MoveGenerator {
         if us == BLACK && castle_perms_black {
             // Kingside
             if board.game_state.castling & Castling::BK > 0 {
-                let bb_kingside_blockers: u64 = (1u64 << Squares::F8) | (1u64 << Squares::G8);
+                let bb_kingside_blockers = (1u64 << Squares::F8) | (1u64 << Squares::G8);
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
@@ -218,7 +218,7 @@ impl MoveGenerator {
 
             // Queenside
             if board.game_state.castling & Castling::BQ > 0 {
-                let bb_queenside_blockers: u64 =
+                let bb_queenside_blockers =
                     (1u64 << Squares::B8) | (1u64 << Squares::C8) | (1u64 << Squares::D8);
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
