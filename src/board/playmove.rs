@@ -127,13 +127,12 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     }
 
     /*** Validating move: see if "us" is in check. If so, undo everything. ***/
-    let king_square = board.get_pieces(Pieces::KING, us).trailing_zeros() as Square;
-    if board.square_attacked(opponent, king_square) {
+    let is_legal = !board.square_attacked(opponent, board.king_square(us));
+    if !is_legal {
         unmake(board);
-        return false;
     }
 
-    true
+    is_legal
 }
 
 /*** ================================================================================ ***/
