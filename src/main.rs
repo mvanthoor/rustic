@@ -8,7 +8,6 @@ mod misc;
 mod movegen;
 
 use board::{defs::ERR_FEN_PARTS, Board};
-use extra::perft;
 // use interface::console;
 use engine::Engine;
 use movegen::MoveGenerator;
@@ -24,7 +23,7 @@ fn main() {
     engine.about();
 
     match setup_result {
-        Ok(()) => perft::run(&board, 6), //while console::get_input(&mut board) != 0 {},
+        Ok(()) => engine.perft(&board, 6), //while console::get_input(&mut board) != 0 {},
         Err(e) => println!("Error in FEN-part: {}", ERR_FEN_PARTS[e as usize]),
     }
 }
