@@ -2,7 +2,7 @@ use crate::{
     board::defs::{Pieces, ALL_SQUARES, PIECE_NAME},
     defs::{Bitboard, Piece, EMPTY},
     extra::print,
-    movegen::{create, magics::Magics, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
+    movegen::{magics::Magics, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -32,9 +32,9 @@ pub fn find_magics(piece: Piece) {
     for sq in ALL_SQUARES {
         // Create the mask for either the rook or bishop.
         let mask = if is_rook {
-            create::rook_mask(sq)
+            MoveGenerator::rook_mask(sq)
         } else {
-            create::bishop_mask(sq)
+            MoveGenerator::bishop_mask(sq)
         };
 
         // Precalculate needed values.
@@ -43,13 +43,13 @@ pub fn find_magics(piece: Piece) {
         let end = offset + permutations - 1; // End index in the attack table.
 
         // Create blocker board for the current mask.
-        let blocker_boards = create::blocker_boards(mask);
+        let blocker_boards = MoveGenerator::blocker_boards(mask);
 
         // Create attack board for the current square/blocker combo (either rook or bishop).
         let attack_boards = if is_rook {
-            create::rook_attack_boards(sq, &blocker_boards)
+            MoveGenerator::rook_attack_boards(sq, &blocker_boards)
         } else {
-            create::bishop_attack_boards(sq, &blocker_boards)
+            MoveGenerator::bishop_attack_boards(sq, &blocker_boards)
         };
 
         // Done calculating needed data. Create a new magic.
