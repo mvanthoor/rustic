@@ -1,8 +1,4 @@
-use crate::{
-    board::{playmove, Board},
-    extra::print,
-    movegen::movelist::MoveList,
-};
+use crate::{board::Board, extra::print, movegen::movelist::MoveList};
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
@@ -50,11 +46,11 @@ pub fn perft(board: &mut Board, depth: u8) -> u64 {
 
     for i in 0..nr_of_moves {
         let m = move_list.get_move(i);
-        let legal = playmove::make(board, m);
+        let legal = board.make_move(m);
 
         if legal {
             leaf_nodes += perft(board, depth - 1);
-            playmove::unmake(board);
+            board.unmake_move();
         }
     }
 

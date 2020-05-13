@@ -1,5 +1,8 @@
-// playmove.rs contains make() and unmake(), to execute and reverse moves on the
-// board. make() executes the given move, unmake() reverses the last move made.
+// playmove.rs contains make_move() and unmake_move() to execute and reverse
+// moves on the board. It also has private functions (not associated with the
+// board to prevent naming conflicts) to remove and put pieces, without doing
+// zobrist updates. The updates can be omitted because unmake_move() pulls the
+// zobrist key from the game state in the history table when unmaking a move.
 
 use super::{
     defs::{Pieces, Squares, BB_SQUARES},
@@ -35,157 +38,164 @@ const CASTLING_PERMS: [u8; NR_OF_SQUARES] = [
 ];
 
 // Make() executes the given move and checks if it is legal. If it's not legal,
-// the move is immediately reversed using unmake(), and the board is not changed.
-#[cfg_attr(debug_assertions, inline(never))]
-#[cfg_attr(not(debug_assertions), inline(always))]
-pub fn make(board: &mut Board, m: Move) -> bool {
-    // Create the unmake info and store it.
-    let mut current_game_state = board.game_state;
-    current_game_state.next_move = m;
-    board.history.push(current_game_state);
+// the move is immediately reversed using unmake(), and the board is not
+// changed.
 
-    // Set "us" and "opponent"
-    let us = board.game_state.active_color as usize;
-    let opponent = us ^ 1;
+impl Board {
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn make_move(&mut self, m: Move) -> bool {
+        // Create the unmake info and store it.
+        let mut current_game_state = self.game_state;
+        current_game_state.next_move = m;
+        self.history.push(current_game_state);
 
-    // Dissect the move so we don't need "m.function()" and type casts everywhere.
-    let piece = m.piece();
-    let from = m.from();
-    let to = m.to();
-    let captured = m.captured();
-    let promoted = m.promoted();
-    let castling = m.castling();
-    let double_step = m.double_step();
-    let en_passant = m.en_passant();
+        // Set "us" and "opponent"
+        let us = self.game_state.active_color as usize;
+        let opponent = us ^ 1;
 
-    // Shorthands
-    let is_promotion = promoted != Pieces::NONE;
-    let is_capture = captured != Pieces::NONE;
-    let has_permissions = board.game_state.castling > 0;
+        // Dissect the move so we don't need "m.function()" and type casts everywhere.
+        let piece = m.piece();
+        let from = m.from();
+        let to = m.to();
+        let captured = m.captured();
+        let promoted = m.promoted();
+        let castling = m.castling();
+        let double_step = m.double_step();
+        let en_passant = m.en_passant();
 
-    // Assume this is not a pawn move or a capture.
-    board.game_state.halfmove_clock += 1;
+        // Shorthands
+        let is_promotion = promoted != Pieces::NONE;
+        let is_capture = captured != Pieces::NONE;
+        let has_permissions = self.game_state.castling > 0;
 
-    // Every move except double_step unsets the up-square.
-    if board.game_state.en_passant != None {
-        board.clear_ep_square();
-    }
+        // Assume this is not a pawn move or a capture.
+        self.game_state.halfmove_clock += 1;
 
-    // If a piece was captured with this move then remove it. Also reset halfmove_clock.
-    if is_capture {
-        board.remove_piece(opponent, captured, to);
-        board.game_state.halfmove_clock = 0;
-        // Change castling permissions on rook capture in the corner.
-        if captured == Pieces::ROOK && has_permissions {
-            board.update_castling_permissions(board.game_state.castling & CASTLING_PERMS[to]);
-        }
-    }
-
-    // Make the move. Just move the piece if it's not a pawn.
-    if !(piece == Pieces::PAWN) {
-        board.move_piece(us, piece, from, to);
-    } else {
-        // It's a pawn move. Take promotion into account and reset halfmove_clock.
-        board.remove_piece(us, piece, from);
-        board.put_piece(us, if !is_promotion { piece } else { promoted }, to);
-        board.game_state.halfmove_clock = 0;
-
-        // After an en-passant maneuver, the opponent's pawn must also be removed.
-        if en_passant {
-            board.remove_piece(opponent, Pieces::PAWN, to ^ 8);
+        // Every move except double_step unsets the up-square.
+        if self.game_state.en_passant != None {
+            self.clear_ep_square();
         }
 
-        // A double-step is the only move that sets the ep-square.
-        if double_step {
-            board.set_ep_square(to ^ 8);
+        // If a piece was captured with this move then remove it. Also reset halfmove_clock.
+        if is_capture {
+            self.remove_piece(opponent, captured, to);
+            self.game_state.halfmove_clock = 0;
+            // Change castling permissions on rook capture in the corner.
+            if captured == Pieces::ROOK && has_permissions {
+                self.update_castling_permissions(self.game_state.castling & CASTLING_PERMS[to]);
+            }
         }
-    }
 
-    // Remove castling permissions if king/rook leaves from starting square.
-    // (This will also adjust permissions when castling, because the king moves.)
-    if (piece == Pieces::KING || piece == Pieces::ROOK) && has_permissions {
-        board.update_castling_permissions(board.game_state.castling & CASTLING_PERMS[from]);
-    }
+        // Make the move. Just move the piece if it's not a pawn.
+        if !(piece == Pieces::PAWN) {
+            self.move_piece(us, piece, from, to);
+        } else {
+            // It's a pawn move. Take promotion into account and reset halfmove_clock.
+            self.remove_piece(us, piece, from);
+            self.put_piece(us, if !is_promotion { piece } else { promoted }, to);
+            self.game_state.halfmove_clock = 0;
 
-    // If the king is castling, then also move the rook.
-    if castling {
-        match to {
-            Squares::G1 => board.move_piece(us, Pieces::ROOK, Squares::H1, Squares::F1),
-            Squares::C1 => board.move_piece(us, Pieces::ROOK, Squares::A1, Squares::D1),
-            Squares::G8 => board.move_piece(us, Pieces::ROOK, Squares::H8, Squares::F8),
-            Squares::C8 => board.move_piece(us, Pieces::ROOK, Squares::A8, Squares::D8),
-            _ => panic!("Error moving rook during castling."),
+            // After an en-passant maneuver, the opponent's pawn must also be removed.
+            if en_passant {
+                self.remove_piece(opponent, Pieces::PAWN, to ^ 8);
+            }
+
+            // A double-step is the only move that sets the ep-square.
+            if double_step {
+                self.set_ep_square(to ^ 8);
+            }
         }
+
+        // Remove castling permissions if king/rook leaves from starting square.
+        // (This will also adjust permissions when castling, because the king moves.)
+        if (piece == Pieces::KING || piece == Pieces::ROOK) && has_permissions {
+            self.update_castling_permissions(self.game_state.castling & CASTLING_PERMS[from]);
+        }
+
+        // If the king is castling, then also move the rook.
+        if castling {
+            match to {
+                Squares::G1 => self.move_piece(us, Pieces::ROOK, Squares::H1, Squares::F1),
+                Squares::C1 => self.move_piece(us, Pieces::ROOK, Squares::A1, Squares::D1),
+                Squares::G8 => self.move_piece(us, Pieces::ROOK, Squares::H8, Squares::F8),
+                Squares::C8 => self.move_piece(us, Pieces::ROOK, Squares::A8, Squares::D8),
+                _ => panic!("Error moving rook during castling."),
+            }
+        }
+
+        // Swap the side to move.
+        self.swap_side();
+
+        // Increase full move number if black has moved
+        if us == BLACK {
+            self.game_state.fullmove_number += 1;
+        }
+
+        /*** Validating move: see if "us" is in check. If so, undo everything. ***/
+        let is_legal = !self.square_attacked(opponent, self.king_square(us));
+        if !is_legal {
+            self.unmake_move();
+        }
+
+        checkup(self, m);
+        is_legal
     }
-
-    // Swap the side to move.
-    board.swap_side();
-
-    // Increase full move number if black has moved
-    if us == BLACK {
-        board.game_state.fullmove_number += 1;
-    }
-
-    /*** Validating move: see if "us" is in check. If so, undo everything. ***/
-    let is_legal = !board.square_attacked(opponent, board.king_square(us));
-    if !is_legal {
-        unmake(board);
-    }
-
-    is_legal
 }
 
 /*** ================================================================================ ***/
 
 // Unmake() reverses the last move. The game state is restored by popping it
 // from the history array, all variables at once.
-#[cfg_attr(debug_assertions, inline(never))]
-#[cfg_attr(not(debug_assertions), inline(always))]
-pub fn unmake(board: &mut Board) {
-    board.game_state = board.history.pop();
+impl Board {
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn unmake_move(&mut self) {
+        self.game_state = self.history.pop();
 
-    // Set "us" and "opponent"
-    let us = board.game_state.active_color as usize;
-    let opponent = us ^ 1;
+        // Set "us" and "opponent"
+        let us = self.game_state.active_color as usize;
+        let opponent = us ^ 1;
 
-    // Dissect the move to undo
-    let m = board.game_state.next_move;
-    let piece = m.piece();
-    let from = m.from();
-    let to = m.to();
-    let captured = m.captured();
-    let promoted = m.promoted();
-    let castling = m.castling();
-    let en_passant = m.en_passant();
+        // Dissect the move to undo
+        let m = self.game_state.next_move;
+        let piece = m.piece();
+        let from = m.from();
+        let to = m.to();
+        let captured = m.captured();
+        let promoted = m.promoted();
+        let castling = m.castling();
+        let en_passant = m.en_passant();
 
-    // Moving backwards...
-    if promoted == Pieces::NONE {
-        reverse_move(board, us, piece, to, from);
-    } else {
-        remove_piece(board, us, promoted, to);
-        put_piece(board, us, Pieces::PAWN, from);
-    }
+        // Moving backwards...
+        if promoted == Pieces::NONE {
+            reverse_move(self, us, piece, to, from);
+        } else {
+            remove_piece(self, us, promoted, to);
+            put_piece(self, us, Pieces::PAWN, from);
+        }
 
-    // The king's move was already undone as a normal move.
-    // Now undo the correct castling rook move.
-    if castling {
-        match to {
-            Squares::G1 => reverse_move(board, us, Pieces::ROOK, Squares::F1, Squares::H1),
-            Squares::C1 => reverse_move(board, us, Pieces::ROOK, Squares::D1, Squares::A1),
-            Squares::G8 => reverse_move(board, us, Pieces::ROOK, Squares::F8, Squares::H8),
-            Squares::C8 => reverse_move(board, us, Pieces::ROOK, Squares::D8, Squares::A8),
-            _ => panic!("Error: Reversing castling rook move."),
-        };
-    }
+        // The king's move was already undone as a normal move.
+        // Now undo the correct castling rook move.
+        if castling {
+            match to {
+                Squares::G1 => reverse_move(self, us, Pieces::ROOK, Squares::F1, Squares::H1),
+                Squares::C1 => reverse_move(self, us, Pieces::ROOK, Squares::D1, Squares::A1),
+                Squares::G8 => reverse_move(self, us, Pieces::ROOK, Squares::F8, Squares::H8),
+                Squares::C8 => reverse_move(self, us, Pieces::ROOK, Squares::D8, Squares::A8),
+                _ => panic!("Error: Reversing castling rook move."),
+            };
+        }
 
-    // If a piece was captured, put it back onto the to-square
-    if captured != Pieces::NONE {
-        put_piece(board, opponent, captured, to);
-    }
+        // If a piece was captured, put it back onto the to-square
+        if captured != Pieces::NONE {
+            put_piece(self, opponent, captured, to);
+        }
 
-    // If this was an e-passant move, put the opponent's pawn back
-    if en_passant {
-        put_piece(board, opponent, Pieces::PAWN, to ^ 8);
+        // If this was an e-passant move, put the opponent's pawn back
+        if en_passant {
+            put_piece(self, opponent, Pieces::PAWN, to ^ 8);
+        }
     }
 }
 
