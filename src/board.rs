@@ -38,7 +38,7 @@ pub struct Board {
 // Public functions for use by other modules.
 impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
-    pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Self {
+    pub fn new(mg: Arc<MoveGenerator>) -> Self {
         Self {
             bb_side: [[EMPTY; NR_OF_PIECES as usize]; EACH_SIDE as usize],
             bb_pieces: [EMPTY; EACH_SIDE as usize],
@@ -46,7 +46,7 @@ impl Board {
             history: History::new(),
             piece_list: [Pieces::NONE; NR_OF_SQUARES],
             material_count: [0; EACH_SIDE as usize],
-            zobrist_randoms: zr,
+            zobrist_randoms: Arc::new(ZobristRandoms::new()),
             move_generator: mg,
         }
     }
