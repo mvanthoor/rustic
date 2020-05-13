@@ -1,4 +1,4 @@
-use crate::{board::Board, extra::print, movegen::movelist::MoveList};
+use crate::{board::Board, extra::print, movegen::defs::MoveList};
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.

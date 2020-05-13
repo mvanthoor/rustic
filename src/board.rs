@@ -18,7 +18,7 @@ use crate::{
     },
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
-    movegen::{movelist::MoveList, MoveGenerator},
+    movegen::{defs::MoveList, MoveGenerator},
 };
 use std::sync::Arc;
 

@@ -1,6 +1,6 @@
 // Move generator re-exports.
 
-pub use super::magics::Magics;
+pub use super::{magics::Magics, movelist::MoveList};
 
 /*
 Move format explanation

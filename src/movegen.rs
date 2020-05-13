@@ -2,9 +2,14 @@ mod create;
 pub mod defs;
 mod init;
 mod magics;
-pub mod movelist;
+mod movelist;
 
 // TODO: Rewrite comments for move generator
+use self::{
+    defs::{Move, Shift},
+    magics::Magics,
+    movelist::MoveList,
+};
 use crate::{
     board::{
         defs::{Pieces, Squares, BB_RANKS},
@@ -13,9 +18,6 @@ use crate::{
     defs::{Bitboard, Castling, Piece, Side, Square, BLACK, EMPTY, NR_OF_SQUARES, WHITE},
     misc::bits,
 };
-use defs::{Move, Shift};
-use magics::Magics;
-use movelist::MoveList;
 
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
 
