@@ -1,4 +1,4 @@
-pub mod create;
+mod create;
 pub mod defs;
 mod init;
 pub mod magics;
@@ -45,11 +45,11 @@ impl MoveGenerator {
             rook_magics: [magics; NR_OF_SQUARES],
             bishop_magics: [magics; NR_OF_SQUARES],
         };
-        init::king(&mut mg);
-        init::knight(&mut mg);
-        init::pawns(&mut mg);
-        init::magics(&mut mg, Pieces::ROOK);
-        init::magics(&mut mg, Pieces::BISHOP);
+        mg.init_king();
+        mg.init_knight();
+        mg.init_pawns();
+        mg.init_magics(Pieces::ROOK);
+        mg.init_magics(Pieces::BISHOP);
         mg
     }
 
