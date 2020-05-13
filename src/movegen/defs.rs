@@ -1,3 +1,7 @@
+// Move generator re-exports.
+
+pub use super::magics::Magics;
+
 /*
 Move format explanation
 

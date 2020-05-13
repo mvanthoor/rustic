@@ -2,7 +2,7 @@ use crate::{
     board::defs::{Pieces, ALL_SQUARES, PIECE_NAME},
     defs::{Bitboard, Piece, EMPTY},
     extra::print,
-    movegen::{magics::Magics, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
+    movegen::{defs::Magics, MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
