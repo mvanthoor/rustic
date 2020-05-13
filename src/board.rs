@@ -1,11 +1,17 @@
 pub mod defs;
-pub mod fen;
-pub mod gamestate;
-pub mod history;
-pub mod playmove;
-pub mod utils;
-pub mod zobrist;
+mod fen;
+mod gamestate;
+mod history;
+mod playmove;
+mod utils;
+mod zobrist;
 
+use self::{
+    defs::{Pieces, BB_SQUARES},
+    gamestate::GameState,
+    history::History,
+    zobrist::{ZobristKey, ZobristRandoms},
+};
 use crate::{
     defs::{
         Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, NR_OF_PIECES, NR_OF_SQUARES, WHITE,
@@ -14,11 +20,7 @@ use crate::{
     misc::bits,
     movegen::{movelist::MoveList, MoveGenerator},
 };
-use defs::{Pieces, BB_SQUARES};
-use gamestate::GameState;
-use history::History;
 use std::sync::Arc;
-use zobrist::{ZobristKey, ZobristRandoms};
 
 // TODO: Update comments
 #[derive(Clone)]
@@ -82,14 +84,17 @@ impl Board {
         self.bb_pieces[WHITE] | self.bb_pieces[BLACK]
     }
 
+    // Return side to move (which is 'us' in game).
     pub fn us(&self) -> usize {
         self.game_state.active_color as usize
     }
 
+    // Return not side to move (which is 'opponent' of 'us').
     pub fn opponent(&self) -> usize {
         (self.game_state.active_color ^ 1) as usize
     }
 
+    // Return the square the given side's king is located on.
     pub fn king_square(&self, side: Side) -> Square {
         self.bb_side[side][Pieces::KING].trailing_zeros() as Square
     }

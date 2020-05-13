@@ -6,7 +6,10 @@ mod extra;
 mod misc;
 mod movegen;
 
-use board::{fen::ERR_FEN_PARTS, zobrist::ZobristRandoms, Board};
+use board::{
+    defs::{ZobristRandoms, ERR_FEN_PARTS},
+    Board,
+};
 use extra::perft;
 // use interface::console;
 use misc::info;
