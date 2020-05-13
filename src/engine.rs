@@ -22,6 +22,6 @@ impl Engine {
     }
 
     pub fn perft(&mut self, board: &Board, depth: u8) {
-        perft::run(&board, 6)
+        perft::run(&board, depth, &self.move_generator)
     }
 }

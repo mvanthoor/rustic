@@ -4,7 +4,7 @@ use crate::{
     extra::{perft, print},
     movegen::MoveGenerator,
 };
-use std::{sync::Arc, time::Instant};
+use std::time::Instant;
 
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
@@ -33,8 +33,11 @@ pub fn run_single_test(test: usize) {
 #[allow(dead_code)]
 fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
+
+    // FIXME: use move generator from Engine struct instead of creating an new one.
     let move_generator = MoveGenerator::new();
-    let mut board: Board = Board::new(Arc::new(move_generator));
+
+    let mut board: Board = Board::new();
     let mut abort = false;
 
     // Run all the tests.
@@ -77,7 +80,7 @@ fn run(subset: &[&str]) {
 
                 // This is the actual perft run for this test and depth.
                 let now = Instant::now();
-                let found_leaf_nodes = perft::perft(&mut board, depth);
+                let found_leaf_nodes = perft::perft(&mut board, depth, &move_generator);
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_leaf_nodes * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_leaf_nodes == found_leaf_nodes;
