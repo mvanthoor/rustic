@@ -8,8 +8,7 @@ pub mod zobrist;
 
 use crate::{
     defs::{
-        Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
-        NR_OF_SQUARES, WHITE,
+        Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, NR_OF_PIECES, NR_OF_SQUARES, WHITE,
     },
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
@@ -47,14 +46,6 @@ impl Board {
             material_count: [0; EACH_SIDE as usize],
             zobrist_randoms: zr,
             move_generator: mg,
-        }
-    }
-
-    // Reads either the passedn FEN-string or the starting position into the board.
-    pub fn fen_read(&mut self, fen: Option<&str>) -> Result<(), u8> {
-        match fen {
-            Some(f) => fen::read(self, f),
-            None => fen::read(self, FEN_START_POSITION),
         }
     }
 
