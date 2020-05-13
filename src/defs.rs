@@ -4,10 +4,6 @@
  * can be found within that module.
 */
 
-pub const ENGINE: &str = "Rustic";
-pub const VERSION: &str = "Alpha 1";
-pub const AUTHOR: &str = "Marcel Vanthoor";
-
 pub type Bitboard = u64;
 pub type Piece = usize;
 pub type Side = usize;
