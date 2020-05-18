@@ -14,6 +14,9 @@ use crate::{
     movegen::{defs::Move, MoveGenerator},
 };
 
+// Used in debug-mode, for checking board consistency.
+type CheckupResult = Result<(), &'static str>;
+
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
 // permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
 const N_WKQ: u8 = Castling::ALL & !(Castling::WK | Castling::WQ);
@@ -138,7 +141,14 @@ impl Board {
             self.unmake_move();
         }
 
-        // checkup(self, m);
+        debug_assert!(match checkup(self) {
+            Ok(()) => true,
+            Err(e) => {
+                println!("Error during checkup: {}", e);
+                false
+            }
+        });
+
         is_legal
     }
 }
@@ -224,25 +234,18 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 }
 
 #[allow(dead_code)]
-fn checkup(board: &Board, m: Move) {
-    let key = board.init_zobrist_key();
-    let count = crate::evaluation::material::count(&board);
+fn checkup(board: &Board) -> CheckupResult {
+    const ERR_ZOBRIST: &str = "Zobrist-key";
+    const ERR_MW: &str = "Material White";
+    const ERR_MB: &str = "Material Black";
 
-    if key != board.game_state.zobrist_key {
-        println!("Error in Zobrist-key.");
-        crate::extra::print::move_data(m);
-        panic!();
-    };
+    let key_from_scratch = board.init_zobrist_key();
+    let material_count = crate::evaluation::material::count(&board);
 
-    if count.0 != board.material_count[WHITE] {
-        println!("Error in material count for White.");
-        crate::extra::print::move_data(m);
-        panic!();
-    };
-
-    if count.1 != board.material_count[BLACK] {
-        println!("Error in material count for Black.");
-        crate::extra::print::move_data(m);
-        panic!();
-    };
+    match () {
+        _ if board.game_state.zobrist_key != key_from_scratch => Err(ERR_ZOBRIST),
+        _ if board.material_count[WHITE] != material_count.0 => Err(ERR_MW),
+        _ if board.material_count[BLACK] != material_count.1 => Err(ERR_MB),
+        _ => Ok(()),
+    }
 }

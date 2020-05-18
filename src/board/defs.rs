@@ -2,7 +2,7 @@ use crate::defs::{Bitboard, Piece, Square, NR_OF_FILES, NR_OF_RANKS, NR_OF_SQUAR
 use std::ops::RangeInclusive;
 
 // Re-exports
-pub use super::fen::ERR_FEN_PARTS;
+pub use super::fen::{FenSetupResult, ERR_FEN_PARTS};
 pub use super::zobrist::ZobristRandoms;
 
 // Piece location: (file, rank)

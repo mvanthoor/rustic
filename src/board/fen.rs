@@ -11,6 +11,8 @@ use crate::{
 use if_chain::if_chain;
 use std::ops::RangeInclusive;
 
+pub type FenSetupResult = Result<(), u8>;
+
 // Define errors
 pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS as usize + 1] = [
     "Must have six (6) parts.",
@@ -37,7 +39,7 @@ type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
 // This function splits the FEN-string into parts,
 // and then runs the parsing function for each part.
 impl Board {
-    pub fn fen_read(&mut self, fen_string: Option<&str>) -> Result<(), u8> {
+    pub fn fen_read(&mut self, fen_string: Option<&str>) -> FenSetupResult {
         let fen_parts: Vec<String> = match fen_string {
             Some(s) => s,
             None => FEN_START_POSITION,
