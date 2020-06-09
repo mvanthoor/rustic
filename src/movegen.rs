@@ -273,16 +273,16 @@ impl MoveGenerator {
 
             // If no promomotion, just push the move to the move list. Otherwise,
             // remove the no_promotion_piece from move_data. Then iterate over the
-            // promotion pieces, and push each promotion option to the move list.
-            match !promotion {
-                true => list.push(Move::new(move_data)),
-                false => {
-                    let reset = move_data ^ no_promotion_piece;
-                    PROMOTION_PIECES.iter().for_each(|piece| {
-                        let current_piece = *piece << Shift::PROMOTION;
-                        list.push(Move::new(reset | current_piece))
-                    });
-                }
+            // promotion pieces, and push each promotion option to the move
+            // list.
+            if !promotion {
+                list.push(Move::new(move_data));
+            } else {
+                let revert = move_data ^ no_promotion_piece;
+                PROMOTION_PIECES.iter().for_each(|piece| {
+                    let add_piece = *piece << Shift::PROMOTION;
+                    list.push(Move::new(revert | add_piece));
+                });
             }
         }
     }
