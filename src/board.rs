@@ -24,12 +24,12 @@ use std::sync::Arc;
 // TODO: Update comments
 #[derive(Clone)]
 pub struct Board {
-    pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; EACH_SIDE as usize],
-    pub bb_pieces: [Bitboard; EACH_SIDE as usize],
+    pub bb_side: [[Bitboard; NR_OF_PIECES]; EACH_SIDE],
+    pub bb_pieces: [Bitboard; EACH_SIDE],
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NR_OF_SQUARES],
-    pub material_count: [u16; EACH_SIDE as usize],
+    pub material_count: [u16; EACH_SIDE],
     zobrist_randoms: Arc<ZobristRandoms>,
 }
 
@@ -38,12 +38,12 @@ impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new() -> Self {
         Self {
-            bb_side: [[EMPTY; NR_OF_PIECES as usize]; EACH_SIDE as usize],
-            bb_pieces: [EMPTY; EACH_SIDE as usize],
+            bb_side: [[EMPTY; NR_OF_PIECES]; EACH_SIDE],
+            bb_pieces: [EMPTY; EACH_SIDE],
             game_state: GameState::new(),
             history: History::new(),
             piece_list: [Pieces::NONE; NR_OF_SQUARES],
-            material_count: [0; EACH_SIDE as usize],
+            material_count: [0; EACH_SIDE],
             zobrist_randoms: Arc::new(ZobristRandoms::new()),
         }
     }
@@ -64,8 +64,8 @@ impl Board {
 
     // Reset the board.
     pub fn reset(&mut self) {
-        self.bb_side = [[0; NR_OF_PIECES as usize]; EACH_SIDE as usize];
-        self.bb_pieces = [EMPTY; EACH_SIDE as usize];
+        self.bb_side = [[0; NR_OF_PIECES]; EACH_SIDE];
+        self.bb_pieces = [EMPTY; EACH_SIDE];
         self.piece_list = [Pieces::NONE; NR_OF_SQUARES];
         self.game_state = GameState::new();
         self.history.clear();

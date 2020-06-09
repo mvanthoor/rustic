@@ -140,7 +140,7 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     for current_rank in ALL_RANKS.rev() {
         print!("{}   ", coordinate_digit);
         for current_file in ALL_FILES {
-            let square = (current_rank * NR_OF_FILES + current_file) as usize;
+            let square = (current_rank as usize) * NR_OF_FILES + (current_file as usize);
             let character = ascii_board[square];
             if let Some(m) = mark_square {
                 if m == (square as u8) {

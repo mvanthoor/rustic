@@ -104,7 +104,7 @@ pub const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
 pub const BB_RANK_1: Bitboard = 0xFF;
 
 // Contains bitboards for each file.
-pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
+pub const BB_FILES: [Bitboard; NR_OF_FILES] = [
     BB_FILE_A,
     BB_FILE_A << 1,
     BB_FILE_A << 2,
@@ -116,7 +116,7 @@ pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
 ];
 
 // Contains bitboards for each rank.
-pub const BB_RANKS: [Bitboard; NR_OF_RANKS as usize] = [
+pub const BB_RANKS: [Bitboard; NR_OF_RANKS] = [
     BB_RANK_1,
     BB_RANK_1 << 8,
     BB_RANK_1 << 16,
