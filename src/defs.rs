@@ -14,11 +14,15 @@ pub const BLACK: Side = 1;
 
 pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-pub const NR_OF_SQUARES: usize = 64;
-pub const NR_OF_FILES: usize = 8;
-pub const NR_OF_RANKS: usize = 8;
-pub const NR_OF_PIECES: usize = 6;
-pub const NR_OF_CASTLING_PERMISSIONS: usize = 16; // 0-15
+pub struct NrOf;
+impl NrOf {
+    pub const SQUARES: usize = 64;
+    pub const FILES: usize = 8;
+    pub const RANKS: usize = 8;
+    pub const PIECES: usize = 6;
+    pub const CASTLING_PERMISSIONS: usize = 16; // 0-15
+}
+
 pub const EACH_SIDE: usize = 2;
 
 pub struct Castling;

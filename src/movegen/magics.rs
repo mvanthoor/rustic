@@ -4,12 +4,12 @@
  * extra::wizardry. It's not even compiled into the engine when not called; it's there for
  * didactic purposes, and to be used/called if the magics in this file ever get corrupted.
 */
-use crate::defs::{Bitboard, NR_OF_SQUARES};
+use crate::defs::{Bitboard, NrOf};
 
 /** Rook magic numbers. Don't touch them. Changing these numbers breaks the program. */
 #[rustfmt::skip]
 #[allow(clippy::unreadable_literal)]
-pub const ROOK_MAGICS: [u64; NR_OF_SQUARES] = [
+pub const ROOK_MAGICS: [u64; NrOf::SQUARES] = [
     324259448050975248u64, 162139001189302336u64, 4647750006529359880u64, 144121785691422736u64,
     16176938657641660544u64, 9367489423970945072u64, 36051338366288384u64, 36029147746665088u64,
     3518447965192208u64, 4614078830617822340u64, 9241949523864129664u64, 11540615780106252u64,
@@ -31,7 +31,7 @@ pub const ROOK_MAGICS: [u64; NR_OF_SQUARES] = [
 /** Bishop magic numbers. Don't touch them. Changing these numbers breaks the program. */
 #[rustfmt::skip]
 #[allow(clippy::unreadable_literal)]
-pub const BISHOP_MAGICS: [u64; NR_OF_SQUARES] = [
+pub const BISHOP_MAGICS: [u64; NrOf::SQUARES] = [
     2310454429704290569u64, 37163502750244928u64, 145330200115150856u64, 573953659699200u64,
     9845999220824211456u64, 574016004032512u64, 10093699283674480640u64, 2306407060834902016u64,
     2883575003184432136u64, 1747410678824308864u64, 9259405249167245312u64, 936784527773139074u64,

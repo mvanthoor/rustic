@@ -3,11 +3,11 @@ use crate::{
         defs::{Pieces, ALL_FILES, ALL_RANKS, PIECE_NAME, SQUARE_NAME},
         Board,
     },
-    defs::{Bitboard, Castling, Square, BLACK, NR_OF_FILES, NR_OF_SQUARES, WHITE},
+    defs::{Bitboard, Castling, NrOf, Square, BLACK, WHITE},
     movegen::defs::{Magics, Move},
 };
 
-type AsciiBoard = [char; NR_OF_SQUARES];
+type AsciiBoard = [char; NrOf::SQUARES];
 
 const ASCII_EMPTY_SQUARE: char = '.';
 const CHAR_WK: char = 'K';
@@ -27,7 +27,7 @@ const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 // Prints the current position to the screen.
 #[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NR_OF_SQUARES];
+    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NrOf::SQUARES];
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
     metadata(board);
@@ -134,13 +134,13 @@ fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, cha
 #[allow(dead_code)]
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
-    let mut coordinate_digit = NR_OF_FILES;
+    let mut coordinate_digit = NrOf::FILES;
 
     println!();
     for current_rank in ALL_RANKS.rev() {
         print!("{}   ", coordinate_digit);
         for current_file in ALL_FILES {
-            let square = (current_rank as usize) * NR_OF_FILES + (current_file as usize);
+            let square = (current_rank as usize) * NrOf::FILES + (current_file as usize);
             let character = ascii_board[square];
             if let Some(m) = mark_square {
                 if m == (square as u8) {
