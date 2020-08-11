@@ -10,7 +10,7 @@ use crate::{
         defs::{Pieces, Squares, BB_RANKS},
         utils, Board,
     },
-    defs::{Bitboard, Castling, Piece, Side, Square, BLACK, EMPTY, NR_OF_SQUARES, WHITE},
+    defs::{Bitboard, Castling, NrOf, Piece, Side, Square, BLACK, EMPTY, WHITE},
     misc::bits,
 };
 use defs::{Move, Shift};
@@ -24,26 +24,26 @@ pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook bl
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
 pub struct MoveGenerator {
-    king: [Bitboard; NR_OF_SQUARES],
-    knight: [Bitboard; NR_OF_SQUARES],
-    pawns: [[Bitboard; NR_OF_SQUARES]; WHITE_BLACK],
+    king: [Bitboard; NrOf::SQUARES],
+    knight: [Bitboard; NrOf::SQUARES],
+    pawns: [[Bitboard; NrOf::SQUARES]; WHITE_BLACK],
     rook: Vec<Bitboard>,
     bishop: Vec<Bitboard>,
-    rook_magics: [Magics; NR_OF_SQUARES],
-    bishop_magics: [Magics; NR_OF_SQUARES],
+    rook_magics: [Magics; NrOf::SQUARES],
+    bishop_magics: [Magics; NrOf::SQUARES],
 }
 
 impl MoveGenerator {
     pub fn new() -> Self {
         let magics: Magics = Default::default();
         let mut mg = Self {
-            king: [EMPTY; NR_OF_SQUARES],
-            knight: [EMPTY; NR_OF_SQUARES],
-            pawns: [[EMPTY; NR_OF_SQUARES]; WHITE_BLACK],
+            king: [EMPTY; NrOf::SQUARES],
+            knight: [EMPTY; NrOf::SQUARES],
+            pawns: [[EMPTY; NrOf::SQUARES]; WHITE_BLACK],
             rook: vec![EMPTY; ROOK_TABLE_SIZE],
             bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
-            rook_magics: [magics; NR_OF_SQUARES],
-            bishop_magics: [magics; NR_OF_SQUARES],
+            rook_magics: [magics; NrOf::SQUARES],
+            bishop_magics: [magics; NrOf::SQUARES],
         };
         init::king(&mut mg);
         init::knight(&mut mg);
@@ -139,7 +139,7 @@ impl MoveGenerator {
         let bb_empty = !board.occupancy();
         let bb_fourth = BB_RANKS[utils::fourth_rank(us)];
         let direction = if us == WHITE { UP } else { DOWN };
-        let nr_of_squares = (NR_OF_SQUARES as i8 + direction) as u32;
+        let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
 
         // As long as there are pawns, generate moves for each of them.
@@ -147,7 +147,7 @@ impl MoveGenerator {
             let from = bits::next(&mut bb_pawns);
             let bb_push = 1u64 << (from as i8 + direction);
             let bb_one_step = bb_push & bb_empty;
-            let bb_two_step = bb_one_step.rotate_left(nr_of_squares) & bb_empty & bb_fourth;
+            let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
             let bb_targets = self.get_pawn_attacks(us, from);
             let bb_captures = bb_targets & bb_opponent_pieces;
             let bb_ep_capture = match board.game_state.en_passant {

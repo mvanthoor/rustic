@@ -8,8 +8,7 @@ pub mod zobrist;
 
 use crate::{
     defs::{
-        Bitboard, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, NR_OF_PIECES,
-        NR_OF_SQUARES, WHITE,
+        Bitboard, NrOf, Piece, Side, Square, BLACK, EACH_SIDE, EMPTY, FEN_START_POSITION, WHITE,
     },
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
@@ -24,11 +23,11 @@ use zobrist::{ZobristKey, ZobristRandoms};
 // TODO: Update comments
 #[derive(Clone)]
 pub struct Board {
-    pub bb_side: [[Bitboard; NR_OF_PIECES as usize]; EACH_SIDE as usize],
+    pub bb_side: [[Bitboard; NrOf::PIECE_TYPES as usize]; EACH_SIDE as usize],
     pub bb_pieces: [Bitboard; EACH_SIDE as usize],
     pub game_state: GameState,
     pub history: History,
-    pub piece_list: [Piece; NR_OF_SQUARES],
+    pub piece_list: [Piece; NrOf::SQUARES],
     pub material_count: [u16; EACH_SIDE as usize],
     zobrist_randoms: Arc<ZobristRandoms>,
     move_generator: Arc<MoveGenerator>,
@@ -39,11 +38,11 @@ impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Self {
         Self {
-            bb_side: [[EMPTY; NR_OF_PIECES as usize]; EACH_SIDE as usize],
+            bb_side: [[EMPTY; NrOf::PIECE_TYPES as usize]; EACH_SIDE as usize],
             bb_pieces: [EMPTY; EACH_SIDE as usize],
             game_state: GameState::new(),
             history: History::new(),
-            piece_list: [Pieces::NONE; NR_OF_SQUARES],
+            piece_list: [Pieces::NONE; NrOf::SQUARES],
             material_count: [0; EACH_SIDE as usize],
             zobrist_randoms: zr,
             move_generator: mg,
@@ -74,9 +73,9 @@ impl Board {
 
     // Reset the board.
     pub fn reset(&mut self) {
-        self.bb_side = [[0; NR_OF_PIECES as usize]; EACH_SIDE as usize];
+        self.bb_side = [[0; NrOf::PIECE_TYPES as usize]; EACH_SIDE as usize];
         self.bb_pieces = [EMPTY; EACH_SIDE as usize];
-        self.piece_list = [Pieces::NONE; NR_OF_SQUARES];
+        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
         self.game_state = GameState::new();
         self.history.clear();
     }
@@ -184,10 +183,10 @@ impl Board {
         (white, black)
     }
 
-    fn init_piece_list(&self) -> [Piece; NR_OF_SQUARES] {
+    fn init_piece_list(&self) -> [Piece; NrOf::SQUARES] {
         let bb_w = self.bb_side[WHITE]; // White bitboards
         let bb_b = self.bb_side[BLACK]; // Black bitboards
-        let mut piece_list: [Piece; NR_OF_SQUARES] = [Pieces::NONE; NR_OF_SQUARES];
+        let mut piece_list: [Piece; NrOf::SQUARES] = [Pieces::NONE; NrOf::SQUARES];
 
         for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
             let mut white = *w; // White pieces of type "p"

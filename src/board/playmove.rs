@@ -6,7 +6,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, Piece, Side, Square, BLACK, NR_OF_SQUARES, WHITE},
+    defs::{Castling, NrOf, Piece, Side, Square, BLACK, WHITE},
     evaluation::defs::PIECE_VALUES,
     movegen::defs::Move,
 };
@@ -23,7 +23,7 @@ const N_BQ: u8 = Castling::ALL & !Castling::BQ;
 #[rustfmt::skip]
 // First element in this array is square A1. The N_* constants mark which
 // castling rights are lost if the king or rook moves from that starting square.
-const CASTLING_PERMS: [u8; NR_OF_SQUARES] = [
+const CASTLING_PERMS: [u8; NrOf::SQUARES] = [
     N_WQ, 15,  15,  15,  N_WKQ, 15,  15,  N_WK,
     15,   15,  15,  15,  15,    15,  15,  15, 
     15,   15,  15,  15,  15,    15,  15,  15, 

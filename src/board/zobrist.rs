@@ -1,14 +1,12 @@
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use crate::defs::{
-    Piece, Side, Square, EACH_SIDE, EMPTY, NR_OF_CASTLING_PERMISSIONS, NR_OF_PIECES, NR_OF_SQUARES,
-};
+use crate::defs::{NrOf, Piece, Side, Square, EACH_SIDE, EMPTY};
 
-const ALL_SQUARES: usize = NR_OF_SQUARES;
-const ALL_PIECES: usize = NR_OF_PIECES as usize;
+const ALL_SQUARES: usize = NrOf::SQUARES;
+const ALL_PIECES: usize = NrOf::PIECE_TYPES as usize;
 const ALL_SIDES: usize = EACH_SIDE as usize;
-const ALL_CASTLING_PERMISSIONS: usize = NR_OF_CASTLING_PERMISSIONS as usize;
+const ALL_CASTLING_PERMISSIONS: usize = NrOf::CASTLING_PERMISSIONS as usize;
 
 /* Random number for all sides for all pieces on all squares */
 type PieceRandoms = [[[u64; ALL_SQUARES]; ALL_PIECES]; ALL_SIDES];

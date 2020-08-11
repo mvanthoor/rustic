@@ -1,4 +1,4 @@
-use crate::defs::{Bitboard, Piece, Square, NR_OF_FILES, NR_OF_RANKS, NR_OF_SQUARES};
+use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
 // Piece location: (file, rank)
@@ -10,7 +10,7 @@ pub const ALL_SQUARES: RangeInclusive<Square> = 0..=63;
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub const SQUARE_NAME: [&str; NR_OF_SQUARES] = [
+pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
     "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
@@ -100,7 +100,7 @@ pub const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
 pub const BB_RANK_1: Bitboard = 0xFF;
 
 // Contains bitboards for each file.
-pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
+pub const BB_FILES: [Bitboard; NrOf::FILES as usize] = [
     BB_FILE_A,
     BB_FILE_A << 1,
     BB_FILE_A << 2,
@@ -112,7 +112,7 @@ pub const BB_FILES: [Bitboard; NR_OF_FILES as usize] = [
 ];
 
 // Contains bitboards for each rank.
-pub const BB_RANKS: [Bitboard; NR_OF_RANKS as usize] = [
+pub const BB_RANKS: [Bitboard; NrOf::RANKS as usize] = [
     BB_RANK_1,
     BB_RANK_1 << 8,
     BB_RANK_1 << 16,
@@ -124,7 +124,7 @@ pub const BB_RANKS: [Bitboard; NR_OF_RANKS as usize] = [
 ];
 
 #[rustfmt::skip]
-pub const BB_SQUARES: [Bitboard; NR_OF_SQUARES] = [
+pub const BB_SQUARES: [Bitboard; NrOf::SQUARES] = [
     1u64, 1u64 << 1, 1u64 << 2, 1u64 << 3, 1u64 << 4, 1u64 << 5, 1u64 << 6, 1u64 << 7,
     1u64 << 8, 1u64 << 9, 1u64 << 10, 1u64 << 11, 1u64 << 12, 1u64 << 13, 1u64 << 14, 1u64 << 15,
     1u64 << 16, 1u64 << 17, 1u64 << 18, 1u64 << 19, 1u64 << 20, 1u64 << 21, 1u64 << 22, 1u64 << 23,
