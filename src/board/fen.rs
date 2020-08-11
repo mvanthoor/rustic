@@ -12,7 +12,7 @@ use if_chain::if_chain;
 use std::ops::RangeInclusive;
 
 // Define errors
-pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS as usize + 1] = [
+pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
     "Must have six (6) parts.",
     "Pieces and squares.",
     "Color selection.",
