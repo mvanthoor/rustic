@@ -4,7 +4,7 @@ use super::{
     MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
 use crate::{
-    board::defs::{Files, Pieces, Ranks, ALL_SQUARES, BB_FILES, BB_RANKS},
+    board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS},
     defs::{Bitboard, Piece, BLACK, EMPTY, WHITE},
 };
 
@@ -18,7 +18,7 @@ use crate::{
  */
  #[rustfmt::skip]
 pub fn king(mg: &mut MoveGenerator) {
-    for sq in ALL_SQUARES {
+    for sq in RangeOf::SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
             (bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R8]) << 7
@@ -41,7 +41,7 @@ pub fn king(mg: &mut MoveGenerator) {
  */
  #[rustfmt::skip]
 pub fn knight(mg: &mut MoveGenerator) {
-    for sq in ALL_SQUARES {
+    for sq in RangeOf::SQUARES {
         let bb_square = 1u64 << sq;
         let bb_moves =
             (bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::A]) << 15
@@ -62,7 +62,7 @@ pub fn knight(mg: &mut MoveGenerator) {
  * if the location of the pawn makes that move possible.
  */
 pub fn pawns(mg: &mut MoveGenerator) {
-    for sq in ALL_SQUARES {
+    for sq in RangeOf::SQUARES {
         let bb_square = 1u64 << sq;
         let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
         let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
@@ -121,7 +121,7 @@ pub fn magics(mg: &mut MoveGenerator, piece: Piece) {
     let is_rook = piece == Pieces::ROOK;
     let mut offset = 0;
     let mut total_permutations = 0;
-    for sq in ALL_SQUARES {
+    for sq in RangeOf::SQUARES {
         let mask = if is_rook {
             create::rook_mask(sq)
         } else {

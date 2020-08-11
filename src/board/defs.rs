@@ -4,9 +4,12 @@ use std::ops::RangeInclusive;
 // Piece location: (file, rank)
 pub type Location = (u8, u8);
 
-pub const ALL_RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);
-pub const ALL_FILES: RangeInclusive<u8> = (Files::A as u8)..=(Files::H as u8);
-pub const ALL_SQUARES: RangeInclusive<Square> = 0..=63;
+pub struct RangeOf;
+impl RangeOf {
+    pub const RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);
+    pub const FILES: RangeInclusive<u8> = (Files::A as u8)..=(Files::H as u8);
+    pub const SQUARES: RangeInclusive<Square> = 0..=63;
+}
 
 #[rustfmt::skip]
 #[allow(dead_code)]

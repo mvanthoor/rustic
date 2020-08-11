@@ -1,6 +1,6 @@
 use crate::{
     board::{
-        defs::{Pieces, ALL_FILES, ALL_RANKS, PIECE_NAME, SQUARE_NAME},
+        defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Square, BLACK, WHITE},
@@ -137,9 +137,9 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let mut coordinate_digit = NrOf::FILES;
 
     println!();
-    for current_rank in ALL_RANKS.rev() {
+    for current_rank in RangeOf::RANKS.rev() {
         print!("{}   ", coordinate_digit);
-        for current_file in ALL_FILES {
+        for current_file in RangeOf::FILES {
             let square = (current_rank * NrOf::FILES + current_file) as usize;
             let character = ascii_board[square];
             if let Some(m) = mark_square {

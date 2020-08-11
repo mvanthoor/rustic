@@ -1,5 +1,5 @@
 use crate::{
-    board::defs::{Pieces, ALL_SQUARES, PIECE_NAME},
+    board::defs::{Pieces, RangeOf, PIECE_NAME},
     defs::{Bitboard, Piece, EMPTY},
     extra::print,
     movegen::{create, magics::Magics, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
@@ -29,7 +29,7 @@ pub fn find_magics(piece: Piece) {
     let mut total_permutations = 0;
 
     println!("Finding magics for: {}", PIECE_NAME[piece]);
-    for sq in ALL_SQUARES {
+    for sq in RangeOf::SQUARES {
         // Create the mask for either the rook or bishop.
         let mask = if is_rook {
             create::rook_mask(sq)
