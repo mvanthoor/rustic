@@ -1,16 +1,6 @@
 use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
-// Piece location: (file, rank)
-pub type Location = (u8, u8);
-
-pub struct RangeOf;
-impl RangeOf {
-    pub const RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);
-    pub const FILES: RangeInclusive<u8> = (Files::A as u8)..=(Files::H as u8);
-    pub const SQUARES: RangeInclusive<Square> = 0..=63;
-}
-
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
@@ -23,20 +13,8 @@ pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 ];
-pub const PIECE_NAME: [&str; 7] = ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
-
-// This enum holds the direction in which a ray of a slider piece can point.
-#[derive(Copy, Clone)]
-pub enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-    UpLeft,
-    UpRight,
-    DownRight,
-    DownLeft,
-}
+pub const PIECE_NAME: [&str; NrOf::PIECE_TYPES as usize + 1] =
+    ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 
 pub struct Pieces;
 impl Pieces {
@@ -98,6 +76,13 @@ impl Squares {
     pub const H6: Square = 47;
 }
 
+pub struct RangeOf;
+impl RangeOf {
+    pub const RANKS: RangeInclusive<u8> = (Ranks::R1 as u8)..=(Ranks::R8 as u8);
+    pub const FILES: RangeInclusive<u8> = (Files::A as u8)..=(Files::H as u8);
+    pub const SQUARES: RangeInclusive<Square> = 0..=63;
+}
+
 // Bitboards for the first file and first rank.
 pub const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
 pub const BB_RANK_1: Bitboard = 0xFF;
@@ -137,3 +122,19 @@ pub const BB_SQUARES: [Bitboard; NrOf::SQUARES] = [
     1u64 << 48, 1u64 << 49, 1u64 << 50, 1u64 << 51, 1u64 << 52, 1u64 << 53, 1u64 << 54, 1u64 << 55,
     1u64 << 56, 1u64 << 57, 1u64 << 58, 1u64 << 59, 1u64 << 60, 1u64 << 61, 1u64 << 62, 1u64 << 63,
 ];
+
+// Piece location: (file, rank)
+pub type Location = (u8, u8);
+
+// This enum holds the direction in which a ray of a slider piece can point.
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+    UpLeft,
+    UpRight,
+    DownRight,
+    DownLeft,
+}
