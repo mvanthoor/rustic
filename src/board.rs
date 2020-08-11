@@ -98,10 +98,6 @@ impl Board {
         (self.game_state.active_color ^ 1) as usize
     }
 
-    pub fn king_square(&self, side: Side) -> Square {
-        self.bb_side[side][Pieces::KING].trailing_zeros() as Square
-    }
-
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
