@@ -161,39 +161,43 @@ pub fn unmake(board: &mut Board) {
 
     // Moving backwards...
     if promoted == Pieces::NONE {
-        reverse_move(board, us, piece, to, from);
+        unmake_reverse_move(board, us, piece, to, from);
     } else {
-        remove_piece(board, us, promoted, to);
-        put_piece(board, us, Pieces::PAWN, from);
+        unmake_remove_piece(board, us, promoted, to);
+        unmake_put_piece(board, us, Pieces::PAWN, from);
     }
 
     // The king's move was already undone as a normal move.
     // Now undo the correct castling rook move.
     if castling {
         match to {
-            Squares::G1 => reverse_move(board, us, Pieces::ROOK, Squares::F1, Squares::H1),
-            Squares::C1 => reverse_move(board, us, Pieces::ROOK, Squares::D1, Squares::A1),
-            Squares::G8 => reverse_move(board, us, Pieces::ROOK, Squares::F8, Squares::H8),
-            Squares::C8 => reverse_move(board, us, Pieces::ROOK, Squares::D8, Squares::A8),
+            Squares::G1 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::F1, Squares::H1),
+            Squares::C1 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::D1, Squares::A1),
+            Squares::G8 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::F8, Squares::H8),
+            Squares::C8 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::D8, Squares::A8),
             _ => panic!("Error: Reversing castling rook move."),
         };
     }
 
     // If a piece was captured, put it back onto the to-square
     if captured != Pieces::NONE {
-        put_piece(board, opponent, captured, to);
+        unmake_put_piece(board, opponent, captured, to);
     }
 
     // If this was an e-passant move, put the opponent's pawn back
     if en_passant {
-        put_piece(board, opponent, Pieces::PAWN, to ^ 8);
+        unmake_put_piece(board, opponent, Pieces::PAWN, to ^ 8);
     }
 }
 
-// ===== Helper functions to reverse piece moves without doing zobrist updates. =====
+// unamke() pops the entire game history from a list at the beginning,
+// including the Zobrist-key. Therefore the Zobrist-key is already set to
+// what it should be at the end of unmake(). Using the Board's functions
+// would calculate on that already finished Zobrist key and thus mess it
+// up. These helper functions don't calculate the Zobrist key.
 
 // Removes a piece from the board.
-fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
+fn unmake_remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_side[side][piece] ^= BB_SQUARES[square];
     board.bb_pieces[side] ^= BB_SQUARES[square];
     board.piece_list[square] = Pieces::NONE;
@@ -201,7 +205,7 @@ fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
 }
 
 // Puts a piece onto the board.
-fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
+fn unmake_put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_side[side][piece] |= BB_SQUARES[square];
     board.bb_pieces[side] |= BB_SQUARES[square];
     board.piece_list[square] = piece;
@@ -209,9 +213,9 @@ fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
 }
 
 // Moves a piece from one square to the other.
-fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
-    remove_piece(board, side, piece, remove);
-    put_piece(board, side, piece, put);
+fn unmake_reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
+    unmake_remove_piece(board, side, piece, remove);
+    unmake_put_piece(board, side, piece, put);
 }
 
 #[allow(dead_code)]
