@@ -1,7 +1,7 @@
 use crate::{
     board::{
         defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS},
-        utils,
+        Board,
     },
     defs::{Bitboard, Square},
 };
@@ -17,7 +17,7 @@ pub type AttackBoards = Vec<Bitboard>;
 // rook's mask by combining its file and rank bitboards. For the final result:
 // exclude the edge squares and rook's square from the mask.
 pub fn rook_mask(square: Square) -> Bitboard {
-    let location = utils::square_on_file_rank(square);
+    let location = Board::square_on_file_rank(square);
     let bb_rook_square = 1u64 << square;
     let bb_edges = edges_without_piece(location);
     let bb_mask = BB_FILES[location.0 as usize] | BB_RANKS[location.1 as usize];
@@ -33,7 +33,7 @@ pub fn rook_mask(square: Square) -> Bitboard {
 // combined, to generate all bishop moves from that square, on an empty board.
 // Then the edges are clipped off, as they are not needed in the mask.
 pub fn bishop_mask(square: Square) -> Bitboard {
-    let location = utils::square_on_file_rank(square);
+    let location = Board::square_on_file_rank(square);
     let bb_edges = edges_without_piece(location);
     let bb_up_left = bb_ray(0, square, Direction::UpLeft);
     let bb_up_right = bb_ray(0, square, Direction::UpRight);
@@ -123,8 +123,8 @@ pub fn blocker_boards(mask: Bitboard) -> BlockerBoards {
 // or the edge of the board. Therefore, in each call, only one of the eight
 // blocks of this function wille be executed.
 pub fn bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
-    let mut file = utils::square_on_file_rank(square).0 as usize;
-    let mut rank = utils::square_on_file_rank(square).1 as usize;
+    let mut file = Board::square_on_file_rank(square).0 as usize;
+    let mut rank = Board::square_on_file_rank(square).1 as usize;
     let mut bb_square = 1u64 << square;
     let mut bb_ray = 0;
     let mut done = false;

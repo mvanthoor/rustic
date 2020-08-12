@@ -8,7 +8,7 @@ pub mod movelist;
 use crate::{
     board::{
         defs::{Pieces, Squares, BB_RANKS},
-        utils, Board,
+        Board,
     },
     defs::{Bitboard, Castling, NrOf, Piece, Side, Square, BLACK, EMPTY, WHITE},
     misc::bits,
@@ -137,7 +137,7 @@ impl MoveGenerator {
         let us = board.us();
         let bb_opponent_pieces = board.bb_pieces[board.opponent()];
         let bb_empty = !board.occupancy();
-        let bb_fourth = BB_RANKS[utils::fourth_rank(us)];
+        let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
         let direction = if us == WHITE { UP } else { DOWN };
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
@@ -243,7 +243,7 @@ impl MoveGenerator {
     ) {
         let mut bb_to = to;
         let us = board.us();
-        let promotion_rank = utils::promotion_rank(us);
+        let promotion_rank = Board::promotion_rank(us);
         let is_pawn = piece == Pieces::PAWN;
 
         // As long as there are still to-squres in bb_to, this piece has moves to add.
@@ -254,7 +254,7 @@ impl MoveGenerator {
                 Some(square) => is_pawn && (square as usize == to_square),
                 None => false,
             };
-            let promotion = is_pawn && utils::square_on_rank(to_square, promotion_rank);
+            let promotion = is_pawn && Board::square_on_rank(to_square, promotion_rank);
             let double_step = is_pawn && ((to_square as i8 - from as i8).abs() == 16);
             let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 
