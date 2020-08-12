@@ -45,7 +45,7 @@ pub fn make(board: &mut Board, m: Move) -> bool {
     board.history.push(current_game_state);
 
     // Set "us" and "opponent"
-    let us = board.game_state.active_color as usize;
+    let us = board.us();
     let opponent = us ^ 1;
 
     // Dissect the move so we don't need "m.function()" and type casts everywhere.
@@ -147,7 +147,7 @@ pub fn unmake(board: &mut Board) {
     board.game_state = board.history.pop();
 
     // Set "us" and "opponent"
-    let us = board.game_state.active_color as usize;
+    let us = board.us();
     let opponent = us ^ 1;
 
     // Dissect the move to undo
