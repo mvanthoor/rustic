@@ -5,7 +5,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, Square, BLACK, MAX_GAME_MOVES, WHITE},
+    defs::{Castling, Square, BLACK, FEN_START_POSITION, MAX_GAME_MOVES, WHITE},
     misc::parse,
 };
 use if_chain::if_chain;
@@ -34,36 +34,45 @@ const DASH: char = '-';
 const SPACE: char = ' ';
 type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
 
-// This function splits the FEN-string into parts,
-// and then runs the parsing function for each part.
-pub fn read(board: &mut Board, fen_string: &str) -> Result<(), u8> {
-    let fen_parts: Vec<String> = fen_string.split(SPACE).map(|s| s.to_string()).collect();
-    let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
-    let length = fen_parts.len();
-    let mut result: Result<(), u8> = Err(0);
+impl Board {
+    // This function splits the FEN-string into parts,
+    // and then runs the parsing function for each part.
+    pub fn fen_read(&mut self, fen_string: Option<&str>) -> Result<(), u8> {
+        let fen_parts: Vec<String> = match fen_string {
+            Some(f) => f,
+            None => FEN_START_POSITION,
+        }
+        .split(SPACE)
+        .map(|s| s.to_string())
+        .collect();
 
-    if length == NR_OF_FEN_PARTS {
-        // Clone the incoming board so we don't need to create one from scratch.
-        let mut try_board = board.clone();
-        try_board.reset();
+        let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
+        let length = fen_parts.len();
+        let mut result: Result<(), u8> = Err(0);
 
-        // Try setup on the try_board, so we don't ruin our existing setup.
-        for (i, parser) in fen_parsers.iter().enumerate() {
-            if parser(&mut try_board, &fen_parts[i]) {
-                result = Ok(());
-            } else {
-                result = Err(i as u8 + 1);
-                break;
+        if length == NR_OF_FEN_PARTS {
+            // Clone the incoming board so we don't need to create one from scratch.
+            let mut try_board = self.clone();
+            try_board.reset();
+
+            // Try setup on the try_board, so we don't ruin our existing setup.
+            for (i, parser) in fen_parsers.iter().enumerate() {
+                if parser(&mut try_board, &fen_parts[i]) {
+                    result = Ok(());
+                } else {
+                    result = Err(i as u8 + 1);
+                    break;
+                }
+            }
+
+            // If setup of the pieces is successful, initialize and replace.
+            if result == Ok(()) {
+                try_board.init();
+                *self = try_board;
             }
         }
-
-        // If setup of the pieces is successful, initialize and replace.
-        if result == Ok(()) {
-            try_board.init();
-            *board = try_board;
-        }
+        result
     }
-    result
 }
 
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
