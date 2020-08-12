@@ -10,7 +10,7 @@ use crate::{
         defs::{Pieces, Squares, BB_RANKS},
         Board,
     },
-    defs::{Bitboard, Castling, NrOf, Piece, Side, Square, BLACK, EMPTY, WHITE},
+    defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
     misc::bits,
 };
 use defs::{Move, Shift};
@@ -138,7 +138,7 @@ impl MoveGenerator {
         let bb_opponent_pieces = board.bb_pieces[board.opponent()];
         let bb_empty = !board.occupancy();
         let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
-        let direction = if us == WHITE { UP } else { DOWN };
+        let direction = if us == Sides::WHITE { UP } else { DOWN };
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
 
@@ -170,7 +170,7 @@ impl MoveGenerator {
         let mut bb_king = board.get_pieces(Pieces::KING, us);
         let from = bits::next(&mut bb_king);
 
-        if us == WHITE && castle_perms_white {
+        if us == Sides::WHITE && castle_perms_white {
             // Kingside
             if board.game_state.castling & Castling::WK > 0 {
                 let bb_kingside_blockers = (1u64 << Squares::F1) | (1u64 << Squares::G1);
@@ -201,7 +201,7 @@ impl MoveGenerator {
             }
         }
 
-        if us == BLACK && castle_perms_black {
+        if us == Sides::BLACK && castle_perms_black {
             // Kingside
             if board.game_state.castling & Castling::BK > 0 {
                 let bb_kingside_blockers = (1u64 << Squares::F8) | (1u64 << Squares::G8);

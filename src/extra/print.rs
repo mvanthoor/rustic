@@ -3,7 +3,7 @@ use crate::{
         defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
         Board,
     },
-    defs::{Bitboard, Castling, NrOf, Square, BLACK, WHITE},
+    defs::{Bitboard, Castling, NrOf, Sides, Square},
     movegen::{defs::Move, magics::Magics},
 };
 
@@ -86,8 +86,8 @@ pub fn horizontal_line(c: char, length: u8) {
 // Create a printable ASCII-board out of bitboards.
 #[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
-    let bb_w = board.bb_side[WHITE];
-    let bb_b = board.bb_side[BLACK];
+    let bb_w = board.bb_side[Sides::WHITE];
+    let bb_b = board.bb_side[Sides::BLACK];
 
     for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
         match piece {
@@ -174,7 +174,7 @@ fn metadata(board: &Board) {
     } else {
         "-"
     };
-    let active_color = if (board.game_state.active_color as usize) == WHITE {
+    let active_color = if (board.game_state.active_color as usize) == Sides::WHITE {
         "White"
     } else {
         "Black"

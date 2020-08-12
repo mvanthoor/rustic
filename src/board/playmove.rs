@@ -5,7 +5,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, NrOf, Piece, Side, Square, BLACK, WHITE},
+    defs::{Castling, NrOf, Piece, Side, Sides, Square},
     evaluation::defs::PIECE_VALUES,
     movegen::defs::Move,
 };
@@ -125,13 +125,11 @@ impl Board {
         self.swap_side();
 
         // Increase full move number if black has moved
-        if us == BLACK {
+        if us == Sides::BLACK {
             self.game_state.fullmove_number += 1;
         }
 
         /*** Validating move: see if "us" is in check. If so, undo everything. ***/
-        // let king_square = self.bb_side[us][Pieces::KING].trailing_zeros()
-        // as Square;
         let is_legal = !self.square_attacked(opponent, self.king_square(us));
         if !is_legal {
             self.unmake();
@@ -244,13 +242,13 @@ fn checkup(board: &Board, m: Move) {
         panic!();
     };
 
-    if count.0 != board.material_count[WHITE] {
+    if count.0 != board.material_count[Sides::WHITE] {
         println!("Error in material count for White.");
         crate::extra::print::move_data(m);
         panic!();
     };
 
-    if count.1 != board.material_count[BLACK] {
+    if count.1 != board.material_count[Sides::BLACK] {
         println!("Error in material count for Black.");
         crate::extra::print::move_data(m);
         panic!();

@@ -1,11 +1,11 @@
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-use crate::defs::{NrOf, Piece, Side, Square, EACH_SIDE, EMPTY};
+use crate::defs::{NrOf, Piece, Side, Sides, Square, EMPTY};
 
 const ALL_SQUARES: usize = NrOf::SQUARES;
 const ALL_PIECES: usize = NrOf::PIECE_TYPES as usize;
-const ALL_SIDES: usize = EACH_SIDE as usize;
+const ALL_SIDES: usize = Sides::BOTH;
 const ALL_CASTLING_PERMISSIONS: usize = NrOf::CASTLING_PERMISSIONS as usize;
 
 /* Random number for all sides for all pieces on all squares */

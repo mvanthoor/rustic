@@ -5,7 +5,7 @@ use super::{
 };
 use crate::{
     board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS},
-    defs::{Bitboard, Piece, BLACK, EMPTY, WHITE},
+    defs::{Bitboard, Piece, Sides, EMPTY},
 };
 
 /**
@@ -66,8 +66,8 @@ pub fn pawns(mg: &mut MoveGenerator) {
         let bb_square = 1u64 << sq;
         let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
         let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
-        mg.pawns[WHITE][sq as usize] = w;
-        mg.pawns[BLACK][sq as usize] = b;
+        mg.pawns[Sides::WHITE][sq as usize] = w;
+        mg.pawns[Sides::BLACK][sq as usize] = b;
     }
 }
 

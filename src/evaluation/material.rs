@@ -1,15 +1,11 @@
 use super::defs::PIECE_VALUES;
-use crate::{
-    board::Board,
-    defs::{BLACK, WHITE},
-    misc::bits,
-};
+use crate::{board::Board, defs::Sides, misc::bits};
 
 pub fn count(board: &Board) -> (u16, u16) {
     let mut white_material: u16 = 0;
     let mut black_material: u16 = 0;
-    let bb_w = board.bb_side[WHITE];
-    let bb_b = board.bb_side[BLACK];
+    let bb_w = board.bb_side[Sides::WHITE];
+    let bb_b = board.bb_side[Sides::BLACK];
 
     for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
         let mut white_pieces = *w;

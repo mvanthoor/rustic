@@ -5,7 +5,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, Square, BLACK, FEN_START_POSITION, MAX_GAME_MOVES, WHITE},
+    defs::{Castling, Sides, Square, FEN_START_POSITION, MAX_GAME_MOVES},
     misc::parse,
 };
 use if_chain::if_chain;
@@ -84,18 +84,18 @@ fn pieces(board: &mut Board, part: &str) -> bool {
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
-            'k' => board.bb_side[BLACK][Pieces::KING] |= 1u64 << square,
-            'q' => board.bb_side[BLACK][Pieces::QUEEN] |= 1u64 << square,
-            'r' => board.bb_side[BLACK][Pieces::ROOK] |= 1u64 << square,
-            'b' => board.bb_side[BLACK][Pieces::BISHOP] |= 1u64 << square,
-            'n' => board.bb_side[BLACK][Pieces::KNIGHT] |= 1u64 << square,
-            'p' => board.bb_side[BLACK][Pieces::PAWN] |= 1u64 << square,
-            'K' => board.bb_side[WHITE][Pieces::KING] |= 1u64 << square,
-            'Q' => board.bb_side[WHITE][Pieces::QUEEN] |= 1u64 << square,
-            'R' => board.bb_side[WHITE][Pieces::ROOK] |= 1u64 << square,
-            'B' => board.bb_side[WHITE][Pieces::BISHOP] |= 1u64 << square,
-            'N' => board.bb_side[WHITE][Pieces::KNIGHT] |= 1u64 << square,
-            'P' => board.bb_side[WHITE][Pieces::PAWN] |= 1u64 << square,
+            'k' => board.bb_side[Sides::BLACK][Pieces::KING] |= 1u64 << square,
+            'q' => board.bb_side[Sides::BLACK][Pieces::QUEEN] |= 1u64 << square,
+            'r' => board.bb_side[Sides::BLACK][Pieces::ROOK] |= 1u64 << square,
+            'b' => board.bb_side[Sides::BLACK][Pieces::BISHOP] |= 1u64 << square,
+            'n' => board.bb_side[Sides::BLACK][Pieces::KNIGHT] |= 1u64 << square,
+            'p' => board.bb_side[Sides::BLACK][Pieces::PAWN] |= 1u64 << square,
+            'K' => board.bb_side[Sides::WHITE][Pieces::KING] |= 1u64 << square,
+            'Q' => board.bb_side[Sides::WHITE][Pieces::QUEEN] |= 1u64 << square,
+            'R' => board.bb_side[Sides::WHITE][Pieces::ROOK] |= 1u64 << square,
+            'B' => board.bb_side[Sides::WHITE][Pieces::BISHOP] |= 1u64 << square,
+            'N' => board.bb_side[Sides::WHITE][Pieces::KNIGHT] |= 1u64 << square,
+            'P' => board.bb_side[Sides::WHITE][Pieces::PAWN] |= 1u64 << square,
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
@@ -130,8 +130,8 @@ fn color(board: &mut Board, part: &str) -> bool {
         if WHITE_OR_BLACK.contains(x);
         then {
             match x {
-                'w' => board.game_state.active_color = WHITE as u8,
-                'b' => board.game_state.active_color = BLACK as u8,
+                'w' => board.game_state.active_color = Sides::WHITE as u8,
+                'b' => board.game_state.active_color = Sides::BLACK as u8,
                 _ => (),
             }
             result = true;

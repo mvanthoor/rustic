@@ -1,7 +1,7 @@
 use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
-    defs::{Side, Square, WHITE},
+    defs::{Side, Sides, Square},
 };
 
 impl Board {
@@ -20,7 +20,7 @@ impl Board {
     }
 
     pub fn fourth_rank(side: Side) -> usize {
-        if side == WHITE {
+        if side == Sides::WHITE {
             Ranks::R4
         } else {
             Ranks::R5
@@ -28,7 +28,7 @@ impl Board {
     }
 
     pub fn promotion_rank(side: Side) -> usize {
-        if side == WHITE {
+        if side == Sides::WHITE {
             Ranks::R8
         } else {
             Ranks::R1
