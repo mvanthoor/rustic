@@ -50,7 +50,7 @@ pub fn perft(board: &mut Board, depth: u8) -> u64 {
 
     for i in 0..nr_of_moves {
         let m = move_list.get_move(i);
-        let legal = playmove::make(board, m);
+        let legal = board.make(m);
 
         if legal {
             leaf_nodes += perft(board, depth - 1);
