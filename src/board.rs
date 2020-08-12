@@ -1,10 +1,10 @@
 pub mod defs;
-pub mod fen;
-pub mod gamestate;
-pub mod history;
-pub mod playmove;
-pub mod utils;
-pub mod zobrist;
+mod fen;
+mod gamestate;
+mod history;
+mod playmove;
+mod utils;
+mod zobrist;
 
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},

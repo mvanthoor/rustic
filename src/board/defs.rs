@@ -1,6 +1,10 @@
 use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
+// Exports
+pub use super::fen::ERR_FEN_PARTS;
+pub use super::zobrist::ZobristRandoms;
+
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
