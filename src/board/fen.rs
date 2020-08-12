@@ -11,6 +11,20 @@ use crate::{
 use if_chain::if_chain;
 use std::ops::RangeInclusive;
 
+/** Definitions used by the FEN-reader */
+const NR_OF_FEN_PARTS: usize = 6;
+const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
+const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
+const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
+const WHITE_OR_BLACK: &str = "wb";
+const CASTLE_RIGHTS: &str = "KQkq-";
+const SPLITTER: char = '/';
+const DASH: char = '-';
+const SPACE: char = ' ';
+
+type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
+type FenResult = Result<(), u8>;
+
 // Define errors
 pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
     "Must have six (6) parts.",
@@ -22,22 +36,10 @@ pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
     "Full-move number.",
 ];
 
-/** Definitions used by the FEN-reader */
-const NR_OF_FEN_PARTS: usize = 6;
-const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
-const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
-const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
-const WHITE_OR_BLACK: &str = "wb";
-const CASTLE_RIGHTS: &str = "KQkq-";
-const SPLITTER: char = '/';
-const DASH: char = '-';
-const SPACE: char = ' ';
-type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
-
 impl Board {
     // This function splits the FEN-string into parts,
     // and then runs the parsing function for each part.
-    pub fn fen_read(&mut self, fen_string: Option<&str>) -> Result<(), u8> {
+    pub fn fen_read(&mut self, fen_string: Option<&str>) -> FenResult {
         let fen_parts: Vec<String> = match fen_string {
             Some(f) => f,
             None => FEN_START_POSITION,
@@ -47,17 +49,16 @@ impl Board {
         .collect();
 
         let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
-        let length = fen_parts.len();
         let mut result: Result<(), u8> = Err(0);
 
-        if length == NR_OF_FEN_PARTS {
+        if fen_parts.len() == NR_OF_FEN_PARTS {
             // Clone the incoming board so we don't need to create one from scratch.
-            let mut try_board = self.clone();
-            try_board.reset();
+            let mut new_board = self.clone();
+            new_board.reset();
 
-            // Try setup on the try_board, so we don't ruin our existing setup.
+            // use try_board so we don't destroy the existing setup on failure.
             for (i, parser) in fen_parsers.iter().enumerate() {
-                if parser(&mut try_board, &fen_parts[i]) {
+                if parser(&mut new_board, &fen_parts[i]) {
                     result = Ok(());
                 } else {
                     result = Err(i as u8 + 1);
@@ -65,10 +66,10 @@ impl Board {
                 }
             }
 
-            // If setup of the pieces is successful, initialize and replace.
+            // Replace old board with new one if setup was succesful.
             if result == Ok(()) {
-                try_board.init();
-                *self = try_board;
+                new_board.init();
+                *self = new_board;
             }
         }
         result
