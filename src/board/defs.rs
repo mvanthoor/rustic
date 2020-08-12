@@ -17,7 +17,7 @@ pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 ];
-pub const PIECE_NAME: [&str; NrOf::PIECE_TYPES as usize + 1] =
+pub const PIECE_NAME: [&str; NrOf::PIECE_TYPES + 1] =
     ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
 
 pub struct Pieces;

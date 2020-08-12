@@ -23,7 +23,7 @@ use std::sync::Arc;
 // TODO: Update comments
 #[derive(Clone)]
 pub struct Board {
-    pub bb_side: [[Bitboard; NrOf::PIECE_TYPES as usize]; Sides::BOTH],
+    pub bb_side: [[Bitboard; NrOf::PIECE_TYPES]; Sides::BOTH],
     pub bb_pieces: [Bitboard; Sides::BOTH],
     pub game_state: GameState,
     pub history: History,
@@ -38,7 +38,7 @@ impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new(zr: Arc<ZobristRandoms>, mg: Arc<MoveGenerator>) -> Self {
         Self {
-            bb_side: [[EMPTY; NrOf::PIECE_TYPES as usize]; Sides::BOTH],
+            bb_side: [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH],
             bb_pieces: [EMPTY; Sides::BOTH],
             game_state: GameState::new(),
             history: History::new(),
@@ -47,30 +47,6 @@ impl Board {
             zobrist_randoms: zr,
             move_generator: mg,
         }
-    }
-
-    // After reading the FEN-string, piece bitboards and lists must be initialized.
-    pub fn init(&mut self) {
-        let piece_bitboards = self.init_piece_bitboards();
-        self.bb_pieces[Sides::WHITE] = piece_bitboards.0;
-        self.bb_pieces[Sides::BLACK] = piece_bitboards.1;
-
-        self.piece_list = self.init_piece_list();
-        self.game_state.zobrist_key = self.init_zobrist_key();
-
-        let material = material::count(&self);
-        self.material_count[Sides::WHITE] = material.0;
-        self.material_count[Sides::BLACK] = material.1;
-    }
-
-    // Reset the board.
-    pub fn reset(&mut self) {
-        self.bb_side = [[0; NrOf::PIECE_TYPES as usize]; Sides::BOTH];
-        self.bb_pieces = [EMPTY; Sides::BOTH];
-        self.game_state = GameState::new();
-        self.history.clear();
-        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
-        self.material_count = [0; Sides::BOTH];
     }
 
     // Return a bitboard with locations of a certain piece type for one of the sides.
@@ -164,19 +140,41 @@ impl Board {
 
 // Private board functions (for initializating on startup)
 impl Board {
+    fn reset(&mut self) {
+        self.bb_side = [[0; NrOf::PIECE_TYPES]; Sides::BOTH];
+        self.bb_pieces = [EMPTY; Sides::BOTH];
+        self.game_state = GameState::new();
+        self.history.clear();
+        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
+        self.material_count = [0; Sides::BOTH];
+    }
+
+    fn init(&mut self) {
+        let piece_bitboards = self.init_piece_bitboards();
+        self.bb_pieces[Sides::WHITE] = piece_bitboards.0;
+        self.bb_pieces[Sides::BLACK] = piece_bitboards.1;
+
+        self.piece_list = self.init_piece_list();
+        self.game_state.zobrist_key = self.init_zobrist_key();
+
+        let material = material::count(&self);
+        self.material_count[Sides::WHITE] = material.0;
+        self.material_count[Sides::BLACK] = material.1;
+    }
+
     fn init_piece_bitboards(&self) -> (Bitboard, Bitboard) {
-        let mut white: Bitboard = 0;
-        let mut black: Bitboard = 0;
+        let mut bb_white: Bitboard = 0;
+        let mut bb_black: Bitboard = 0;
 
         for (bb_w, bb_b) in self.bb_side[Sides::WHITE]
             .iter()
             .zip(self.bb_side[Sides::BLACK].iter())
         {
-            white |= *bb_w;
-            black |= *bb_b;
+            bb_white |= *bb_w;
+            bb_black |= *bb_b;
         }
 
-        (white, black)
+        (bb_white, bb_black)
     }
 
     fn init_piece_list(&self) -> [Piece; NrOf::SQUARES] {

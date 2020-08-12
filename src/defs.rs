@@ -24,10 +24,10 @@ pub const FEN_START_POSITION: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 pub struct NrOf;
 impl NrOf {
+    pub const PIECE_TYPES: usize = 6;
     pub const SQUARES: usize = 64;
     pub const FILES: u8 = 8;
     pub const RANKS: u8 = 8;
-    pub const PIECE_TYPES: u8 = 6;
     pub const CASTLING_PERMISSIONS: u8 = 16; // 0-15
 }
 
