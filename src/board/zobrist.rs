@@ -3,16 +3,11 @@ use rand::{Rng, SeedableRng};
 
 use crate::defs::{NrOf, Piece, Side, Sides, Square, EMPTY};
 
-const ALL_SQUARES: usize = NrOf::SQUARES;
-const ALL_PIECES: usize = NrOf::PIECE_TYPES;
-const ALL_SIDES: usize = Sides::BOTH;
-const ALL_CASTLING_PERMISSIONS: usize = NrOf::CASTLING_PERMISSIONS as usize;
-
 /* Random number for all sides for all pieces on all squares */
-type PieceRandoms = [[[u64; ALL_SQUARES]; ALL_PIECES]; ALL_SIDES];
-type CastlingRandoms = [u64; ALL_CASTLING_PERMISSIONS];
-type SideRandoms = [u64; ALL_SIDES];
-type EpRandoms = [u64; ALL_SQUARES + 1];
+type PieceRandoms = [[[u64; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
+type CastlingRandoms = [u64; NrOf::CASTLING_PERMISSIONS];
+type SideRandoms = [u64; Sides::BOTH];
+type EpRandoms = [u64; NrOf::SQUARES + 1];
 
 pub type ZobristKey = u64;
 
@@ -27,10 +22,10 @@ impl ZobristRandoms {
     pub fn new() -> Self {
         let mut random = SmallRng::from_seed([125; 16]);
         let mut zobrist_randoms = Self {
-            rnd_pieces: [[[EMPTY; ALL_SQUARES]; ALL_PIECES]; ALL_SIDES],
-            rnd_castling: [EMPTY; ALL_CASTLING_PERMISSIONS],
-            rnd_sides: [EMPTY; ALL_SIDES],
-            rnd_en_passant: [EMPTY; ALL_SQUARES + 1],
+            rnd_pieces: [[[EMPTY; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
+            rnd_castling: [EMPTY; NrOf::CASTLING_PERMISSIONS],
+            rnd_sides: [EMPTY; Sides::BOTH],
+            rnd_en_passant: [EMPTY; NrOf::SQUARES + 1],
         };
 
         zobrist_randoms.rnd_pieces.iter_mut().for_each(|side| {
@@ -74,7 +69,7 @@ impl ZobristRandoms {
     pub fn en_passant(&self, en_passant: Option<u8>) -> ZobristKey {
         match en_passant {
             Some(ep) => self.rnd_en_passant[ep as usize],
-            None => self.rnd_en_passant[ALL_SQUARES],
+            None => self.rnd_en_passant[NrOf::SQUARES],
         }
     }
 }
