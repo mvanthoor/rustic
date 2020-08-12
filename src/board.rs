@@ -6,17 +6,19 @@ mod playmove;
 mod utils;
 mod zobrist;
 
+use self::{
+    defs::{Pieces, BB_SQUARES},
+    gamestate::GameState,
+    history::History,
+    zobrist::{ZobristKey, ZobristRandoms},
+};
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
     movegen::{movelist::MoveList, MoveGenerator},
 };
-use defs::{Pieces, BB_SQUARES};
-use gamestate::GameState;
-use history::History;
 use std::sync::Arc;
-use zobrist::{ZobristKey, ZobristRandoms};
 
 // TODO: Update comments
 #[derive(Clone)]
