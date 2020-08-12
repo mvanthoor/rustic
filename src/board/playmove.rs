@@ -1,5 +1,4 @@
-// playmove.rs contains make() and unmake(), to execute and reverse moves on the
-// board. make() executes the given move, unmake() reverses the last move made.
+// playmove.rs contains make() and unamke() for move execution and reversal.
 
 use super::{
     defs::{Pieces, Squares, BB_SQUARES},
@@ -13,8 +12,8 @@ use crate::{
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
 // permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
-const N_WKQ: u8 = Castling::ALL & !(Castling::WK | Castling::WQ);
-const N_BKQ: u8 = Castling::ALL & !(Castling::BK | Castling::BQ);
+const N_WKQ: u8 = Castling::ALL & !Castling::WK & !Castling::WQ;
+const N_BKQ: u8 = Castling::ALL & !Castling::BK & !Castling::BQ;
 const N_WK: u8 = Castling::ALL & !Castling::WK;
 const N_WQ: u8 = Castling::ALL & !Castling::WQ;
 const N_BK: u8 = Castling::ALL & !Castling::BK;
@@ -33,6 +32,8 @@ const CASTLING_PERMS: [u8; NrOf::SQUARES] = [
     15,   15,  15,  15,  15,    15,  15,  15, 
     N_BQ, 15,  15,  15,  N_BKQ, 15,  15,  N_BK,
 ];
+
+/*** ================================================================================ ***/
 
 // Make() executes the given move and checks if it is legal. If it's not legal,
 // the move is immediately reversed using unmake(), and the board is not changed.
@@ -133,7 +134,7 @@ impl Board {
         // as Square;
         let is_legal = !self.square_attacked(opponent, self.king_square(us));
         if !is_legal {
-            unmake(self);
+            self.unmake();
         }
 
         is_legal
@@ -144,55 +145,59 @@ impl Board {
 
 // Unmake() reverses the last move. The game state is restored by popping it
 // from the history array, all variables at once.
-#[cfg_attr(debug_assertions, inline(never))]
-#[cfg_attr(not(debug_assertions), inline(always))]
-pub fn unmake(board: &mut Board) {
-    board.game_state = board.history.pop();
+impl Board {
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn unmake(&mut self) {
+        self.game_state = self.history.pop();
 
-    // Set "us" and "opponent"
-    let us = board.us();
-    let opponent = us ^ 1;
+        // Set "us" and "opponent"
+        let us = self.us();
+        let opponent = us ^ 1;
 
-    // Dissect the move to undo
-    let m = board.game_state.next_move;
-    let piece = m.piece();
-    let from = m.from();
-    let to = m.to();
-    let captured = m.captured();
-    let promoted = m.promoted();
-    let castling = m.castling();
-    let en_passant = m.en_passant();
+        // Dissect the move to undo
+        let m = self.game_state.next_move;
+        let piece = m.piece();
+        let from = m.from();
+        let to = m.to();
+        let captured = m.captured();
+        let promoted = m.promoted();
+        let castling = m.castling();
+        let en_passant = m.en_passant();
 
-    // Moving backwards...
-    if promoted == Pieces::NONE {
-        unmake_reverse_move(board, us, piece, to, from);
-    } else {
-        unmake_remove_piece(board, us, promoted, to);
-        unmake_put_piece(board, us, Pieces::PAWN, from);
-    }
+        // Moving backwards...
+        if promoted == Pieces::NONE {
+            reverse_move(self, us, piece, to, from);
+        } else {
+            remove_piece(self, us, promoted, to);
+            put_piece(self, us, Pieces::PAWN, from);
+        }
 
-    // The king's move was already undone as a normal move.
-    // Now undo the correct castling rook move.
-    if castling {
-        match to {
-            Squares::G1 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::F1, Squares::H1),
-            Squares::C1 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::D1, Squares::A1),
-            Squares::G8 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::F8, Squares::H8),
-            Squares::C8 => unmake_reverse_move(board, us, Pieces::ROOK, Squares::D8, Squares::A8),
-            _ => panic!("Error: Reversing castling rook move."),
-        };
-    }
+        // The king's move was already undone as a normal move.
+        // Now undo the correct castling rook move.
+        if castling {
+            match to {
+                Squares::G1 => reverse_move(self, us, Pieces::ROOK, Squares::F1, Squares::H1),
+                Squares::C1 => reverse_move(self, us, Pieces::ROOK, Squares::D1, Squares::A1),
+                Squares::G8 => reverse_move(self, us, Pieces::ROOK, Squares::F8, Squares::H8),
+                Squares::C8 => reverse_move(self, us, Pieces::ROOK, Squares::D8, Squares::A8),
+                _ => panic!("Error: Reversing castling rook move."),
+            };
+        }
 
-    // If a piece was captured, put it back onto the to-square
-    if captured != Pieces::NONE {
-        unmake_put_piece(board, opponent, captured, to);
-    }
+        // If a piece was captured, put it back onto the to-square
+        if captured != Pieces::NONE {
+            put_piece(self, opponent, captured, to);
+        }
 
-    // If this was an e-passant move, put the opponent's pawn back
-    if en_passant {
-        unmake_put_piece(board, opponent, Pieces::PAWN, to ^ 8);
+        // If this was an e-passant move, put the opponent's pawn back
+        if en_passant {
+            put_piece(self, opponent, Pieces::PAWN, to ^ 8);
+        }
     }
 }
+
+/*** Functions local to playmove.rs ====================================================== ***/
 
 // unamke() pops the entire game history from a list at the beginning,
 // including the Zobrist-key. Therefore the Zobrist-key is already set to
@@ -200,28 +205,34 @@ pub fn unmake(board: &mut Board) {
 // would calculate on that already finished Zobrist key and thus mess it
 // up. These helper functions don't calculate the Zobrist key.
 
-// Removes a piece from the board.
-fn unmake_remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
+// Removes a piece from the board without Zobrist key updates.
+fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_side[side][piece] ^= BB_SQUARES[square];
     board.bb_pieces[side] ^= BB_SQUARES[square];
     board.piece_list[square] = Pieces::NONE;
     board.material_count[side] -= PIECE_VALUES[piece];
 }
 
-// Puts a piece onto the board.
-fn unmake_put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
+// Puts a piece onto the board without Zobrist key updates.
+fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_side[side][piece] |= BB_SQUARES[square];
     board.bb_pieces[side] |= BB_SQUARES[square];
     board.piece_list[square] = piece;
     board.material_count[side] += PIECE_VALUES[piece];
 }
 
-// Moves a piece from one square to the other.
-fn unmake_reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
-    unmake_remove_piece(board, side, piece, remove);
-    unmake_put_piece(board, side, piece, put);
+// Moves a piece from one square to another.
+fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put: Square) {
+    remove_piece(board, side, piece, remove);
+    put_piece(board, side, piece, put);
 }
 
+/*** ======================================================================================= ***/
+
+// This function can be used to check if the Zobrist-key and material count
+// are updated correctly during make() and unmake().
+
+// TODO: Change this function so it can be used in a debug_assert!() statement.
 #[allow(dead_code)]
 fn checkup(board: &Board, m: Move) {
     let key = board.init_zobrist_key();
