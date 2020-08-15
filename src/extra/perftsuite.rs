@@ -1,6 +1,6 @@
 use super::large_epd::LARGE_PERFT_SUITE;
 use crate::{
-    board::{defs::ZobristRandoms, Board},
+    board::Board,
     extra::{perft, print},
     movegen::MoveGenerator,
 };
@@ -34,8 +34,7 @@ pub fn run_single_test(test: usize) {
 fn run(subset: &[&str]) {
     let number_of_tests = subset.len();
     let move_generator = MoveGenerator::new();
-    let zobrist_randoms = ZobristRandoms::new();
-    let mut board: Board = Board::new(Arc::new(zobrist_randoms), Arc::new(move_generator));
+    let mut board: Board = Board::new(Arc::new(move_generator));
     let mut abort = false;
 
     // Run all the tests.
