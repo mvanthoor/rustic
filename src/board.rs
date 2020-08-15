@@ -16,7 +16,7 @@ use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
-    movegen::{movelist::MoveList, MoveGenerator},
+    movegen::{defs::MoveList, MoveGenerator},
 };
 use std::sync::Arc;
 

@@ -1,8 +1,8 @@
-pub mod create;
+mod create;
 pub mod defs;
 mod init;
-pub mod magics;
-pub mod movelist;
+mod magics;
+mod movelist;
 
 // TODO: Rewrite comments for move generator
 use crate::{
