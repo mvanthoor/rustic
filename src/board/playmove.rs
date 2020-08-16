@@ -7,7 +7,7 @@ use super::{
 use crate::{
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
     evaluation::defs::PIECE_VALUES,
-    movegen::defs::Move,
+    movegen::{defs::Move, MoveGenerator},
 };
 
 // Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
@@ -41,7 +41,7 @@ const CASTLING_PERMS: [u8; NrOf::SQUARES] = [
 impl Board {
     #[cfg_attr(debug_assertions, inline(never))]
     #[cfg_attr(not(debug_assertions), inline(always))]
-    pub fn make(&mut self, m: Move) -> bool {
+    pub fn make(&mut self, m: Move, mg: &MoveGenerator) -> bool {
         // Create the unmake info and store it.
         let mut current_game_state = self.game_state;
         current_game_state.next_move = m;
@@ -130,7 +130,7 @@ impl Board {
         }
 
         /*** Validating move: see if "us" is in check. If so, undo everything. ***/
-        let is_legal = !self.square_attacked(opponent, self.king_square(us));
+        let is_legal = !mg.square_attacked(self, opponent, self.king_square(us));
         if !is_legal {
             self.unmake();
         }

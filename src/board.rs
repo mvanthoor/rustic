@@ -16,7 +16,6 @@ use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
-    movegen::{defs::MoveList, MoveGenerator},
 };
 use std::sync::Arc;
 
@@ -30,13 +29,12 @@ pub struct Board {
     pub piece_list: [Piece; NrOf::SQUARES],
     pub material_count: [u16; Sides::BOTH],
     zobrist_randoms: Arc<ZobristRandoms>,
-    move_generator: Arc<MoveGenerator>,
 }
 
 // Public functions for use by other modules.
 impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
-    pub fn new(mg: Arc<MoveGenerator>) -> Self {
+    pub fn new() -> Self {
         Self {
             bb_side: [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH],
             bb_pieces: [EMPTY; Sides::BOTH],
@@ -45,7 +43,6 @@ impl Board {
             piece_list: [Pieces::NONE; NrOf::SQUARES],
             material_count: [0; Sides::BOTH],
             zobrist_randoms: Arc::new(ZobristRandoms::new()),
-            move_generator: mg,
         }
     }
 
@@ -125,16 +122,6 @@ impl Board {
         self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
         self.game_state.castling = new_permissions;
         self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
-    }
-
-    // True if the given side is attacking the given square.
-    pub fn square_attacked(&self, attacker: Side, square: Square) -> bool {
-        self.move_generator.square_attacked(self, attacker, square)
-    }
-
-    // Generates all pseudo-legal moves and puts them in the given move list.
-    pub fn gen_all_moves(&self, ml: &mut MoveList) {
-        self.move_generator.gen_all_moves(self, ml);
     }
 }
 

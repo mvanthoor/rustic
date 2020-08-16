@@ -1,9 +1,13 @@
-use crate::{board::Board, extra::print, movegen::defs::MoveList};
+use crate::{
+    board::Board,
+    extra::print,
+    movegen::{defs::MoveList, MoveGenerator},
+};
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
 #[allow(dead_code)]
-pub fn run(board: &Board, depth: u8) {
+pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
@@ -14,7 +18,7 @@ pub fn run(board: &Board, depth: u8) {
     for d in 1..=depth {
         let mut perft_board: Board = board.clone();
         let now = Instant::now();
-        let leaf_nodes = perft(&mut perft_board, d);
+        let leaf_nodes = perft(&mut perft_board, d, mg);
         let elapsed = now.elapsed().as_millis();
         let leaves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
 
@@ -33,7 +37,7 @@ pub fn run(board: &Board, depth: u8) {
 
 // This is the actual Perft function.
 #[allow(dead_code)]
-pub fn perft(board: &mut Board, depth: u8) -> u64 {
+pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let mut move_list: MoveList = MoveList::new();
 
@@ -41,15 +45,15 @@ pub fn perft(board: &mut Board, depth: u8) -> u64 {
         return 1;
     }
 
-    board.gen_all_moves(&mut move_list);
+    mg.gen_all_moves(board, &mut move_list);
     let nr_of_moves = move_list.len();
 
     for i in 0..nr_of_moves {
         let m = move_list.get_move(i);
-        let legal = board.make(m);
+        let legal = board.make(m, mg);
 
         if legal {
-            leaf_nodes += perft(board, depth - 1);
+            leaf_nodes += perft(board, depth - 1, mg);
             board.unmake();
         }
     }
