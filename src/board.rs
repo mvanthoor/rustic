@@ -169,42 +169,45 @@ impl Board {
         let bb_b = self.bb_pieces[Sides::BLACK]; // Black bitboards
         let mut piece_list: [Piece; NrOf::SQUARES] = [Pieces::NONE; NrOf::SQUARES];
 
-        for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
-            let mut white = *w; // White pieces of type "p"
-            let mut black = *b; // Black pieces of type "p"
+        // piece_type is enumerated, from 0 to 6.
+        // 0 = KING, 1 = QUEEN, and so on, as defined in board::defs.
+        for (piece_type, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            let mut white_pieces = *w; // White pieces of type "piece_type"
+            let mut black_pieces = *b; // Black pieces of type "piece_type"
 
-            while white > 0 {
-                let square = bits::next(&mut white);
-                piece_list[square] = p;
+            while white_pieces > 0 {
+                let square = bits::next(&mut white_pieces);
+                piece_list[square] = piece_type;
             }
 
-            while black > 0 {
-                let square = bits::next(&mut black);
-                piece_list[square] = p;
+            while black_pieces > 0 {
+                let square = bits::next(&mut black_pieces);
+                piece_list[square] = piece_type;
             }
         }
 
         piece_list
     }
 
+    // TODO: Write comments.
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = &self.zobrist_randoms;
         let bb_w = self.bb_pieces[Sides::WHITE];
         let bb_b = self.bb_pieces[Sides::BLACK];
 
-        for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
-            let mut white = *w;
-            let mut black = *b;
+        for (piece_type, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            let mut white_pieces = *w;
+            let mut black_pieces = *b;
 
-            while white > 0 {
-                let square = bits::next(&mut white);
-                key ^= zr.piece(Sides::WHITE, piece, square);
+            while white_pieces > 0 {
+                let square = bits::next(&mut white_pieces);
+                key ^= zr.piece(Sides::WHITE, piece_type, square);
             }
 
-            while black > 0 {
-                let square = bits::next(&mut black);
-                key ^= zr.piece(Sides::BLACK, piece, square);
+            while black_pieces > 0 {
+                let square = bits::next(&mut black_pieces);
+                key ^= zr.piece(Sides::BLACK, piece_type, square);
             }
         }
 
