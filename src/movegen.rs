@@ -110,12 +110,12 @@ impl MoveGenerator {
     pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList) {
         let us = board.us();
         let bb_occupancy = board.occupancy();
-        let bb_own_pieces = board.bb_pieces[us];
-        let mut bb_pieces = board.get_pieces(piece, us);
+        let bb_own_pieces = board.bb_side[us];
+        let mut bb_side = board.get_pieces(piece, us);
 
         // Generate moves for each piece of the type passed into the function.
-        while bb_pieces > 0 {
-            let from = bits::next(&mut bb_pieces);
+        while bb_side > 0 {
+            let from = bits::next(&mut bb_side);
             let bb_target = match piece {
                 Pieces::KING | Pieces::KNIGHT => self.get_non_slider_attacks(piece, from),
                 Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
@@ -135,7 +135,7 @@ impl MoveGenerator {
         const DOWN: i8 = -8;
 
         let us = board.us();
-        let bb_opponent_pieces = board.bb_pieces[board.opponent()];
+        let bb_opponent_pieces = board.bb_side[board.opponent()];
         let bb_empty = !board.occupancy();
         let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
         let direction = if us == Sides::WHITE { UP } else { DOWN };
@@ -292,7 +292,7 @@ impl MoveGenerator {
     #[cfg_attr(debug_assertions, inline(never))]
     #[cfg_attr(not(debug_assertions), inline(always))]
     pub fn square_attacked(&self, board: &Board, attacker: Side, square: Square) -> bool {
-        let pieces = board.bb_side[attacker];
+        let pieces = board.bb_pieces[attacker];
         let occupancy = board.occupancy();
         let bb_king = self.get_non_slider_attacks(Pieces::KING, square);
         let bb_rook = self.get_slider_attacks(Pieces::ROOK, square, occupancy);

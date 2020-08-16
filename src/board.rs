@@ -22,8 +22,8 @@ use std::sync::Arc;
 // TODO: Update comments
 #[derive(Clone)]
 pub struct Board {
-    pub bb_side: [[Bitboard; NrOf::PIECE_TYPES]; Sides::BOTH],
-    pub bb_pieces: [Bitboard; Sides::BOTH],
+    pub bb_pieces: [[Bitboard; NrOf::PIECE_TYPES]; Sides::BOTH],
+    pub bb_side: [Bitboard; Sides::BOTH],
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NrOf::SQUARES],
@@ -36,8 +36,8 @@ impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
     pub fn new() -> Self {
         Self {
-            bb_side: [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH],
-            bb_pieces: [EMPTY; Sides::BOTH],
+            bb_pieces: [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH],
+            bb_side: [EMPTY; Sides::BOTH],
             game_state: GameState::new(),
             history: History::new(),
             piece_list: [Pieces::NONE; NrOf::SQUARES],
@@ -48,12 +48,12 @@ impl Board {
 
     // Return a bitboard with locations of a certain piece type for one of the sides.
     pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
-        self.bb_side[side][piece]
+        self.bb_pieces[side][piece]
     }
 
     // Return a bitboard containing all the pieces on the board.
     pub fn occupancy(&self) -> Bitboard {
-        self.bb_pieces[Sides::WHITE] | self.bb_pieces[Sides::BLACK]
+        self.bb_side[Sides::WHITE] | self.bb_side[Sides::BLACK]
     }
 
     pub fn us(&self) -> usize {
@@ -65,7 +65,7 @@ impl Board {
     }
 
     pub fn king_square(&self, side: Side) -> Square {
-        self.bb_side[side][Pieces::KING].trailing_zeros() as Square
+        self.bb_pieces[side][Pieces::KING].trailing_zeros() as Square
     }
 
     // Remove a piece from the board, for the given side, piece, and square.
@@ -73,14 +73,14 @@ impl Board {
         self.piece_list[square] = Pieces::NONE;
         self.material_count[side] -= PIECE_VALUES[piece];
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
-        self.bb_side[side][piece] ^= BB_SQUARES[square];
-        self.bb_pieces[side] ^= BB_SQUARES[square];
+        self.bb_pieces[side][piece] ^= BB_SQUARES[square];
+        self.bb_side[side] ^= BB_SQUARES[square];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.bb_side[side][piece] |= BB_SQUARES[square];
-        self.bb_pieces[side] |= BB_SQUARES[square];
+        self.bb_pieces[side][piece] |= BB_SQUARES[square];
+        self.bb_side[side] |= BB_SQUARES[square];
         self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square] = piece;
@@ -128,8 +128,8 @@ impl Board {
 // Private board functions (for initializating on startup)
 impl Board {
     fn reset(&mut self) {
-        self.bb_side = [[0; NrOf::PIECE_TYPES]; Sides::BOTH];
-        self.bb_pieces = [EMPTY; Sides::BOTH];
+        self.bb_pieces = [[0; NrOf::PIECE_TYPES]; Sides::BOTH];
+        self.bb_side = [EMPTY; Sides::BOTH];
         self.game_state = GameState::new();
         self.history.clear();
         self.piece_list = [Pieces::NONE; NrOf::SQUARES];
@@ -138,8 +138,8 @@ impl Board {
 
     fn init(&mut self) {
         let piece_bitboards = self.init_piece_bitboards();
-        self.bb_pieces[Sides::WHITE] = piece_bitboards.0;
-        self.bb_pieces[Sides::BLACK] = piece_bitboards.1;
+        self.bb_side[Sides::WHITE] = piece_bitboards.0;
+        self.bb_side[Sides::BLACK] = piece_bitboards.1;
 
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
@@ -153,9 +153,9 @@ impl Board {
         let mut bb_white: Bitboard = 0;
         let mut bb_black: Bitboard = 0;
 
-        for (bb_w, bb_b) in self.bb_side[Sides::WHITE]
+        for (bb_w, bb_b) in self.bb_pieces[Sides::WHITE]
             .iter()
-            .zip(self.bb_side[Sides::BLACK].iter())
+            .zip(self.bb_pieces[Sides::BLACK].iter())
         {
             bb_white |= *bb_w;
             bb_black |= *bb_b;
@@ -165,8 +165,8 @@ impl Board {
     }
 
     fn init_piece_list(&self) -> [Piece; NrOf::SQUARES] {
-        let bb_w = self.bb_side[Sides::WHITE]; // White bitboards
-        let bb_b = self.bb_side[Sides::BLACK]; // Black bitboards
+        let bb_w = self.bb_pieces[Sides::WHITE]; // White bitboards
+        let bb_b = self.bb_pieces[Sides::BLACK]; // Black bitboards
         let mut piece_list: [Piece; NrOf::SQUARES] = [Pieces::NONE; NrOf::SQUARES];
 
         for (p, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
@@ -190,8 +190,8 @@ impl Board {
     fn init_zobrist_key(&self) -> ZobristKey {
         let mut key: u64 = 0;
         let zr = &self.zobrist_randoms;
-        let bb_w = self.bb_side[Sides::WHITE];
-        let bb_b = self.bb_side[Sides::BLACK];
+        let bb_w = self.bb_pieces[Sides::WHITE];
+        let bb_b = self.bb_pieces[Sides::BLACK];
 
         for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
             let mut white = *w;

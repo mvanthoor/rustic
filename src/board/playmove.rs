@@ -205,16 +205,16 @@ impl Board {
 
 // Removes a piece from the board without Zobrist key updates.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_side[side][piece] ^= BB_SQUARES[square];
-    board.bb_pieces[side] ^= BB_SQUARES[square];
+    board.bb_pieces[side][piece] ^= BB_SQUARES[square];
+    board.bb_side[side] ^= BB_SQUARES[square];
     board.piece_list[square] = Pieces::NONE;
     board.material_count[side] -= PIECE_VALUES[piece];
 }
 
 // Puts a piece onto the board without Zobrist key updates.
 fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_side[side][piece] |= BB_SQUARES[square];
-    board.bb_pieces[side] |= BB_SQUARES[square];
+    board.bb_pieces[side][piece] |= BB_SQUARES[square];
+    board.bb_side[side] |= BB_SQUARES[square];
     board.piece_list[square] = piece;
     board.material_count[side] += PIECE_VALUES[piece];
 }

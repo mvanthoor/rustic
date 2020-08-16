@@ -86,8 +86,8 @@ pub fn horizontal_line(c: char, length: u8) {
 // Create a printable ASCII-board out of bitboards.
 #[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
-    let bb_w = board.bb_side[Sides::WHITE];
-    let bb_b = board.bb_side[Sides::BLACK];
+    let bb_w = board.bb_pieces[Sides::WHITE];
+    let bb_b = board.bb_pieces[Sides::BLACK];
 
     for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
         match piece {
