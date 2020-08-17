@@ -3,13 +3,13 @@ mod defs;
 mod evaluation;
 mod extra;
 // mod interface;
-mod engine;
 mod misc;
 mod movegen;
 
+// use interface::console;
 use board::{defs::ERR_FEN_PARTS, Board};
 use extra::perft;
-// use interface::console;
+use misc::info;
 use movegen::MoveGenerator;
 
 fn main() {
@@ -18,9 +18,7 @@ fn main() {
     let mut board: Board = Board::new();
     let setup_result = board.fen_read(test_pos);
 
-    let engine = engine::Engine::new();
-
-    engine.about();
+    info::about();
 
     match setup_result {
         Ok(()) => perft::run(&board, 6, &move_generator), //while console::get_input(&mut board) != 0 {},
