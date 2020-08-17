@@ -56,14 +56,10 @@ impl Board {
             let mut new_board = self.clone();
             new_board.reset();
 
-            // use try_board so we don't destroy the existing setup on failure.
+            // use new_board so we don't destroy the existing setup on failure.
             for (i, parser) in fen_parsers.iter().enumerate() {
-                if parser(&mut new_board, &fen_parts[i]) {
-                    result = Ok(());
-                } else {
-                    result = Err(i as u8 + 1);
-                    break;
-                }
+                let is_ok = parser(&mut new_board, &fen_parts[i]);
+                result = if is_ok { Ok(()) } else { Err(i as u8 + 1) }
             }
 
             // Replace old board with new one if setup was succesful.
@@ -114,6 +110,7 @@ fn pieces(board: &mut Board, part: &str) -> bool {
             file += 1;
         }
 
+        // As soon as something is wrong, stop parsing.
         if !result {
             break;
         }
