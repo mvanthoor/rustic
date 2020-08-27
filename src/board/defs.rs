@@ -87,45 +87,52 @@ impl RangeOf {
     pub const SQUARES: RangeInclusive<Square> = 0..=63;
 }
 
-// Bitboards for the first file and first rank.
-pub const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
-pub const BB_RANK_1: Bitboard = 0xFF;
+// Initialize arrays with bitboards for each file, rank and square.
+type TBBFiles = [Bitboard; NrOf::FILES as usize];
+type TBBRanks = [Bitboard; NrOf::RANKS as usize];
+type TBBSquares = [Bitboard; NrOf::SQUARES];
 
-// Contains bitboards for each file.
-pub const BB_FILES: [Bitboard; NrOf::FILES as usize] = [
-    BB_FILE_A,
-    BB_FILE_A << 1,
-    BB_FILE_A << 2,
-    BB_FILE_A << 3,
-    BB_FILE_A << 4,
-    BB_FILE_A << 5,
-    BB_FILE_A << 6,
-    BB_FILE_A << 7,
-];
+const fn init_bb_files() -> TBBFiles {
+    const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
+    let mut bb_files: TBBFiles = [0; NrOf::FILES as usize];
+    let mut i = 0;
 
-// Contains bitboards for each rank.
-pub const BB_RANKS: [Bitboard; NrOf::RANKS as usize] = [
-    BB_RANK_1,
-    BB_RANK_1 << 8,
-    BB_RANK_1 << 16,
-    BB_RANK_1 << 24,
-    BB_RANK_1 << 32,
-    BB_RANK_1 << 40,
-    BB_RANK_1 << 48,
-    BB_RANK_1 << 56,
-];
+    while i < (NrOf::FILES as usize) {
+        bb_files[i] = BB_FILE_A << i;
+        i += 1;
+    }
 
-#[rustfmt::skip]
-pub const BB_SQUARES: [Bitboard; NrOf::SQUARES] = [
-    1u64, 1u64 << 1, 1u64 << 2, 1u64 << 3, 1u64 << 4, 1u64 << 5, 1u64 << 6, 1u64 << 7,
-    1u64 << 8, 1u64 << 9, 1u64 << 10, 1u64 << 11, 1u64 << 12, 1u64 << 13, 1u64 << 14, 1u64 << 15,
-    1u64 << 16, 1u64 << 17, 1u64 << 18, 1u64 << 19, 1u64 << 20, 1u64 << 21, 1u64 << 22, 1u64 << 23,
-    1u64 << 24, 1u64 << 25, 1u64 << 26, 1u64 << 27, 1u64 << 28, 1u64 << 29, 1u64 << 30, 1u64 << 31,
-    1u64 << 32, 1u64 << 33, 1u64 << 34, 1u64 << 35, 1u64 << 36, 1u64 << 37, 1u64 << 38, 1u64 << 39,
-    1u64 << 40, 1u64 << 41, 1u64 << 42, 1u64 << 43, 1u64 << 44, 1u64 << 45, 1u64 << 46, 1u64 << 47,
-    1u64 << 48, 1u64 << 49, 1u64 << 50, 1u64 << 51, 1u64 << 52, 1u64 << 53, 1u64 << 54, 1u64 << 55,
-    1u64 << 56, 1u64 << 57, 1u64 << 58, 1u64 << 59, 1u64 << 60, 1u64 << 61, 1u64 << 62, 1u64 << 63,
-];
+    bb_files
+}
+
+const fn init_bb_ranks() -> TBBRanks {
+    pub const BB_RANK_1: Bitboard = 0xFF;
+    let mut bb_ranks = [0; NrOf::RANKS as usize];
+    let mut i = 0;
+
+    while i < (NrOf::RANKS as usize) {
+        bb_ranks[i] = BB_RANK_1 << (i * 8);
+        i += 1;
+    }
+
+    bb_ranks
+}
+
+const fn init_bb_squares() -> TBBSquares {
+    let mut bb_squares: TBBSquares = [0; NrOf::SQUARES];
+    let mut i = 0;
+
+    while i < NrOf::SQUARES {
+        bb_squares[i] = 1u64 << i;
+        i += 1;
+    }
+
+    bb_squares
+}
+
+pub const BB_FILES: TBBFiles = init_bb_files();
+pub const BB_RANKS: TBBRanks = init_bb_ranks();
+pub const BB_SQUARES: TBBSquares = init_bb_squares();
 
 // Piece location: (file, rank)
 pub type Location = (u8, u8);
