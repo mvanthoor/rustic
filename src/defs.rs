@@ -7,6 +7,8 @@
 pub const ENGINE: &str = "Rustic";
 pub const VERSION: &str = "Alpha 1";
 pub const AUTHOR: &str = "Marcel Vanthoor";
+pub const EMAIL: &str = "mail@marcelvanthoor.nl";
+pub const ABOUT: &str = "UCI Chess Engine, written in Rust";
 
 pub type Bitboard = u64;
 pub type Piece = usize;

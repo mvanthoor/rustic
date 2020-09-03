@@ -9,7 +9,7 @@ mod movegen;
 // use interface::console;
 use board::{defs::ERR_FEN_PARTS, Board};
 use clap::{App, Arg};
-use defs::{AUTHOR, ENGINE, VERSION};
+use defs::{ABOUT, AUTHOR, EMAIL, ENGINE, VERSION};
 use extra::perft;
 use misc::info;
 use movegen::MoveGenerator;
@@ -17,8 +17,8 @@ use movegen::MoveGenerator;
 fn main() {
     let cmd_line = App::new(ENGINE)
         .version(VERSION)
-        .author(AUTHOR)
-        .about("UCI Chess Engine in Rust.")
+        .author(&*format!("{} <{}>", AUTHOR, EMAIL))
+        .about(ABOUT)
         .arg(
             Arg::with_name("experiment")
                 .short("x")
