@@ -3,11 +3,13 @@ mod defs;
 mod evaluation;
 mod extra;
 // mod interface;
+mod engine;
 mod misc;
 mod movegen;
 
 // use interface::console;
 use board::{defs::ERR_FEN_PARTS, Board};
+use engine::Engine;
 use extra::perft;
 use misc::{cmdline, info};
 use movegen::MoveGenerator;
@@ -21,6 +23,10 @@ fn main() {
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
     let setup_result = board.fen_read(test_pos);
+
+    let engine = Engine::new();
+
+    engine.run();
 
     info::about();
 
