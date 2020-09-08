@@ -2,6 +2,12 @@
 // as an optional feature, for playing in a console window. It can also call
 // various test routines.
 
+pub fn run() {
+    println!("Console interface running.");
+}
+
+/*
+
 use crate::{
     board::{defs::Pieces, playmove, representation::Board},
     defs::{Piece, Square, ENGINE},
@@ -171,3 +177,5 @@ fn try_move(board: &mut Board, potential_move: PotentialMove) -> Result<(), ()> 
     }
     result
 }
+
+*/
