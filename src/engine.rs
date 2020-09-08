@@ -1,6 +1,7 @@
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
+    extra::perft,
     interface,
     misc::cmdline,
     movegen::MoveGenerator,
@@ -28,6 +29,9 @@ impl Engine {
 
         println!("Engine running...");
         println!("FEN: {}", self.cmdline_fen);
+
+        self.board.fen_read(Some(&self.cmdline_fen[..]));
+        perft::run(&self.board, 6, &self.move_generator);
     }
 
     fn about(&self) {
