@@ -1,5 +1,9 @@
 use crate::{
-    board::Board, defs::FEN_START_POSITION, interface, misc::cmdline, movegen::MoveGenerator,
+    board::Board,
+    defs::{About, FEN_START_POSITION},
+    interface,
+    misc::cmdline,
+    movegen::MoveGenerator,
 };
 
 pub struct Engine {
@@ -17,18 +21,27 @@ impl Engine {
         }
     }
 
-    pub fn cmdline_get_values(&mut self) {
+    pub fn run(&mut self) {
+        self.cmdline_get_values();
+        self.about();
+        interface::uci::run();
+
+        println!("Engine running...");
+        println!("FEN: {}", self.cmdline_fen);
+    }
+
+    fn about(&self) {
+        println!();
+        println!("Engine: {} {}", About::ENGINE, About::VERSION);
+        println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
+        println!("Description: {}", About::DESCRIPTION);
+    }
+
+    fn cmdline_get_values(&mut self) {
         let cmdline = cmdline::get();
         self.cmdline_fen = cmdline
             .value_of("fen")
             .unwrap_or(FEN_START_POSITION)
             .to_string();
-    }
-
-    pub fn run(&mut self) {
-        self.cmdline_get_values();
-        println!("Engine running...");
-        interface::uci::run();
-        println!("FEN: {}", self.cmdline_fen);
     }
 }

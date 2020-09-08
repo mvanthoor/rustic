@@ -1,4 +1,4 @@
-use crate::defs::{ABOUT, AUTHOR, EMAIL, ENGINE, VERSION};
+use crate::defs::About;
 use clap::{App, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
@@ -19,10 +19,10 @@ const CMD_INTERFACE_SHORT: &str = "i";
 const CMD_INTERFACE_HELP: &str = "Values: uci, console";
 
 pub fn get() -> ArgMatches<'static> {
-    App::new(ENGINE)
-        .version(VERSION)
-        .author(&*format!("{} <{}>", AUTHOR, EMAIL))
-        .about(ABOUT)
+    App::new(About::ENGINE)
+        .version(About::VERSION)
+        .author(&*format!("{} <{}>", About::AUTHOR, About::EMAIL))
+        .about(About::DESCRIPTION)
         .arg(
             Arg::with_name(CMD_INTERFACE_LONG)
                 .short(CMD_INTERFACE_SHORT)

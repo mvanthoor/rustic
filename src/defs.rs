@@ -4,16 +4,19 @@
  * can be found within that module.
 */
 
-pub const ENGINE: &str = "Rustic";
-pub const VERSION: &str = "Alpha 1";
-pub const AUTHOR: &str = "Marcel Vanthoor";
-pub const EMAIL: &str = "mail@marcelvanthoor.nl";
-pub const ABOUT: &str = "UCI Chess Engine, written in Rust";
-
 pub type Bitboard = u64;
 pub type Piece = usize;
 pub type Side = usize;
 pub type Square = usize;
+
+pub struct About {}
+impl About {
+    pub const ENGINE: &'static str = "Rustic";
+    pub const VERSION: &'static str = "Alpha 1";
+    pub const AUTHOR: &'static str = "Marcel Vanthoor";
+    pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
+    pub const DESCRIPTION: &'static str = "UCI Chess Engine, written in Rust";
+}
 
 pub struct Sides;
 impl Sides {
