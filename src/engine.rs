@@ -1,7 +1,7 @@
 use crate::{
-    board::Board,
+    board::{defs::Pieces, Board},
     defs::{About, FEN_START_POSITION},
-    extra::perft,
+    extra::{perft, wizardry},
     interface,
     misc::cmdline,
     movegen::MoveGenerator,
@@ -9,6 +9,7 @@ use crate::{
 
 pub struct Engine {
     cmdline_fen: String,
+    cmdline_wizardry: bool,
     move_generator: MoveGenerator,
     board: Board,
 }
@@ -17,6 +18,7 @@ impl Engine {
     pub fn new() -> Self {
         Self {
             cmdline_fen: String::from(""),
+            cmdline_wizardry: false,
             move_generator: MoveGenerator::new(),
             board: Board::new(),
         }
@@ -32,6 +34,11 @@ impl Engine {
 
         self.board.fen_read(Some(&self.cmdline_fen[..]));
         perft::run(&self.board, 6, &self.move_generator);
+
+        if self.cmdline_wizardry {
+            wizardry::find_magics(Pieces::ROOK);
+            wizardry::find_magics(Pieces::BISHOP);
+        }
     }
 
     fn about(&self) {
@@ -47,5 +54,6 @@ impl Engine {
             .value_of("fen")
             .unwrap_or(FEN_START_POSITION)
             .to_string();
+        self.cmdline_wizardry = cmdline.is_present("wizardry");
     }
 }

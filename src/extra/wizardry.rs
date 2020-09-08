@@ -1,8 +1,7 @@
 use crate::movegen::MoveGenerator;
 use crate::{
-    board::defs::{Pieces, RangeOf, PIECE_NAME},
-    defs::{Bitboard, Piece, EMPTY},
-    extra::print,
+    board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
+    defs::{Bitboard, Piece, Square, EMPTY},
     movegen::{defs::Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::{rngs::SmallRng, Rng, SeedableRng};
@@ -13,29 +12,22 @@ use rand::{rngs::SmallRng, Rng, SeedableRng};
     fail_low and fail_high: check if the generated index is within the expected offset.
     If this is not the case, there's a bug somewhere in this code, or in get_index().
 */
-#[allow(dead_code)]
 pub fn find_magics(piece: Piece) {
-    assert!(
-        piece == Pieces::ROOK || piece == Pieces::BISHOP,
-        "Illegal piece: {}",
-        piece
-    );
+    let ok = piece == Pieces::ROOK || piece == Pieces::BISHOP;
+    assert!(ok, "Illegal piece: {}", piece);
 
     let is_rook = piece == Pieces::ROOK;
     let mut rook_table: Vec<Bitboard> = vec![EMPTY; ROOK_TABLE_SIZE];
     let mut bishop_table: Vec<Bitboard> = vec![EMPTY; BISHOP_TABLE_SIZE];
     let mut random = SmallRng::from_entropy();
     let mut offset = 0;
-    let mut total_permutations = 0;
 
     println!("Finding magics for: {}", PIECE_NAME[piece]);
     for sq in RangeOf::SQUARES {
         // Create the mask for either the rook or bishop.
-        let mask = if is_rook {
-            MoveGenerator::rook_mask(sq)
-        } else {
-            MoveGenerator::bishop_mask(sq)
-        };
+        let r_mask = MoveGenerator::rook_mask(sq);
+        let b_mask = MoveGenerator::bishop_mask(sq);
+        let mask = if is_rook { r_mask } else { b_mask };
 
         // Precalculate needed values.
         let bits = mask.count_ones(); // Number of set bits in the mask
@@ -45,12 +37,11 @@ pub fn find_magics(piece: Piece) {
         // Create blocker board for the current mask.
         let blocker_boards = MoveGenerator::blocker_boards(mask);
 
-        // Create attack board for the current square/blocker combo (either rook or bishop).
-        let attack_boards = if is_rook {
-            MoveGenerator::rook_attack_boards(sq, &blocker_boards)
-        } else {
-            MoveGenerator::bishop_attack_boards(sq, &blocker_boards)
-        };
+        // Create attack board for the current square/blocker combo (either
+        // rook or bishop).
+        let r_ab = MoveGenerator::rook_attack_boards(sq, &blocker_boards);
+        let b_ab = MoveGenerator::bishop_attack_boards(sq, &blocker_boards);
+        let attack_boards = if is_rook { r_ab } else { b_ab };
 
         // Done calculating needed data. Create a new magic.
         let mut try_this: Magic = Default::default(); // New magic
@@ -61,7 +52,6 @@ pub fn find_magics(piece: Piece) {
         try_this.mask = mask;
         try_this.shift = (64 - bits) as u8;
         try_this.offset = offset;
-        total_permutations += permutations;
 
         // Start finding a magic that works for this square, for all permuations.
         while !found {
@@ -71,37 +61,42 @@ pub fn find_magics(piece: Piece) {
             for i in 0..permutations {
                 let next = i as usize;
                 let index = try_this.get_index(blocker_boards[next]);
-                let table: &mut [Bitboard] = if is_rook {
-                    &mut rook_table[..]
-                } else {
-                    &mut bishop_table[..]
-                };
+                let r_table = &mut rook_table[..];
+                let b_table = &mut bishop_table[..];
+                let table: &mut [Bitboard] = if is_rook { r_table } else { b_table };
+
                 if table[index] == EMPTY {
                     let fail_low = index < offset as usize;
                     let fail_high = index > end as usize;
                     assert!(!fail_low && !fail_high, "Indexing error.");
                     table[index] = attack_boards[next];
                 } else {
-                    for i in offset..=end {
-                        table[i as usize] = EMPTY;
+                    for wipe_index in offset..=end {
+                        table[wipe_index as usize] = EMPTY;
                     }
                     found = false;
                     break;
                 }
             }
         }
-        print::found_magic(sq, try_this, offset, end, attempts);
-        offset += permutations; // Set offset for next square.
+        found_magic(sq, try_this, offset, end, attempts);
+
+        // Set table offset for next magic.
+        offset += permutations;
     }
 
     // Check if everything is correct.
-    assert!(
-        (total_permutations as usize)
-            == if is_rook {
-                ROOK_TABLE_SIZE
-            } else {
-                BISHOP_TABLE_SIZE
-            },
-        "Creating magics failed. Permutations were skipped."
+    let r_ts = ROOK_TABLE_SIZE as u64;
+    let b_ts = BISHOP_TABLE_SIZE as u64;
+    let expected = if is_rook { r_ts } else { b_ts };
+    const ERROR: &str = "Creating magics failed. Permutations were skipped.";
+
+    assert!(offset == expected, ERROR);
+}
+
+fn found_magic(square: Square, m: Magic, offset: u64, end: u64, attempts: u64) {
+    println!(
+        "{}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
+        SQUARE_NAME[square], m.nr, offset, end, attempts
     );
 }
