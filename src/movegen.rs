@@ -14,32 +14,31 @@ use crate::{
     misc::bits,
 };
 use defs::{Move, Shift};
-use magics::Magics;
+use magics::Magic;
 use movelist::MoveList;
 
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
 
-const WHITE_BLACK: usize = 2;
 pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
 pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
 
 pub struct MoveGenerator {
     king: [Bitboard; NrOf::SQUARES],
     knight: [Bitboard; NrOf::SQUARES],
-    pawns: [[Bitboard; NrOf::SQUARES]; WHITE_BLACK],
+    pawns: [[Bitboard; NrOf::SQUARES]; Sides::BOTH],
     rook: Vec<Bitboard>,
     bishop: Vec<Bitboard>,
-    rook_magics: [Magics; NrOf::SQUARES],
-    bishop_magics: [Magics; NrOf::SQUARES],
+    rook_magics: [Magic; NrOf::SQUARES],
+    bishop_magics: [Magic; NrOf::SQUARES],
 }
 
 impl MoveGenerator {
     pub fn new() -> Self {
-        let magics: Magics = Default::default();
+        let magics: Magic = Default::default();
         let mut mg = Self {
             king: [EMPTY; NrOf::SQUARES],
             knight: [EMPTY; NrOf::SQUARES],
-            pawns: [[EMPTY; NrOf::SQUARES]; WHITE_BLACK],
+            pawns: [[EMPTY; NrOf::SQUARES]; Sides::BOTH],
             rook: vec![EMPTY; ROOK_TABLE_SIZE],
             bishop: vec![EMPTY; BISHOP_TABLE_SIZE],
             rook_magics: [magics; NrOf::SQUARES],
@@ -292,7 +291,7 @@ impl MoveGenerator {
     #[cfg_attr(debug_assertions, inline(never))]
     #[cfg_attr(not(debug_assertions), inline(always))]
     pub fn square_attacked(&self, board: &Board, attacker: Side, square: Square) -> bool {
-        let pieces = board.bb_pieces[attacker];
+        let attackers = board.bb_pieces[attacker];
         let occupancy = board.occupancy();
         let bb_king = self.get_non_slider_attacks(Pieces::KING, square);
         let bb_rook = self.get_slider_attacks(Pieces::ROOK, square, occupancy);
@@ -301,11 +300,11 @@ impl MoveGenerator {
         let bb_pawns = self.get_pawn_attacks(attacker ^ 1, square);
         let bb_queen = bb_rook | bb_bishop;
 
-        (bb_king & pieces[Pieces::KING] > 0)
-            || (bb_rook & pieces[Pieces::ROOK] > 0)
-            || (bb_queen & pieces[Pieces::QUEEN] > 0)
-            || (bb_bishop & pieces[Pieces::BISHOP] > 0)
-            || (bb_knight & pieces[Pieces::KNIGHT] > 0)
-            || (bb_pawns & pieces[Pieces::PAWN] > 0)
+        (bb_king & attackers[Pieces::KING] > 0)
+            || (bb_rook & attackers[Pieces::ROOK] > 0)
+            || (bb_queen & attackers[Pieces::QUEEN] > 0)
+            || (bb_bishop & attackers[Pieces::BISHOP] > 0)
+            || (bb_knight & attackers[Pieces::KNIGHT] > 0)
+            || (bb_pawns & attackers[Pieces::PAWN] > 0)
     }
 }

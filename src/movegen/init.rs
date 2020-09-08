@@ -1,5 +1,5 @@
 use super::{
-    magics::{Magics, BISHOP_MAGICS, ROOK_MAGICS},
+    magics::{Magic, BISHOP_MAGIC_NRS, ROOK_MAGIC_NRS},
     MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
 use crate::{
@@ -132,14 +132,14 @@ impl MoveGenerator {
             let b_ab = MoveGenerator::bishop_attack_boards(sq, &blocker_boards);
             let attack_boards = if is_rook { r_ab } else { b_ab };
 
-            let mut magic: Magics = Default::default();
-            let r_magic_nr = ROOK_MAGICS[sq as usize];
-            let b_magic_nr = BISHOP_MAGICS[sq as usize];
+            let mut magic: Magic = Default::default();
+            let r_magic_nr = ROOK_MAGIC_NRS[sq as usize];
+            let b_magic_nr = BISHOP_MAGIC_NRS[sq as usize];
 
             magic.mask = mask;
             magic.shift = (64 - bits) as u8;
             magic.offset = offset;
-            magic.magic = if is_rook { r_magic_nr } else { b_magic_nr };
+            magic.nr = if is_rook { r_magic_nr } else { b_magic_nr };
 
             for i in 0..permutations {
                 let next = i as usize;

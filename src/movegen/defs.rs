@@ -33,7 +33,7 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
-pub use super::{magics::Magics, movelist::MoveList};
+pub use super::{magics::Magic, movelist::MoveList};
 use crate::defs::{Piece, Square};
 
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store

@@ -9,7 +9,7 @@ use crate::defs::{Bitboard, NrOf};
 /** Rook magic numbers. Don't touch them. Changing these numbers breaks the program. */
 #[rustfmt::skip]
 #[allow(clippy::unreadable_literal)]
-pub const ROOK_MAGICS: [u64; NrOf::SQUARES] = [
+pub const ROOK_MAGIC_NRS: [u64; NrOf::SQUARES] = [
     324259448050975248u64, 162139001189302336u64, 4647750006529359880u64, 144121785691422736u64,
     16176938657641660544u64, 9367489423970945072u64, 36051338366288384u64, 36029147746665088u64,
     3518447965192208u64, 4614078830617822340u64, 9241949523864129664u64, 11540615780106252u64,
@@ -31,7 +31,7 @@ pub const ROOK_MAGICS: [u64; NrOf::SQUARES] = [
 /** Bishop magic numbers. Don't touch them. Changing these numbers breaks the program. */
 #[rustfmt::skip]
 #[allow(clippy::unreadable_literal)]
-pub const BISHOP_MAGICS: [u64; NrOf::SQUARES] = [
+pub const BISHOP_MAGIC_NRS: [u64; NrOf::SQUARES] = [
     2310454429704290569u64, 37163502750244928u64, 145330200115150856u64, 573953659699200u64,
     9845999220824211456u64, 574016004032512u64, 10093699283674480640u64, 2306407060834902016u64,
     2883575003184432136u64, 1747410678824308864u64, 9259405249167245312u64, 936784527773139074u64,
@@ -58,20 +58,20 @@ pub const BISHOP_MAGICS: [u64; NrOf::SQUARES] = [
  * magic: the magic number itself, used to create the magic index into the attack table.
 */
 #[derive(Copy, Clone)]
-pub struct Magics {
+pub struct Magic {
     pub mask: Bitboard,
     pub shift: u8,
     pub offset: u64,
-    pub magic: u64,
+    pub nr: u64,
 }
 
-impl Default for Magics {
+impl Default for Magic {
     fn default() -> Self {
         Self {
             mask: 0,
             shift: 0,
             offset: 0,
-            magic: 0,
+            nr: 0,
         }
     }
 }
@@ -105,9 +105,9 @@ impl Default for Magics {
  * and over again until a number is found that generates unique indexes for all of the permutations
  * of attacks of the piece on a particular square. See the explanation for find_magics().
  */
-impl Magics {
+impl Magic {
     pub fn get_index(&self, occupancy: Bitboard) -> usize {
         let blockerboard = occupancy & self.mask;
-        ((blockerboard.wrapping_mul(self.magic) >> self.shift) + self.offset) as usize
+        ((blockerboard.wrapping_mul(self.nr) >> self.shift) + self.offset) as usize
     }
 }

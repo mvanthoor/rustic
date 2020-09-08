@@ -4,7 +4,7 @@ use crate::{
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Sides, Square},
-    movegen::defs::{Magics, Move},
+    movegen::defs::{Magic, Move},
 };
 
 type AsciiBoard = [char; NrOf::SQUARES];
@@ -68,10 +68,10 @@ pub fn move_data(m: Move) {
 
 // This function prints a found magic number and its stats.
 #[allow(dead_code)]
-pub fn found_magic(square: Square, m: Magics, offset: u64, end: u64, attempts: u64) {
+pub fn found_magic(square: Square, m: Magic, offset: u64, end: u64, attempts: u64) {
     println!(
         "Magic found for {}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
-        SQUARE_NAME[square], m.magic, offset, end, attempts
+        SQUARE_NAME[square], m.nr, offset, end, attempts
     );
 }
 

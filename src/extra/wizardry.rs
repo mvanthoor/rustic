@@ -3,7 +3,7 @@ use crate::{
     board::defs::{Pieces, RangeOf, PIECE_NAME},
     defs::{Bitboard, Piece, EMPTY},
     extra::print,
-    movegen::{defs::Magics, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
+    movegen::{defs::Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 
@@ -53,7 +53,7 @@ pub fn find_magics(piece: Piece) {
         };
 
         // Done calculating needed data. Create a new magic.
-        let mut try_this: Magics = Default::default(); // New magic
+        let mut try_this: Magic = Default::default(); // New magic
         let mut found = false; // While loop breaker if magic works;
         let mut attempts = 0; // Track needed attempts to find the magic.
 
@@ -67,7 +67,7 @@ pub fn find_magics(piece: Piece) {
         while !found {
             attempts += 1; // Next attempt to find magic.
             found = true; // Assume this new magic will work.
-            try_this.magic = random.gen::<u64>() & random.gen::<u64>() & random.gen::<u64>();
+            try_this.nr = random.gen::<u64>() & random.gen::<u64>() & random.gen::<u64>();
             for i in 0..permutations {
                 let next = i as usize;
                 let index = try_this.get_index(blocker_boards[next]);
