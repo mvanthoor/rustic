@@ -1,13 +1,19 @@
-use crate::{defs::FEN_START_POSITION, misc::cmdline};
+use crate::{
+    board::Board, defs::FEN_START_POSITION, interface, misc::cmdline, movegen::MoveGenerator,
+};
 
 pub struct Engine {
     cmdline_fen: String,
+    move_generator: MoveGenerator,
+    board: Board,
 }
 
 impl Engine {
     pub fn new() -> Self {
         Self {
             cmdline_fen: String::from(""),
+            move_generator: MoveGenerator::new(),
+            board: Board::new(),
         }
     }
 
@@ -21,7 +27,8 @@ impl Engine {
 
     pub fn run(&mut self) {
         self.cmdline_get_values();
-        println!("Running...");
+        println!("Engine running...");
+        interface::uci::run();
         println!("FEN: {}", self.cmdline_fen);
     }
 }
