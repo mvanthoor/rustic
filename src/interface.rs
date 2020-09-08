@@ -1,1 +1,2 @@
-pub mod console;
+// pub mod console;
+pub mod uci;

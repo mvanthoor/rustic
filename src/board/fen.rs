@@ -26,6 +26,7 @@ type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
 type FenResult = Result<(), u8>;
 
 // Define errors
+#[allow(dead_code)]
 pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
     "Must have six (6) parts.",
     "Pieces and squares.",
