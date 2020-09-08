@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS},
-    defs::{Bitboard, Piece, Sides, EMPTY},
+    defs::{Piece, Sides, EMPTY},
 };
 
 impl MoveGenerator {
@@ -112,49 +112,42 @@ impl MoveGenerator {
      * table.
      */
     pub fn init_magics(&mut self, piece: Piece) {
-        assert!(
-            piece == Pieces::ROOK || piece == Pieces::BISHOP,
-            "Illegal piece: {}",
-            piece
-        );
+        let ok = piece == Pieces::ROOK || piece == Pieces::BISHOP;
+        assert!(ok, "Illegal piece: {}", piece);
 
         let is_rook = piece == Pieces::ROOK;
         let mut offset = 0;
-        let mut total_permutations = 0;
+
         for sq in RangeOf::SQUARES {
-            let mask = if is_rook {
-                MoveGenerator::rook_mask(sq)
-            } else {
-                MoveGenerator::bishop_mask(sq)
-            };
+            let r_mask = MoveGenerator::rook_mask(sq);
+            let b_mask = MoveGenerator::bishop_mask(sq);
+            let mask = if is_rook { r_mask } else { b_mask };
+
             let bits = mask.count_ones(); // Number of set bits in the mask
             let permutations = 2u64.pow(bits); // Number of blocker boards to be indexed.
             let end = offset + permutations - 1; // End point in the attack table.
             let blocker_boards = MoveGenerator::blocker_boards(mask);
-            let attack_boards = if is_rook {
-                MoveGenerator::rook_attack_boards(sq, &blocker_boards)
-            } else {
-                MoveGenerator::bishop_attack_boards(sq, &blocker_boards)
-            };
-            let mut mcurrent: Magics = Default::default();
 
-            mcurrent.mask = mask;
-            mcurrent.shift = (64 - bits) as u8;
-            mcurrent.offset = offset;
-            mcurrent.magic = if is_rook {
-                ROOK_MAGICS[sq as usize]
-            } else {
-                BISHOP_MAGICS[sq as usize]
-            };
-            total_permutations += permutations;
+            let r_ab = MoveGenerator::rook_attack_boards(sq, &blocker_boards);
+            let b_ab = MoveGenerator::bishop_attack_boards(sq, &blocker_boards);
+            let attack_boards = if is_rook { r_ab } else { b_ab };
+
+            let mut magic: Magics = Default::default();
+            let r_magic_nr = ROOK_MAGICS[sq as usize];
+            let b_magic_nr = BISHOP_MAGICS[sq as usize];
+
+            magic.mask = mask;
+            magic.shift = (64 - bits) as u8;
+            magic.offset = offset;
+            magic.magic = if is_rook { r_magic_nr } else { b_magic_nr };
+
             for i in 0..permutations {
                 let next = i as usize;
-                let index = mcurrent.get_index(blocker_boards[next]);
-                let table: &mut [Bitboard] = if is_rook {
-                    &mut self.rook[..]
-                } else {
-                    &mut self.bishop[..]
-                };
+                let index = magic.get_index(blocker_boards[next]);
+                let rook_table = &mut self.rook[..];
+                let bishop_table = &mut self.bishop[..];
+                let table = if is_rook { rook_table } else { bishop_table };
+
                 if table[index] == EMPTY {
                     let fail_low = index < offset as usize;
                     let fail_high = index > end as usize;
@@ -164,24 +157,24 @@ impl MoveGenerator {
                     panic!("Attack table index not empty. Error in Magics.");
                 }
             }
-            // No failures  during indexing.
-            // Store this magic, then do the next one.
+
+            // No failures  during indexing. Store this magic.
             if is_rook {
-                self.rook_magics[sq as usize] = mcurrent;
+                self.rook_magics[sq as usize] = magic;
             } else {
-                self.bishop_magics[sq as usize] = mcurrent
+                self.bishop_magics[sq as usize] = magic;
             }
+
+            // Do the next magic.
             offset += permutations;
         }
+
         // All permutations (blocker boards) should have been indexed.
-        assert!(
-            (total_permutations as usize)
-                == if is_rook {
-                    ROOK_TABLE_SIZE
-                } else {
-                    BISHOP_TABLE_SIZE
-                },
-            "Initializing magics failed. Check magic numbers."
-        );
+        let r_ts = ROOK_TABLE_SIZE as u64;
+        let b_ts = BISHOP_TABLE_SIZE as u64;
+        let expectation = if is_rook { r_ts } else { b_ts };
+        const ERROR: &str = "Initializing magics failed. Check magic numbers.";
+
+        assert!(offset == expectation, ERROR);
     }
 }
