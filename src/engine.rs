@@ -6,12 +6,35 @@ use crate::{
     misc::cmdline,
     movegen::MoveGenerator,
 };
+use clap::ArgMatches;
 
 struct CmdLine {
-    communication: String,
-    fen: String,
-    perft: u8,
-    wizardry: bool,
+    arguments: ArgMatches<'static>,
+}
+
+impl CmdLine {
+    fn comm(&self) -> String {
+        self.arguments.value_of("comm").unwrap_or("uci").to_string()
+    }
+
+    fn fen(&self) -> String {
+        self.arguments
+            .value_of("fen")
+            .unwrap_or(FEN_START_POSITION)
+            .to_string()
+    }
+
+    fn perft(&self) -> u8 {
+        self.arguments
+            .value_of("perft")
+            .unwrap_or("1")
+            .parse()
+            .unwrap_or(1)
+    }
+
+    fn wizardry(&self) -> bool {
+        self.arguments.is_present("wizardry")
+    }
 }
 
 pub struct Engine {
@@ -24,10 +47,7 @@ impl Engine {
     pub fn new() -> Self {
         Self {
             cmdline: CmdLine {
-                communication: String::from(""),
-                fen: String::from(""),
-                perft: 0,
-                wizardry: false,
+                arguments: cmdline::get(),
             },
             move_generator: MoveGenerator::new(),
             board: Board::new(),
@@ -35,17 +55,17 @@ impl Engine {
     }
 
     pub fn run(&mut self) {
-        self.cmdline_get_values();
+        let fen = &self.cmdline.fen()[..];
         self.about();
         comm::uci::run();
 
         println!("Engine running...");
-        println!("FEN: {}", self.cmdline.fen);
+        println!("FEN: {}", self.cmdline.fen());
 
-        self.board.fen_read(Some(&self.cmdline.fen[..]));
+        self.board.fen_read(Some(fen));
         perft::run(&self.board, 6, &self.move_generator);
 
-        if self.cmdline.wizardry {
+        if self.cmdline.wizardry() {
             wizardry::find_magics(Pieces::ROOK);
             wizardry::find_magics(Pieces::BISHOP);
         }
@@ -56,12 +76,5 @@ impl Engine {
         println!("Engine: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
-    }
-
-    fn cmdline_get_values(&mut self) {
-        let c = cmdline::get();
-        self.cmdline.communication = c.value_of("communication").unwrap_or("uci").to_string();
-        self.cmdline.fen = c.value_of("fen").unwrap_or(FEN_START_POSITION).to_string();
-        self.cmdline.wizardry = c.is_present("wizardry");
     }
 }
