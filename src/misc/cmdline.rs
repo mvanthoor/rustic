@@ -1,4 +1,4 @@
-use crate::defs::About;
+use crate::defs::{About, FEN_START_POSITION};
 use clap::{App, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
@@ -14,12 +14,14 @@ impl CmdLineArgs {
     const PERFT_LONG: &'static str = "perft";
     const PERFT_SHORT: &'static str = "p";
     const PERFT_HELP: &'static str = "Run perft to the given depth";
+    const PERFT_DEFAULT: &'static str = "1";
 
     // Interface
     const COMM_LONG: &'static str = "comm";
     const COMM_SHORT: &'static str = "c";
     const COMM_HELP: &'static str = "Define communication to use";
     const COMM_VALUES: [&'static str; 3] = ["uci", "xboard", "console"];
+    const COMM_DEFAULT: &'static str = "uci";
 
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";
@@ -27,39 +29,80 @@ impl CmdLineArgs {
     const WIZARDRY_HELP: &'static str = "Generate magic numbers";
 }
 
-pub fn get() -> ArgMatches<'static> {
-    App::new(About::ENGINE)
-        .version(About::VERSION)
-        .author(&*format!("{} <{}>", About::AUTHOR, About::EMAIL))
-        .about(About::DESCRIPTION)
-        .arg(
-            Arg::with_name(CmdLineArgs::COMM_LONG)
-                .short(CmdLineArgs::COMM_SHORT)
-                .long(CmdLineArgs::COMM_LONG)
-                .help(CmdLineArgs::COMM_HELP)
-                .takes_value(true)
-                .possible_values(&CmdLineArgs::COMM_VALUES),
-        )
-        .arg(
-            Arg::with_name(CmdLineArgs::FEN_LONG)
-                .short(CmdLineArgs::FEN_SHORT)
-                .long(CmdLineArgs::FEN_LONG)
-                .help(CmdLineArgs::FEN_HELP)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name(CmdLineArgs::PERFT_LONG)
-                .short(CmdLineArgs::PERFT_SHORT)
-                .long(CmdLineArgs::PERFT_LONG)
-                .help(CmdLineArgs::PERFT_HELP)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name(CmdLineArgs::WIZARDRY_LONG)
-                .short(CmdLineArgs::WIZARDRY_SHORT)
-                .long(CmdLineArgs::WIZARDRY_LONG)
-                .help(CmdLineArgs::WIZARDRY_HELP)
-                .takes_value(false),
-        )
-        .get_matches()
+pub struct CmdLine {
+    arguments: ArgMatches<'static>,
+}
+
+impl CmdLine {
+    pub fn new() -> Self {
+        Self {
+            arguments: Self::get(),
+        }
+    }
+
+    pub fn comm(&self) -> String {
+        self.arguments
+            .value_of(CmdLineArgs::COMM_LONG)
+            .unwrap_or(CmdLineArgs::COMM_DEFAULT)
+            .to_string()
+    }
+
+    pub fn fen(&self) -> String {
+        self.arguments
+            .value_of(CmdLineArgs::FEN_LONG)
+            .unwrap_or(FEN_START_POSITION)
+            .to_string()
+    }
+
+    pub fn perft(&self) -> u8 {
+        self.arguments
+            .value_of(CmdLineArgs::PERFT_LONG)
+            .unwrap_or(CmdLineArgs::PERFT_DEFAULT)
+            .parse()
+            .unwrap_or(1)
+    }
+
+    pub fn wizardry(&self) -> bool {
+        self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
+    }
+
+    fn get() -> ArgMatches<'static> {
+        App::new(About::ENGINE)
+            .version(About::VERSION)
+            .author(&*format!("{} <{}>", About::AUTHOR, About::EMAIL))
+            .about(About::DESCRIPTION)
+            .arg(
+                Arg::with_name(CmdLineArgs::COMM_LONG)
+                    .short(CmdLineArgs::COMM_SHORT)
+                    .long(CmdLineArgs::COMM_LONG)
+                    .help(CmdLineArgs::COMM_HELP)
+                    .takes_value(true)
+                    .default_value(CmdLineArgs::COMM_DEFAULT)
+                    .possible_values(&CmdLineArgs::COMM_VALUES),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::FEN_LONG)
+                    .short(CmdLineArgs::FEN_SHORT)
+                    .long(CmdLineArgs::FEN_LONG)
+                    .help(CmdLineArgs::FEN_HELP)
+                    .takes_value(true)
+                    .default_value(FEN_START_POSITION),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::PERFT_LONG)
+                    .short(CmdLineArgs::PERFT_SHORT)
+                    .long(CmdLineArgs::PERFT_LONG)
+                    .help(CmdLineArgs::PERFT_HELP)
+                    .takes_value(true)
+                    .default_value(CmdLineArgs::PERFT_DEFAULT),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::WIZARDRY_LONG)
+                    .short(CmdLineArgs::WIZARDRY_SHORT)
+                    .long(CmdLineArgs::WIZARDRY_LONG)
+                    .help(CmdLineArgs::WIZARDRY_HELP)
+                    .takes_value(false),
+            )
+            .get_matches()
+    }
 }

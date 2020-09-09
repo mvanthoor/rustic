@@ -1,41 +1,11 @@
 use crate::{
     board::{defs::Pieces, Board},
     comm,
-    defs::{About, FEN_START_POSITION},
+    defs::About,
     extra::{perft, wizardry},
-    misc::cmdline,
+    misc::cmdline::CmdLine,
     movegen::MoveGenerator,
 };
-use clap::ArgMatches;
-
-struct CmdLine {
-    arguments: ArgMatches<'static>,
-}
-
-impl CmdLine {
-    fn comm(&self) -> String {
-        self.arguments.value_of("comm").unwrap_or("uci").to_string()
-    }
-
-    fn fen(&self) -> String {
-        self.arguments
-            .value_of("fen")
-            .unwrap_or(FEN_START_POSITION)
-            .to_string()
-    }
-
-    fn perft(&self) -> u8 {
-        self.arguments
-            .value_of("perft")
-            .unwrap_or("1")
-            .parse()
-            .unwrap_or(1)
-    }
-
-    fn wizardry(&self) -> bool {
-        self.arguments.is_present("wizardry")
-    }
-}
 
 pub struct Engine {
     cmdline: CmdLine,
@@ -46,9 +16,7 @@ pub struct Engine {
 impl Engine {
     pub fn new() -> Self {
         Self {
-            cmdline: CmdLine {
-                arguments: cmdline::get(),
-            },
+            cmdline: CmdLine::new(),
             move_generator: MoveGenerator::new(),
             board: Board::new(),
         }
@@ -56,14 +24,21 @@ impl Engine {
 
     pub fn run(&mut self) {
         let fen = &self.cmdline.fen()[..];
+        let depth = self.cmdline.perft();
+
         self.about();
-        comm::uci::run();
+        match &self.cmdline.comm()[..] {
+            "uci" => comm::uci::get_input(),
+            "xboard" => comm::xboard::get_input(),
+            "console" => comm::console::get_input(),
+            _ => (),
+        }
 
         println!("Engine running...");
         println!("FEN: {}", self.cmdline.fen());
 
         self.board.fen_read(Some(fen));
-        perft::run(&self.board, 6, &self.move_generator);
+        perft::run(&self.board, depth, &self.move_generator);
 
         if self.cmdline.wizardry() {
             wizardry::find_magics(Pieces::ROOK);

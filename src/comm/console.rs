@@ -2,7 +2,7 @@
 // as an optional feature, for playing in a console window. It can also call
 // various test routines.
 
-pub fn run() {
+pub fn get_input() {
     println!("Console communication.");
 }
 
