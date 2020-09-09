@@ -14,9 +14,10 @@ const CMD_PERFT_SHORT: &str = "p";
 const CMD_PERFT_HELP: &str = "Run perft to the given depth";
 
 // Interface
-const CMD_INTERFACE_LONG: &str = "interface";
-const CMD_INTERFACE_SHORT: &str = "i";
-const CMD_INTERFACE_HELP: &str = "Values: uci, console";
+const CMD_COMM_LONG: &str = "comm";
+const CMD_COMM_SHORT: &str = "c";
+const CMD_COMM_HELP: &str = "Define communication to use";
+const CMD_COMM_VALUES: [&str; 3] = ["uci", "xboard", "console"];
 
 // Wizardry
 const CMD_WIZARDRY_LONG: &str = "wizardry";
@@ -29,11 +30,12 @@ pub fn get() -> ArgMatches<'static> {
         .author(&*format!("{} <{}>", About::AUTHOR, About::EMAIL))
         .about(About::DESCRIPTION)
         .arg(
-            Arg::with_name(CMD_INTERFACE_LONG)
-                .short(CMD_INTERFACE_SHORT)
-                .long(CMD_INTERFACE_LONG)
-                .help(CMD_INTERFACE_HELP)
-                .takes_value(true),
+            Arg::with_name(CMD_COMM_LONG)
+                .short(CMD_COMM_SHORT)
+                .long(CMD_COMM_LONG)
+                .help(CMD_COMM_HELP)
+                .takes_value(true)
+                .possible_values(&CMD_COMM_VALUES),
         )
         .arg(
             Arg::with_name(CMD_FEN_LONG)

@@ -1,9 +1,9 @@
 mod board;
+mod comm;
 mod defs;
 mod engine;
 mod evaluation;
 mod extra;
-mod interface;
 mod misc;
 mod movegen;
 

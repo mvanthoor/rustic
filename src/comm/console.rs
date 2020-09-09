@@ -3,7 +3,7 @@
 // various test routines.
 
 pub fn run() {
-    println!("Console interface running.");
+    println!("Console communication.");
 }
 
 /*
