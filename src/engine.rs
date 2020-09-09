@@ -37,13 +37,18 @@ impl Engine {
         println!("Engine running...");
         println!("FEN: {}", self.cmdline.fen());
 
-        self.board.fen_read(Some(fen));
+        let result = self.board.fen_read(Some(fen));
+        match result {
+            Ok(()) => "FEN is OK.",
+            Err(e) => panic!("Error in FEN-part: {}", e),
+        };
+
         perft::run(&self.board, depth, &self.move_generator);
 
         if self.cmdline.wizardry() {
             wizardry::find_magics(Pieces::ROOK);
             wizardry::find_magics(Pieces::BISHOP);
-        }
+        };
     }
 
     fn about(&self) {

@@ -96,7 +96,7 @@ pub fn find_magics(piece: Piece) {
 
 fn found_magic(square: Square, m: Magic, offset: u64, end: u64, attempts: u64) {
     println!(
-        "{}: {:24}u64 (offset: {:6} end: {:6}, attempts: {})",
+        "{}: {:24}u64 (offset: {:6}, end: {:6}, attempts: {})",
         SQUARE_NAME[square], m.nr, offset, end, attempts
     );
 }

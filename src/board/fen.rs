@@ -60,7 +60,11 @@ impl Board {
             // use new_board so we don't destroy the existing setup on failure.
             for (i, parser) in fen_parsers.iter().enumerate() {
                 let is_ok = parser(&mut new_board, &fen_parts[i]);
-                result = if is_ok { Ok(()) } else { Err(i as u8 + 1) }
+                result = if is_ok { Ok(()) } else { Err(i as u8 + 1) };
+
+                if result != Ok(()) {
+                    break;
+                }
             }
 
             // Replace old board with new one if setup was succesful.
@@ -69,6 +73,7 @@ impl Board {
                 *self = new_board;
             }
         }
+
         result
     }
 }
