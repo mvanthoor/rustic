@@ -1,5 +1,10 @@
 // fen.rs reads an FEN-string and converts it into a board position.
-// If the procedure fails, the original position is not changed.
+// If the procedure fails, the original position is not changed. Note that
+// checking position legality is not the responsibility of this module. It
+// is perfectly possible to set up a position with two white kings, both
+// kings in check at the same time, or with black in check but white to
+// move.
+
 use super::{
     defs::{Files, Pieces, Ranks, Squares, BB_SQUARES},
     Board,
@@ -24,18 +29,6 @@ const SPACE: char = ' ';
 
 type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
 type FenResult = Result<(), u8>;
-
-// Define errors
-#[allow(dead_code)]
-pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
-    "Must have six (6) parts",
-    "Pieces and squares",
-    "Color selection",
-    "Castling permissions",
-    "En-passant square",
-    "Half-move clock",
-    "Full-move number",
-];
 
 impl Board {
     // This function reads a provided FEN-string or uses the default position.

@@ -8,9 +8,15 @@ mod misc;
 mod movegen;
 
 // use interface::console;
+use defs::ENGINE_RUN_ERRORS;
 use engine::Engine;
 
 fn main() {
     let mut engine = Engine::new();
-    engine.run();
+    let result = engine.run();
+
+    match result {
+        Ok(()) => (),
+        Err(e) => println!("Error code {}: {}", e, ENGINE_RUN_ERRORS[e as usize]),
+    };
 }

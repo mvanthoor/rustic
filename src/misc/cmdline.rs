@@ -14,7 +14,7 @@ impl CmdLineArgs {
     const PERFT_LONG: &'static str = "perft";
     const PERFT_SHORT: &'static str = "p";
     const PERFT_HELP: &'static str = "Run perft to the given depth";
-    const PERFT_DEFAULT: &'static str = "1";
+    const PERFT_DEFAULT: &'static str = "0";
 
     // Interface
     const COMM_LONG: &'static str = "comm";
@@ -59,7 +59,7 @@ impl CmdLine {
             .value_of(CmdLineArgs::PERFT_LONG)
             .unwrap_or(CmdLineArgs::PERFT_DEFAULT)
             .parse()
-            .unwrap_or(1)
+            .unwrap_or(0)
     }
 
     pub fn wizardry(&self) -> bool {

@@ -1,13 +1,6 @@
-/**
- * defs.rs holds all the definitions that are needed throughout the program.
- * If there are definitions that are needed only inside a single module, those
- * can be found within that module.
-*/
-
-pub type Bitboard = u64;
-pub type Piece = usize;
-pub type Side = usize;
-pub type Square = usize;
+// defs.rs in the root holds basic definitions. Any definitions needed
+// within specific modules, are defined in defs.rs in the directory for
+// that module.
 
 pub struct About {}
 impl About {
@@ -17,6 +10,11 @@ impl About {
     pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
     pub const DESCRIPTION: &'static str = "UCI Chess Engine, written in Rust";
 }
+
+pub type Bitboard = u64;
+pub type Piece = usize;
+pub type Side = usize;
+pub type Square = usize;
 
 pub struct Sides;
 impl Sides {
@@ -48,3 +46,15 @@ impl Castling {
 pub const EMPTY: u64 = 0;
 pub const MAX_GAME_MOVES: usize = 2048;
 pub const MAX_LEGAL_MOVES: u8 = 255;
+
+// Define errors
+pub type EngineRunResult = Result<(), u8>;
+pub const ENGINE_RUN_ERRORS: [&str; 7] = [
+    "FEN: Must have six parts",
+    "FEN: Pieces and squares incorrect",
+    "FEN: Color selection incorrect",
+    "FEN: Castling permissions incorrect",
+    "FEN: En-passant square incorrect",
+    "FEN: Half-move clock incorrect",
+    "FEN: Full-move number incorrect",
+];
