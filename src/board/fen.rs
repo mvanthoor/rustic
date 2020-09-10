@@ -17,7 +17,7 @@ const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
 const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
 const WHITE_OR_BLACK: &str = "wb";
-const CASTLE_RIGHTS: &str = "KQkq-";
+const CASTLING_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const SPACE: char = ' ';
@@ -28,19 +28,19 @@ type FenResult = Result<(), u8>;
 // Define errors
 #[allow(dead_code)]
 pub const ERR_FEN_PARTS: [&str; NR_OF_FEN_PARTS + 1] = [
-    "Must have six (6) parts.",
-    "Pieces and squares.",
-    "Color selection.",
-    "Castling permissions.",
-    "En-passant square.",
-    "Half-move clock.",
-    "Full-move number.",
+    "Must have six (6) parts",
+    "Pieces and squares",
+    "Color selection",
+    "Castling permissions",
+    "En-passant square",
+    "Half-move clock",
+    "Full-move number",
 ];
 
 impl Board {
-    // This function splits the FEN-string into parts,
-    // and then runs the parsing function for each part.
+    // This function reads a provided FEN-string or uses the default position.
     pub fn fen_read(&mut self, fen_string: Option<&str>) -> FenResult {
+        // Split the string into parts. There should be 6 parts.
         let fen_parts: Vec<String> = match fen_string {
             Some(f) => f,
             None => FEN_START_POSITION,
@@ -49,25 +49,31 @@ impl Board {
         .map(|s| s.to_string())
         .collect();
 
-        let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
-        let mut result: Result<(), u8> = Err(0);
+        // Check the number of fen parts.
+        let nr_of_parts_ok = fen_parts.len() == NR_OF_FEN_PARTS;
 
-        if fen_parts.len() == NR_OF_FEN_PARTS {
-            // Clone the incoming board so we don't need to create one from scratch.
+        // Set the initial result.
+        let mut result: FenResult = if nr_of_parts_ok { Ok(()) } else { Err(0) };
+
+        if nr_of_parts_ok {
+            // Create an array of function pointers; one parsing function per part.
+            let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
+
+            // Create a new board so we don't destroy the original.
             let mut new_board = self.clone();
             new_board.reset();
 
-            // use new_board so we don't destroy the existing setup on failure.
-            for (i, parser) in fen_parsers.iter().enumerate() {
-                let is_ok = parser(&mut new_board, &fen_parts[i]);
-                result = if is_ok { Ok(()) } else { Err(i as u8 + 1) };
-
-                if result != Ok(()) {
-                    break;
-                }
+            // Parse all the parts and check if each one succeeds.
+            let mut i: usize = 0;
+            while i < NR_OF_FEN_PARTS && result == Ok(()) {
+                let parser = &fen_parsers[i];
+                let part = &fen_parts[i];
+                let part_ok = parser(&mut new_board, part);
+                result = if part_ok { Ok(()) } else { Err(i as u8 + 1) };
+                i += 1;
             }
 
-            // Replace old board with new one if setup was succesful.
+            // Replace original board with new one if setup was successful.
             if result == Ok(()) {
                 new_board.init();
                 *self = new_board;
@@ -78,12 +84,17 @@ impl Board {
     }
 }
 
+// ===== Private functions =====
+
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
 fn pieces(board: &mut Board, part: &str) -> bool {
     let mut rank = Ranks::R8 as u8;
     let mut file = Files::A as u8;
+
+    // Assume parsing succeeds.
     let mut result = true;
 
+    // Parse each character; it should be a piece, square count, or splitter.
     for c in part.chars() {
         let square = (rank * 8) + file;
         match c {
@@ -109,9 +120,11 @@ fn pieces(board: &mut Board, part: &str) -> bool {
                 rank -= 1;
                 file = 0;
             }
+            // Unknown character: result becomes false.
             _ => result = false,
         }
 
+        // If piece found, advance to the next file.
         if LIST_OF_PIECES.contains(c) {
             file += 1;
         }
@@ -121,13 +134,16 @@ fn pieces(board: &mut Board, part: &str) -> bool {
             break;
         }
     }
+
     result
 }
 
 // Part 2: Parse color to move: White or Black
 fn color(board: &mut Board, part: &str) -> bool {
+    // Assume parsing fails.
     let mut result = false;
 
+    // Length should be 1, and the character should be 'w' or 'b'.
     if_chain! {
         if part.len() == 1;
         if let Some(x) = part.chars().next();
@@ -138,9 +154,12 @@ fn color(board: &mut Board, part: &str) -> bool {
                 'b' => board.game_state.active_color = Sides::BLACK as u8,
                 _ => (),
             }
+
+            // If everything is correct, set the result to true;
             result = true;
         }
     }
+
     result
 }
 
@@ -149,10 +168,13 @@ fn castling(board: &mut Board, part: &str) -> bool {
     let length = part.len();
     let mut char_ok = 0;
 
+    // There should be 1 to 4 castling rights. If no player has castling
+    // rights, the character is '-'.
     if length >= 1 && length <= 4 {
         // Accepts "-" for no castling rights in addition to leaving out letters.
         for c in part.chars() {
-            if CASTLE_RIGHTS.contains(c) {
+            if CASTLING_RIGHTS.contains(c) {
+                // Count correct characters
                 char_ok += 1;
                 match c {
                     'K' => board.game_state.castling |= Castling::WK,
@@ -164,6 +186,9 @@ fn castling(board: &mut Board, part: &str) -> bool {
             }
         }
     }
+
+    // Counted correct characters should be at least 1, and equal to the
+    // length of the part.
     (length >= 1) && (char_ok == length)
 }
 
@@ -172,6 +197,7 @@ fn ep(board: &mut Board, part: &str) -> bool {
     let length = part.len();
     let mut char_ok = 0;
 
+    // No en-passant square if length is 1. The character should be a DASH.
     if_chain! {
         if length == 1;
         if let Some(x) = part.chars().next();
@@ -181,6 +207,7 @@ fn ep(board: &mut Board, part: &str) -> bool {
         }
     }
 
+    // If length is 2, try to parse the part to a square number.
     if length == 2 {
         let square = parse::algebraic_square_to_number(part);
         match square {
@@ -191,6 +218,9 @@ fn ep(board: &mut Board, part: &str) -> bool {
             Ok(_) | Err(_) => (),
         }
     }
+
+    // The length of this part should either be 1 or 2, and the counted
+    // correct characters should be equal to the part length.
     (length == 1 || length == 2) && (length == char_ok)
 }
 
@@ -208,6 +238,7 @@ fn hmc(board: &mut Board, part: &str) -> bool {
             result = true;
         }
     }
+
     result
 }
 
@@ -225,5 +256,6 @@ fn fmn(board: &mut Board, part: &str) -> bool {
             result = true;
         }
     }
+
     result
 }
