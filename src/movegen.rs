@@ -7,7 +7,7 @@ mod movelist;
 // TODO: Rewrite comments for move generator
 use crate::{
     board::{
-        defs::{Pieces, Squares, BB_RANKS},
+        defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
@@ -144,13 +144,14 @@ impl MoveGenerator {
         // As long as there are pawns, generate moves for each of them.
         while bb_pawns > 0 {
             let from = bits::next(&mut bb_pawns);
-            let bb_push = 1u64 << (from as i8 + direction);
+            let to = (from as i8 + direction) as usize;
+            let bb_push = BB_SQUARES[to];
             let bb_one_step = bb_push & bb_empty;
             let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
             let bb_targets = self.get_pawn_attacks(us, from);
             let bb_captures = bb_targets & bb_opponent_pieces;
             let bb_ep_capture = match board.game_state.en_passant {
-                Some(ep) => bb_targets & (1u64 << ep),
+                Some(ep) => bb_targets & BB_SQUARES[ep as usize],
                 None => 0,
             };
 
@@ -172,14 +173,14 @@ impl MoveGenerator {
         if us == Sides::WHITE && castle_perms_white {
             // Kingside
             if board.game_state.castling & Castling::WK > 0 {
-                let bb_kingside_blockers = (1u64 << Squares::F1) | (1u64 << Squares::G1);
+                let bb_kingside_blockers = BB_SQUARES[Squares::F1] | BB_SQUARES[Squares::G1];
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
                     && !self.square_attacked(board, opponent, Squares::E1)
                     && !self.square_attacked(board, opponent, Squares::F1)
                 {
-                    let to = (1u64 << from) << 2;
+                    let to = BB_SQUARES[from] << 2;
                     self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
@@ -187,14 +188,14 @@ impl MoveGenerator {
             if board.game_state.castling & Castling::WQ > 0 {
                 // Queenside
                 let bb_queenside_blockers =
-                    (1u64 << Squares::B1) | (1u64 << Squares::C1) | (1u64 << Squares::D1);
+                    BB_SQUARES[Squares::B1] | BB_SQUARES[Squares::C1] | BB_SQUARES[Squares::D1];
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
                 if !is_queenside_blocked
                     && !self.square_attacked(board, opponent, Squares::E1)
                     && !self.square_attacked(board, opponent, Squares::D1)
                 {
-                    let to = (1u64 << from) >> 2;
+                    let to = BB_SQUARES[from] >> 2;
                     self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
@@ -203,14 +204,14 @@ impl MoveGenerator {
         if us == Sides::BLACK && castle_perms_black {
             // Kingside
             if board.game_state.castling & Castling::BK > 0 {
-                let bb_kingside_blockers = (1u64 << Squares::F8) | (1u64 << Squares::G8);
+                let bb_kingside_blockers = BB_SQUARES[Squares::F8] | BB_SQUARES[Squares::G8];
                 let is_kingside_blocked = (bb_occupancy & bb_kingside_blockers) > 0;
 
                 if !is_kingside_blocked
                     && !self.square_attacked(board, opponent, Squares::E8)
                     && !self.square_attacked(board, opponent, Squares::F8)
                 {
-                    let to = (1u64 << from) << 2;
+                    let to = BB_SQUARES[from] << 2;
                     self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
@@ -218,14 +219,14 @@ impl MoveGenerator {
             // Queenside
             if board.game_state.castling & Castling::BQ > 0 {
                 let bb_queenside_blockers =
-                    (1u64 << Squares::B8) | (1u64 << Squares::C8) | (1u64 << Squares::D8);
+                    BB_SQUARES[Squares::B8] | BB_SQUARES[Squares::C8] | BB_SQUARES[Squares::D8];
                 let is_queenside_blocked = (bb_occupancy & bb_queenside_blockers) > 0;
 
                 if !is_queenside_blocked
                     && !self.square_attacked(board, opponent, Squares::E8)
                     && !self.square_attacked(board, opponent, Squares::D8)
                 {
-                    let to = (1u64 << from) >> 2;
+                    let to = BB_SQUARES[from] >> 2;
                     self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
