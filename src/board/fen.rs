@@ -1,7 +1,7 @@
 // fen.rs reads an FEN-string and converts it into a board position.
 // If the procedure fails, the original position is not changed.
 use super::{
-    defs::{Files, Pieces, Ranks, Squares},
+    defs::{Files, Pieces, Ranks, Squares, BB_SQUARES},
     Board,
 };
 use crate::{
@@ -96,20 +96,20 @@ fn pieces(board: &mut Board, part: &str) -> bool {
 
     // Parse each character; it should be a piece, square count, or splitter.
     for c in part.chars() {
-        let square = (rank * 8) + file;
+        let square = ((rank * 8) + file) as usize;
         match c {
-            'k' => board.bb_pieces[Sides::BLACK][Pieces::KING] |= 1u64 << square,
-            'q' => board.bb_pieces[Sides::BLACK][Pieces::QUEEN] |= 1u64 << square,
-            'r' => board.bb_pieces[Sides::BLACK][Pieces::ROOK] |= 1u64 << square,
-            'b' => board.bb_pieces[Sides::BLACK][Pieces::BISHOP] |= 1u64 << square,
-            'n' => board.bb_pieces[Sides::BLACK][Pieces::KNIGHT] |= 1u64 << square,
-            'p' => board.bb_pieces[Sides::BLACK][Pieces::PAWN] |= 1u64 << square,
-            'K' => board.bb_pieces[Sides::WHITE][Pieces::KING] |= 1u64 << square,
-            'Q' => board.bb_pieces[Sides::WHITE][Pieces::QUEEN] |= 1u64 << square,
-            'R' => board.bb_pieces[Sides::WHITE][Pieces::ROOK] |= 1u64 << square,
-            'B' => board.bb_pieces[Sides::WHITE][Pieces::BISHOP] |= 1u64 << square,
-            'N' => board.bb_pieces[Sides::WHITE][Pieces::KNIGHT] |= 1u64 << square,
-            'P' => board.bb_pieces[Sides::WHITE][Pieces::PAWN] |= 1u64 << square,
+            'k' => board.bb_pieces[Sides::BLACK][Pieces::KING] |= BB_SQUARES[square],
+            'q' => board.bb_pieces[Sides::BLACK][Pieces::QUEEN] |= BB_SQUARES[square],
+            'r' => board.bb_pieces[Sides::BLACK][Pieces::ROOK] |= BB_SQUARES[square],
+            'b' => board.bb_pieces[Sides::BLACK][Pieces::BISHOP] |= BB_SQUARES[square],
+            'n' => board.bb_pieces[Sides::BLACK][Pieces::KNIGHT] |= BB_SQUARES[square],
+            'p' => board.bb_pieces[Sides::BLACK][Pieces::PAWN] |= BB_SQUARES[square],
+            'K' => board.bb_pieces[Sides::WHITE][Pieces::KING] |= BB_SQUARES[square],
+            'Q' => board.bb_pieces[Sides::WHITE][Pieces::QUEEN] |= BB_SQUARES[square],
+            'R' => board.bb_pieces[Sides::WHITE][Pieces::ROOK] |= BB_SQUARES[square],
+            'B' => board.bb_pieces[Sides::WHITE][Pieces::BISHOP] |= BB_SQUARES[square],
+            'N' => board.bb_pieces[Sides::WHITE][Pieces::KNIGHT] |= BB_SQUARES[square],
+            'P' => board.bb_pieces[Sides::WHITE][Pieces::PAWN] |= BB_SQUARES[square],
             '1'..='8' => {
                 if let Some(x) = c.to_digit(10) {
                     file += x as u8;
