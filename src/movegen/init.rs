@@ -3,7 +3,7 @@ use super::{
     MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
 use crate::{
-    board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS},
+    board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS, BB_SQUARES},
     defs::{Piece, Sides, EMPTY},
 };
 
@@ -19,7 +19,7 @@ impl MoveGenerator {
     #[rustfmt::skip]
     pub fn init_king(&mut self) {
         for sq in RangeOf::SQUARES {
-            let bb_square = 1u64 << sq;
+            let bb_square = BB_SQUARES[sq];
             let bb_moves =
             (bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R8]) << 7
             | (bb_square & !BB_RANKS[Ranks::R8]) << 8
@@ -42,7 +42,7 @@ impl MoveGenerator {
     #[rustfmt::skip]
     pub fn init_knight(&mut self) {
     for sq in RangeOf::SQUARES {
-        let bb_square = 1u64 << sq;
+        let bb_square = BB_SQUARES[sq];
         let bb_moves =
             (bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::A]) << 15
             | (bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::H]) << 17
@@ -63,7 +63,7 @@ impl MoveGenerator {
      */
     pub fn init_pawns(&mut self) {
         for sq in RangeOf::SQUARES {
-            let bb_square = 1u64 << sq;
+            let bb_square = BB_SQUARES[sq];
             let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
             let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
             self.pawns[Sides::WHITE][sq as usize] = w;
