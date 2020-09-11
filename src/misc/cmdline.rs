@@ -27,6 +27,11 @@ impl CmdLineArgs {
     const WIZARDRY_LONG: &'static str = "wizardry";
     const WIZARDRY_SHORT: &'static str = "w";
     const WIZARDRY_HELP: &'static str = "Generate magic numbers";
+
+    // Test
+    const TEST_LONG: &'static str = "test";
+    const TEST_SHORT: &'static str = "t";
+    const TEST_HELP: &'static str = "Run EPD Test Suite";
 }
 
 pub struct CmdLine {
@@ -66,6 +71,10 @@ impl CmdLine {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
     }
 
+    pub fn test(&self) -> bool {
+        self.arguments.is_present(CmdLineArgs::TEST_LONG)
+    }
+
     fn get() -> ArgMatches<'static> {
         App::new(About::ENGINE)
             .version(About::VERSION)
@@ -101,6 +110,13 @@ impl CmdLine {
                     .short(CmdLineArgs::WIZARDRY_SHORT)
                     .long(CmdLineArgs::WIZARDRY_LONG)
                     .help(CmdLineArgs::WIZARDRY_HELP)
+                    .takes_value(false),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::TEST_LONG)
+                    .short(CmdLineArgs::TEST_SHORT)
+                    .long(CmdLineArgs::TEST_LONG)
+                    .help(CmdLineArgs::TEST_HELP)
                     .takes_value(false),
             )
             .get_matches()

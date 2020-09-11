@@ -9,36 +9,16 @@ use std::time::Instant;
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
 
-// This function runs the entire suite.
-#[allow(dead_code)]
-pub fn run_all_tests() {
-    let entire_suite = &LARGE_PERFT_SUITE[..];
-    run(entire_suite);
-}
-
-// This function runs a single test.
-#[allow(dead_code)]
-pub fn run_single_test(test: usize) {
-    let length = LARGE_PERFT_SUITE.len();
-    if (1..=length).contains(&test) {
-        let single_test = &LARGE_PERFT_SUITE[(test - 1)..test];
-        run(single_test);
-    } else {
-        println!("Perftsuite: Test does not exist. Range: 1 - {}", length);
-    }
-}
-
 // This private function is the one actually running tests.
 // This can be the entire suite, or a single test.
-#[allow(dead_code)]
-fn run(subset: &[&str]) {
-    let number_of_tests = subset.len();
+pub fn run() {
+    let number_of_tests = LARGE_PERFT_SUITE.len();
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
     let mut abort = false;
 
     // Run all the tests.
-    for (test_nr, test) in subset.iter().enumerate() {
+    for (test_nr, test) in LARGE_PERFT_SUITE.iter().enumerate() {
         // Split the test's data string into multiple parts.
         let data: Vec<String> = test
             .split(SEMI_COLON)
@@ -105,11 +85,5 @@ fn run(subset: &[&str]) {
             println!();
             break;
         }
-    }
-
-    if !abort {
-        println!("Perft testing completed without errors.");
-    } else {
-        println!("Perft testing found errors.");
     }
 }

@@ -2,6 +2,7 @@ use crate::{
     board::{defs::Pieces, Board},
     comm::{console, uci, xboard},
     defs::{About, EngineRunResult},
+    extra::perftsuite,
     extra::{perft, wizardry},
     misc::cmdline::CmdLine,
     movegen::MoveGenerator,
@@ -54,6 +55,11 @@ impl Engine {
             wizardry::find_magics(Pieces::ROOK);
             wizardry::find_magics(Pieces::BISHOP);
         };
+
+        if self.cmdline.test() {
+            action_requested = true;
+            perftsuite::run();
+        }
 
         // Start the engine, if no other actions requested.
         if !action_requested {
