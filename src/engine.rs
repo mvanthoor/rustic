@@ -1,6 +1,6 @@
 use crate::{
     board::{defs::Pieces, Board},
-    comm,
+    comm::{console, uci, xboard},
     defs::{About, EngineRunResult},
     extra::{perft, wizardry},
     misc::cmdline::CmdLine,
@@ -15,7 +15,7 @@ use crate::{
 // all those parts in the global space.
 pub struct Engine {
     cmdline: CmdLine,
-    move_generator: MoveGenerator,
+    mg: MoveGenerator,
     board: Board,
 }
 
@@ -24,7 +24,7 @@ impl Engine {
     pub fn new() -> Self {
         Self {
             cmdline: CmdLine::new(),
-            move_generator: MoveGenerator::new(),
+            mg: MoveGenerator::new(),
             board: Board::new(),
         }
     }
@@ -45,7 +45,7 @@ impl Engine {
         if self.cmdline.perft() > 0 {
             action_requested = true;
             println!("FEN: {}", fen);
-            perft::run(&self.board, self.cmdline.perft(), &self.move_generator);
+            perft::run(&self.board, self.cmdline.perft(), &self.mg);
         }
 
         // Generate magic numbers if requested.
@@ -58,19 +58,15 @@ impl Engine {
         // Start the engine, if no other actions requested.
         if !action_requested {
             match &self.cmdline.comm()[..] {
-                "uci" => comm::uci::get_input(),
-                "xboard" => comm::xboard::get_input(),
-                "console" => self.console(&mut self.board.clone(), &self.move_generator),
+                "uci" => uci::get_input(),
+                "xboard" => xboard::get_input(),
+                "console" => console::get_input(&mut self.board, &self.mg),
                 _ => (),
             }
         };
 
         // Engine exits correctly.
         Ok(())
-    }
-
-    fn console(&self, board: &mut Board, mg: &MoveGenerator) {
-        comm::console::get_input(board, mg);
     }
 
     // Print information about the engine.

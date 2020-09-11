@@ -6,7 +6,7 @@ use crate::{board::Board, defs::About, extra::print, movegen::MoveGenerator};
 // type PotentialMove = (Square, Square, Piece);
 
 // TODO: Update comment.
-pub fn get_input(board: &mut Board, _mg: &MoveGenerator) -> u64 {
+pub fn get_input(board: &mut Board, _mg: &MoveGenerator) {
     const DIVIDER_LENGTH: usize = 48;
 
     println!("{}", "=".repeat(DIVIDER_LENGTH));
@@ -21,7 +21,6 @@ pub fn get_input(board: &mut Board, _mg: &MoveGenerator) -> u64 {
     //     Ok(_) => (),
     //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
     // }
-    0
 }
 
 /*

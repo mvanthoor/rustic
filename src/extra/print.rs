@@ -9,7 +9,7 @@ use crate::{
 
 type AsciiBoard = [char; NrOf::SQUARES];
 
-const ASCII_EMPTY_SQUARE: char = '.';
+const CHAR_ES: char = '.';
 const CHAR_WK: char = 'K';
 const CHAR_WQ: char = 'Q';
 const CHAR_WR: char = 'R';
@@ -25,57 +25,15 @@ const CHAR_BP: char = 'i';
 const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 
 // Prints the current position to the screen.
-#[allow(dead_code)]
 pub fn position(board: &Board, mark_square: Option<u8>) {
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; NrOf::SQUARES];
+    let mut ascii_board: AsciiBoard = [CHAR_ES; NrOf::SQUARES];
+
     bitboards_to_ascii(board, &mut ascii_board);
     to_console(&ascii_board, mark_square);
     metadata(board);
 }
 
-// This prints a bitboard (64-bit number) to the screen in an 8x8 grid.
-#[allow(dead_code)]
-pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
-    const SQUARE_OCCUPIED: char = '1';
-    let mut ascii_board: AsciiBoard = [ASCII_EMPTY_SQUARE; 64];
-    put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
-    to_console(&ascii_board, mark_square);
-}
-
-// Prints a given movelist to the screen.
-#[allow(dead_code)]
-pub fn movelist(moves: &[Move]) {
-    for m in moves.iter() {
-        move_data(*m);
-    }
-}
-
-// Prints decoded move data to the screen.
-#[allow(dead_code)]
-pub fn move_data(m: Move) {
-    println!(
-        "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
-        PIECE_CHAR[m.piece()],
-        SQUARE_NAME[m.from()],
-        SQUARE_NAME[m.to()],
-        PIECE_NAME[m.captured()],
-        PIECE_NAME[m.promoted()],
-        m.en_passant(),
-        m.double_step(),
-        m.castling(),
-    );
-}
-
-#[allow(dead_code)]
-pub fn horizontal_line(c: char, length: u8) {
-    for _ in 0..length {
-        print!("{}", c);
-    }
-    println!();
-}
-
 // Create a printable ASCII-board out of bitboards.
-#[allow(dead_code)]
 fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
     let bb_w = board.bb_pieces[Sides::WHITE];
     let bb_b = board.bb_pieces[Sides::BLACK];
@@ -112,7 +70,6 @@ fn bitboards_to_ascii(board: &Board, ascii_board: &mut AsciiBoard) {
 }
 
 // This function actually puts the correct character into the ASCII board.
-#[allow(dead_code)]
 fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, character: char) {
     for (i, square) in ascii_board.iter_mut().enumerate() {
         if (bitboard >> i) & 1 == 1 {
@@ -122,7 +79,6 @@ fn put_character_on_square(bitboard: Bitboard, ascii_board: &mut AsciiBoard, cha
 }
 
 // Print the generated ASCII-board to the console. Optionally mark one square.
-#[allow(dead_code)]
 fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     let coordinate_alpha: &str = "ABCDEFGH";
     let mut coordinate_digit = NrOf::FILES;
@@ -157,22 +113,17 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
 }
 
 // This function prints all of the metadata about the position.
-#[allow(dead_code)]
 fn metadata(board: &Board) {
+    let is_white = (board.game_state.active_color as usize) == Sides::WHITE;
+    let active_color = if is_white { "White" } else { "Black" };
     let castling = castling_as_string(board.game_state.castling);
-    let en_passant = if let Some(ep) = board.game_state.en_passant {
-        SQUARE_NAME[ep as usize]
-    } else {
-        "-"
+    let en_passant = match board.game_state.en_passant {
+        Some(ep) => SQUARE_NAME[ep as usize],
+        None => "-",
     };
-    let active_color = if (board.game_state.active_color as usize) == Sides::WHITE {
-        "White"
-    } else {
-        "Black"
-    };
-
     let hmc = board.game_state.halfmove_clock;
     let fmn = board.game_state.fullmove_number;
+
     println!("{:<20}{:x}", "Zobrist key:", board.game_state.zobrist_key);
     println!("{:<20}{}", "Active Color:", active_color);
     println!("{:<20}{}", "Castling:", castling);
@@ -183,7 +134,6 @@ fn metadata(board: &Board) {
 }
 
 // Converts castling permissions to a string.
-#[allow(dead_code)]
 fn castling_as_string(permissions: u8) -> String {
     let mut castling_as_string: String = String::from("");
     let p = permissions;
@@ -194,4 +144,39 @@ fn castling_as_string(permissions: u8) -> String {
     castling_as_string += if p & Castling::BQ > 0 { "q" } else { "" };
 
     castling_as_string
+}
+
+// ===== Printing used for development purposes only =====
+
+// This prints a bitboard (64-bit number) to the screen in an 8x8 grid.
+#[allow(dead_code)]
+pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
+    const SQUARE_OCCUPIED: char = '1';
+    let mut ascii_board: AsciiBoard = [CHAR_ES; 64];
+    put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
+    to_console(&ascii_board, mark_square);
+}
+
+// Prints a given movelist to the screen.
+#[allow(dead_code)]
+pub fn movelist(moves: &[Move]) {
+    for m in moves.iter() {
+        move_data(*m);
+    }
+}
+
+// Prints decoded move data to the screen.
+#[allow(dead_code)]
+pub fn move_data(m: Move) {
+    println!(
+        "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
+        PIECE_CHAR[m.piece()],
+        SQUARE_NAME[m.from()],
+        SQUARE_NAME[m.to()],
+        PIECE_NAME[m.captured()],
+        PIECE_NAME[m.promoted()],
+        m.en_passant(),
+        m.double_step(),
+        m.castling(),
+    );
 }
