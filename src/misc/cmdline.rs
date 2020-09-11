@@ -21,7 +21,7 @@ impl CmdLineArgs {
     const COMM_SHORT: &'static str = "c";
     const COMM_HELP: &'static str = "Define communication to use";
     const COMM_VALUES: [&'static str; 3] = ["uci", "xboard", "console"];
-    const COMM_DEFAULT: &'static str = "uci";
+    const COMM_DEFAULT: &'static str = "console";
 
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";

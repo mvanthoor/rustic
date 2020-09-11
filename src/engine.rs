@@ -60,13 +60,17 @@ impl Engine {
             match &self.cmdline.comm()[..] {
                 "uci" => comm::uci::get_input(),
                 "xboard" => comm::xboard::get_input(),
-                "console" => comm::console::get_input(),
+                "console" => self.console(&mut self.board.clone(), &self.move_generator),
                 _ => (),
             }
         };
 
         // Engine exits correctly.
         Ok(())
+    }
+
+    fn console(&self, board: &mut Board, mg: &MoveGenerator) {
+        comm::console::get_input(board, mg);
     }
 
     // Print information about the engine.

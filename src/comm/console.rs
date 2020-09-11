@@ -1,99 +1,38 @@
-// This is the engine's console interface. It can be compiled into the program
-// as an optional feature, for playing in a console window. It can also call
-// various test routines.
+// TODO: Update comments
 
-pub fn get_input() {
-    println!("Console communication.");
+use crate::{board::Board, defs::About, extra::print, movegen::MoveGenerator};
+
+// type ParseMoveResult = Result<(Square, Square, Piece), u8>;
+// type PotentialMove = (Square, Square, Piece);
+
+// TODO: Update comment.
+pub fn get_input(board: &mut Board, _mg: &MoveGenerator) -> u64 {
+    const DIVIDER_LENGTH: usize = 48;
+
+    println!("{}", "=".repeat(DIVIDER_LENGTH));
+    print::position(board, None);
+    print!("{} > ", About::ENGINE);
+
+    // match io::stdout().flush() {
+    //     Ok(()) => (),
+    //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
+    // }
+    // match io::stdin().read_line(&mut input) {
+    //     Ok(_) => (),
+    //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
+    // }
+    0
 }
 
 /*
-
-use crate::{
-    board::{defs::Pieces, playmove, representation::Board},
-    defs::{Piece, Square, ENGINE},
-    extra::{perft, perftsuite, print},
-    misc::parse,
-    movegen::movelist::MoveList,
-};
-use if_chain::if_chain;
-use std::io::{self, Write};
-
-const CMD_STR_ERR_IO: &str = "Command-line i/o error";
-const CMD_QUIT: u64 = 0;
-const CMD_CONTINUE: u64 = 1;
-
-// Errors when parsing moves
-const ERR_MV_NO_ERROR: u8 = 0;
-const ERR_MV_SQUARE_ERROR: u8 = 1;
-const ERR_MV_NOT_PROMOTION: u8 = 2;
-const ERR_MV_LENGTH_WRONG: u8 = 3;
-const ERR_MV_STRINGS: [&str; 4] = [
-    "No error.",
-    "Square doesn't exist.",
-    "Not a promotion piece.",
-    "Move length is wrong.",
-];
-
-type ParseMoveResult = Result<(Square, Square, Piece), u8>;
-type PotentialMove = (Square, Square, Piece);
-
-// TODO: Update comment.
-pub fn get_input(board: &mut Board) -> u64 {
-    let mut input = String::new();
-
-    print::horizontal_line('=', 40);
-    print::position(board, None);
-    print!("{} > ", ENGINE);
-
-    match io::stdout().flush() {
-        Ok(()) => (),
-        Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-    }
-    match io::stdin().read_line(&mut input) {
-        Ok(_) => parse_input(board, &mut input),
-        Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-    }
-}
-
-// TODO: Update comment.
 pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
     parse::strip_newline(input);
     match &input[..] {
         "quit" | "exit" => CMD_QUIT,
-        "perft" => cmd_perft(board),
-        "suite" => cmd_suite(),
-        "clear" => cmd_clear(),
-        "t" => cmd_take_move(board),
         _ => cmd_make_move(board, input),
     }
 }
 
-// TODO: Update comment.
-fn cmd_clear() -> u64 {
-    CMD_CONTINUE
-}
-
-// TODO: Update comment.
-fn cmd_perft(board: &Board) -> u64 {
-    perft::run(board, 7);
-    CMD_CONTINUE
-}
-
-// TODO: Update comment.
-fn cmd_suite() -> u64 {
-    perftsuite::run_all_tests();
-    CMD_CONTINUE
-}
-
-// TODO: Update comment.
-fn cmd_take_move(board: &mut Board) -> u64 {
-    if board.history.len() >= 1 {
-        playmove::unmake(board);
-    }
-    CMD_CONTINUE
-}
-
-// TODO: Update comment.
 fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
     let parse_move_result = parse_move(input);
     let mut try_move_result = Err(());
@@ -109,7 +48,6 @@ fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
     CMD_CONTINUE
 }
 
-// TODO: Update comment.
 fn parse_move(input: &str) -> ParseMoveResult {
     let length = input.len();
     let mut from: Square = 0;

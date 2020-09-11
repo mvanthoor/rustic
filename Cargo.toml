@@ -22,7 +22,7 @@ panic = 'unwind'
 debug = true
 debug-assertions = true
 rpath = false
-incremental = false
+incremental = true
 overflow-checks = false
 
 [profile.release]
