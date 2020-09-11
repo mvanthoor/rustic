@@ -1,5 +1,5 @@
-pub mod large_epd;
+pub mod epds;
 pub mod perft;
-pub mod perftsuite;
 pub mod print;
+pub mod testsuite;
 pub mod wizardry;

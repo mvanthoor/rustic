@@ -2,7 +2,7 @@ use crate::{
     board::{defs::Pieces, Board},
     comm::{console, uci, xboard},
     defs::{About, EngineRunResult},
-    extra::perftsuite,
+    extra::testsuite,
     extra::{perft, wizardry},
     misc::cmdline::CmdLine,
     movegen::MoveGenerator,
@@ -58,7 +58,7 @@ impl Engine {
 
         if self.cmdline.test() {
             action_requested = true;
-            perftsuite::run();
+            testsuite::run();
         }
 
         // Start the engine, if no other actions requested.
