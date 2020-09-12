@@ -1,6 +1,6 @@
 // TODO: Update comments
 
-use crate::{board::Board, defs::About, extra::print, movegen::MoveGenerator};
+use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);

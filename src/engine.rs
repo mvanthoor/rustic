@@ -3,8 +3,8 @@ use crate::{
     comm::{console, uci, xboard},
     defs::{About, EngineRunResult},
     extra::testsuite,
-    extra::{perft, wizardry},
-    misc::cmdline::CmdLine,
+    extra::wizardry,
+    misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
 };
 

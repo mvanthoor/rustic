@@ -1,6 +1,7 @@
 use crate::{
     board::Board,
-    extra::{epds::LARGE_TEST_EPDS, perft, print},
+    extra::epds::LARGE_TEST_EPDS,
+    misc::{perft, print},
     movegen::MoveGenerator,
 };
 use std::time::Instant;

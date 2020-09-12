@@ -238,19 +238,19 @@ fn checkup(board: &Board, m: Move) {
 
     if key != board.game_state.zobrist_key {
         println!("Error in Zobrist-key.");
-        crate::extra::print::move_data(m);
+        crate::misc::print::move_data(m);
         panic!();
     };
 
     if count.0 != board.material_count[Sides::WHITE] {
         println!("Error in material count for White.");
-        crate::extra::print::move_data(m);
+        crate::misc::print::move_data(m);
         panic!();
     };
 
     if count.1 != board.material_count[Sides::BLACK] {
         println!("Error in material count for Black.");
-        crate::extra::print::move_data(m);
+        crate::misc::print::move_data(m);
         panic!();
     };
 }

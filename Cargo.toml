@@ -12,7 +12,7 @@ if_chain = "1.0.0"
 clap = "2.33.3"
 
 [features]
-console = []
+extra = []
 
 [profile.dev]
 opt-level = 2

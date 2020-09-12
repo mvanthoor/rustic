@@ -1,12 +1,11 @@
 use crate::{
     board::Board,
-    extra::print,
+    misc::print,
     movegen::{defs::MoveList, MoveGenerator},
 };
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
-#[allow(dead_code)]
 pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
@@ -36,7 +35,6 @@ pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
 }
 
 // This is the actual Perft function.
-#[allow(dead_code)]
 pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let mut move_list: MoveList = MoveList::new();
