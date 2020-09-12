@@ -3,9 +3,11 @@ mod comm;
 mod defs;
 mod engine;
 mod evaluation;
-mod extra;
 mod misc;
 mod movegen;
+
+#[cfg(feature = "extra")]
+mod extra;
 
 // use interface::console;
 use defs::ENGINE_RUN_ERRORS;

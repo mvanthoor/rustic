@@ -67,18 +67,22 @@ impl CmdLine {
             .unwrap_or(0)
     }
 
+    #[cfg(feature = "extra")]
     pub fn wizardry(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
     }
 
+    #[cfg(feature = "extra")]
     pub fn test(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::TEST_LONG)
     }
 
+    // &*format!("{} <{}>", About::AUTHOR, About::EMAIL)
+
     fn get() -> ArgMatches<'static> {
-        App::new(About::ENGINE)
+        let mut app = App::new(About::ENGINE)
             .version(About::VERSION)
-            .author(&*format!("{} <{}>", About::AUTHOR, About::EMAIL))
+            .author("Author X")
             .about(About::DESCRIPTION)
             .arg(
                 Arg::with_name(CmdLineArgs::COMM_LONG)
@@ -104,21 +108,26 @@ impl CmdLine {
                     .help(CmdLineArgs::PERFT_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::PERFT_DEFAULT),
-            )
-            .arg(
-                Arg::with_name(CmdLineArgs::WIZARDRY_LONG)
-                    .short(CmdLineArgs::WIZARDRY_SHORT)
-                    .long(CmdLineArgs::WIZARDRY_LONG)
-                    .help(CmdLineArgs::WIZARDRY_HELP)
-                    .takes_value(false),
-            )
-            .arg(
-                Arg::with_name(CmdLineArgs::TEST_LONG)
-                    .short(CmdLineArgs::TEST_SHORT)
-                    .long(CmdLineArgs::TEST_LONG)
-                    .help(CmdLineArgs::TEST_HELP)
-                    .takes_value(false),
-            )
-            .get_matches()
+            );
+
+        if cfg!(feature = "extra") {
+            app = app
+                .arg(
+                    Arg::with_name(CmdLineArgs::WIZARDRY_LONG)
+                        .short(CmdLineArgs::WIZARDRY_SHORT)
+                        .long(CmdLineArgs::WIZARDRY_LONG)
+                        .help(CmdLineArgs::WIZARDRY_HELP)
+                        .takes_value(false),
+                )
+                .arg(
+                    Arg::with_name(CmdLineArgs::TEST_LONG)
+                        .short(CmdLineArgs::TEST_SHORT)
+                        .long(CmdLineArgs::TEST_LONG)
+                        .help(CmdLineArgs::TEST_HELP)
+                        .takes_value(false),
+                );
+        }
+
+        app.get_matches()
     }
 }

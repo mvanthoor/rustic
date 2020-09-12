@@ -1,11 +1,15 @@
 use crate::{
-    board::{defs::Pieces, Board},
+    board::Board,
     comm::{console, uci, xboard},
     defs::{About, EngineRunResult},
-    extra::testsuite,
-    extra::wizardry,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
+};
+
+#[cfg(feature = "extra")]
+use crate::{
+    board::defs::Pieces,
+    extra::{testsuite, wizardry},
 };
 
 // This struct holds the chess engine and its functions. The reason why
@@ -49,6 +53,8 @@ impl Engine {
             perft::run(&self.board, self.cmdline.perft(), &self.mg);
         }
 
+        // === Only available with "extra" features enabled. ===
+        #[cfg(feature = "extra")]
         // Generate magic numbers if requested.
         if self.cmdline.wizardry() {
             action_requested = true;
@@ -56,10 +62,13 @@ impl Engine {
             wizardry::find_magics(Pieces::BISHOP);
         };
 
+        #[cfg(feature = "extra")]
+        // Run large EPD test suite if requested.
         if self.cmdline.test() {
             action_requested = true;
             testsuite::run();
         }
+        // =====================================================
 
         // Start the engine, if no other actions requested.
         if !action_requested {
