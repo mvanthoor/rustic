@@ -1,26 +1,39 @@
 // TODO: Update comments
 
+use super::IComm;
 use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
 
-// TODO: Update comment.
-pub fn get_input(board: &mut Board, _mg: &MoveGenerator) {
-    const DIVIDER_LENGTH: usize = 48;
+const PROMPT: &str = ">";
 
-    println!("{}", "=".repeat(DIVIDER_LENGTH));
-    print::position(board, None);
-    print!("{} > ", About::ENGINE);
+pub struct Console {}
 
-    // match io::stdout().flush() {
-    //     Ok(()) => (),
-    //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-    // }
-    // match io::stdin().read_line(&mut input) {
-    //     Ok(_) => (),
-    //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-    // }
+impl Console {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl IComm for Console {
+    // TODO: Update comment.
+    fn start(&mut self, board: &mut Board, _mg: &MoveGenerator) {
+        const DIVIDER_LENGTH: usize = 48;
+
+        println!("{}", "=".repeat(DIVIDER_LENGTH));
+        print::position(board, None);
+        print!("{} {} ", About::ENGINE, PROMPT);
+
+        // match io::stdout().flush() {
+        //     Ok(()) => (),
+        //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
+        // }
+        // match io::stdin().read_line(&mut input) {
+        //     Ok(_) => (),
+        //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
+        // }
+    }
 }
 
 /*

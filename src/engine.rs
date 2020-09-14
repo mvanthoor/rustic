@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    comm::{console, uci, xboard},
+    comm::{console::Console, uci::Uci, xboard::Xboard, IComm},
     defs::{About, EngineRunResult},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -20,6 +20,7 @@ use crate::{
 // all those parts in the global space.
 pub struct Engine {
     cmdline: CmdLine,
+    comm: Box<dyn IComm>,
     mg: MoveGenerator,
     board: Board,
 }
@@ -27,8 +28,20 @@ pub struct Engine {
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
+        // Create the command-line object.
+        let c = CmdLine::new();
+
+        // Create the communication interface
+        let i: Box<dyn IComm> = match &c.comm()[..] {
+            "uci" => Box::new(Uci::new()),
+            "xboard" => Box::new(Xboard::new()),
+            "console" => Box::new(Console::new()),
+            _ => panic!("Engine communication interface failed."),
+        };
+
         Self {
-            cmdline: CmdLine::new(),
+            cmdline: c,
+            comm: i,
             mg: MoveGenerator::new(),
             board: Board::new(),
         }
@@ -41,6 +54,8 @@ impl Engine {
 
         // Setup according to provided FEN-string, if any.
         let fen = &self.cmdline.fen()[..];
+
+        // Abort if position setup fails due to invalid FEN.
         self.board.fen_read(Some(fen))?;
 
         // Run a specific action if requested, or start the engine.
@@ -72,12 +87,7 @@ impl Engine {
 
         // Start the engine, if no other actions requested.
         if !action_requested {
-            match &self.cmdline.comm()[..] {
-                "uci" => uci::get_input(),
-                "xboard" => xboard::get_input(),
-                "console" => console::get_input(&mut self.board, &self.mg),
-                _ => (),
-            }
+            self.comm.start(&mut self.board, &self.mg);
         };
 
         // Engine exits correctly.
@@ -87,7 +97,7 @@ impl Engine {
     // Print information about the engine.
     fn about(&self) {
         println!();
-        println!("Engine: {} {}", About::ENGINE, About::VERSION);
+        println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
     }

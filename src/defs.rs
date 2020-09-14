@@ -8,7 +8,7 @@ impl About {
     pub const VERSION: &'static str = "Alpha 1";
     pub const AUTHOR: &'static str = "Marcel Vanthoor";
     pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
-    pub const DESCRIPTION: &'static str = "UCI Chess Engine, written in Rust";
+    pub const DESCRIPTION: &'static str = "Chess Engine written in Rust";
 }
 
 pub type Bitboard = u64;
