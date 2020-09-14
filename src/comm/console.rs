@@ -1,17 +1,19 @@
 // TODO: Update comments
 
 use super::IComm;
-use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
-use std::io::{self, Write};
+// use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
+// use std::io::{self, Write};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
 
+/*
 #[derive(PartialEq)]
 enum CommState {
     Quit,
     Continue,
 }
+*/
 
 pub struct Console {}
 
@@ -23,7 +25,9 @@ impl Console {
 
 impl IComm for Console {
     // TODO: Update comment.
-    fn start(&mut self, board: &mut Board, _mg: &MoveGenerator) {
+    fn start(&self) {
+        println!("Console communication.");
+        /*
         const DIVIDER_LENGTH: usize = 48;
         const PROMPT: &str = ">";
         let mut comm_state = CommState::Continue;
@@ -47,9 +51,11 @@ impl IComm for Console {
 
             comm_state = parse_input(input.trim_end().to_string());
         }
+        */
     }
 }
 
+/*
 fn parse_input(input: String) -> CommState {
     let mut comm_state = CommState::Continue;
 
@@ -60,6 +66,8 @@ fn parse_input(input: String) -> CommState {
 
     comm_state
 }
+
+*/
 
 /*
 

@@ -1,5 +1,5 @@
 use super::IComm;
-use crate::{board::Board, movegen::MoveGenerator};
+// use crate::{board::Board, movegen::MoveGenerator};
 
 pub struct Xboard {}
 
@@ -10,7 +10,7 @@ impl Xboard {
 }
 
 impl IComm for Xboard {
-    fn start(&mut self, _board: &mut Board, _mg: &MoveGenerator) {
+    fn start(&self) {
         println!("XBoard communication.");
     }
 }

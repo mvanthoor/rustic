@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    comm::{console::Console, uci::Uci, xboard::Xboard, IComm},
+    comm::{console::Console, IComm},
     defs::{About, EngineRunResult},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -33,8 +33,8 @@ impl Engine {
 
         // Create the communication interface
         let i: Box<dyn IComm> = match &c.comm()[..] {
-            "uci" => Box::new(Uci::new()),
-            "xboard" => Box::new(Xboard::new()),
+            // "uci" => Box::new(Uci::new()),
+            // "xboard" => Box::new(Xboard::new()),
             "console" => Box::new(Console::new()),
             _ => panic!("Engine communication interface failed."),
         };
@@ -87,7 +87,7 @@ impl Engine {
 
         // Start the engine, if no other actions requested.
         if !action_requested {
-            self.comm.start(&mut self.board, &self.mg);
+            self.comm.start();
         };
 
         // Engine exits correctly.

@@ -1,5 +1,5 @@
 use super::IComm;
-use crate::{board::Board, movegen::MoveGenerator};
+// use crate::{board::Board, movegen::MoveGenerator};
 
 pub struct Uci {}
 
@@ -10,7 +10,7 @@ impl Uci {
 }
 
 impl IComm for Uci {
-    fn start(&mut self, _board: &mut Board, _mg: &MoveGenerator) {
+    fn start(&self) {
         println!("UCI communication.");
     }
 }
