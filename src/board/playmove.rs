@@ -10,28 +10,27 @@ use crate::{
     movegen::{defs::Move, MoveGenerator},
 };
 
-// Full castling permissions are 1111, or value 15. CASTLE_ALL = All castling
-// permissions for both sides. N_WKQ = Not White Kingside/Queenside, and so on.
-const N_WKQ: u8 = Castling::ALL & !Castling::WK & !Castling::WQ;
-const N_BKQ: u8 = Castling::ALL & !Castling::BK & !Castling::BQ;
-const N_WK: u8 = Castling::ALL & !Castling::WK;
-const N_WQ: u8 = Castling::ALL & !Castling::WQ;
-const N_BK: u8 = Castling::ALL & !Castling::BK;
-const N_BQ: u8 = Castling::ALL & !Castling::BQ;
+// Castling Permissions Per Square
+type CPSquare = [u8; NrOf::SQUARES];
+const CASTLING_PERMS: CPSquare = castling_permissions_per_square();
+const fn castling_permissions_per_square() -> CPSquare {
+    // First set all squares grant all castling permissions. This means
+    // moving a piece on such square doesn't have any effect on castling
+    // permissions.
+    let mut cp: CPSquare = [Castling::ALL; NrOf::SQUARES];
 
-#[rustfmt::skip]
-// First element in this array is square A1. The N_* constants mark which
-// castling rights are lost if the king or rook moves from that starting square.
-const CASTLING_PERMS: [u8; NrOf::SQUARES] = [
-    N_WQ, 15,  15,  15,  N_WKQ, 15,  15,  N_WK,
-    15,   15,  15,  15,  15,    15,  15,  15, 
-    15,   15,  15,  15,  15,    15,  15,  15, 
-    15,   15,  15,  15,  15,    15,  15,  15, 
-    15,   15,  15,  15,  15,    15,  15,  15,
-    15,   15,  15,  15,  15,    15,  15,  15, 
-    15,   15,  15,  15,  15,    15,  15,  15, 
-    N_BQ, 15,  15,  15,  N_BKQ, 15,  15,  N_BK,
-];
+    // Now disable castling permissions when moving pieces on certain
+    // squares. For example, when the piece (rook) on A1 moves, disable
+    // white castling to the queenside.
+    cp[Squares::A1] &= !Castling::WQ;
+    cp[Squares::E1] &= !Castling::WK & !Castling::WQ;
+    cp[Squares::H1] &= !Castling::WK;
+    cp[Squares::A8] &= !Castling::BQ;
+    cp[Squares::E8] &= !Castling::BK & !Castling::BQ;
+    cp[Squares::H8] &= !Castling::BK;
+
+    cp
+}
 
 /*** ================================================================================ ***/
 
