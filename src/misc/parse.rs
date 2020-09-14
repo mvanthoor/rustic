@@ -6,21 +6,6 @@ pub const ASCII_VALUE_OF_1: u8 = 49;
 pub const COORDINATE_LETTERS: &str = "abcdefgh";
 pub const COORDINATE_NUMBERS: &str = "12345678";
 
-#[allow(dead_code)]
-pub fn strip_newline(input: &mut String) {
-    let mut s = input.trim().to_string();
-    for _ in 0..2 {
-        let c = s.chars().next_back();
-        let cr = Some('\r') == c;
-        let lf = Some('\n') == c;
-
-        if cr || lf {
-            s.pop();
-        }
-    }
-    *input = s;
-}
-
 pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<Square, ()> {
     let length = algebraic_square.len();
     let mut result: Result<Square, ()> = Err(());

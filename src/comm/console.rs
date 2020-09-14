@@ -2,11 +2,16 @@
 
 use super::IComm;
 use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
+use std::io::{self, Write};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
 
-const PROMPT: &str = ">";
+#[derive(PartialEq)]
+enum CommState {
+    Quit,
+    Continue,
+}
 
 pub struct Console {}
 
@@ -20,30 +25,43 @@ impl IComm for Console {
     // TODO: Update comment.
     fn start(&mut self, board: &mut Board, _mg: &MoveGenerator) {
         const DIVIDER_LENGTH: usize = 48;
+        const PROMPT: &str = ">";
+        let mut comm_state = CommState::Continue;
 
-        println!("{}", "=".repeat(DIVIDER_LENGTH));
-        print::position(board, None);
-        print!("{} {} ", About::ENGINE, PROMPT);
+        while comm_state != CommState::Quit {
+            let mut input: String = String::from("");
 
-        // match io::stdout().flush() {
-        //     Ok(()) => (),
-        //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-        // }
-        // match io::stdin().read_line(&mut input) {
-        //     Ok(_) => (),
-        //     Err(error) => panic!("{}: {}", CMD_STR_ERR_IO, error),
-        // }
+            println!("{}", "=".repeat(DIVIDER_LENGTH));
+            print::position(board, None);
+            print!("{} {} ", About::ENGINE, PROMPT);
+
+            match io::stdout().flush() {
+                Ok(()) => {}
+                Err(e) => panic!("Error flushing I/O: {}", e),
+            }
+
+            match io::stdin().read_line(&mut input) {
+                Ok(_) => {}
+                Err(e) => panic!("Error reading I/O: {}", e),
+            }
+
+            comm_state = parse_input(input.trim_end().to_string());
+        }
     }
+}
+
+fn parse_input(input: String) -> CommState {
+    let mut comm_state = CommState::Continue;
+
+    match &input[..] {
+        "quit" | "exit" => comm_state = CommState::Quit,
+        _ => {}
+    }
+
+    comm_state
 }
 
 /*
-pub fn parse_input(board: &mut Board, input: &mut String) -> u64 {
-    parse::strip_newline(input);
-    match &input[..] {
-        "quit" | "exit" => CMD_QUIT,
-        _ => cmd_make_move(board, input),
-    }
-}
 
 fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
     let parse_move_result = parse_move(input);
