@@ -1,8 +1,12 @@
 // TODO: Update comments
 
 use super::IComm;
+use std::thread;
+use std::thread::JoinHandle;
+
+use crate::defs::About;
+use std::io::{self, Write};
 // use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
-// use std::io::{self, Write};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
@@ -25,49 +29,50 @@ impl Console {
 
 impl IComm for Console {
     // TODO: Update comment.
-    fn start(&self) {
-        println!("Console communication.");
-        /*
-        const DIVIDER_LENGTH: usize = 48;
-        const PROMPT: &str = ">";
-        let mut comm_state = CommState::Continue;
+    fn start(&self) -> JoinHandle<()> {
+        let handle = thread::spawn(|| {
+            let mut result = 0;
 
-        while comm_state != CommState::Quit {
-            let mut input: String = String::from("");
+            while result == 0 {
+                let mut input: String = String::from("");
 
-            println!("{}", "=".repeat(DIVIDER_LENGTH));
-            print::position(board, None);
-            print!("{} {} ", About::ENGINE, PROMPT);
+                create_prompt();
 
-            match io::stdout().flush() {
-                Ok(()) => {}
-                Err(e) => panic!("Error flushing I/O: {}", e),
+                match io::stdin().read_line(&mut input) {
+                    Ok(_) => {}
+                    Err(e) => panic!("Error reading I/O: {}", e),
+                }
+
+                result = parse_input(input.trim_end().to_string());
             }
+        });
 
-            match io::stdin().read_line(&mut input) {
-                Ok(_) => {}
-                Err(e) => panic!("Error reading I/O: {}", e),
-            }
-
-            comm_state = parse_input(input.trim_end().to_string());
-        }
-        */
+        handle
     }
 }
 
-/*
-fn parse_input(input: String) -> CommState {
-    let mut comm_state = CommState::Continue;
+fn create_prompt() {
+    const PROMPT: &str = ">";
+
+    print!("{} {} ", About::ENGINE, PROMPT);
+
+    // Flush so the prompt is actually printed.
+    match io::stdout().flush() {
+        Ok(()) => {}
+        Err(e) => panic!("Error flushing I/O: {}", e),
+    }
+}
+
+fn parse_input(input: String) -> u8 {
+    let mut result = 0;
 
     match &input[..] {
-        "quit" | "exit" => comm_state = CommState::Quit,
+        "quit" | "exit" => result = 1,
         _ => {}
     }
 
-    comm_state
+    result
 }
-
-*/
 
 /*
 

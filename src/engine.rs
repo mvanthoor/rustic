@@ -5,6 +5,7 @@ use crate::{
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
 };
+use std::thread::JoinHandle;
 
 #[cfg(feature = "extra")]
 use crate::{
@@ -23,6 +24,7 @@ pub struct Engine {
     comm: Box<dyn IComm>,
     mg: MoveGenerator,
     board: Board,
+    comm_handle: Option<JoinHandle<()>>,
 }
 
 impl Engine {
@@ -44,6 +46,7 @@ impl Engine {
             comm: i,
             mg: MoveGenerator::new(),
             board: Board::new(),
+            comm_handle: None,
         }
     }
 
@@ -85,10 +88,15 @@ impl Engine {
         }
         // =====================================================
 
-        // Start the engine, if no other actions requested.
+        // Start the communication thread if no other actions requested.
         if !action_requested {
-            self.comm.start();
-        };
+            self.comm_handle = Some(self.comm.start());
+        }
+
+        // Wait for the communication thread to finish.
+        if let Some(h) = self.comm_handle.take() {
+            h.join().expect("Closing communication failed.");
+        }
 
         // Engine exits correctly.
         Ok(())
@@ -96,9 +104,10 @@ impl Engine {
 
     // Print information about the engine.
     fn about(&self) {
-        println!();
+        const DIVIDER_LENGTH: usize = 48;
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
+        println!("{}", "=".repeat(DIVIDER_LENGTH));
     }
 }
