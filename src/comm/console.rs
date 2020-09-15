@@ -4,9 +4,9 @@ use super::IComm;
 use std::thread;
 use std::thread::JoinHandle;
 
-use crate::defs::About;
+use crate::{board::Board, defs::About, misc::print};
 use std::io::{self, Write};
-// use crate::{board::Board, defs::About, misc::print, movegen::MoveGenerator};
+use std::sync::{Arc, Mutex};
 
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
@@ -27,22 +27,35 @@ impl Console {
     }
 }
 
+// Any communication module must implement the trait IComm.
 impl IComm for Console {
-    // TODO: Update comment.
-    fn start(&self) -> JoinHandle<()> {
-        let handle = thread::spawn(|| {
+    // This function starts the communication. In this case, the
+    // communication is through the console, so the user can input commands
+    // and moves directly.
+    fn start(&self, board: Arc<Mutex<Board>>) -> JoinHandle<()> {
+        const DIVIDER_LENGTH: usize = 48;
+
+        // Run the communication in its own thread.
+        let handle = thread::spawn(move || {
             let mut result = 0;
 
+            // As long as no "quit" or "exit" commands are detected, the
+            // result will be 0 and the console keeps running.
             while result == 0 {
                 let mut input: String = String::from("");
 
+                // Print a divider line, the position, and the prompt.
+                println!("{}", "=".repeat(DIVIDER_LENGTH));
+                print::position(&board.lock().unwrap(), None);
                 create_prompt();
 
+                // Wait for actual commands to be entered.
                 match io::stdin().read_line(&mut input) {
                     Ok(_) => {}
                     Err(e) => panic!("Error reading I/O: {}", e),
                 }
 
+                // Parse the typed command and catch the result.
                 result = parse_input(input.trim_end().to_string());
             }
         });
@@ -51,6 +64,7 @@ impl IComm for Console {
     }
 }
 
+// This function creates Rustic's command prompt
 fn create_prompt() {
     const PROMPT: &str = ">";
 
@@ -63,6 +77,7 @@ fn create_prompt() {
     }
 }
 
+// Parse the entered commands and return the results.
 fn parse_input(input: String) -> u8 {
     let mut result = 0;
 

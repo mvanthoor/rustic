@@ -5,6 +5,7 @@ use crate::{
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
 };
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
 #[cfg(feature = "extra")]
@@ -23,7 +24,7 @@ pub struct Engine {
     cmdline: CmdLine,
     comm: Box<dyn IComm>,
     mg: MoveGenerator,
-    board: Board,
+    board: Arc<Mutex<Board>>,
     comm_handle: Option<JoinHandle<()>>,
 }
 
@@ -45,7 +46,7 @@ impl Engine {
             cmdline: c,
             comm: i,
             mg: MoveGenerator::new(),
-            board: Board::new(),
+            board: Arc::new(Mutex::new(Board::new())),
             comm_handle: None,
         }
     }
@@ -59,7 +60,7 @@ impl Engine {
         let fen = &self.cmdline.fen()[..];
 
         // Abort if position setup fails due to invalid FEN.
-        self.board.fen_read(Some(fen))?;
+        self.board.lock().unwrap().fen_read(Some(fen))?;
 
         // Run a specific action if requested, or start the engine.
         let mut action_requested = false;
@@ -68,7 +69,7 @@ impl Engine {
         if self.cmdline.perft() > 0 {
             action_requested = true;
             println!("FEN: {}", fen);
-            perft::run(&self.board, self.cmdline.perft(), &self.mg);
+            perft::run(&self.board.lock().unwrap(), self.cmdline.perft(), &self.mg);
         }
 
         // === Only available with "extra" features enabled. ===
@@ -90,7 +91,7 @@ impl Engine {
 
         // Start the communication thread if no other actions requested.
         if !action_requested {
-            self.comm_handle = Some(self.comm.start());
+            self.comm_handle = Some(self.comm.start(self.board.clone()));
         }
 
         // Wait for the communication thread to finish.
@@ -104,10 +105,8 @@ impl Engine {
 
     // Print information about the engine.
     fn about(&self) {
-        const DIVIDER_LENGTH: usize = 48;
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
-        println!("{}", "=".repeat(DIVIDER_LENGTH));
     }
 }
