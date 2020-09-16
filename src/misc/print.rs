@@ -4,7 +4,7 @@ use crate::{
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Sides},
-    movegen::defs::Move,
+    movegen::defs::{Move, MoveList},
 };
 
 type AsciiBoard = [char; NrOf::SQUARES];
@@ -159,9 +159,9 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 
 // Prints a given movelist to the screen.
 #[allow(dead_code)]
-pub fn movelist(moves: &[Move]) {
-    for m in moves.iter() {
-        move_data(*m);
+pub fn movelist(ml: &MoveList) {
+    for i in 0..ml.len() {
+        move_data(ml.get_move(i));
     }
 }
 
