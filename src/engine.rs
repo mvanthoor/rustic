@@ -77,7 +77,12 @@ impl Engine {
         if self.cmdline.perft() > 0 {
             action_requested = true;
             println!("FEN: {}", fen);
-            perft::run(&self.board.lock().unwrap(), self.cmdline.perft(), &self.mg);
+            perft::run(
+                &self.board.lock().unwrap(),
+                self.cmdline.perft(),
+                self.settings.threads,
+                &self.mg,
+            );
         }
 
         // === Only available with "extra" features enabled. ===

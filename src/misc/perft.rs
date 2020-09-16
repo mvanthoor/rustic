@@ -6,11 +6,12 @@ use crate::{
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
-pub fn run(board: &Board, depth: u8, mg: &MoveGenerator) {
+pub fn run(board: &Board, depth: u8, threads: u8, mg: &MoveGenerator) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
-    println!("Benchmarking perft 1-{}: ", depth);
+    println!("Benchmarking perft 1-{} on {} threads", depth, threads);
+
     print::position(board, None);
 
     // Perform all perfts for depths 1 up to and including "depth"
