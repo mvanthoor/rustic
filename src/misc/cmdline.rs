@@ -29,9 +29,9 @@ impl CmdLineArgs {
     const WIZARDRY_HELP: &'static str = "Generate magic numbers";
 
     // Test
-    const TEST_LONG: &'static str = "test";
-    const TEST_SHORT: &'static str = "t";
-    const TEST_HELP: &'static str = "Run EPD Test Suite";
+    const EPD_TEST_LONG: &'static str = "epdtest";
+    const EPD_TEST_SHORT: &'static str = "e";
+    const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
 }
 
 pub struct CmdLine {
@@ -74,7 +74,7 @@ impl CmdLine {
 
     #[cfg(feature = "extra")]
     pub fn test(&self) -> bool {
-        self.arguments.is_present(CmdLineArgs::TEST_LONG)
+        self.arguments.is_present(CmdLineArgs::EPD_TEST_LONG)
     }
 
     // &*format!("{} <{}>", About::AUTHOR, About::EMAIL)
@@ -120,10 +120,10 @@ impl CmdLine {
                         .takes_value(false),
                 )
                 .arg(
-                    Arg::with_name(CmdLineArgs::TEST_LONG)
-                        .short(CmdLineArgs::TEST_SHORT)
-                        .long(CmdLineArgs::TEST_LONG)
-                        .help(CmdLineArgs::TEST_HELP)
+                    Arg::with_name(CmdLineArgs::EPD_TEST_LONG)
+                        .short(CmdLineArgs::EPD_TEST_SHORT)
+                        .long(CmdLineArgs::EPD_TEST_LONG)
+                        .help(CmdLineArgs::EPD_TEST_HELP)
                         .takes_value(false),
                 );
         }
