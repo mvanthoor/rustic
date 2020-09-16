@@ -60,23 +60,30 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
         let now = Instant::now();
         let mut leaf_nodes = 0;
 
-        // In case of more than one thread, split up the work.
-        // (Preliminary: for now, it only spawns one thread.)
-        if threads >= 1 {
-            let mut chunks = make_chunks(board, threads, &mg.clone());
+        // Create perft chunks: 1 for each thread. Each chunk contains a
+        // part of the initial movelist of the position, and a handle for
+        // the thread that will run on it.
+        let mut chunks = create_chunks(board, threads, &mg.clone());
 
-            for c in chunks.iter_mut() {
-                let mut thread_board: Board = board.clone();
-                let thread_mg = mg.clone();
-                let thread_ml = c.get_move_list();
-                c.set_handle(thread::spawn(move || {
-                    perft(&mut thread_board, d, Some(thread_ml), &thread_mg)
-                }));
-            }
+        // Iterate over the chunks, to create a thread for each.
+        for chunk in chunks.iter_mut() {
+            // Create local variables for the chunk. These variables will
+            // be moved into the thread, so each thread has its own data to
+            // work with.
+            let mut thread_board: Board = board.clone();
+            let thread_mg = mg.clone();
+            let thread_ml = chunk.get_move_list();
 
-            for c in chunks.iter_mut() {
-                leaf_nodes += c.get_result();
-            }
+            // Create a new thread.
+            chunk.set_handle(thread::spawn(move || {
+                // Run perft on the move list in this chunk.
+                perft_on_chunk(&mut thread_board, d, &thread_ml, &thread_mg)
+            }));
+        }
+
+        // Iterate over the chunks again, and get the results of each.
+        for chunk in chunks.iter_mut() {
+            leaf_nodes += chunk.get_result();
         }
 
         // Measure time and speed
@@ -100,7 +107,7 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
 }
 
 // This is the actual Perft function.
-pub fn perft(board: &mut Board, depth: u8, ml: Option<MoveList>, mg: &MoveGenerator) -> u64 {
+pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let mut move_list: MoveList = MoveList::new();
 
@@ -109,13 +116,7 @@ pub fn perft(board: &mut Board, depth: u8, ml: Option<MoveList>, mg: &MoveGenera
         return 1;
     }
 
-    // If there's an incoming movelist (being a chunk of an initial
-    // movelist, allocated to a thread), then start from there. If there's
-    // no movelist, generate one from scratch.
-    match ml {
-        Some(move_list_from_chunk) => move_list = move_list_from_chunk,
-        None => mg.gen_all_moves(board, &mut move_list),
-    };
+    mg.gen_all_moves(board, &mut move_list);
 
     // Run perft for each of the moves.
     for i in 0..move_list.len() {
@@ -125,7 +126,7 @@ pub fn perft(board: &mut Board, depth: u8, ml: Option<MoveList>, mg: &MoveGenera
         // If the move is legal...
         if board.make(m, mg) {
             // Then count the number of leaf nodes it generates...
-            leaf_nodes += perft(board, depth - 1, None, mg);
+            leaf_nodes += perft(board, depth - 1, mg);
 
             // Then unmake the move so the next one can be counted.
             board.unmake();
@@ -136,7 +137,7 @@ pub fn perft(board: &mut Board, depth: u8, ml: Option<MoveList>, mg: &MoveGenera
     leaf_nodes
 }
 
-fn make_chunks(board: &Board, threads: u8, mg: &MoveGenerator) -> Vec<PerftChunk> {
+fn create_chunks(board: &Board, threads: u8, mg: &MoveGenerator) -> Vec<PerftChunk> {
     // This vector holds one chunk per thread.
     let mut chunk_list: Vec<PerftChunk> = Vec::with_capacity(threads as usize);
 
@@ -164,4 +165,31 @@ fn make_chunks(board: &Board, threads: u8, mg: &MoveGenerator) -> Vec<PerftChunk
     }
 
     chunk_list
+}
+
+// This function is a "mini-perft". It receives a move list, which is a
+// part of the full move list of the position at the first ply. (This move
+// list comes from one of the chunks created in the function above.) Perft
+// will run on this partial move list. Receiving a move list only happens
+// on the ver first ply: by using this function to handle the first ply,
+// perft() itself can omit the check where it determines if it received a
+// move list, or if it needs to create one from scratch.
+fn perft_on_chunk(board: &mut Board, depth: u8, ml: &MoveList, mg: &MoveGenerator) -> u64 {
+    let mut leaf_nodes = 0;
+
+    // Iterate over each of the moves in the list.
+    for i in 0..ml.len() {
+        let m = ml.get_move(i);
+
+        // If it is a legal move...
+        if board.make(m, mg) {
+            // ...then run perft on it to calculate the number of leaf nodes...
+            leaf_nodes += perft(board, depth - 1, mg);
+
+            // Then unmake the move and do the next one.
+            board.unmake();
+        }
+    }
+
+    leaf_nodes
 }
