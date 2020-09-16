@@ -28,7 +28,7 @@ pub struct Engine {
     settings: Settings,
     cmdline: CmdLine,
     comm: Box<dyn IComm>,
-    mg: MoveGenerator,
+    mg: Arc<MoveGenerator>,
     board: Arc<Mutex<Board>>,
     comm_handle: Option<JoinHandle<()>>,
 }
@@ -53,7 +53,7 @@ impl Engine {
             },
             cmdline: c,
             comm: i,
-            mg: MoveGenerator::new(),
+            mg: Arc::new(MoveGenerator::new()),
             board: Arc::new(Mutex::new(Board::new())),
             comm_handle: None,
         }
@@ -81,7 +81,7 @@ impl Engine {
                 &self.board.lock().unwrap(),
                 self.cmdline.perft(),
                 self.settings.threads,
-                &self.mg,
+                self.mg.clone(),
             );
         }
 

@@ -3,10 +3,12 @@ use crate::{
     misc::print,
     movegen::{defs::MoveList, MoveGenerator},
 };
+use std::sync::Arc;
+use std::thread;
 use std::time::Instant;
 
 // This function runs perft(), while collecting speed information.
-pub fn run(board: &Board, depth: u8, threads: u8, mg: &MoveGenerator) {
+pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
@@ -16,9 +18,19 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: &MoveGenerator) {
 
     // Perform all perfts for depths 1 up to and including "depth"
     for d in 1..=depth {
+        // Everything has to be local for threading
         let mut perft_board: Board = board.clone();
+        let arc_mg = mg.clone();
+
+        // Current time
         let now = Instant::now();
-        let leaf_nodes = perft(&mut perft_board, d, mg);
+
+        // let leaf_nodes = perft(&mut perft_board, d, &mg);
+
+        // Run perft in thread
+        let result = thread::spawn(move || perft(&mut perft_board, d, &arc_mg));
+        let leaf_nodes = result.join().unwrap_or(0);
+
         let elapsed = now.elapsed().as_millis();
         let leaves_per_second = ((leaf_nodes * 1000) as f64 / elapsed as f64).floor();
 
