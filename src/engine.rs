@@ -14,6 +14,10 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
+pub struct Settings {
+    threads: u8,
+}
+
 // This struct holds the chess engine and its functions. The reason why
 // this is not done in the main program, is because this struct can contain
 // member functions and allows functions to be associated with it. This
@@ -21,6 +25,7 @@ use crate::{
 // Command Line, a Move Generator, a Board, and so on, instead of having
 // all those parts in the global space.
 pub struct Engine {
+    settings: Settings,
     cmdline: CmdLine,
     comm: Box<dyn IComm>,
     mg: MoveGenerator,
@@ -43,6 +48,9 @@ impl Engine {
         };
 
         Self {
+            settings: Settings {
+                threads: c.threads(),
+            },
             cmdline: c,
             comm: i,
             mg: MoveGenerator::new(),

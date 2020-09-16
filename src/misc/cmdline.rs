@@ -23,6 +23,12 @@ impl CmdLineArgs {
     const COMM_VALUES: [&'static str; 3] = ["uci", "xboard", "console"];
     const COMM_DEFAULT: &'static str = "console";
 
+    // Threads
+    const THREADS_LONG: &'static str = "threads";
+    const THREADS_SHORT: &'static str = "t";
+    const THREADS_HELP: &'static str = "Number of CPU-threads to use";
+    const THREADS_DEFAULT: &'static str = "1";
+
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";
     const WIZARDRY_SHORT: &'static str = "w";
@@ -67,6 +73,14 @@ impl CmdLine {
             .unwrap_or(0)
     }
 
+    pub fn threads(&self) -> u8 {
+        self.arguments
+            .value_of(CmdLineArgs::THREADS_LONG)
+            .unwrap_or(CmdLineArgs::THREADS_DEFAULT)
+            .parse()
+            .unwrap_or(1)
+    }
+
     #[cfg(feature = "extra")]
     pub fn wizardry(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
@@ -108,6 +122,14 @@ impl CmdLine {
                     .help(CmdLineArgs::PERFT_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::PERFT_DEFAULT),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::THREADS_LONG)
+                    .short(CmdLineArgs::THREADS_SHORT)
+                    .long(CmdLineArgs::THREADS_LONG)
+                    .help(CmdLineArgs::THREADS_HELP)
+                    .takes_value(true)
+                    .default_value(CmdLineArgs::THREADS_DEFAULT),
             );
 
         if cfg!(feature = "extra") {
