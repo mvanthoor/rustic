@@ -56,25 +56,28 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
 
     // Perform all perfts for depths 1 up to and including "depth"
     for d in 1..=depth {
-        // Current time
-        let now = Instant::now();
-        let mut leaf_nodes = 0;
-
         // Create perft chunks: 1 for each thread. Each chunk contains a
         // part of the initial movelist of the position, and a handle for
         // the thread that will run on it.
         let mut chunks = create_chunks(board, threads, &mg.clone());
 
-        // Iterate over the chunks, to create a thread for each.
+        // Current time
+        let now = Instant::now();
+        let mut leaf_nodes = 0;
+
+        // Iterate over the chunks, and launch a thread for each.
         for chunk in chunks.iter_mut() {
-            // Create local variables for the chunk. These variables will
-            // be moved into the thread, so each thread has its own data to
-            // work with.
+            // Each thread needs its own data to work with, so we create
+            // some variables that are local to this for-loop. When
+            // launching the thead, these variables will be moved into it,
+            // and the next iteration of the loop will have its own set of
+            // variables. (Note: the MG comes in an ARC, so the clone
+            // actually only clones a pointer.)
             let mut thread_board: Board = board.clone();
             let thread_mg = mg.clone();
             let thread_ml = chunk.get_move_list();
 
-            // Create a new thread.
+            // Create and launch a thread for the current chunk.
             chunk.set_handle(thread::spawn(move || {
                 // Run perft on the move list in this chunk.
                 perft_on_chunk(&mut thread_board, d, &thread_ml, &thread_mg)
@@ -94,6 +97,7 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
         total_time += elapsed;
         total_nodes += leaf_nodes;
 
+        // Print the results.
         println!(
             "Perft {}: {} ({} ms, {} leaves/sec)",
             d, leaf_nodes, elapsed, leaves_per_second
@@ -137,6 +141,8 @@ pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
     leaf_nodes
 }
 
+// This function creates the initial move list and one chunk for each
+// thread. Then it will distribute the moves across these chunks.
 fn create_chunks(board: &Board, threads: u8, mg: &MoveGenerator) -> Vec<PerftChunk> {
     // This vector holds one chunk per thread.
     let mut chunk_list: Vec<PerftChunk> = Vec::with_capacity(threads as usize);
