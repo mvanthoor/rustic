@@ -121,5 +121,8 @@ impl Engine {
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
+
+        #[cfg(debug_assertions)]
+        println!("Notice: Running in debug mode");
     }
 }

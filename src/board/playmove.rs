@@ -134,6 +134,11 @@ impl Board {
             self.unmake();
         }
 
+        // When running in debug mode, check the incrementally updated
+        // values such as Zobrist key and meterial count.
+        debug_assert!(check_incrementals(&self));
+
+        // Report if the move was legal or not.
         is_legal
     }
 }
@@ -227,29 +232,31 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 /*** ======================================================================================= ***/
 
 // This function can be used to check if the Zobrist-key and material count
-// are updated correctly during make() and unmake().
+// are updated correctly during make() and unmake(). The engine also keeps
+// a piece list that is updated incrementally, but this does not have to be
+// checked. If perft() runs and outputs the correct results, it is
+// guaranteed that the piece list will be correct. If it isn't correct,
+// perft() will crash.
+fn check_incrementals(board: &Board) -> bool {
+    let from_scratch_key = board.init_zobrist_key();
+    let from_scratch_material = crate::evaluation::material::count(&board);
+    let mut result = true;
 
-// TODO: Change this function so it can be used in a debug_assert!() statement.
-#[allow(dead_code)]
-fn checkup(board: &Board, m: Move) {
-    let key = board.init_zobrist_key();
-    let count = crate::evaluation::material::count(&board);
-
-    if key != board.game_state.zobrist_key {
-        println!("Error in Zobrist-key.");
-        crate::misc::print::move_data(m);
-        panic!();
+    // Waterfall: only report first error encountered and skip any others.
+    if result && from_scratch_key != board.game_state.zobrist_key {
+        println!("Check Incrementals: Error in Zobrist key.");
+        result = false;
     };
 
-    if count.0 != board.material_count[Sides::WHITE] {
-        println!("Error in material count for White.");
-        crate::misc::print::move_data(m);
-        panic!();
+    if result && from_scratch_material.0 != board.material_count[Sides::WHITE] {
+        println!("Check Incrementals: Error in material count for white.");
+        result = false;
     };
 
-    if count.1 != board.material_count[Sides::BLACK] {
-        println!("Error in material count for Black.");
-        crate::misc::print::move_data(m);
-        panic!();
+    if result && from_scratch_material.1 != board.material_count[Sides::BLACK] {
+        println!("Check Incrementals: Error in material count for black.");
+        result = false;
     };
+
+    result
 }
