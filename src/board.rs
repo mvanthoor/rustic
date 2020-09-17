@@ -19,7 +19,8 @@ use crate::{
 };
 use std::sync::Arc;
 
-// TODO: Update comments
+// This file implements the engine's board representation; it is bit-board
+// based, with the least significant bit being A1.
 #[derive(Clone)]
 pub struct Board {
     pub bb_pieces: [[Bitboard; NrOf::PIECE_TYPES]; Sides::BOTH],
@@ -56,14 +57,17 @@ impl Board {
         self.bb_side[Sides::WHITE] | self.bb_side[Sides::BLACK]
     }
 
+    // Returns the side to move.
     pub fn us(&self) -> usize {
         self.game_state.active_color as usize
     }
 
+    // Returns the side that is NOT moving.
     pub fn opponent(&self) -> usize {
         (self.game_state.active_color ^ 1) as usize
     }
 
+    // Returns the square the king is currently on.
     pub fn king_square(&self, side: Side) -> Square {
         self.bb_pieces[side][Pieces::KING].trailing_zeros() as Square
     }
@@ -127,6 +131,7 @@ impl Board {
 
 // Private board functions (for initializating on startup)
 impl Board {
+    // Resets/wipes the board. Used by the FEN reader function.
     fn reset(&mut self) {
         self.bb_pieces = [[0; NrOf::PIECE_TYPES]; Sides::BOTH];
         self.bb_side = [EMPTY; Sides::BOTH];
@@ -136,23 +141,30 @@ impl Board {
         self.material_count = [0; Sides::BOTH];
     }
 
+    // Main initialization function. This is used to initialize the "other"
+    // bit-boards that are not set up by the FEN-reader function.
     fn init(&mut self) {
-        let piece_bitboards = self.init_piece_bitboards();
-        self.bb_side[Sides::WHITE] = piece_bitboards.0;
-        self.bb_side[Sides::BLACK] = piece_bitboards.1;
+        // Gather all the pieces of a side into one bitboard; one bitboard
+        // with all the white pieces, and one with all black pieces.
+        let pieces_per_side_bitboards = self.init_pieces_per_side_bitboards();
+        self.bb_side[Sides::WHITE] = pieces_per_side_bitboards.0;
+        self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
+        // Initialize the piece list, zobrist key, and material count. These will
+        // later be updated incrementally.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
-
         let material = material::count(&self);
         self.material_count[Sides::WHITE] = material.0;
         self.material_count[Sides::BLACK] = material.1;
     }
 
-    fn init_piece_bitboards(&self) -> (Bitboard, Bitboard) {
+    // Gather the pieces for each side into their own bitboard.
+    fn init_pieces_per_side_bitboards(&self) -> (Bitboard, Bitboard) {
         let mut bb_white: Bitboard = 0;
         let mut bb_black: Bitboard = 0;
 
+        // Iterate over the bitboards of every piece type.
         for (bb_w, bb_b) in self.bb_pieces[Sides::WHITE]
             .iter()
             .zip(self.bb_pieces[Sides::BLACK].iter())
@@ -161,12 +173,17 @@ impl Board {
             bb_black |= *bb_b;
         }
 
+        // Return a bitboard with all white pieces, and a bitboard with all
+        // black pieces.
         (bb_white, bb_black)
     }
 
+    // Initialize the piece list. This list is used to quickly determine
+    // which piece type (rook, knight...) is on a square without having to
+    // loop through the piece bitboards.
     fn init_piece_list(&self) -> [Piece; NrOf::SQUARES] {
-        let bb_w = self.bb_pieces[Sides::WHITE]; // White bitboards
-        let bb_b = self.bb_pieces[Sides::BLACK]; // Black bitboards
+        let bb_w = self.bb_pieces[Sides::WHITE]; // White piece bitboards
+        let bb_b = self.bb_pieces[Sides::BLACK]; // Black piece bitboards
         let mut piece_list: [Piece; NrOf::SQUARES] = [Pieces::NONE; NrOf::SQUARES];
 
         // piece_type is enumerated, from 0 to 6.
@@ -175,11 +192,13 @@ impl Board {
             let mut white_pieces = *w; // White pieces of type "piece_type"
             let mut black_pieces = *b; // Black pieces of type "piece_type"
 
+            // Put white pieces into the piece list.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
                 piece_list[square] = piece_type;
             }
 
+            // Put black pieces into the piece list.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
                 piece_list[square] = piece_type;
@@ -189,32 +208,52 @@ impl Board {
         piece_list
     }
 
-    // TODO: Write comments.
+    // Initialize the zobrist hash. This hash will later be updated incrementally.
     fn init_zobrist_key(&self) -> ZobristKey {
+        // Keep the key here.
         let mut key: u64 = 0;
+
+        // "zr" is just a shorthand for "&self.zobrist_randoms".
         let zr = &self.zobrist_randoms;
+
+        // Same here: "bb_w" is shorthand for
+        // "self.bb_pieces[Sides::WHITE]".
         let bb_w = self.bb_pieces[Sides::WHITE];
         let bb_b = self.bb_pieces[Sides::BLACK];
 
+        // Iterate through all piece types, for both white and black.
+        // "piece_type" is enumerated, and it'll start at 0 (KING), then 1
+        // (QUEEN), and so on.
         for (piece_type, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            // Assume the first iteration; piece_type will be 0 (KING). The
+            // following two statements will thus get all the pieces of
+            // type "KING" for white and black. (This will obviously only
+            // be one king, but with rooks, there will be two in the
+            // starting position.)
             let mut white_pieces = *w;
             let mut black_pieces = *b;
 
+            // Iterate through all the piece locations of the current piece
+            // type. Get the square the piece is on, and then hash that
+            // square/piece combination into the zobrist key.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
                 key ^= zr.piece(Sides::WHITE, piece_type, square);
             }
 
+            // Same for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
                 key ^= zr.piece(Sides::BLACK, piece_type, square);
             }
         }
 
+        // Hash the castling, active color, and en-passant state into the key.
         key ^= zr.castling(self.game_state.castling);
         key ^= zr.side(self.game_state.active_color as usize);
         key ^= zr.en_passant(self.game_state.en_passant);
 
+        // Done; return the key.
         key
     }
 }

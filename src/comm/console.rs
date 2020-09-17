@@ -1,5 +1,3 @@
-// TODO: Update comments
-
 use super::IComm;
 use std::thread;
 use std::thread::JoinHandle;
@@ -19,6 +17,11 @@ enum CommState {
 }
 */
 
+// This file implements the Console interface. In this mode, the engine
+// shows the current board position. It will accept a few commands to
+// change the engine settings, and it will accept move inputs in the form
+// of "g1f3" or "b7b8q". In this way a game can be played. The console is
+// mainly intended for developers to test new functionality.
 pub struct Console {}
 
 impl Console {
