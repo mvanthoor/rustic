@@ -12,6 +12,16 @@ use std::{
     time::Instant,
 };
 
+// If one of these errors occurs, there is a fatal error in the engine or
+// one of its threads and the program will crash with this message.
+struct ErrFatal {}
+impl ErrFatal {
+    const BOARD_LOCK: &'static str = "Perft: Board lock failed.";
+}
+
+// A perft chunk contains a move list to process, and a handle to which a
+// thread can be assigned. The move list contains a part of the initial
+// move list of the position on which perft() is running.
 struct PerftChunk {
     ml: MoveList,
     handle: Option<JoinHandle<u64>>,
@@ -22,18 +32,23 @@ impl PerftChunk {
         Self { ml, handle: None }
     }
 
+    // Add a move to the chunk's move list during move distribution.
     pub fn add_move(&mut self, m: Move) {
         self.ml.push(m);
     }
 
+    // Get the next move in the chunk's move list.
     pub fn get_move_list(&self) -> MoveList {
         self.ml
     }
 
+    // Used to assign a thread to the chunk.
     pub fn set_handle(&mut self, h: JoinHandle<u64>) {
         self.handle = Some(h);
     }
 
+    // Returns the result (in this case, the number of leaf nodes) obtained
+    // by the thread that was assigned to the chunk.
     pub fn get_result(&mut self) -> u64 {
         let mut result = 0;
         if let Some(h) = self.handle.take() {
@@ -53,7 +68,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: u8, threads: u8, mg: Arc<MoveGenerat
     // Create a mutex guard for the board, so it can be safely cloned.
     // Panic if the guard can't be created, because something is wrong with
     // the main engine thread.
-    let mtx_board = board.lock().expect("Perft: board lock failed.");
+    let mtx_board = board.lock().expect(ErrFatal::BOARD_LOCK);
 
     // Clone the locked board for local use.
     let local_board = mtx_board.clone();
@@ -189,9 +204,9 @@ fn create_chunks(board: &Board, threads: u8, mg: &MoveGenerator) -> Vec<PerftChu
 // part of the full move list of the position at the first ply. (This move
 // list comes from one of the chunks created in the function above.) Perft
 // will run on this partial move list. Receiving a move list only happens
-// on the ver first ply: by using this function to handle the first ply,
+// on the very first ply: by using this function to handle the first ply,
 // perft() itself can omit the check where it determines if it received a
-// move list, or if it needs to create one from scratch.
+// partial move list, or if it needs to create one from scratch.
 fn perft_on_chunk(board: &mut Board, depth: u8, ml: &MoveList, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes = 0;
 

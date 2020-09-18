@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    comm::{console::Console, IComm},
+    comm::{console::Console, CommType, IComm},
     defs::{About, EngineRunResult},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -14,16 +14,28 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
+// If one of these errors happens, there is a fatal situation within the
+// engine or one of its threads, and it will crash.
+struct ErrFatal {}
+impl ErrFatal {
+    const COMM_CREATION: &'static str = "Engine: Comm creation failed.";
+    const COMM_CLOSE: &'static str = "Engine: Closing Comm failed.";
+    const BOARD_LOCK: &'static str = "Engine: Board lock failed.";
+}
+
+// This notice is displayed if the engine is a debug binary. (Debug
+// binaries are unoptimized and slower than release binaries.)
+const NOTICE_DEBUG_MODE: &'static str = "Notice: Running in debug mode";
+
+// This struct holds the engine's settings.
 pub struct Settings {
     threads: u8,
 }
 
 // This struct holds the chess engine and its functions. The reason why
 // this is not done in the main program, is because this struct can contain
-// member functions and allows functions to be associated with it. This
-// setup makes it possible to create an actual engine with parts, such as a
-// Command Line, a Move Generator, a Board, and so on, instead of having
-// all those parts in the global space.
+// member functions and other structs, so these don't have to be in the
+// global space.
 pub struct Engine {
     settings: Settings,
     cmdline: CmdLine,
@@ -41,12 +53,13 @@ impl Engine {
 
         // Create the communication interface
         let i: Box<dyn IComm> = match &c.comm()[..] {
-            // "uci" => Box::new(Uci::new()),
-            // "xboard" => Box::new(Xboard::new()),
-            "console" => Box::new(Console::new()),
-            _ => panic!("Engine communication interface failed."),
+            // CommType::UCI => Box::new(Uci::new()),
+            // CommType::XBOARD => Box::new(Xboard::new()),
+            CommType::CONSOLE => Box::new(Console::new()),
+            _ => panic!(ErrFatal::COMM_CREATION),
         };
 
+        // Create the engine itself.
         Self {
             settings: Settings {
                 threads: c.threads(),
@@ -68,7 +81,7 @@ impl Engine {
         let fen = &self.cmdline.fen()[..];
 
         // Lock the board, setup the FEN-string, and drop the lock.
-        let mut mtx_board = self.board.lock().expect("Engine: Board lock failed.");
+        let mut mtx_board = self.board.lock().expect(ErrFatal::BOARD_LOCK);
         mtx_board.fen_read(Some(fen))?;
         std::mem::drop(mtx_board);
 
@@ -111,7 +124,7 @@ impl Engine {
 
         // Wait for the communication thread to finish.
         if let Some(h) = self.comm_handle.take() {
-            h.join().expect("Closing communication failed.");
+            h.join().expect(ErrFatal::COMM_CLOSE);
         }
 
         // Engine exits correctly.
@@ -125,6 +138,6 @@ impl Engine {
         println!("Description: {}", About::DESCRIPTION);
 
         #[cfg(debug_assertions)]
-        println!("Notice: Running in debug mode");
+        println!("{}", NOTICE_DEBUG_MODE);
     }
 }

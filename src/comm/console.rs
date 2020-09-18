@@ -7,7 +7,7 @@ use super::IComm;
 use std::thread;
 use std::thread::JoinHandle;
 
-use super::{Command, ErrComm};
+use super::{Command, ErrFatal};
 use crate::{board::Board, defs::About, misc::print};
 use std::{
     io::{self, Write},
@@ -16,21 +16,17 @@ use std::{
 pub struct Console {}
 
 impl Console {
+    const PROMPT: &'static str = ">";
+    pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
+
     pub fn new() -> Self {
         Self {}
     }
 
-    // This function creates the engines command prompt.
+    // This function creates the engine's command prompt.
     fn create_prompt() {
-        const PROMPT: &str = ">";
-
-        print!("{} {} ", About::ENGINE, PROMPT);
-
-        // Flush the output so the prompt is actually printed.
-        match io::stdout().flush() {
-            Ok(()) => {}
-            Err(e) => panic!("Error flushing I/O: {}", e),
-        }
+        print!("{} {} ", About::ENGINE, Console::PROMPT);
+        io::stdout().flush().expect(ErrFatal::FLUSH_IO);
     }
 
     // This function transforms the typed characters into a command tht the
@@ -63,18 +59,18 @@ impl IComm for Console {
 
                 // Print a divider line, the position, and the prompt.
                 println!("{}", "=".repeat(DIVIDER_LENGTH));
-                let mtx_board = board.lock().expect(ErrComm::LOCK_BOARD);
+                let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD);
                 print::position(&mtx_board, None); // Print the board.
                 std::mem::drop(mtx_board); // Drop the lock: no longer needed.
                 Console::create_prompt();
 
                 // Wait for actual commands to be entered.
-                io::stdin().read_line(&mut input).expect(ErrComm::READ_IO);
+                io::stdin().read_line(&mut input).expect(ErrFatal::READ_IO);
 
                 // Parse the input and catch the command.
                 cmd = Console::create_command(&input);
                 if !cmd.is_correct() {
-                    print!("Unknown command: {}", input);
+                    print!("{}: {}", Console::UNKNOWN_COMMAND, input);
                 }
             }
         });
