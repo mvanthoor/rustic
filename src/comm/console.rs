@@ -9,13 +9,12 @@ use std::sync::{Arc, Mutex};
 // type ParseMoveResult = Result<(Square, Square, Piece), u8>;
 // type PotentialMove = (Square, Square, Piece);
 
-/*
 #[derive(PartialEq)]
-enum CommState {
+enum Command {
+    NoCmd,
     Quit,
-    Continue,
+    Move(String),
 }
-*/
 
 // This file implements the Console interface. In this mode, the engine
 // shows the current board position. It will accept a few commands to
@@ -40,11 +39,10 @@ impl IComm for Console {
 
         // Run the communication in its own thread.
         let handle = thread::spawn(move || {
-            let mut result = 0;
-
+            let mut cmd = Command::NoCmd;
             // As long as no "quit" or "exit" commands are detected, the
             // result will be 0 and the console keeps running.
-            while result == 0 {
+            while cmd != Command::Quit {
                 let mut input: String = String::from("");
 
                 // Print a divider line, the position, and the prompt.
@@ -58,8 +56,14 @@ impl IComm for Console {
                     Err(e) => panic!("Error reading I/O: {}", e),
                 }
 
-                // Parse the typed command and catch the result.
-                result = parse_input(input.trim_end().to_string());
+                // Parse the input and catch the command.
+                cmd = parse_input(input.trim_end().to_string());
+
+                // Execute the command
+                match &cmd {
+                    Command::Quit | Command::NoCmd => (),
+                    Command::Move(m) => println!("Move entered: {}", m),
+                }
             }
         });
 
@@ -81,15 +85,11 @@ fn create_prompt() {
 }
 
 // Parse the entered commands and return the results.
-fn parse_input(input: String) -> u8 {
-    let mut result = 0;
-
+fn parse_input(input: String) -> Command {
     match &input[..] {
-        "quit" | "exit" => result = 1,
-        _ => {}
+        "quit" | "exit" => Command::Quit,
+        _ => Command::Move(input),
     }
-
-    result
 }
 
 /*
