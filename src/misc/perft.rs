@@ -53,14 +53,14 @@ pub fn run(board: Arc<Mutex<Board>>, depth: u8, threads: u8, mg: Arc<MoveGenerat
     // Create a mutex guard for the board, so it can be safely cloned.
     // Panic if the guard can't be created, because something is wrong with
     // the main engine thread.
-    let guard_board = board.lock().expect("Perft: board lock failed.");
+    let mtx_board = board.lock().expect("Perft: board lock failed.");
 
-    // Clone the board using the guard.
-    let local_board = guard_board.clone();
+    // Clone the locked board for local use.
+    let local_board = mtx_board.clone();
 
     // The function now has its own local board. Drop the guard. It is not
     // necessary to keep the lock until perft runs out.
-    std::mem::drop(guard_board);
+    std::mem::drop(mtx_board);
 
     println!("Benchmarking perft 1-{} on {} threads", depth, threads);
 

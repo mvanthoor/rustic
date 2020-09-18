@@ -63,7 +63,9 @@ impl IComm for Console {
 
                 // Print a divider line, the position, and the prompt.
                 println!("{}", "=".repeat(DIVIDER_LENGTH));
-                print::position(&board.lock().expect(ErrComm::LOCK_BOARD), None);
+                let mtx_board = board.lock().expect(ErrComm::LOCK_BOARD);
+                print::position(&mtx_board, None); // Print the board.
+                std::mem::drop(mtx_board); // Drop the lock: no longer needed.
                 Console::create_prompt();
 
                 // Wait for actual commands to be entered.
