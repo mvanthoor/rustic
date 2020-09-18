@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use std::{
-    sync::Arc,
+    sync::{Arc, Mutex},
     thread::{self, JoinHandle},
     time::Instant,
 };
@@ -46,20 +46,32 @@ impl PerftChunk {
 // This function runs perft(), while collecting speed information.
 // It uses iterative deepening, so when running perft(7), it will output
 // the results of perft(1) up to and including perft(7).
-pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
+pub fn run(board: Arc<Mutex<Board>>, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
+    // Create a mutex guard for the board, so it can be safely cloned.
+    // Panic if the guard can't be created, because something is wrong with
+    // the main engine thread.
+    let guard_board = board.lock().expect("Perft: board lock failed.");
+
+    // Clone the board using the guard.
+    let local_board = guard_board.clone();
+
+    // The function now has its own local board. Drop the guard. It is not
+    // necessary to keep the lock until perft runs out.
+    std::mem::drop(guard_board);
+
     println!("Benchmarking perft 1-{} on {} threads", depth, threads);
 
-    print::position(board, None);
+    print::position(&local_board, None);
 
     // Perform all perfts for depths 1 up to and including "depth"
     for d in 1..=depth {
         // Create perft chunks: 1 for each thread. Each chunk contains a
         // part of the initial movelist of the position, and a handle for
         // the thread that will run on it.
-        let mut chunks = create_chunks(board, threads, &mg.clone());
+        let mut chunks = create_chunks(&local_board, threads, &mg.clone());
 
         // Current time
         let now = Instant::now();
@@ -68,16 +80,15 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
         // Iterate over the chunks, and launch a thread for each.
         for chunk in chunks.iter_mut() {
             // Each thread needs its own data to work with, so we create
-            // some variables that are local to this for-loop. When
-            // launching the thead, these variables will be moved into it,
-            // and the next iteration of the loop will have its own set of
-            // variables. (Note: the MG comes in an ARC, so the clone
-            // actually only clones a pointer.)
-            let mut thread_board: Board = board.clone();
-            let thread_mg = mg.clone();
-            let thread_ml = chunk.get_move_list();
+            // some variables that are local to this for-loop.
+            let mut thread_board: Board = local_board.clone(); // clones a real board.
+            let thread_mg = mg.clone(); // clones the Arc<> pointer only.
+            let thread_ml = chunk.get_move_list(); // gets a real move list.
 
-            // Create and launch a thread for the current chunk.
+            // Create and launch a thread for the current chunk. The thread
+            // will take control of the local for-loop variables. (The next
+            // loop iteration that launches a thread will have new
+            // variables, coming from the next chunk.)
             chunk.set_handle(thread::spawn(move || {
                 // Run perft on the move list in this chunk.
                 perft_on_chunk(&mut thread_board, d, &thread_ml, &thread_mg)
@@ -110,7 +121,8 @@ pub fn run(board: &Board, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
     println!("Execution speed: {} leaves/second", final_lnps);
 }
 
-// This is the actual Perft function.
+// This is the actual Perft function. It is public, because it is used by
+// the "testsuite" module.
 pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let mut move_list: MoveList = MoveList::new();

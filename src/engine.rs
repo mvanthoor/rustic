@@ -78,7 +78,7 @@ impl Engine {
             action_requested = true;
             println!("FEN: {}", fen);
             perft::run(
-                &self.board.lock().unwrap(),
+                self.board.clone(),
                 self.cmdline.perft(),
                 self.settings.threads,
                 self.mg.clone(),
