@@ -2,8 +2,8 @@ use crate::board::defs::{Pieces, SQUARE_NAME};
 use crate::defs::{Piece, Square};
 use if_chain::if_chain;
 
-type PotentialMove = (Square, Square, Piece);
-type ParseMoveResult = Result<PotentialMove, ()>;
+pub type PotentialMove = (Square, Square, Piece);
+pub type ParseMoveResult = Result<PotentialMove, ()>;
 
 pub fn algebraic_move_to_number(m: &str) -> ParseMoveResult {
     let lower_case_move = m.to_ascii_lowercase();
