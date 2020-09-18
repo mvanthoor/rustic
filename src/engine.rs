@@ -67,8 +67,10 @@ impl Engine {
         // Setup according to provided FEN-string, if any.
         let fen = &self.cmdline.fen()[..];
 
-        // Abort if position setup fails due to invalid FEN.
-        self.board.lock().unwrap().fen_read(Some(fen))?;
+        // Lock the board, setup the FEN-string, and drop the lock.
+        let mut mtx_board = self.board.lock().expect("Engine: Board lock failed.");
+        mtx_board.fen_read(Some(fen))?;
+        std::mem::drop(mtx_board);
 
         // Run a specific action if requested, or start the engine.
         let mut action_requested = false;
