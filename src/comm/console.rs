@@ -2,12 +2,15 @@ use super::IComm;
 use std::thread;
 use std::thread::JoinHandle;
 
-use crate::{board::Board, defs::About, misc::print};
-use std::io::{self, Write};
-use std::sync::{Arc, Mutex};
-
-// type ParseMoveResult = Result<(Square, Square, Piece), u8>;
-// type PotentialMove = (Square, Square, Piece);
+use crate::{
+    board::Board,
+    defs::About,
+    misc::{parse, print},
+};
+use std::{
+    io::{self, Write},
+    sync::{Arc, Mutex},
+};
 
 #[derive(PartialEq)]
 enum Command {
@@ -58,12 +61,7 @@ impl IComm for Console {
 
                 // Parse the input and catch the command.
                 cmd = parse_input(input.trim_end().to_string());
-
-                // Execute the command
-                match &cmd {
-                    Command::Quit | Command::NoCmd => (),
-                    Command::Move(m) => println!("Move entered: {}", m),
-                }
+                execute_command(&cmd);
             }
         });
 
@@ -92,6 +90,18 @@ fn parse_input(input: String) -> Command {
     }
 }
 
+fn execute_command(cmd: &Command) {
+    match cmd {
+        Command::NoCmd | Command::Quit => (),
+        Command::Move(m) => {
+            match parse::algebraic_move_to_number(&m[..]) {
+                Ok(m) => println!("Whieee! {}-{}-{}", m.0, m.1, m.2),
+                Err(()) => println!("Oops..."),
+            };
+        }
+    }
+}
+
 /*
 
 fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
@@ -107,52 +117,6 @@ fn cmd_make_move(board: &mut Board, input: &str) -> u64 {
         Err(_) => (),
     }
     CMD_CONTINUE
-}
-
-fn parse_move(input: &str) -> ParseMoveResult {
-    let length = input.len();
-    let mut from: Square = 0;
-    let mut to: Square = 0;
-    let mut promotion_piece: Piece = Pieces::NONE;
-    let mut result: ParseMoveResult = Err(ERR_MV_NO_ERROR);
-
-    // Check if chars 1-2 and 3-4 are actually represent squares.
-    if length == 4 || length == 5 {
-        if_chain! {
-            if let Ok(f) = parse::algebraic_square_to_number(&input[0..=1]);
-            if let Ok(t) = parse::algebraic_square_to_number(&input[2..=3]);
-            then {
-                from = f;
-                to = t;
-            } else {
-                result = Err(ERR_MV_SQUARE_ERROR);
-            }
-        };
-    }
-
-    // If there's a fifth character, check if it's a legal promotion piece.
-    if length == 5 {
-        if_chain! {
-            if let Some(c) = input.chars().next_back();
-            if let Ok(p) = parse::promotion_piece_letter_to_number(c);
-            then {
-                promotion_piece = p;
-            } else {
-                result = Err(ERR_MV_NOT_PROMOTION);
-            }
-        }
-    }
-
-    // Input is of wrong length. Fail; don't check anything.
-    if (length != 4) && (length != 5) {
-        result = Err(ERR_MV_LENGTH_WRONG);
-    }
-
-    // If there is no error, then result becomes Ok(); this is a potential move.
-    if result == Err(ERR_MV_NO_ERROR) {
-        result = Ok((from, to, promotion_piece));
-    }
-    result
 }
 
 // This function can be used to try and play the move resulting from parse_move().

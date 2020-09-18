@@ -203,12 +203,13 @@ fn ep(board: &mut Board, part: &str) -> bool {
     // If length is 2, try to parse the part to a square number.
     if length == 2 {
         let square = parse::algebraic_square_to_number(part);
+
         match square {
-            Ok(s) if EP_SQUARES_WHITE.contains(&s) || EP_SQUARES_BLACK.contains(&s) => {
+            Some(s) if EP_SQUARES_WHITE.contains(&s) || EP_SQUARES_BLACK.contains(&s) => {
                 board.game_state.en_passant = Some(s as u8);
                 char_ok += 2;
             }
-            Ok(_) | Err(_) => (),
+            Some(_) | None => (),
         }
     }
 

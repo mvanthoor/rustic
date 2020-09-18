@@ -1,50 +1,82 @@
-use crate::board::defs::Pieces;
+use crate::board::defs::{Pieces, SQUARE_NAME};
 use crate::defs::{Piece, Square};
+use if_chain::if_chain;
 
-pub const ASCII_VALUE_OF_LOWERCASE_A: u8 = 97;
-pub const ASCII_VALUE_OF_1: u8 = 49;
-pub const COORDINATE_LETTERS: &str = "abcdefgh";
-pub const COORDINATE_NUMBERS: &str = "12345678";
+type PotentialMove = (Square, Square, Piece);
+type ParseMoveResult = Result<PotentialMove, ()>;
 
-pub fn algebraic_square_to_number(algebraic_square: &str) -> Result<Square, ()> {
-    let length = algebraic_square.len();
-    let mut result: Result<Square, ()> = Err(());
+pub fn algebraic_move_to_number(m: &str) -> ParseMoveResult {
+    let lower_case_move = m.to_ascii_lowercase();
+    let mut potential_move: PotentialMove = (0, 0, Pieces::NONE);
 
-    if length == 2 {
-        let mut file = 0;
-        let mut rank = 0;
-        let mut char_ok = 0;
+    // Assume parsing the move will fail.
+    let mut parse_move_result: ParseMoveResult = Err(());
 
-        for (index, c) in algebraic_square.to_lowercase().chars().enumerate() {
-            if index == 0 && COORDINATE_LETTERS.contains(c) {
-                file = (c as u8) - ASCII_VALUE_OF_LOWERCASE_A;
-                char_ok += 1;
+    // Get the "from" and "to" squares from the move stirng.
+    if m.len() == 4 || m.len() == 5 {
+        if_chain! {
+            // If converstion from algebraic square to number succeeds...
+            if let Some(f) = algebraic_square_to_number(&lower_case_move[0..=1]);
+            if let Some(t) = algebraic_square_to_number(&lower_case_move[2..=3]);
+            then {
+                // ...save the result
+                potential_move.0 = f;
+                potential_move.1 = t;
+
+                // Up to here, parsing is OK.
+                parse_move_result = Ok(potential_move);
             }
-            if index == 1 && COORDINATE_NUMBERS.contains(c) {
-                rank = (c as u8) - ASCII_VALUE_OF_1;
-                char_ok += 1;
-            }
-        }
+        };
+    }
 
-        if char_ok == length {
-            let square_nr = ((rank * 8) + file) as Square;
-            result = Ok(square_nr);
+    // If Ok and there are 5 characters, keep parsing...
+    if parse_move_result != Err(()) && m.len() == 5 {
+        // Again, assume that parsing will fail.
+        parse_move_result = Err(());
+
+        // Get the promotion piece character.
+        let c = lower_case_move.chars().last().unwrap_or('-');
+
+        // If the conversion from character to promotion piece succeeds...
+        if let Some(p) = promotion_piece_letter_to_number(c) {
+            // ...save the result
+            potential_move.2 = p;
+
+            // and set the parsing result to Ok again.
+            parse_move_result = Ok(potential_move);
         }
     }
-    result
+
+    parse_move_result
+}
+
+pub fn algebraic_square_to_number(algebraic_square: &str) -> Option<Square> {
+    // Convert String to &str.
+    let a = &algebraic_square[..];
+    // Get the index, which is also the square number.
+    // If the square is not found, None is returned.
+    SQUARE_NAME.iter().position(|&element| element == a)
 }
 
 #[allow(dead_code)]
-pub fn promotion_piece_letter_to_number(piece_letter: char) -> Result<Piece, ()> {
-    let mut result: Result<Piece, ()> = Err(());
+pub fn promotion_piece_letter_to_number(piece_letter: char) -> Option<Piece> {
+    // Assume that the character does not represent a promotion piece.
+    // Note that this is NOT 'no piece' as in Pieces::NONE! This is 'no
+    // piece' als in "no piece found for the provided character". This
+    // happens if the character is 'a' or 'z' for example.
+    let mut piece: Option<Piece> = None;
+
+    // Convert the character to lowercase and get it for processing.
     if let Some(p) = piece_letter.to_lowercase().next() {
+        // Set the promotion piece if the character is correct.
         match p {
-            'q' => result = Ok(Pieces::QUEEN),
-            'r' => result = Ok(Pieces::ROOK),
-            'b' => result = Ok(Pieces::BISHOP),
-            'n' => result = Ok(Pieces::KNIGHT),
+            'q' => piece = Some(Pieces::QUEEN),
+            'r' => piece = Some(Pieces::ROOK),
+            'b' => piece = Some(Pieces::BISHOP),
+            'n' => piece = Some(Pieces::KNIGHT),
             _ => (),
         }
     }
-    result
+    // Return the piece if found, or None.
+    piece
 }
