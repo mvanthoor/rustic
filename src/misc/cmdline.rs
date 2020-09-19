@@ -29,6 +29,10 @@ impl CmdLineArgs {
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: &'static str = "1";
 
+    // Kiwipete
+    const KIWI_LONG: &'static str = "kiwipete";
+    const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
+
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";
     const WIZARDRY_SHORT: &'static str = "w";
@@ -81,6 +85,10 @@ impl CmdLine {
             .unwrap_or(1)
     }
 
+    pub fn kiwipete(&self) -> bool {
+        self.arguments.is_present(CmdLineArgs::KIWI_LONG)
+    }
+
     #[cfg(feature = "extra")]
     pub fn wizardry(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
@@ -130,6 +138,12 @@ impl CmdLine {
                     .help(CmdLineArgs::THREADS_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::THREADS_DEFAULT),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::KIWI_LONG)
+                    .long(CmdLineArgs::KIWI_LONG)
+                    .help(CmdLineArgs::KIWI_HELP)
+                    .takes_value(false),
             );
 
         if cfg!(feature = "extra") {

@@ -1,7 +1,7 @@
 use crate::{
     board::Board,
     comm::{console::Console, CommType, IComm},
-    defs::{About, EngineRunResult},
+    defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
 };
@@ -25,6 +25,7 @@ impl ErrFatal {
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)
+#[cfg(debug_assertions)]
 const NOTICE_DEBUG_MODE: &'static str = "Notice: Running in debug mode";
 
 // This struct holds the engine's settings.
@@ -77,8 +78,12 @@ impl Engine {
         // Print engine information
         self.about();
 
-        // Setup according to provided FEN-string, if any.
-        let fen = &self.cmdline.fen()[..];
+        // Set up the provided FEN position, if any. (The starting
+        // positioni s the defalt.) If the KiwiPete position is requested,
+        // set this up instead, and ignore any provided FEN.
+        let f = &self.cmdline.fen()[..];
+        let kp = self.cmdline.kiwipete();
+        let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
 
         // Lock the board, setup the FEN-string, and drop the lock.
         let mut mtx_board = self.board.lock().expect(ErrFatal::BOARD_LOCK);
