@@ -99,8 +99,6 @@ impl CmdLine {
         self.arguments.is_present(CmdLineArgs::EPD_TEST_LONG)
     }
 
-    // &*format!("{} <{}>", About::AUTHOR, About::EMAIL)
-
     fn get() -> ArgMatches<'static> {
         let mut app = App::new(About::ENGINE)
             .version(About::VERSION)
