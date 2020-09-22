@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    comm::{console::Console, CommType, IComm},
+    comm::{console::Console, CommType, IComm, Incoming},
     defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -17,9 +17,9 @@ use crate::{
 // engine or one of its threads, and it will crash.
 struct ErrFatal {}
 impl ErrFatal {
-    const COMM_CREATION: &'static str = "Engine: Comm creation failed.";
-    const COMM_CLOSE: &'static str = "Engine: Closing Comm failed.";
-    const BOARD_LOCK: &'static str = "Engine: Board lock failed.";
+    const COMM_CREATION: &'static str = "Comm creation failed.";
+    const COMM_CLOSE: &'static str = "Closing Comm failed.";
+    const BOARD_LOCK: &'static str = "Board lock failed.";
 }
 
 // This notice is displayed if the engine is a debug binary. (Debug
@@ -119,18 +119,32 @@ impl Engine {
         }
         // =====================================================
 
-        // Start the communication thread if no other actions requested.
+        // Start the main loop if no other actions requested.
         if !action_requested {
-            self.comm.start(self.board.clone());
+            self.main_loop();
         }
 
-        // Wait for the communication thread to finish.
-        if let Some(h) = self.comm.get_thread_handle() {
-            h.join().expect(ErrFatal::COMM_CLOSE);
+        // Main loop is done. Wait for all threads to close down.
+        if let Some(comm) = self.comm.get_thread_handle() {
+            comm.join().expect(ErrFatal::COMM_CLOSE);
         }
 
         // Engine exits correctly.
         Ok(())
+    }
+
+    // This is the engine's main loop which will be executed if there are
+    // no other actions such as perft requested.
+    fn main_loop(&mut self) {
+        // Start receiving incoming commands in comm_rx.
+        let comm_rx = self.comm.read(self.board.clone());
+        // Default is No Command until something is received.
+        let mut comm_cmd = Incoming::NoCmd;
+
+        // Keep reading as long as no quit command is received.
+        while comm_cmd != Incoming::Quit {
+            comm_cmd = comm_rx.try_recv().unwrap_or(Incoming::NoCmd);
+        }
     }
 
     // Print information about the engine.

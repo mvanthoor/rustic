@@ -4,9 +4,11 @@ pub mod console;
 
 use crate::{board::Board, misc::parse};
 use std::{
-    sync::{Arc, Mutex},
+    sync::{mpsc::Receiver, Arc, Mutex},
     thread::JoinHandle,
 };
+
+pub type IncomingRx = Receiver<Incoming>;
 
 // These are the types of communication the engine is capable of.
 pub struct CommType {}
@@ -18,7 +20,7 @@ impl CommType {
 
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
-    fn start(&mut self, board: Arc<Mutex<Board>>);
+    fn read(&mut self, board: Arc<Mutex<Board>>) -> IncomingRx;
     fn get_thread_handle(&mut self) -> Option<JoinHandle<()>>;
 }
 
@@ -29,11 +31,12 @@ impl ErrFatal {
     const LOCK_BOARD: &'static str = "Board lock failed.";
     const READ_IO: &'static str = "Reading I/O failed.";
     const FLUSH_IO: &'static str = "Flushing I/O failed.";
+    const CHANNEL_BROKEN: &'static str = "Channel is broken.";
 }
 
 // These are the commands a Comm module can create and send back to the
 // engine in the main thread.
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Incoming {
     NoCmd,
     Quit,
