@@ -33,23 +33,23 @@ impl ErrFatal {
 // These are the commands a Comm module can create and send back to the
 // engine in the main thread.
 #[derive(PartialEq)]
-pub enum Command {
+pub enum Incoming {
     NoCmd,
     Quit,
     Move(String),
 }
 
-impl Command {
+impl Incoming {
     pub fn is_correct(&self) -> bool {
         // Match the incoming command.
         match self {
             // Some commands don't need to be verified.
-            Command::NoCmd | Command::Quit => true,
+            Self::NoCmd | Self::Quit => true,
             // Make sure that the move actually contains existing squares
             // and either none, or an existing promotion piece. The engine
             // itself is responsible for actually verifying that the move
             // is possible and legal.
-            Command::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
+            Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
         }
     }
 }

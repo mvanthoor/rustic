@@ -7,7 +7,7 @@ use super::IComm;
 use std::thread;
 use std::thread::JoinHandle;
 
-use super::{Command, ErrFatal};
+use super::{ErrFatal, Incoming};
 use crate::{board::Board, defs::About, misc::print};
 use std::{
     io::{self, Write},
@@ -31,14 +31,14 @@ impl Console {
 
     // This function transforms the typed characters into a command tht the
     // engine which is running in the main thread can understand.
-    fn create_command(input: &String) -> Command {
+    fn create_command(input: &String) -> Incoming {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
         match &i[..] {
-            "quit" | "exit" => Command::Quit,
-            _ => Command::Move(i),
+            "quit" | "exit" => Incoming::Quit,
+            _ => Incoming::Move(i),
         }
     }
 }
@@ -51,10 +51,10 @@ impl IComm for Console {
 
         // Run the communication in its own thread.
         let handle = thread::spawn(move || {
-            let mut cmd = Command::NoCmd;
+            let mut cmd = Incoming::NoCmd;
             // As long as no "quit" or "exit" commands are detected, the
             // result will be 0 and the console keeps running.
-            while cmd != Command::Quit {
+            while cmd != Incoming::Quit {
                 let mut input: String = String::from("");
 
                 // Print a divider line, the position, and the prompt.
