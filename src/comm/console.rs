@@ -3,27 +3,24 @@
 // accept commands typed by the user. This interface is mainly used for
 // engine development.
 
-use super::{ErrFatal, IComm, Incoming, IncomingRx};
+use super::{CommType, ErrFatal, IComm, Incoming};
 use crate::{board::Board, defs::About, misc::print};
 use std::{
     io::{self, Write},
-    sync::{mpsc, Arc, Mutex},
-    thread::{self, JoinHandle},
+    sync::{Arc, Mutex},
 };
-pub struct Console {
-    handle: Option<JoinHandle<()>>,
-}
+pub struct Console {}
 
 impl Console {
     const DIVIDER_LENGTH: usize = 48;
     const PROMPT: &'static str = ">";
 
     pub fn new() -> Self {
-        Self { handle: None }
+        Self {}
     }
 
     // This function creates the engine's command prompt.
-    fn create_prompt() {
+    fn print_prompt() {
         print!("{} {} ", About::ENGINE, Console::PROMPT);
         io::stdout().flush().expect(ErrFatal::FLUSH_IO);
     }
@@ -44,61 +41,34 @@ impl Console {
 
 // Any communication module must implement the trait IComm.
 impl IComm for Console {
-    // This function starts the communication thread.
-    fn read(&mut self, board: Arc<Mutex<Board>>) -> IncomingRx {
-        // Create a sender (tx) and receiver (rx) so this thread can send
-        // incoming commands from the tx to the rx part. rx will be
-        // returned to the caller of read().
-        let (tx, rx) = mpsc::channel::<Incoming>();
-
-        // Run the comm reader in its own thread. This is necessary,
-        // because read_line would block the main engine thread.
-        let h = thread::spawn(move || {
-            // No Command is the default while waiting for input.
-            let mut cmd = Incoming::NoCmd;
-
-            // Keep running until Quit command detected.
-            while cmd != Incoming::Quit {
-                let mut input: String = String::from("");
-
-                // Print a divider line between the about message and board.
-                println!("{}", "=".repeat(Console::DIVIDER_LENGTH));
-
-                // Lock the board using a mutex.
-                let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD);
-
-                // Print the position.
-                print::position(&mtx_board, None); // Print the board.
-
-                // Mutix is no longer needed. Drop it to unlock the board.
-                std::mem::drop(mtx_board);
-
-                // Print the console prompt.
-                Console::create_prompt();
-
-                // Wait for actual commands to be entered.
-                io::stdin().read_line(&mut input).expect(ErrFatal::READ_IO);
-
-                // Parse the input and transform it into a command.
-                cmd = Console::create_command(&input);
-
-                // If the result is a legal command, send it to the rx part.
-                if cmd.is_correct() {
-                    tx.send(cmd.clone()).expect(ErrFatal::CHANNEL_BROKEN);
-                }
-            }
-        });
-
-        // Store the generated handle.
-        self.handle = Some(h);
-
-        // Return receiver part to caller.
-        rx
+    // Some protocols require output before reading; in the case of
+    // "console", the board position and prompt must be printed.
+    fn print_before_read(&self, board: Arc<Mutex<Board>>) {
+        let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD); // Lock the board.
+        println!("{}", "=".repeat(Console::DIVIDER_LENGTH)); // Print divider.
+        print::position(&mtx_board, None); // Print board position.
+        std::mem::drop(mtx_board); // Drop the mutex and unlock the board.
+        Console::print_prompt(); // Print the command prompt.
     }
 
-    // This function will return the thread handle, so the caller can join
-    // on it and know that this thread has ended.
-    fn get_thread_handle(&mut self) -> Option<JoinHandle<()>> {
-        self.handle.take()
+    // This function reads commands from the console (keyboard)
+    fn read(&self) -> Incoming {
+        let mut input: String = String::from("");
+
+        // Read text from stdin
+        io::stdin().read_line(&mut input).expect(ErrFatal::READ_IO);
+
+        // Parse to command and verify correctness
+        let cmd = Console::create_command(&input);
+        if cmd.is_correct() {
+            cmd
+        } else {
+            Incoming::NoCmd
+        }
+    }
+
+    // This function just returns the name of the communication protocol.
+    fn get_protocol_name(&self) -> &'static str {
+        CommType::CONSOLE
     }
 }

@@ -18,7 +18,6 @@ use crate::{
 struct ErrFatal {}
 impl ErrFatal {
     const COMM_CREATION: &'static str = "Comm creation failed.";
-    const COMM_CLOSE: &'static str = "Closing Comm failed.";
     const BOARD_LOCK: &'static str = "Board lock failed.";
 }
 
@@ -72,7 +71,7 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // Print engine information
+        // Print engine information.
         self.about();
 
         // Set up the provided FEN position, if any. (The starting
@@ -124,11 +123,6 @@ impl Engine {
             self.main_loop();
         }
 
-        // Main loop is done. Wait for all threads to close down.
-        if let Some(comm) = self.comm.get_thread_handle() {
-            comm.join().expect(ErrFatal::COMM_CLOSE);
-        }
-
         // Engine exits correctly.
         Ok(())
     }
@@ -136,14 +130,12 @@ impl Engine {
     // This is the engine's main loop which will be executed if there are
     // no other actions such as perft requested.
     fn main_loop(&mut self) {
-        // Start receiving incoming commands in comm_rx.
-        let comm_rx = self.comm.read(self.board.clone());
-        // Default is No Command until something is received.
         let mut comm_cmd = Incoming::NoCmd;
 
         // Keep reading as long as no quit command is received.
         while comm_cmd != Incoming::Quit {
-            comm_cmd = comm_rx.recv().unwrap_or(Incoming::NoCmd);
+            self.comm.print_before_read(self.board.clone());
+            comm_cmd = self.comm.read();
         }
     }
 
@@ -152,6 +144,7 @@ impl Engine {
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
+        println!("Protocol: {}", self.comm.get_protocol_name());
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
