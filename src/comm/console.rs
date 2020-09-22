@@ -3,15 +3,12 @@
 // accept commands typed by the user. This interface is mainly used for
 // engine development.
 
-use super::IComm;
-use std::thread;
-use std::thread::JoinHandle;
-
-use super::{ErrFatal, Incoming};
+use super::{ErrFatal, IComm, Incoming};
 use crate::{board::Board, defs::About, misc::print};
 use std::{
     io::{self, Write},
     sync::{Arc, Mutex},
+    thread::{self, JoinHandle},
 };
 pub struct Console {}
 
