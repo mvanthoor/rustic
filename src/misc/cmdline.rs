@@ -85,17 +85,17 @@ impl CmdLine {
             .unwrap_or(1)
     }
 
-    pub fn kiwipete(&self) -> bool {
+    pub fn has_kiwipete(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::KIWI_LONG)
     }
 
     #[cfg(feature = "extra")]
-    pub fn wizardry(&self) -> bool {
+    pub fn has_wizardry(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
     }
 
     #[cfg(feature = "extra")]
-    pub fn test(&self) -> bool {
+    pub fn has_test(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::EPD_TEST_LONG)
     }
 

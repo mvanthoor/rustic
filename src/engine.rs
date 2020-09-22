@@ -78,7 +78,7 @@ impl Engine {
         // positioni s the defalt.) If the KiwiPete position is requested,
         // set this up instead, and ignore any provided FEN.
         let f = &self.cmdline.fen()[..];
-        let kp = self.cmdline.kiwipete();
+        let kp = self.cmdline.has_kiwipete();
         let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
 
         // Lock the board, setup the FEN-string, and drop the lock.
@@ -104,7 +104,7 @@ impl Engine {
         // === Only available with "extra" features enabled. ===
         #[cfg(feature = "extra")]
         // Generate magic numbers if requested.
-        if self.cmdline.wizardry() {
+        if self.cmdline.has_wizardry() {
             action_requested = true;
             wizardry::find_magics(Pieces::ROOK);
             wizardry::find_magics(Pieces::BISHOP);
@@ -112,7 +112,7 @@ impl Engine {
 
         #[cfg(feature = "extra")]
         // Run large EPD test suite if requested.
-        if self.cmdline.test() {
+        if self.cmdline.has_test() {
             action_requested = true;
             testsuite::run();
         }
