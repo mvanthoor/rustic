@@ -18,16 +18,17 @@ impl CommType {
 
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
-    fn start(&self, board: Arc<Mutex<Board>>) -> JoinHandle<()>;
+    fn start(&mut self, board: Arc<Mutex<Board>>);
+    fn get_thread_handle(&mut self) -> Option<JoinHandle<()>>;
 }
 
 // If one of those errors occurs, something is wrong with the engine or one
 // of its threads, and the program will panic, displaying these messages.
 pub struct ErrFatal {}
 impl ErrFatal {
-    const LOCK_BOARD: &'static str = "Comm: Board lock failed.";
-    const READ_IO: &'static str = "Comm: Reading I/O failed.";
-    const FLUSH_IO: &'static str = "Comm: Flushing I/O failed.";
+    const LOCK_BOARD: &'static str = "Board lock failed.";
+    const READ_IO: &'static str = "Reading I/O failed.";
+    const FLUSH_IO: &'static str = "Flushing I/O failed.";
 }
 
 // These are the commands a Comm module can create and send back to the
@@ -45,10 +46,7 @@ impl Incoming {
         match self {
             // Some commands don't need to be verified.
             Self::NoCmd | Self::Quit => true,
-            // Make sure that the move actually contains existing squares
-            // and either none, or an existing promotion piece. The engine
-            // itself is responsible for actually verifying that the move
-            // is possible and legal.
+            // Check if squares and promotion piece actually exist.
             Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
         }
     }

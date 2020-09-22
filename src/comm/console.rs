@@ -10,14 +10,16 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
-pub struct Console {}
+pub struct Console {
+    handle: Option<JoinHandle<()>>,
+}
 
 impl Console {
     const PROMPT: &'static str = ">";
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
 
     pub fn new() -> Self {
-        Self {}
+        Self { handle: None }
     }
 
     // This function creates the engine's command prompt.
@@ -43,14 +45,14 @@ impl Console {
 // Any communication module must implement the trait IComm.
 impl IComm for Console {
     // This function starts the communication thread.
-    fn start(&self, board: Arc<Mutex<Board>>) -> JoinHandle<()> {
+    fn start(&mut self, board: Arc<Mutex<Board>>) {
         const DIVIDER_LENGTH: usize = 48;
 
         // Run the communication in its own thread.
-        let handle = thread::spawn(move || {
+        let h = thread::spawn(move || {
             let mut cmd = Incoming::NoCmd;
-            // As long as no "quit" or "exit" commands are detected, the
-            // result will be 0 and the console keeps running.
+
+            // Keep running until Quit command detected.
             while cmd != Incoming::Quit {
                 let mut input: String = String::from("");
 
@@ -72,6 +74,10 @@ impl IComm for Console {
             }
         });
 
-        handle
+        self.handle = Some(h);
+    }
+
+    fn get_thread_handle(&mut self) -> Option<JoinHandle<()>> {
+        self.handle.take()
     }
 }

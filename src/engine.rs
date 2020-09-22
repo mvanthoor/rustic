@@ -6,7 +6,6 @@ use crate::{
     movegen::MoveGenerator,
 };
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 
 #[cfg(feature = "extra")]
 use crate::{
@@ -43,7 +42,6 @@ pub struct Engine {
     comm: Box<dyn IComm>,
     mg: Arc<MoveGenerator>,
     board: Arc<Mutex<Board>>,
-    comm_handle: Option<JoinHandle<()>>,
 }
 
 impl Engine {
@@ -69,7 +67,6 @@ impl Engine {
             comm: i,
             mg: Arc::new(MoveGenerator::new()),
             board: Arc::new(Mutex::new(Board::new())),
-            comm_handle: None,
         }
     }
 
@@ -124,11 +121,11 @@ impl Engine {
 
         // Start the communication thread if no other actions requested.
         if !action_requested {
-            self.comm_handle = Some(self.comm.start(self.board.clone()));
+            self.comm.start(self.board.clone());
         }
 
         // Wait for the communication thread to finish.
-        if let Some(h) = self.comm_handle.take() {
+        if let Some(h) = self.comm.get_thread_handle() {
             h.join().expect(ErrFatal::COMM_CLOSE);
         }
 
