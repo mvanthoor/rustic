@@ -143,7 +143,7 @@ impl Engine {
 
         // Keep reading as long as no quit command is received.
         while comm_cmd != Incoming::Quit {
-            comm_cmd = comm_rx.try_recv().unwrap_or(Incoming::NoCmd);
+            comm_cmd = comm_rx.recv().unwrap_or(Incoming::NoCmd);
         }
     }
 
