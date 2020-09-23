@@ -2,10 +2,13 @@
 // launches one or more worker threads. The search controller can receive
 // control commands from the engine, and send search results.
 
+mod worker;
+
 use std::{
     sync::mpsc::{self, Sender},
     thread::{self, JoinHandle},
 };
+use worker::Worker;
 
 pub struct ErrFatal {}
 impl ErrFatal {
@@ -20,15 +23,22 @@ pub enum SearchControl {
 
 pub struct Search {
     handle: Option<JoinHandle<()>>,
+    worker: Worker,
 }
 
 impl Search {
     pub fn new() -> Self {
-        Self { handle: None }
+        Self {
+            handle: None,
+            worker: Worker::new(),
+        }
     }
 
     // Start the control procedure in its own thread.
     pub fn control(&mut self) -> Sender<SearchControl> {
+        // Launch the workers that need to be controlled.
+        self.worker.launch();
+
         // Create a sender and receiver for setting up an incoming channel.
         let (in_tx, in_rx) = mpsc::channel::<SearchControl>();
 
