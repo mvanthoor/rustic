@@ -4,8 +4,9 @@ use crate::{
     defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
+    search::{Search, SearchControl},
 };
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc::Sender, Arc, Mutex};
 
 #[cfg(feature = "extra")]
 use crate::{
@@ -19,6 +20,8 @@ struct ErrFatal {}
 impl ErrFatal {
     const COMM_CREATION: &'static str = "Comm creation failed.";
     const BOARD_LOCK: &'static str = "Board lock failed.";
+    const CHANNEL_BROKEN: &'static str = "Channel is broken.";
+    const FAIL_STOP_SEARCH: &'static str = "Stopping search failed.";
 }
 
 // This notice is displayed if the engine is a debug binary. (Debug
@@ -41,6 +44,7 @@ pub struct Engine {
     comm: Box<dyn IComm>,
     mg: Arc<MoveGenerator>,
     board: Arc<Mutex<Board>>,
+    search: Search,
 }
 
 impl Engine {
@@ -66,6 +70,7 @@ impl Engine {
             comm: i,
             mg: Arc::new(MoveGenerator::new()),
             board: Arc::new(Mutex::new(Board::new())),
+            search: Search::new(),
         }
     }
 
@@ -118,9 +123,18 @@ impl Engine {
         }
         // =====================================================
 
-        // Start the main loop if no other actions requested.
+        // Start the engine if no other actions are requested.
         if !action_requested {
-            self.main_loop();
+            // Start the search controller.
+            let search_tx = self.search.control();
+
+            // Start the main engine loop.
+            self.main_loop(search_tx);
+        }
+
+        // Main loop ended. Wait for all threads to finish.
+        if let Some(h) = self.search.get_handle() {
+            h.join().expect(ErrFatal::FAIL_STOP_SEARCH);
         }
 
         // Engine exits correctly.
@@ -129,13 +143,20 @@ impl Engine {
 
     // This is the engine's main loop which will be executed if there are
     // no other actions such as perft requested.
-    fn main_loop(&mut self) {
+    fn main_loop(&mut self, search_tx: Sender<SearchControl>) {
         let mut comm_cmd = Incoming::NoCmd;
 
         // Keep reading as long as no quit command is received.
         while comm_cmd != Incoming::Quit {
             self.comm.print_before_read(self.board.clone());
             comm_cmd = self.comm.read();
+
+            match comm_cmd {
+                Incoming::Quit => search_tx
+                    .send(SearchControl::Quit)
+                    .expect(ErrFatal::CHANNEL_BROKEN),
+                _ => (),
+            }
         }
     }
 

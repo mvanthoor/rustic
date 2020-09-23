@@ -5,6 +5,7 @@ mod engine;
 mod evaluation;
 mod misc;
 mod movegen;
+mod search;
 
 #[cfg(feature = "extra")]
 mod extra;
