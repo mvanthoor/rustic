@@ -6,7 +6,7 @@ use crate::{
     movegen::MoveGenerator,
     search::{Search, SearchControl},
 };
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
 use crate::{
@@ -21,7 +21,7 @@ impl ErrFatal {
     const COMM_CREATION: &'static str = "Comm creation failed.";
     const BOARD_LOCK: &'static str = "Board lock failed.";
     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
-    const FAIL_STOP_SEARCH: &'static str = "Stopping search failed.";
+    const FAIL_QUIT_SEARCH: &'static str = "Stopping search failed.";
 }
 
 // This notice is displayed if the engine is a debug binary. (Debug
@@ -79,9 +79,8 @@ impl Engine {
         // Print engine information.
         self.about();
 
-        // Set up the provided FEN position, if any. (The starting
-        // positioni s the defalt.) If the KiwiPete position is requested,
-        // set this up instead, and ignore any provided FEN.
+        // Set up either the provided FEN-string or KiwiPete. If both are
+        // provided, the KiwiPete position takes precedence.
         let f = &self.cmdline.fen()[..];
         let kp = self.cmdline.has_kiwipete();
         let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
@@ -125,16 +124,8 @@ impl Engine {
 
         // Start the engine if no other actions are requested.
         if !action_requested {
-            // Start the search controller.
-            let search_tx = self.search.control();
-
             // Start the main engine loop.
-            self.main_loop(search_tx);
-        }
-
-        // Main loop ended. Wait for all threads to finish.
-        if let Some(h) = self.search.get_handle() {
-            h.join().expect(ErrFatal::FAIL_STOP_SEARCH);
+            self.main_loop();
         }
 
         // Engine exits correctly.
@@ -143,10 +134,12 @@ impl Engine {
 
     // This is the engine's main loop which will be executed if there are
     // no other actions such as perft requested.
-    fn main_loop(&mut self, search_tx: Sender<SearchControl>) {
-        let mut comm_cmd = Incoming::NoCmd;
+    fn main_loop(&mut self) {
+        // Activate the engine's search module.
+        let search_tx = self.search.activate();
 
-        // Keep reading as long as no quit command is received.
+        // Keep reading incoming commands until "Quit" is received.
+        let mut comm_cmd = Incoming::NoCmd;
         while comm_cmd != Incoming::Quit {
             self.comm.print_before_read(self.board.clone());
             comm_cmd = self.comm.read();
@@ -157,6 +150,11 @@ impl Engine {
                     .expect(ErrFatal::CHANNEL_BROKEN),
                 _ => (),
             }
+        }
+
+        // The main loop has ended. Wait for the search to quit.
+        if let Some(h) = self.search.get_handle() {
+            h.join().expect(ErrFatal::FAIL_QUIT_SEARCH)
         }
     }
 
