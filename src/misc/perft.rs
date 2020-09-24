@@ -18,7 +18,7 @@ impl ErrFatal {
 // This function runs perft(), while collecting speed information.
 // It uses iterative deepening, so when running perft(7), it will output
 // the results of perft(1) up to and including perft(7).
-pub fn run(board: Arc<Mutex<Board>>, depth: u8, threads: u8, mg: Arc<MoveGenerator>) {
+pub fn run(board: Arc<Mutex<Board>>, depth: u8, _threads: u8, mg: Arc<MoveGenerator>) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
 
@@ -34,7 +34,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: u8, threads: u8, mg: Arc<MoveGenerat
     // necessary to keep the lock until perft runs out.
     std::mem::drop(mtx_board);
 
-    println!("Benchmarking perft 1-{} on {} threads", depth, threads);
+    println!("Benchmarking perft 1-{}:", depth);
 
     print::position(&local_board, None);
 
