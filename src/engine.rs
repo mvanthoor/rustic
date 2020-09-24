@@ -143,6 +143,9 @@ impl Engine {
                 Incoming::Quit => search_tx
                     .send(SearchControl::Quit)
                     .expect(ErrFatal::CHANNEL_BROKEN),
+                Incoming::Search => search_tx
+                    .send(SearchControl::Search)
+                    .expect(ErrFatal::CHANNEL_BROKEN),
                 _ => (),
             }
         }

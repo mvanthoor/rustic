@@ -10,9 +10,17 @@ use std::{
 //     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
 // }
 
+pub struct SearchResult {}
+impl SearchResult {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 #[derive(PartialEq, Clone)]
 pub enum SearchControl {
     NoCmd,
+    Search,
     Quit,
 }
 
@@ -37,14 +45,16 @@ impl Search {
             // Keep running as long as no quit command is received.
             while control_cmd != SearchControl::Quit {
                 // Read the next command.
-                control_cmd = iterative_deepening(&in_rx);
+                control_cmd = in_rx.recv().unwrap_or(SearchControl::NoCmd);
 
                 // Process the command.
                 match control_cmd {
                     // When quit is received, the thread's loop will end.
                     SearchControl::Quit | SearchControl::NoCmd => (),
+                    SearchControl::Search => iterative_deepening(),
                 }
             }
+            println!("Quitting search module.");
         });
 
         // Store the thread handle.
@@ -59,29 +69,25 @@ impl Search {
     }
 }
 
-fn iterative_deepening(rx: &Receiver<SearchControl>) -> SearchControl {
-    let mut cmd = SearchControl::NoCmd;
-    println!("Running Iterative Deepening...");
+fn iterative_deepening() {
+    let mut search_result = SearchResult::new();
+    let mut depth = 1;
 
     // Do a next pass to the next depth, until either the requested depth
     // is reached, time is up, or a stop/quit command is received.
-    while cmd != SearchControl::Quit {
-        cmd = alpha_beta(rx);
+    while depth <= 6 {
+        alpha_beta(depth);
+        depth += 1;
     }
-
-    println!("Quitting Iterative Deepening...");
-    cmd
 }
 
-fn alpha_beta(rx: &Receiver<SearchControl>) -> SearchControl {
-    let mut cmd = SearchControl::NoCmd;
-    println!("Running Alpha/Beta...");
-
-    // Keep searching until time is up, or stop/quit is received.
-    while cmd != SearchControl::Quit {
-        cmd = rx.try_recv().unwrap_or(SearchControl::NoCmd)
+fn alpha_beta(depth: u8) {
+    if depth == 0 {
+        println!("Done");
+        return;
     }
 
-    println!("Quitting Alpha/Beta...");
-    cmd
+    println!("Depth: {}", depth);
+
+    alpha_beta(depth - 1);
 }

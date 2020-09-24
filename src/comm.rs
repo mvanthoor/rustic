@@ -35,6 +35,7 @@ impl ErrFatal {
 pub enum Incoming {
     NoCmd,
     Quit,
+    Search,
     Move(String),
 }
 
@@ -43,7 +44,7 @@ impl Incoming {
         // Match the incoming command.
         match self {
             // Some commands don't need to be verified.
-            Self::NoCmd | Self::Quit => true,
+            Self::NoCmd | Self::Quit | Self::Search => true,
             // Check if squares and promotion piece actually exist.
             Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
         }

@@ -34,6 +34,7 @@ impl Console {
         // Convert to &str for matching the command.
         match &i[..] {
             "quit" | "exit" => Incoming::Quit,
+            "search" => Incoming::Search,
             _ => Incoming::Move(i),
         }
     }
@@ -44,11 +45,13 @@ impl IComm for Console {
     // Some protocols require output before reading; in the case of
     // "console", the board position and prompt must be printed.
     fn print_before_read(&self, board: Arc<Mutex<Board>>) {
-        let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD); // Lock the board.
-        println!("{}", "=".repeat(Console::DIVIDER_LENGTH)); // Print divider.
-        print::position(&mtx_board, None); // Print board position.
-        std::mem::drop(mtx_board); // Drop the mutex and unlock the board.
-        Console::print_prompt(); // Print the command prompt.
+        /*
+            let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD); // Lock the board.
+            println!("{}", "=".repeat(Console::DIVIDER_LENGTH)); // Print divider.
+            print::position(&mtx_board, None); // Print board position.
+            std::mem::drop(mtx_board); // Drop the mutex and unlock the board.
+            Console::print_prompt(); // Print the command prompt.
+        */
     }
 
     // This function reads commands from the console (keyboard)
