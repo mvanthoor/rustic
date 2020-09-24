@@ -1,14 +1,14 @@
 // search.rs contains the engine's search routine.
 
 use std::{
-    sync::mpsc::{self, Sender},
+    sync::mpsc::{self, Receiver, Sender},
     thread::{self, JoinHandle},
 };
 
-pub struct ErrFatal {}
-impl ErrFatal {
-    const CHANNEL_BROKEN: &'static str = "Channel is broken.";
-}
+// pub struct ErrFatal {}
+// impl ErrFatal {
+//     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
+// }
 
 #[derive(PartialEq, Clone)]
 pub enum SearchControl {
@@ -37,7 +37,7 @@ impl Search {
             // Keep running as long as no quit command is received.
             while control_cmd != SearchControl::Quit {
                 // Read the next command.
-                control_cmd = in_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
+                control_cmd = iterative_deepening(&in_rx);
 
                 // Process the command.
                 match control_cmd {
@@ -57,4 +57,31 @@ impl Search {
     pub fn get_handle(&mut self) -> Option<JoinHandle<()>> {
         self.handle.take()
     }
+}
+
+fn iterative_deepening(rx: &Receiver<SearchControl>) -> SearchControl {
+    let mut cmd = SearchControl::NoCmd;
+    println!("Running Iterative Deepening...");
+
+    // Do a next pass to the next depth, until either the requested depth
+    // is reached, time is up, or a stop/quit command is received.
+    while cmd != SearchControl::Quit {
+        cmd = alpha_beta(rx);
+    }
+
+    println!("Quitting Iterative Deepening...");
+    cmd
+}
+
+fn alpha_beta(rx: &Receiver<SearchControl>) -> SearchControl {
+    let mut cmd = SearchControl::NoCmd;
+    println!("Running Alpha/Beta...");
+
+    // Keep searching until time is up, or stop/quit is received.
+    while cmd != SearchControl::Quit {
+        cmd = rx.try_recv().unwrap_or(SearchControl::NoCmd)
+    }
+
+    println!("Quitting Alpha/Beta...");
+    cmd
 }
