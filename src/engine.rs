@@ -1,10 +1,13 @@
+mod main_loop;
+mod misc;
+
 use crate::{
     board::Board,
-    comm::{console::Console, CommType, IComm, Incoming},
-    defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
+    comm::{console::Console, CommType, IComm},
+    defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::{Search, SearchControl},
+    search::Search,
 };
 use std::sync::{Arc, Mutex};
 
@@ -23,11 +26,6 @@ impl ErrFatal {
     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
     const FAIL_QUIT_SEARCH: &'static str = "Stopping search failed.";
 }
-
-// This notice is displayed if the engine is a debug binary. (Debug
-// binaries are unoptimized and slower than release binaries.)
-#[cfg(debug_assertions)]
-const NOTICE_DEBUG_MODE: &'static str = "Notice: Running in debug mode";
 
 // This struct holds the engine's settings.
 pub struct Settings {
@@ -79,7 +77,7 @@ impl Engine {
         // Print engine information.
         self.about();
 
-        // Set up either the provided FEN-string or KiwiPete. If both are
+        // Get either the provided FEN-string or KiwiPete. If both are
         // provided, the KiwiPete position takes precedence.
         let f = &self.cmdline.fen()[..];
         let kp = self.cmdline.has_kiwipete();
@@ -125,49 +123,5 @@ impl Engine {
 
         // Engine exits correctly.
         Ok(())
-    }
-
-    // This is the engine's main loop which will be executed if there are
-    // no other actions such as perft requested.
-    fn main_loop(&mut self) {
-        // Activate the engine's search module.
-        let search_tx = self.search.activate();
-
-        // Keep reading incoming commands until "Quit" is received.
-        let mut comm_cmd = Incoming::NoCmd;
-        while comm_cmd != Incoming::Quit {
-            self.comm.print_before_read(self.board.clone());
-            comm_cmd = self.comm.read();
-
-            match comm_cmd {
-                Incoming::Quit => search_tx
-                    .send(SearchControl::Quit)
-                    .expect(ErrFatal::CHANNEL_BROKEN),
-                Incoming::Search => search_tx
-                    .send(SearchControl::Search)
-                    .expect(ErrFatal::CHANNEL_BROKEN),
-                _ => (),
-            }
-        }
-
-        // The main loop has ended. Wait for the search to quit.
-        if let Some(h) = self.search.get_handle() {
-            h.join().expect(ErrFatal::FAIL_QUIT_SEARCH)
-        }
-    }
-
-    // Print information about the engine.
-    fn about(&self) {
-        println!("Program: {} {}", About::ENGINE, About::VERSION);
-        println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
-        println!("Description: {}", About::DESCRIPTION);
-        println!(
-            "Threads: {} (not used yet, always 1)",
-            self.settings.threads
-        );
-        println!("Protocol: {}", self.comm.get_protocol_name());
-
-        #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
     }
 }

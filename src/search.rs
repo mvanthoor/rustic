@@ -1,21 +1,19 @@
 // search.rs contains the engine's search routine.
 
-use std::{
-    sync::mpsc::{self, Receiver, Sender},
-    thread::{self, JoinHandle},
-};
+use crossbeam_channel::Sender;
+use std::thread::{self, JoinHandle};
 
 // pub struct ErrFatal {}
 // impl ErrFatal {
 //     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
 // }
 
-pub struct SearchResult {}
-impl SearchResult {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+// pub struct SearchResult {}
+// impl SearchResult {
+//     pub fn new() -> Self {
+//         Self {}
+//     }
+// }
 
 #[derive(PartialEq, Clone)]
 pub enum SearchControl {
@@ -36,7 +34,7 @@ impl Search {
     // Start the control procedure in its own thread.
     pub fn activate(&mut self) -> Sender<SearchControl> {
         // Create a sender and receiver for setting up an incoming channel.
-        let (in_tx, in_rx) = mpsc::channel::<SearchControl>();
+        let (in_tx, in_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
         // Create the control thread
         let h = thread::spawn(move || {
@@ -70,7 +68,6 @@ impl Search {
 }
 
 fn iterative_deepening() {
-    let mut search_result = SearchResult::new();
     let mut depth = 1;
 
     // Do a next pass to the next depth, until either the requested depth
