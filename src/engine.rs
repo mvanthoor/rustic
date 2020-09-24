@@ -97,12 +97,7 @@ impl Engine {
         if self.cmdline.perft() > 0 {
             action_requested = true;
             println!("FEN: {}", fen);
-            perft::run(
-                self.board.clone(),
-                self.cmdline.perft(),
-                self.settings.threads,
-                self.mg.clone(),
-            );
+            perft::run(self.board.clone(), self.cmdline.perft(), self.mg.clone());
         }
 
         // === Only available with "extra" features enabled. ===
@@ -163,6 +158,10 @@ impl Engine {
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
         println!("Description: {}", About::DESCRIPTION);
+        println!(
+            "Threads: {} (not used yet, always 1)",
+            self.settings.threads
+        );
         println!("Protocol: {}", self.comm.get_protocol_name());
 
         #[cfg(debug_assertions)]
