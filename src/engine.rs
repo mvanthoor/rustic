@@ -1,10 +1,10 @@
 mod main_loop;
-mod misc;
+mod utils;
 
 use crate::{
     board::Board,
     comm::{console::Console, CommType, IComm},
-    defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
+    defs::EngineRunResult,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::Search,
@@ -76,17 +76,7 @@ impl Engine {
     pub fn run(&mut self) -> EngineRunResult {
         // Print engine information.
         self.about();
-
-        // Get either the provided FEN-string or KiwiPete. If both are
-        // provided, the KiwiPete position takes precedence.
-        let f = &self.cmdline.fen()[..];
-        let kp = self.cmdline.has_kiwipete();
-        let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
-
-        // Lock the board, setup the FEN-string, and drop the lock.
-        let mut mtx_board = self.board.lock().expect(ErrFatal::BOARD_LOCK);
-        mtx_board.fen_read(Some(fen))?;
-        std::mem::drop(mtx_board);
+        self.setup_position()?;
 
         // Run a specific action if requested, or start the engine.
         let mut action_requested = false;
@@ -94,7 +84,6 @@ impl Engine {
         // Run perft if requested.
         if self.cmdline.perft() > 0 {
             action_requested = true;
-            println!("FEN: {}", fen);
             perft::run(self.board.clone(), self.cmdline.perft(), self.mg.clone());
         }
 
