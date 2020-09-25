@@ -16,7 +16,7 @@ impl CommType {
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
     fn print_before_read(&self, board: Arc<Mutex<Board>>);
-    fn read(&self) -> Incoming;
+    fn read(&self) -> CommReport;
     fn get_protocol_name(&self) -> &'static str;
 }
 
@@ -32,19 +32,19 @@ impl ErrFatal {
 // These are the commands a Comm module can create and send back to the
 // engine in the main thread.
 #[derive(PartialEq, Clone)]
-pub enum Incoming {
-    NoCmd,
+pub enum CommReport {
+    Nothing,
     Quit,
     Search,
     Move(String),
 }
 
-impl Incoming {
+impl CommReport {
     pub fn is_correct(&self) -> bool {
         // Match the incoming command.
         match self {
             // Some commands don't need to be verified.
-            Self::NoCmd | Self::Quit | Self::Search => true,
+            Self::Nothing | Self::Quit | Self::Search => true,
             // Check if squares and promotion piece actually exist.
             Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
         }

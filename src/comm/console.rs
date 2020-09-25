@@ -3,7 +3,7 @@
 // accept commands typed by the user. This interface is mainly used for
 // engine development.
 
-use super::{CommType, ErrFatal, IComm, Incoming};
+use super::{CommReport, CommType, ErrFatal, IComm};
 use crate::{board::Board, defs::About, misc::print};
 use std::{
     io::{self, Write},
@@ -27,15 +27,15 @@ impl Console {
 
     // This function transforms the typed characters into a command tht the
     // engine which is running in the main thread can understand.
-    fn create_command(input: &String) -> Incoming {
+    fn create_command(input: &String) -> CommReport {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
         match &i[..] {
-            "quit" | "exit" => Incoming::Quit,
-            "search" => Incoming::Search,
-            _ => Incoming::Move(i),
+            "quit" | "exit" => CommReport::Quit,
+            "search" => CommReport::Search,
+            _ => CommReport::Move(i),
         }
     }
 }
@@ -53,7 +53,7 @@ impl IComm for Console {
     }
 
     // This function reads commands from the console (keyboard)
-    fn read(&self) -> Incoming {
+    fn read(&self) -> CommReport {
         let mut input: String = String::from("");
 
         // Read text from stdin
@@ -64,7 +64,7 @@ impl IComm for Console {
         if cmd.is_correct() {
             cmd
         } else {
-            Incoming::NoCmd
+            CommReport::Nothing
         }
     }
 

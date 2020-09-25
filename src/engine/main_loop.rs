@@ -1,6 +1,6 @@
 use super::{Engine, ErrFatal};
 
-use crate::{comm::Incoming, search::SearchControl};
+use crate::{comm::CommReport, search::SearchControl};
 
 impl Engine {
     pub fn main_loop(&mut self) {
@@ -8,16 +8,16 @@ impl Engine {
         let search_tx = self.search.activate();
 
         // Keep reading incoming commands until "Quit" is received.
-        let mut comm_cmd = Incoming::NoCmd;
-        while comm_cmd != Incoming::Quit {
+        let mut comm_cmd = CommReport::Nothing;
+        while comm_cmd != CommReport::Quit {
             self.comm.print_before_read(self.board.clone());
             comm_cmd = self.comm.read();
 
             match comm_cmd {
-                Incoming::Quit => search_tx
+                CommReport::Quit => search_tx
                     .send(SearchControl::Quit)
                     .expect(ErrFatal::CHANNEL_BROKEN),
-                Incoming::Search => search_tx
+                CommReport::Search => search_tx
                     .send(SearchControl::Search)
                     .expect(ErrFatal::CHANNEL_BROKEN),
                 _ => (),
