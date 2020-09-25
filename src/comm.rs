@@ -3,6 +3,7 @@ pub mod console;
 // pub mod xboard;
 
 use crate::{board::Board, misc::parse};
+use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
 // These are the types of communication the engine is capable of.
@@ -15,8 +16,12 @@ impl CommType {
 
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
-    fn print_before_read(&self, board: Arc<Mutex<Board>>);
-    fn read(&self) -> CommReport;
+    fn activate(
+        &mut self,
+        report_tx: Sender<CommReport>,
+        board: Arc<Mutex<Board>>,
+    ) -> Sender<CommControl>;
+    fn wait_for_shutdown(&mut self);
     fn get_protocol_name(&self) -> &'static str;
 }
 
@@ -27,6 +32,15 @@ impl ErrFatal {
     const LOCK_BOARD: &'static str = "Board lock failed.";
     const READ_IO: &'static str = "Reading I/O failed.";
     const FLUSH_IO: &'static str = "Flushing I/O failed.";
+    const BROKEN_HANDLE: &'static str = "Broken handle.";
+    const FAILED_THREAD: &'static str = "Thread has failed.";
+}
+
+#[derive(PartialEq, Clone)]
+pub enum CommControl {
+    Nothing,
+    Update,
+    Quit,
 }
 
 // These are the commands a Comm module can create and send back to the
@@ -40,7 +54,7 @@ pub enum CommReport {
 }
 
 impl CommReport {
-    pub fn is_correct(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         // Match the incoming command.
         match self {
             // Some commands don't need to be verified.
