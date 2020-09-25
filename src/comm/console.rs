@@ -68,6 +68,9 @@ impl IComm for Console {
     ) -> Sender<CommControl> {
         println!("Starting Comm Reader thread.");
 
+        // Create local board for this specific thread.
+        let reader_board = board.clone();
+
         // Create the reader thread for reading data from the UI/Stdin.
         let h_reader = thread::spawn(move || {
             // The default is to do nothing.
@@ -80,21 +83,31 @@ impl IComm for Console {
                 io::stdin().read_line(&mut input).expect(ErrFatal::READ_IO);
                 report = Console::create_report(&input);
 
-                report_tx
-                    .send(report.clone())
-                    .expect(ErrFatal::BROKEN_HANDLE);
-
-                if !report.is_valid() {
+                if report.is_valid() {
+                    report_tx
+                        .send(report.clone())
+                        .expect(ErrFatal::BROKEN_HANDLE);
+                } else {
                     println!("Unknown input: {}", input);
+                    Console::print_position(reader_board.clone());
                 }
             }
 
             println!("Quitting Comm Reader thread.");
         });
+
+        // Store the handle.
         self.handle_reader = Some(h_reader);
 
-        // Create the thread for control commands from the engine.
+        // ============================================================================
+
+        // Create the channel for control commands from the engine.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
+
+        // Create local board variable for the control thread (to use in 'update').
+        let control_board = board.clone();
+
+        // Create the control thread.
         let h_control = thread::spawn(move || {
             println!("Starting Comm Control thread.");
 
@@ -104,27 +117,36 @@ impl IComm for Console {
 
                 match control {
                     CommControl::Quit => (),
-                    CommControl::Update => Console::print_position(board.clone()),
+                    CommControl::Update => Console::print_position(control_board.clone()),
                     _ => (),
                 }
             }
 
             println!("Quitting Comm Control thread.");
         });
+
+        // Store the handle.
         self.handle_control = Some(h_control);
 
+        // Return sender for control commands.
         control_tx
     }
 
+    // After the engine has send 'quit' to the control thread, it will call
+    // wait_for_shutdown() and then wait here until shutdown is complete.
     fn wait_for_shutdown(&mut self) {
         println!("Waiting for Comm shutdown...");
+
+        // Shutting down reader thread.
         if let Some(h) = self.handle_reader.take() {
             h.join().expect(ErrFatal::FAILED_THREAD);
         }
 
+        // Shutting down control thread.
         if let Some(h) = self.handle_control.take() {
             h.join().expect(ErrFatal::FAILED_THREAD);
         }
+
         println!("Comm shutdown completed.");
     }
 
