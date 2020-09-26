@@ -3,12 +3,13 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, CommReport, CommType, IComm},
+    comm::{console::Console, CommControl, CommReport, CommType, IComm},
     defs::EngineRunResult,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::{Search, SearchReport},
+    search::{Search, SearchControl, SearchReport},
 };
+use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
@@ -31,9 +32,23 @@ pub struct Settings {
     threads: u8,
 }
 
+// This enum provides informatin to the engine, with regard to incoming
+// messages and search results.
 pub enum Information {
     Comm(CommReport),
     Search(SearchReport),
+}
+
+// This stores sender parts of control channels.
+pub struct ControlTx {
+    comm: Option<Sender<CommControl>>,
+    search: Option<Sender<SearchControl>>,
+}
+
+impl ControlTx {
+    pub fn new(c: Option<Sender<CommControl>>, s: Option<Sender<SearchControl>>) -> Self {
+        Self { comm: c, search: s }
+    }
 }
 
 // This struct holds the chess engine and its functions. The reason why
@@ -45,9 +60,10 @@ pub struct Engine {
     settings: Settings,
     cmdline: CmdLine,
     comm: Box<dyn IComm>,
-    mg: Arc<MoveGenerator>,
     board: Arc<Mutex<Board>>,
+    mg: Arc<MoveGenerator>,
     search: Search,
+    ctrl_tx: ControlTx,
 }
 
 impl Engine {
@@ -72,19 +88,19 @@ impl Engine {
             },
             cmdline: c,
             comm: i,
-            mg: Arc::new(MoveGenerator::new()),
             board: Arc::new(Mutex::new(Board::new())),
+            mg: Arc::new(MoveGenerator::new()),
             search: Search::new(),
+            ctrl_tx: ControlTx::new(None, None),
         }
     }
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // Print engine information.
         self.about();
         self.setup_position()?;
 
-        // Run a specific action if requested, or start the engine.
+        // Run a specific action if requested...
         let mut action_requested = false;
 
         // Run perft if requested.
@@ -110,13 +126,26 @@ impl Engine {
         }
         // =====================================================
 
-        // Start the engine if no other actions are requested.
+        // In the main loop, the engine manages its resources so it will be
+        // able to play legal chess and communicate with different user
+        // interfaces.
         if !action_requested {
-            // Start the main engine loop.
             self.main_loop();
         }
 
         // Engine exits correctly.
         Ok(())
+    }
+
+    pub fn comm_tx(&self, message: CommControl) {
+        if let Some(tx) = &self.ctrl_tx.comm {
+            tx.send(message).expect(ErrFatal::CHANNEL_BROKEN);
+        }
+    }
+
+    pub fn search_tx(&self, message: SearchControl) {
+        if let Some(tx) = &self.ctrl_tx.search {
+            tx.send(message).expect(ErrFatal::CHANNEL_BROKEN);
+        }
     }
 }
