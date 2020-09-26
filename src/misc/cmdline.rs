@@ -77,7 +77,7 @@ impl CmdLine {
             .unwrap_or(0)
     }
 
-    pub fn threads(&self) -> u8 {
+    pub fn threads(&self) -> usize {
         self.arguments
             .value_of(CmdLineArgs::THREADS_LONG)
             .unwrap_or(CmdLineArgs::THREADS_DEFAULT)

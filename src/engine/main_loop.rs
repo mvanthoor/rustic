@@ -17,8 +17,14 @@ impl Engine {
         // Store the provided control command senders for Comm and Search.
         self.ctrl_tx = ControlTx::new(Some(comm_control_tx), Some(search_control_tx));
 
-        // Request Comm to update (such as printing a board).
-        self.comm_tx(CommControl::Update);
+        // Request Search to set up its worker threads.
+        self.search_tx(SearchControl::Workers(self.settings.threads as usize));
+
+        // Wait for the workers to finish setting up. Then update Comm.
+        let result = info_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
+        if result == Information::Search(SearchReport::RequestCompleted) {
+            self.comm_tx(CommControl::Update);
+        }
 
         // Keep looping forever until "running" becomes false.
         while self.running {
@@ -56,6 +62,7 @@ impl Engine {
                 println!("Search finished.");
                 self.comm_tx(CommControl::Update);
             }
+            _ => (),
         }
     }
 }

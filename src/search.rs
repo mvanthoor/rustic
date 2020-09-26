@@ -1,36 +1,44 @@
 // search.rs contains the engine's search routine.
 
+mod worker;
+
 use crate::{board::Board, engine::Information};
 use crossbeam_channel::Sender;
 use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
+use worker::Worker;
 
 pub struct ErrFatal {}
 impl ErrFatal {
     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
     const THREAD_FAILED: &'static str = "Thread has failed.";
+    const LOCK_FAILED: &'static str = "Lock failed.";
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq)]
 pub enum SearchControl {
     Nothing,
+    Workers(usize),
     Search,
     Quit,
 }
-
+#[derive(PartialEq)]
 pub enum SearchReport {
-    Finished,
+    Finished,         // Search is finished.
+    RequestCompleted, // Requested operation is completed.
 }
 
 pub struct Search {
+    workers: Arc<Mutex<Vec<Worker>>>,
     handle_control: Option<JoinHandle<()>>,
 }
 
 impl Search {
     pub fn new() -> Self {
         Self {
+            workers: Arc::new(Mutex::new(Vec::with_capacity(1))),
             handle_control: None,
         }
     }
@@ -46,8 +54,18 @@ impl Search {
         // Create a sender and receiver for setting up an incoming channel.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
+        // Create clone of the Arc holding the worker store.
+        let workers = Arc::clone(&self.workers);
+
         // Create the control thread
         let h = thread::spawn(move || {
+            // Shorthand to send RequestCompleted to the engine.
+            fn request_completed(tx: &Sender<Information>) {
+                let report = SearchReport::RequestCompleted;
+                let information = Information::Search(report);
+                tx.send(information).expect(ErrFatal::CHANNEL_BROKEN)
+            }
+
             let mut running = true;
 
             // Keep running as long as no quit command is received.
@@ -59,6 +77,25 @@ impl Search {
                 match control_cmd {
                     // When quit is received, the thread's loop will end.
                     SearchControl::Quit => running = false,
+
+                    // This sets up one worker per engine thread.
+                    SearchControl::Workers(w) => {
+                        println!("Setting up {} workers...", w);
+                        let mut mtx_workers = workers.lock().expect(ErrFatal::LOCK_FAILED);
+
+                        for i in 0..w {
+                            mtx_workers.push(Worker::new(i + 1));
+                        }
+
+                        for each in mtx_workers.iter() {
+                            each.call();
+                        }
+
+                        std::mem::drop(mtx_workers);
+
+                        request_completed(&report_tx);
+                    }
+
                     SearchControl::Search => {
                         let report = SearchReport::Finished;
                         let information = Information::Search(report);

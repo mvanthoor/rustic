@@ -29,11 +29,12 @@ impl ErrFatal {
 
 // This struct holds the engine's settings.
 pub struct Settings {
-    threads: u8,
+    threads: usize,
 }
 
 // This enum provides informatin to the engine, with regard to incoming
 // messages and search results.
+#[derive(PartialEq)]
 pub enum Information {
     Comm(CommReport),
     Search(SearchReport),
@@ -80,12 +81,12 @@ impl Engine {
             _ => panic!(ErrFatal::COMM_CREATION),
         };
 
+        let t = c.threads();
+
         // Create the engine itself.
         Self {
             running: true,
-            settings: Settings {
-                threads: c.threads(),
-            },
+            settings: Settings { threads: t },
             cmdline: c,
             comm: i,
             board: Arc::new(Mutex::new(Board::new())),
