@@ -1,90 +1,92 @@
 // search.rs contains the engine's search routine.
 
+use crate::{board::Board, engine::Information};
 use crossbeam_channel::Sender;
-use std::thread::{self, JoinHandle};
+use std::{
+    sync::{Arc, Mutex},
+    thread::{self, JoinHandle},
+};
 
-// pub struct ErrFatal {}
-// impl ErrFatal {
-//     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
-// }
-
-// pub struct SearchResult {}
-// impl SearchResult {
-//     pub fn new() -> Self {
-//         Self {}
-//     }
-// }
+pub struct ErrFatal {}
+impl ErrFatal {
+    const CHANNEL_BROKEN: &'static str = "Channel is broken.";
+    const THREAD_FAILED: &'static str = "Thread has failed.";
+}
 
 #[derive(PartialEq, Clone)]
 pub enum SearchControl {
-    NoCmd,
+    Nothing,
     Search,
     Quit,
 }
 
+pub enum SearchReport {
+    Finished,
+}
+
 pub struct Search {
-    handle: Option<JoinHandle<()>>,
+    handle_control: Option<JoinHandle<()>>,
 }
 
 impl Search {
     pub fn new() -> Self {
-        Self { handle: None }
+        Self {
+            handle_control: None,
+        }
     }
 
     // Start the control procedure in its own thread.
-    pub fn activate(&mut self) -> Sender<SearchControl> {
+    pub fn activate(
+        &mut self,
+        report_tx: Sender<Information>,
+        _board: Arc<Mutex<Board>>,
+    ) -> Sender<SearchControl> {
+        println!("Starting Search Control thread.");
+
         // Create a sender and receiver for setting up an incoming channel.
-        let (in_tx, in_rx) = crossbeam_channel::unbounded::<SearchControl>();
+        let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
         // Create the control thread
         let h = thread::spawn(move || {
-            let mut control_cmd = SearchControl::NoCmd;
+            let mut running = true;
 
             // Keep running as long as no quit command is received.
-            while control_cmd != SearchControl::Quit {
+            while running {
                 // Read the next command.
-                control_cmd = in_rx.recv().unwrap_or(SearchControl::NoCmd);
+                let control_cmd = control_rx.recv().unwrap_or(SearchControl::Nothing);
 
                 // Process the command.
                 match control_cmd {
                     // When quit is received, the thread's loop will end.
-                    SearchControl::Quit | SearchControl::NoCmd => (),
-                    SearchControl::Search => iterative_deepening(),
+                    SearchControl::Quit => running = false,
+                    SearchControl::Search => {
+                        let report = SearchReport::Finished;
+                        let information = Information::Search(report);
+                        report_tx.send(information).expect(ErrFatal::CHANNEL_BROKEN)
+                    }
+                    _ => (),
                 }
             }
-            println!("Quitting search module.");
+
+            println!("Quitting Search Control thread.");
         });
 
         // Store the thread handle.
-        self.handle = Some(h);
+        self.handle_control = Some(h);
 
         // Return the sender to to the caller.
-        in_tx
+        control_tx
     }
 
-    pub fn get_handle(&mut self) -> Option<JoinHandle<()>> {
-        self.handle.take()
+    // After the engine issues 'quit' to the control thread, it calls this
+    // function and then sits here waiting for the search to shut down.
+    pub fn wait_for_shutdown(&mut self) {
+        println!("Waiting for Search to shut down...");
+
+        if let Some(h) = self.handle_control.take() {
+            h.join().expect(ErrFatal::THREAD_FAILED);
+        }
+
+        println!("Search shutdown completed.");
     }
-}
-
-fn iterative_deepening() {
-    let mut depth = 1;
-
-    // Do a next pass to the next depth, until either the requested depth
-    // is reached, time is up, or a stop/quit command is received.
-    while depth <= 6 {
-        alpha_beta(depth);
-        depth += 1;
-    }
-}
-
-fn alpha_beta(depth: u8) {
-    if depth == 0 {
-        println!("Done");
-        return;
-    }
-
-    println!("Depth: {}", depth);
-
-    alpha_beta(depth - 1);
 }

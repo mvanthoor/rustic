@@ -3,11 +3,11 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, CommType, IComm},
+    comm::{console::Console, CommReport, CommType, IComm},
     defs::EngineRunResult,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::Search,
+    search::{Search, SearchReport},
 };
 use std::sync::{Arc, Mutex};
 
@@ -24,7 +24,6 @@ impl ErrFatal {
     const COMM_CREATION: &'static str = "Comm creation failed.";
     const BOARD_LOCK: &'static str = "Board lock failed.";
     const CHANNEL_BROKEN: &'static str = "Channel is broken.";
-    const FAIL_QUIT_SEARCH: &'static str = "Stopping search failed.";
 }
 
 // This struct holds the engine's settings.
@@ -32,11 +31,17 @@ pub struct Settings {
     threads: u8,
 }
 
+pub enum Information {
+    Comm(CommReport),
+    Search(SearchReport),
+}
+
 // This struct holds the chess engine and its functions. The reason why
 // this is not done in the main program, is because this struct can contain
 // member functions and other structs, so these don't have to be in the
 // global space.
 pub struct Engine {
+    running: bool,
     settings: Settings,
     cmdline: CmdLine,
     comm: Box<dyn IComm>,
@@ -61,6 +66,7 @@ impl Engine {
 
         // Create the engine itself.
         Self {
+            running: true,
             settings: Settings {
                 threads: c.threads(),
             },

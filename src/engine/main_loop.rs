@@ -1,56 +1,68 @@
-use super::{Engine, ErrFatal};
+use super::{Engine, ErrFatal, Information};
 
 use crate::{
     comm::{CommControl, CommReport},
-    search::SearchControl,
+    search::{SearchControl, SearchReport},
 };
-use crossbeam_channel;
 
 impl Engine {
     pub fn main_loop(&mut self) {
-        let (comm_report_tx, comm_report_rx) = crossbeam_channel::unbounded::<CommReport>();
+        // Set up channel for incoming information.
+        let (info_tx, info_rx) = crossbeam_channel::unbounded::<Information>();
 
-        let comm_control_tx = self.comm.activate(comm_report_tx, self.board.clone());
+        // Activate comm and search modules.
+        let comm_control_tx = self.comm.activate(info_tx.clone(), self.board.clone());
+        let search_control_tx = self.search.activate(info_tx.clone(), self.board.clone());
+
         comm_control_tx
             .send(CommControl::Update)
             .expect(ErrFatal::CHANNEL_BROKEN);
 
-        // Activate the engine's search module.
-        let search_tx = self.search.activate();
+        // Keep looping forever until "running" becomes false
+        while self.running {
+            let information = info_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
 
-        // Keep reading incoming commands until "Quit" is received.
-        let mut comm_report = CommReport::Nothing;
+            match information {
+                Information::Comm(cr) => {
+                    ///// Match all incoming comm reports.
+                    match cr {
+                        CommReport::Quit => {
+                            comm_control_tx
+                                .send(CommControl::Quit)
+                                .expect(ErrFatal::CHANNEL_BROKEN);
 
-        // Keep looping until quit is received.
-        while comm_report != CommReport::Quit {
-            comm_report = comm_report_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
+                            search_control_tx
+                                .send(SearchControl::Quit)
+                                .expect(ErrFatal::CHANNEL_BROKEN);
 
-            match comm_report {
-                CommReport::Quit => {
-                    comm_control_tx
-                        .send(CommControl::Quit)
-                        .expect(ErrFatal::CHANNEL_BROKEN);
+                            self.running = false;
+                        }
 
-                    search_tx
-                        .send(SearchControl::Quit)
-                        .expect(ErrFatal::CHANNEL_BROKEN)
+                        CommReport::Search => search_control_tx
+                            .send(SearchControl::Search)
+                            .expect(ErrFatal::CHANNEL_BROKEN),
+
+                        _ => comm_control_tx
+                            .send(CommControl::Update)
+                            .expect(ErrFatal::CHANNEL_BROKEN),
+                    }
                 }
 
-                CommReport::Search => search_tx
-                    .send(SearchControl::Search)
-                    .expect(ErrFatal::CHANNEL_BROKEN),
-
-                _ => comm_control_tx
-                    .send(CommControl::Update)
-                    .expect(ErrFatal::CHANNEL_BROKEN),
+                Information::Search(sr) => {
+                    ///// Match all incoming search reports
+                    match sr {
+                        SearchReport::Finished => {
+                            println!("Search finished.");
+                            comm_control_tx
+                                .send(CommControl::Update)
+                                .expect(ErrFatal::CHANNEL_BROKEN)
+                        }
+                    }
+                }
             }
         }
 
         self.comm.wait_for_shutdown();
-
-        // The main loop has ended. Wait for the search to quit.
-        if let Some(h) = self.search.get_handle() {
-            h.join().expect(ErrFatal::FAIL_QUIT_SEARCH)
-        }
+        self.search.wait_for_shutdown();
     }
 }

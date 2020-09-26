@@ -2,7 +2,7 @@ pub mod console;
 // pub mod uci;
 // pub mod xboard;
 
-use crate::{board::Board, misc::parse};
+use crate::{board::Board, engine::Information, misc::parse};
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -18,7 +18,7 @@ impl CommType {
 pub trait IComm {
     fn activate(
         &mut self,
-        report_tx: Sender<CommReport>,
+        report_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
     ) -> Sender<CommControl>;
     fn wait_for_shutdown(&mut self);
@@ -38,7 +38,6 @@ impl ErrFatal {
 
 #[derive(PartialEq, Clone)]
 pub enum CommControl {
-    Nothing,
     Update,
     Quit,
 }
@@ -47,7 +46,6 @@ pub enum CommControl {
 // engine in the main thread.
 #[derive(PartialEq, Clone)]
 pub enum CommReport {
-    Nothing,
     Quit,
     Search,
     Move(String),
@@ -58,7 +56,7 @@ impl CommReport {
         // Match the incoming command.
         match self {
             // Some commands don't need to be verified.
-            Self::Nothing | Self::Quit | Self::Search => true,
+            Self::Quit | Self::Search => true,
             // Check if squares and promotion piece actually exist.
             Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
         }
