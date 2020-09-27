@@ -1,5 +1,15 @@
 use super::{Engine, ErrFatal};
-use crate::defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION};
+use crate::{
+    board::Board,
+    defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
+    misc::parse::PotentialMove,
+    movegen::{
+        defs::{Move, MoveList},
+        MoveGenerator,
+    },
+};
+use if_chain::if_chain;
+use std::sync::Mutex;
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)
@@ -35,5 +45,36 @@ impl Engine {
         std::mem::drop(mtx_board);
 
         Ok(())
+    }
+
+    pub fn pseudo_legal(
+        &self,
+        m: PotentialMove,
+        board: &Mutex<Board>,
+        mg: &MoveGenerator,
+    ) -> Result<Move, ()> {
+        let mut result = Err(());
+        let mut ml = MoveList::new();
+        let mtx_board = board.lock().expect(ErrFatal::BOARD_LOCK);
+
+        mg.gen_all_moves(&mtx_board, &mut ml);
+        std::mem::drop(mtx_board);
+
+        // See if the provided potential move is a pseudo-legal move.
+        // make() will later determine final legality (king in check).
+        for i in 0..ml.len() {
+            let current = ml.get_move(i);
+            if_chain! {
+                if m.0 == current.from();
+                if m.1 == current.to();
+                if m.2 == current.promoted();
+                then {
+                    result = Ok(current);
+                    break;
+                }
+            }
+        }
+
+        result
     }
 }

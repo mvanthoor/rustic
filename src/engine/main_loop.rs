@@ -2,6 +2,7 @@ use super::{ControlTx, Engine, ErrFatal, Information};
 
 use crate::{
     comm::{CommControl, CommReport},
+    misc::parse,
     search::{SearchControl, SearchReport},
 };
 
@@ -52,7 +53,28 @@ impl Engine {
                 self.running = false;
             }
             CommReport::Search => self.search_tx(SearchControl::Search),
-            _ => self.comm_tx(CommControl::Update),
+            CommReport::Move(m) => {
+                println!("Move received.");
+                // Prepare shorthand variables.
+                let empty = (0usize, 0usize, 0usize);
+                let potential_move = parse::algebraic_move_to_number(&m[..]).unwrap_or(empty);
+                let result = self.pseudo_legal(potential_move, &self.board, &self.mg);
+
+                if let Ok(m) = result {
+                    let is_ok = self
+                        .board
+                        .lock()
+                        .expect(ErrFatal::BOARD_LOCK)
+                        .make(m, &self.mg);
+                    if !is_ok {
+                        println!("Not allowed: King in check after move.");
+                    }
+                } else {
+                    println!("Illegal move.");
+                }
+
+                self.comm_tx(CommControl::Update);
+            }
         }
     }
 
