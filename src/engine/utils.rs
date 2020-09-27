@@ -14,7 +14,7 @@ use std::sync::Mutex;
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)
 #[cfg(debug_assertions)]
-const NOTICE_DEBUG_MODE: &'static str = "Notice: Running in debug mode";
+const NOTICE_DEBUG_MODE: &str = "Notice: Running in debug mode";
 
 impl Engine {
     // Print information about the engine.

@@ -13,7 +13,10 @@ impl Engine {
 
         // Activate comm and search modules and give them info senders.
         let comm_control_tx = self.comm.activate(info_tx.clone(), self.board.clone());
-        let search_control_tx = self.search.activate(info_tx.clone(), self.board.clone());
+
+        // info_tx can be moved instead of cloned because it is no longer
+        // used after this statement..
+        let search_control_tx = self.search.activate(info_tx, self.board.clone());
 
         // Store the provided control command senders for Comm and Search.
         self.ctrl_tx = ControlTx::new(Some(comm_control_tx), Some(search_control_tx));

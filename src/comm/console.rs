@@ -67,9 +67,6 @@ impl IComm for Console {
         // Create the channel for control commands from the engine.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
 
-        // Create local board variable for the control thread (to use in 'update').
-        let control_board = board.clone();
-
         // Create the control thread.
         let h_control = thread::spawn(move || {
             println!("Starting Comm Control thread.");
@@ -80,7 +77,7 @@ impl IComm for Console {
 
                 match control {
                     CommControl::Quit => running = false,
-                    CommControl::Update => Console::print_position(control_board.clone()),
+                    CommControl::Update => Console::print_position(board.clone()),
                     CommControl::Write(msg) => println!("{}", msg),
                 }
             }
@@ -148,7 +145,7 @@ impl Console {
 
     // This function transforms the typed characters into a command tht the
     // engine which is running in the main thread can understand.
-    fn create_report(input: &String) -> CommReport {
+    fn create_report(input: &str) -> CommReport {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 

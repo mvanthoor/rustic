@@ -65,35 +65,35 @@ impl Move {
         Self { data }
     }
 
-    pub fn piece(self) -> Piece {
+    pub fn piece(&self) -> Piece {
         ((self.data >> Shift::PIECE as u64) & 0x7) as Piece
     }
 
-    pub fn from(self) -> Square {
+    pub fn from(&self) -> Square {
         ((self.data >> Shift::FROM_SQ as u64) & 0x3F) as Square
     }
 
-    pub fn to(self) -> Square {
+    pub fn to(&self) -> Square {
         ((self.data >> Shift::TO_SQ as u64) & 0x3F) as Square
     }
 
-    pub fn captured(self) -> Piece {
+    pub fn captured(&self) -> Piece {
         ((self.data >> Shift::CAPTURE as u64) & 0x7) as Piece
     }
 
-    pub fn promoted(self) -> Piece {
+    pub fn promoted(&self) -> Piece {
         ((self.data >> Shift::PROMOTION as u64) & 0x7) as Piece
     }
 
-    pub fn en_passant(self) -> bool {
+    pub fn en_passant(&self) -> bool {
         ((self.data >> Shift::EN_PASSANT as u64) & 0x1) as u8 == 1
     }
 
-    pub fn double_step(self) -> bool {
+    pub fn double_step(&self) -> bool {
         ((self.data >> Shift::DOUBLE_STEP as u64) & 0x1) as u8 == 1
     }
 
-    pub fn castling(self) -> bool {
+    pub fn castling(&self) -> bool {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 

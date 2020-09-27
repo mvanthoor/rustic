@@ -84,7 +84,7 @@ impl Board {
         }
 
         // Make the move. Just move the piece if it's not a pawn.
-        if !(piece == Pieces::PAWN) {
+        if piece != Pieces::PAWN {
             self.move_piece(us, piece, from, to);
         } else {
             // It's a pawn move. Take promotion into account and reset halfmove_clock.
