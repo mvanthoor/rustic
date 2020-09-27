@@ -40,6 +40,7 @@ impl ErrFatal {
 pub enum CommControl {
     Update,
     Quit,
+    Write(String),
 }
 
 // These are the commands a Comm module can create and send back to the

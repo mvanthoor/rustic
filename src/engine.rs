@@ -138,15 +138,15 @@ impl Engine {
         Ok(())
     }
 
-    pub fn comm_tx(&self, message: CommControl) {
+    pub fn comm_tx(&self, command: CommControl) {
         if let Some(tx) = &self.ctrl_tx.comm {
-            tx.send(message).expect(ErrFatal::CHANNEL_BROKEN);
+            tx.send(command).expect(ErrFatal::CHANNEL_BROKEN);
         }
     }
 
-    pub fn search_tx(&self, message: SearchControl) {
+    pub fn search_tx(&self, command: SearchControl) {
         if let Some(tx) = &self.ctrl_tx.search {
-            tx.send(message).expect(ErrFatal::CHANNEL_BROKEN);
+            tx.send(command).expect(ErrFatal::CHANNEL_BROKEN);
         }
     }
 }

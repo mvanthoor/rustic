@@ -81,6 +81,7 @@ impl IComm for Console {
                 match control {
                     CommControl::Quit => running = false,
                     CommControl::Update => Console::print_position(control_board.clone()),
+                    CommControl::Write(msg) => println!("{}", msg),
                 }
             }
 
