@@ -8,7 +8,7 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
-use worker::Worker;
+use worker::{Worker, WorkerControl};
 
 pub struct ErrFatal {}
 impl ErrFatal {
@@ -54,7 +54,7 @@ impl Search {
         // Create a sender and receiver for setting up an incoming channel.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
-        // Create clone of the Arc holding the worker store.
+        // Create clone of the Arc holding the worker pool.
         let workers = Arc::clone(&self.workers);
 
         // Create the control thread
@@ -76,23 +76,30 @@ impl Search {
                 // Process the command.
                 match control_cmd {
                     // When quit is received, the thread's loop will end.
-                    SearchControl::Quit => running = false,
-
-                    // This sets up one worker per engine thread.
-                    SearchControl::Workers(w) => {
-                        println!("Setting up {} workers...", w);
+                    SearchControl::Quit => {
                         let mut mtx_workers = workers.lock().expect(ErrFatal::LOCK_FAILED);
 
-                        for i in 0..w {
-                            mtx_workers.push(Worker::new(i + 1));
-                        }
-
-                        for each in mtx_workers.iter() {
-                            each.call();
+                        for worker in mtx_workers.iter_mut() {
+                            worker.send(WorkerControl::Quit);
+                            worker.wait_for_shutdown();
                         }
 
                         std::mem::drop(mtx_workers);
+                        running = false;
+                    }
 
+                    // This sets up one worker per engine thread.
+                    SearchControl::Workers(n) => {
+                        println!("Setting up {} workers...", n);
+                        let mut mtx_workers = workers.lock().expect(ErrFatal::LOCK_FAILED);
+
+                        for i in 0..n {
+                            let mut w = Worker::new(i + 1);
+                            w.activate();
+                            mtx_workers.push(w);
+                        }
+
+                        std::mem::drop(mtx_workers);
                         request_completed(&report_tx);
                     }
 

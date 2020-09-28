@@ -27,7 +27,7 @@ impl Engine {
         // Wait for the workers to finish setting up. Then update Comm.
         let result = info_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
         if result == Information::Search(SearchReport::RequestCompleted) {
-            self.comm_tx(CommControl::Update);
+            // self.comm_tx(CommControl::Update);
         }
 
         // Keep looping forever until "running" becomes false.
