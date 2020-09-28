@@ -54,7 +54,7 @@ impl Search {
         // Create a sender and receiver for setting up an incoming channel.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
-        // Create clone of the Arc holding the worker pool.
+        // Clone Arc to worker list for use in thread.
         let workers = Arc::clone(&self.workers);
 
         // Create the control thread
@@ -79,8 +79,11 @@ impl Search {
                     SearchControl::Quit => {
                         let mut mtx_workers = workers.lock().expect(ErrFatal::LOCK_FAILED);
 
-                        for worker in mtx_workers.iter_mut() {
+                        for worker in mtx_workers.iter() {
                             worker.send(WorkerControl::Quit);
+                        }
+
+                        for worker in mtx_workers.iter_mut() {
                             worker.wait_for_shutdown();
                         }
 
