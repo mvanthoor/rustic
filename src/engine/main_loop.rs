@@ -1,38 +1,39 @@
-use super::{ControlTx, Engine, ErrFatal, Information};
-
+use super::{Engine, ErrFatal, Information};
 use crate::{
     comm::{CommControl, CommReport},
     misc::parse,
     search::{SearchControl, SearchReport},
 };
+use std::sync::Arc;
+
+const MOVE_NOT_ALLOWED: &str = "Move not allowed: King left in check.";
+const MOVE_NOT_LEGAL: &str = "This is not a legal move.";
 
 impl Engine {
     pub fn main_loop(&mut self) {
+        println!("Initializing engine...");
         // Set up a channel for incoming information.
         let (info_tx, info_rx) = crossbeam_channel::unbounded::<Information>();
 
-        // Activate comm and search modules and give them info senders.
-        let comm_control_tx = self.comm.activate(info_tx.clone(), self.board.clone());
+        // Activate communication module.
+        self.comm.activate(info_tx.clone(), Arc::clone(&self.board));
 
-        // info_tx can be moved instead of cloned because it is no longer
-        // used after this statement..
-        let search_control_tx = self.search.activate(info_tx, self.board.clone());
-
-        // Store the provided control command senders for Comm and Search.
-        self.ctrl_tx = ControlTx::new(Some(comm_control_tx), Some(search_control_tx));
+        // Activate search module.
+        self.search.activate(info_tx, Arc::clone(&self.board));
 
         // Request Search to set up its worker threads.
-        self.search_tx(SearchControl::Workers(self.settings.threads as usize));
+        let n = self.settings.threads;
+        self.search.send(SearchControl::CreateWorkers(n));
 
         // Wait for the workers to finish setting up. Then update Comm.
-        let result = info_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
+        let result = info_rx.recv().expect(ErrFatal::CHANNEL);
         if result == Information::Search(SearchReport::RequestCompleted) {
             // self.comm_tx(CommControl::Update);
         }
 
-        // Keep looping forever until "running" becomes false.
-        while self.running {
-            let information = info_rx.recv().expect(ErrFatal::CHANNEL_BROKEN);
+        // Keep looping forever until 'quit' received.
+        while !self.quit {
+            let information = info_rx.recv().expect(ErrFatal::CHANNEL);
 
             match information {
                 Information::Comm(cr) => self.received_comm_reports(cr),
@@ -40,6 +41,7 @@ impl Engine {
             }
         }
 
+        // Main loop has ended.
         self.comm.wait_for_shutdown();
         self.search.wait_for_shutdown();
     }
@@ -51,14 +53,15 @@ impl Engine {
     fn received_comm_reports(&mut self, cr: CommReport) {
         match cr {
             CommReport::Quit => {
-                self.comm_tx(CommControl::Quit);
-                self.search_tx(SearchControl::Quit);
-                self.running = false;
+                self.comm.send(CommControl::Quit);
+                self.search.send(SearchControl::Quit);
+                self.quit = true;
             }
-            CommReport::Search => self.search_tx(SearchControl::Search),
+            CommReport::Start => self.search.send(SearchControl::Start),
+            CommReport::Stop => self.search.send(SearchControl::Stop),
             CommReport::Move(m) => {
                 self.execute_cr_move(m);
-                self.comm_tx(CommControl::Update);
+                self.comm.send(CommControl::Update);
             }
         }
     }
@@ -67,7 +70,7 @@ impl Engine {
         match sr {
             SearchReport::Finished => {
                 println!("Search finished.");
-                self.comm_tx(CommControl::Update);
+                self.comm.send(CommControl::Update);
             }
             _ => (),
         }
@@ -89,18 +92,14 @@ impl Engine {
         // If the move is possible, execute it and determine that the king
         // is not left in check.
         if let Ok(m) = result {
-            let is_ok = self
-                .board
-                .lock()
-                .expect(ErrFatal::BOARD_LOCK)
-                .make(m, &self.mg);
+            let is_ok = self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
             if !is_ok {
-                let msg = String::from("Not allowed: Move leaves king in check.");
-                self.comm_tx(CommControl::Write(msg));
+                let msg = String::from(MOVE_NOT_ALLOWED);
+                self.comm.send(CommControl::Write(msg));
             }
         } else {
-            let msg = String::from("Illegal move.");
-            self.comm_tx(CommControl::Write(msg));
+            let msg = String::from(MOVE_NOT_LEGAL);
+            self.comm.send(CommControl::Write(msg));
         }
     }
 }

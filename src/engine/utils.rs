@@ -32,6 +32,7 @@ impl Engine {
         println!("{}", NOTICE_DEBUG_MODE);
     }
 
+    // This function sets up a position using a given FEN-string.
     pub fn setup_position(&mut self) -> EngineRunResult {
         // Get either the provided FEN-string or KiwiPete. If both are
         // provided, the KiwiPete position takes precedence.
@@ -40,13 +41,15 @@ impl Engine {
         let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
 
         // Lock the board, setup the FEN-string, and drop the lock.
-        let mut mtx_board = self.board.lock().expect(ErrFatal::BOARD_LOCK);
-        mtx_board.fen_read(Some(fen))?;
+        let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+        mtx_board.fen_read(Some(fen))?; // Abort if setup fails.
         std::mem::drop(mtx_board);
 
         Ok(())
     }
 
+    // After the engine receives an incoming move, it checks if this move
+    // is actually possible in the current board position.
     pub fn pseudo_legal(
         &self,
         m: PotentialMove,
@@ -55,13 +58,14 @@ impl Engine {
     ) -> Result<Move, ()> {
         let mut result = Err(());
         let mut ml = MoveList::new();
-        let mtx_board = board.lock().expect(ErrFatal::BOARD_LOCK);
+        let mtx_board = board.lock().expect(ErrFatal::LOCK);
 
         mg.gen_all_moves(&mtx_board, &mut ml);
         std::mem::drop(mtx_board);
 
         // See if the provided potential move is a pseudo-legal move.
-        // make() will later determine final legality (king in check).
+        // make() will later determine final legality, i.e. if the king is
+        // left in check.
         for i in 0..ml.len() {
             let current = ml.get_move(i);
             if_chain! {

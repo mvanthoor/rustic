@@ -1,7 +1,7 @@
 use super::IComm;
 // use crate::{board::Board, movegen::MoveGenerator};
 
-pub struct Uci {}
+pub struct Uci;
 
 impl Uci {
     pub fn new() -> Self {

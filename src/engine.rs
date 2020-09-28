@@ -3,13 +3,12 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, CommControl, CommReport, CommType, IComm},
+    comm::{console::Console, CommReport, CommType, IComm},
     defs::EngineRunResult,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::{Search, SearchControl, SearchReport},
+    search::{Search, SearchReport},
 };
-use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
@@ -18,13 +17,18 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
-// If one of these errors happens, there is a fatal situation within the
-// engine or one of its threads, and it will crash.
-struct ErrFatal {}
+// This struct holds messages that are reported on fatal engine errors.
+// These should never happen; if they do the engine is in an unknown state,
+// and it will panic without trying any recovery whatsoever.
+pub struct ErrFatal;
 impl ErrFatal {
-    const COMM_CREATION: &'static str = "Comm creation failed.";
-    const BOARD_LOCK: &'static str = "Board lock failed.";
-    const CHANNEL_BROKEN: &'static str = "Channel is broken.";
+    pub const CREATE_COMM: &'static str = "Comm creation failed.";
+    pub const LOCK: &'static str = "Lock failed.";
+    pub const READ_IO: &'static str = "Reading I/O failed.";
+    pub const FLUSH_IO: &'static str = "Flushing I/O failed.";
+    pub const HANDLE: &'static str = "Broken handle.";
+    pub const THREAD: &'static str = "Thread has failed.";
+    pub const CHANNEL: &'static str = "Broken channel.";
 }
 
 // This struct holds the engine's settings.
@@ -40,31 +44,16 @@ pub enum Information {
     Search(SearchReport),
 }
 
-// This stores sender parts of control channels.
-pub struct ControlTx {
-    comm: Option<Sender<CommControl>>,
-    search: Option<Sender<SearchControl>>,
-}
-
-impl ControlTx {
-    pub fn new(c: Option<Sender<CommControl>>, s: Option<Sender<SearchControl>>) -> Self {
-        Self { comm: c, search: s }
-    }
-}
-
-// This struct holds the chess engine and its functions. The reason why
-// this is not done in the main program, is because this struct can contain
-// member functions and other structs, so these don't have to be in the
-// global space.
+// This struct holds the chess engine and its functions, so they are not
+// all seperate entities in the global space.
 pub struct Engine {
-    running: bool,
-    settings: Settings,
-    cmdline: CmdLine,
-    comm: Box<dyn IComm>,
-    board: Arc<Mutex<Board>>,
-    mg: Arc<MoveGenerator>,
-    search: Search,
-    ctrl_tx: ControlTx,
+    quit: bool,               // Flag that will quit the main thread.
+    settings: Settings,       // Struct holding all the settings.
+    cmdline: CmdLine,         // Command line interpreter.
+    comm: Box<dyn IComm>,     // Communications (active).
+    board: Arc<Mutex<Board>>, // Board.
+    mg: Arc<MoveGenerator>,   // Move Generator.
+    search: Search,           // Search (active).
 }
 
 impl Engine {
@@ -78,28 +67,27 @@ impl Engine {
             // CommType::UCI => Box::new(Uci::new()),
             // CommType::XBOARD => Box::new(Xboard::new()),
             CommType::CONSOLE => Box::new(Console::new()),
-            _ => panic!(ErrFatal::COMM_CREATION),
+            _ => panic!(ErrFatal::CREATE_COMM),
         };
 
         let t = c.threads();
 
         // Create the engine itself.
         Self {
-            running: true,
+            quit: false,
             settings: Settings { threads: t },
             cmdline: c,
             comm: i,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
             search: Search::new(),
-            ctrl_tx: ControlTx::new(None, None),
         }
     }
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        self.about();
-        self.setup_position()?;
+        self.about(); // Print engine information.
+        self.setup_position()?; // ? means: Abort if position setup fails.
 
         // Run a specific action if requested...
         let mut action_requested = false;
@@ -134,19 +122,13 @@ impl Engine {
             self.main_loop();
         }
 
-        // Engine exits correctly.
+        println!("Engine shutdown completed.");
+
+        // Engine exits correctly. There are only two other possibilities
+        // to exit: if FEN-setup fails (which is reported and the engine
+        // exits normally through the main() function), and with a fatal
+        // error which will make the engine crash. In both cases, it'll not
+        // reach the Ok(()) here.
         Ok(())
-    }
-
-    pub fn comm_tx(&self, command: CommControl) {
-        if let Some(tx) = &self.ctrl_tx.comm {
-            tx.send(command).expect(ErrFatal::CHANNEL_BROKEN);
-        }
-    }
-
-    pub fn search_tx(&self, command: SearchControl) {
-        if let Some(tx) = &self.ctrl_tx.search {
-            tx.send(command).expect(ErrFatal::CHANNEL_BROKEN);
-        }
     }
 }

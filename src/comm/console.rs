@@ -3,8 +3,8 @@
 // accept commands typed by the user. This interface is mainly used for
 // engine development.
 
-use super::{CommControl, CommReport, CommType, ErrFatal, IComm};
-use crate::{board::Board, defs::About, engine::Information, misc::print};
+use super::{CommControl, CommReport, CommType, IComm};
+use crate::{board::Board, defs::About, engine::ErrFatal, engine::Information, misc::print};
 use crossbeam_channel::{self, Sender};
 use std::{
     io::{self, Write},
@@ -13,71 +13,72 @@ use std::{
 };
 
 pub struct Console {
-    handle_control: Option<JoinHandle<()>>,
-    handle_reader: Option<JoinHandle<()>>,
+    control_handle: Option<JoinHandle<()>>,
+    reader_handle: Option<JoinHandle<()>>,
+    control_tx: Option<Sender<CommControl>>,
 }
 
 // Any communication module must implement the trait IComm.
 impl IComm for Console {
-    fn activate(
-        &mut self,
-        report_tx: Sender<Information>,
-        board: Arc<Mutex<Board>>,
-    ) -> Sender<CommControl> {
+    fn activate(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>) {
         println!("Starting Comm Reader thread.");
 
-        // Create local board for this specific thread.
-        let reader_board = board.clone();
+        // Create thread-local variables.
+        let t_reader_board = board.clone();
+        let mut t_input = String::from("");
 
         // Create the reader thread for reading data from the UI/Stdin.
-        let h_reader = thread::spawn(move || {
-            let mut running = true;
+        let reader_handle = thread::spawn(move || {
+            let mut quit = false;
 
             // Keep running as long as 'quit' is not detected.
-            while running {
+            while !quit {
                 // Get data from stdin and create a report from it.
-                let mut input: String = String::from("");
-                io::stdin().read_line(&mut input).expect(ErrFatal::READ_IO);
-                let report = Console::create_report(&input);
+                io::stdin()
+                    .read_line(&mut t_input)
+                    .expect(ErrFatal::READ_IO);
+                let report = Console::create_report(&t_input);
 
                 // Terminate at the end of this iteration.
-                if report == CommReport::Quit {
-                    running = false;
-                }
+                quit = report == CommReport::Quit;
 
                 // If the report is valid, send it as comm information.
                 if report.is_valid() {
                     let information = Information::Comm(report);
-                    report_tx.send(information).expect(ErrFatal::BROKEN_HANDLE);
+                    report_tx.send(information).expect(ErrFatal::HANDLE);
                 } else {
                     // Or give an error message, and print the board again.
-                    println!("Unknown input: {}", input);
-                    Console::print_position(reader_board.clone());
+                    println!("Unknown input: {}", t_input);
+                    Console::print_position(t_reader_board.clone());
                 }
+
+                // Clear input for next iteration.
+                t_input = String::from("");
             }
 
             println!("Quitting Comm Reader thread.");
         });
 
         // Store the handle.
-        self.handle_reader = Some(h_reader);
+        self.reader_handle = Some(reader_handle);
 
         // ============================================================================
 
-        // Create the channel for control commands from the engine.
+        // Create a channel for the Writer thread.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
 
         // Create the control thread.
-        let h_control = thread::spawn(move || {
+        let control_handle = thread::spawn(move || {
             println!("Starting Comm Control thread.");
 
-            let mut running = true;
-            while running {
-                let control = control_rx.recv().expect(ErrFatal::BROKEN_HANDLE);
+            let mut quit = false;
+
+            while !quit {
+                let control = control_rx.recv().expect(ErrFatal::CHANNEL);
 
                 match control {
-                    CommControl::Quit => running = false,
-                    CommControl::Update => Console::print_position(board.clone()),
+                    CommControl::Quit => quit = true,
+                    CommControl::Update => Console::print_position(Arc::clone(&board)),
                     CommControl::Write(msg) => println!("{}", msg),
                 }
             }
@@ -85,11 +86,16 @@ impl IComm for Console {
             println!("Quitting Comm Control thread.");
         });
 
-        // Store the handle.
-        self.handle_control = Some(h_control);
+        // Store handle and control sender.
+        self.control_handle = Some(control_handle);
+        self.control_tx = Some(control_tx);
+    }
 
-        // Return sender for control commands.
-        control_tx
+    // Send messages to the control thread.
+    fn send(&self, msg: CommControl) {
+        if let Some(tx) = self.control_tx.clone() {
+            tx.send(msg).expect(ErrFatal::CHANNEL);
+        }
     }
 
     // After the engine has send 'quit' to the control thread, it will call
@@ -98,13 +104,13 @@ impl IComm for Console {
         println!("Waiting for Comm shutdown...");
 
         // Shutting down reader thread.
-        if let Some(h) = self.handle_reader.take() {
-            h.join().expect(ErrFatal::FAILED_THREAD);
+        if let Some(h) = self.reader_handle.take() {
+            h.join().expect(ErrFatal::THREAD);
         }
 
         // Shutting down control thread.
-        if let Some(h) = self.handle_control.take() {
-            h.join().expect(ErrFatal::FAILED_THREAD);
+        if let Some(h) = self.control_handle.take() {
+            h.join().expect(ErrFatal::THREAD);
         }
 
         println!("Comm shutdown completed.");
@@ -116,16 +122,21 @@ impl IComm for Console {
     }
 }
 
+// Public functions
+impl Console {
+    pub fn new() -> Self {
+        Self {
+            control_handle: None,
+            reader_handle: None,
+            control_tx: None,
+        }
+    }
+}
+
+// Private functions for this module.
 impl Console {
     const DIVIDER_LENGTH: usize = 48;
     const PROMPT: &'static str = ">";
-
-    pub fn new() -> Self {
-        Self {
-            handle_control: None,
-            handle_reader: None,
-        }
-    }
 
     // This function creates the engine's command prompt.
     fn print_prompt() {
@@ -136,11 +147,12 @@ impl Console {
     // Some protocols require output before reading; in the case of
     // "console", the board position and prompt must be printed.
     fn print_position(board: Arc<Mutex<Board>>) {
-        let mtx_board = board.lock().expect(ErrFatal::LOCK_BOARD); // Lock the board.
-        println!("{}", "=".repeat(Console::DIVIDER_LENGTH)); // Print divider.
-        print::position(&mtx_board, None); // Print board position.
-        std::mem::drop(mtx_board); // Drop the mutex and unlock the board.
-        Console::print_prompt(); // Print the command prompt.
+        let mtx_board = board.lock().expect(ErrFatal::LOCK);
+
+        println!("{}", "=".repeat(Console::DIVIDER_LENGTH));
+        print::position(&mtx_board, None);
+        std::mem::drop(mtx_board);
+        Console::print_prompt();
     }
 
     // This function transforms the typed characters into a command tht the
@@ -152,7 +164,8 @@ impl Console {
         // Convert to &str for matching the command.
         match &i[..] {
             "quit" | "exit" => CommReport::Quit,
-            "search" => CommReport::Search,
+            "start" => CommReport::Start,
+            "stop" => CommReport::Stop,
             _ => CommReport::Move(i),
         }
     }

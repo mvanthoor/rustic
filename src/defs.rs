@@ -2,7 +2,7 @@
 // within specific modules, are defined in defs.rs in the directory for
 // that module.
 
-pub struct About {}
+pub struct About;
 impl About {
     pub const ENGINE: &'static str = "Rustic";
     pub const VERSION: &'static str = "Alpha 1";
