@@ -1,6 +1,7 @@
 use super::{Engine, ErrFatal, Information};
 use crate::{
     comm::{CommControl, CommReport},
+    evaluation::evaluate_position,
     misc::parse,
     search::{SearchControl, SearchReport},
 };
@@ -28,7 +29,7 @@ impl Engine {
         // Wait for the workers to finish setting up. Then update Comm.
         let result = info_rx.recv().expect(ErrFatal::CHANNEL);
         if result == Information::Search(SearchReport::RequestCompleted) {
-            // self.comm_tx(CommControl::Update);
+            self.comm.send(CommControl::Update);
         }
 
         // Keep looping forever until 'quit' received.
@@ -61,6 +62,12 @@ impl Engine {
             CommReport::Stop => self.search.send(SearchControl::Stop),
             CommReport::Move(m) => {
                 self.execute_cr_move(m);
+
+                let board = self.board.lock().expect(ErrFatal::LOCK).clone();
+                let evaluation = evaluate_position(&board);
+                let msg = format!("Evaluation: {}", evaluation);
+
+                self.comm.send(CommControl::Write(msg));
                 self.comm.send(CommControl::Update);
             }
         }
