@@ -166,6 +166,7 @@ impl Console {
             "quit" | "exit" => CommReport::Quit,
             "start" => CommReport::Start,
             "stop" => CommReport::Stop,
+            "e" => CommReport::Evaluate,
             _ => CommReport::Move(i),
         }
     }

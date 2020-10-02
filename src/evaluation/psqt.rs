@@ -1,9 +1,9 @@
 // This structure implements Piece Square Tables (PSQT) for each piece.
 
 use crate::{
-    board::{defs::Pieces, Board},
+    board::Board,
     defs::{NrOf, Sides},
-    //misc::bits,
+    misc::bits,
 };
 
 type PSQT = [i8; NrOf::SQUARES];
@@ -18,7 +18,7 @@ const KING_MG: PSQT = [
     -30,   -20,   -20,   -20,   -20,   -20,   -20,   -30,
     -30,   -20,   -20,   -20,   -20,   -20,   -20,   -30,
       5,     5,   -10,   -10,   -10,   -10,     5,     5,
-     15,    20,    15,    -5,     0,    -5,    20,    15
+     15,    20,    15,    -5,    -5,    -5,    20,    15
 ];
 
 #[allow(dead_code)]
@@ -82,7 +82,7 @@ const PAWN_MG: PSQT = [
      5,   5,  10,  10,  10,   5,   5,   5,
      5,   5,  10,  10,  10,   5,   5,   5,
      5,   5,   5,   5,   5,   0,   5,   5,
-     5,   5,   5,  10,  10,   0,   5,   5,
+     5,   5,   5, -10, -10,   0,   5,   5,
      0,   0,   0,   0,   0,   0,   0,   0
 ];
 
@@ -154,7 +154,9 @@ const FLIP: [usize; 64] = [
 ];
 
 // Apply PSQT's to position
-pub fn apply(board: &Board) -> i16 {
+pub fn apply(board: &Board) -> (i16, i16) {
+    let mut w_psqt = 0;
+    let mut b_psqt = 0;
     let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
     let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
@@ -164,11 +166,17 @@ pub fn apply(board: &Board) -> i16 {
         let mut black_pieces = *b; // Black pieces of type "piece_type"
 
         // Iterate over pieces of the current piece_type for white.
-        while white_pieces > 0 {}
+        while white_pieces > 0 {
+            let square = bits::next(&mut white_pieces);
+            w_psqt += PSQT_MG[piece_type][FLIP[square]] as i16;
+        }
 
         // Iterate over pieces of the current piece_type for black.
-        while black_pieces > 0 {}
+        while black_pieces > 0 {
+            let square = bits::next(&mut black_pieces);
+            b_psqt += PSQT_MG[piece_type][square] as i16;
+        }
     }
 
-    0
+    (w_psqt, b_psqt)
 }

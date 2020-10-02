@@ -37,6 +37,7 @@ pub enum CommReport {
     Start,
     Stop,
     Move(String),
+    Evaluate,
 }
 
 impl CommReport {

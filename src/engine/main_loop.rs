@@ -70,6 +70,13 @@ impl Engine {
                 self.comm.send(CommControl::Write(msg));
                 self.comm.send(CommControl::Update);
             }
+            CommReport::Evaluate => {
+                let board = self.board.lock().expect(ErrFatal::LOCK).clone();
+                let evaluation = evaluate_position(&board);
+                let msg = format!("Evaluation: {}", evaluation);
+                self.comm.send(CommControl::Write(msg));
+                self.comm.send(CommControl::Update);
+            }
         }
     }
 
