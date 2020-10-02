@@ -102,8 +102,8 @@ impl CmdLine {
     fn get() -> ArgMatches<'static> {
         let mut app = App::new(About::ENGINE)
             .version(About::VERSION)
-            .author("Author X")
-            .about(About::DESCRIPTION)
+            .author(About::AUTHOR)
+            .about(About::WEBSITE)
             .arg(
                 Arg::with_name(CmdLineArgs::COMM_LONG)
                     .short(CmdLineArgs::COMM_SHORT)

@@ -86,7 +86,8 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        self.about(); // Print engine information.
+        self.ascii_logo();
+        self.about();
         self.setup_position()?; // ? means: Abort if position setup fails.
 
         // Run a specific action if requested...

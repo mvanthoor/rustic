@@ -155,16 +155,20 @@ const FLIP: [usize; 64] = [
 
 // Apply PSQT's to position
 pub fn apply(board: &Board) -> i16 {
-    let w_ks = board.king_square(Sides::WHITE);
-    let b_ks = board.king_square(Sides::BLACK);
-    let wk_value = PSQT_MG[Pieces::KING][FLIP[w_ks]];
-    let bk_value = PSQT_MG[Pieces::KING][b_ks];
+    let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
+    let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
-    let adjustment = (wk_value - bk_value) as i16;
+    // Iterate through the white and black bitboards (at the same time.)
+    for (piece_type, (w, b)) in bb_white.iter().zip(bb_black.iter()).enumerate() {
+        let mut white_pieces = *w; // White pieces of type "piece_type"
+        let mut black_pieces = *b; // Black pieces of type "piece_type"
 
-    println!("Adjustment for wK: {}", wk_value);
-    println!("Adjustment for bK: {}", bk_value);
-    println!("King adjustment: {}", adjustment);
+        // Iterate over pieces of the current piece_type for white.
+        while white_pieces > 0 {}
 
-    adjustment
+        // Iterate over pieces of the current piece_type for black.
+        while black_pieces > 0 {}
+    }
+
+    0
 }

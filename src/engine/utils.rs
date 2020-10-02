@@ -17,11 +17,23 @@ use std::sync::Mutex;
 const NOTICE_DEBUG_MODE: &str = "Notice: Running in debug mode";
 
 impl Engine {
+    pub fn ascii_logo(&self) {
+        println!();
+        println!("d888888b                      dP   oo        ");
+        println!("88     88                     88             ");
+        println!("88oooo88  88    88  d8888b  d8888P dP d88888b");
+        println!("88    88  88    88  8ooooo    88   88 88     ");
+        println!("88     88 88    88       88   88   88 88     ");
+        println!("88     88  88888P  888888P    dP   dP 888888P");
+        println!("ooooooooooooooooooooooooooooooooooooooooooooo");
+        println!();
+    }
+
     // Print information about the engine.
     pub fn about(&self) {
         println!("Program: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
-        println!("Description: {}", About::DESCRIPTION);
+        println!("Website: {}", About::WEBSITE);
         println!(
             "Threads: {} (not used yet, always 1)",
             self.settings.threads
