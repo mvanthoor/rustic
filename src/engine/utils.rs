@@ -31,17 +31,15 @@ impl Engine {
 
     // Print information about the engine.
     pub fn about(&self) {
-        println!("Program: {} {}", About::ENGINE, About::VERSION);
-        println!("Author: {} <{}>", About::AUTHOR, About::EMAIL);
+        println!("Engine: {} {}", About::ENGINE, About::VERSION);
+        println!("Author: {}", About::AUTHOR);
+        println!("EMail: {}", About::EMAIL);
         println!("Website: {}", About::WEBSITE);
-        println!(
-            "Threads: {} (not used yet, always 1)",
-            self.settings.threads
-        );
-        println!("Protocol: {}", self.comm.get_protocol_name());
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
+
+        println!();
     }
 
     // This function sets up a position using a given FEN-string.
