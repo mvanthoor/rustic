@@ -1,15 +1,12 @@
-pub mod defs;
-pub mod material;
+mod material;
 mod psqt;
 
-use crate::{board::Board, defs::Sides};
+use crate::board::Board;
 
 pub fn evaluate_position(board: &Board) -> i16 {
-    let w_material = board.material_count[Sides::WHITE];
-    let b_material = board.material_count[Sides::BLACK];
-
     // Base evaluation, by counting material.
-    let mut value = (w_material - b_material) as i16;
+    let material = material::count(board);
+    let mut value = material.0 - material.1;
 
     // Gets a (white, black) tuple with PSQT values.
     let wb_psqt = psqt::apply(board);

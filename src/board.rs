@@ -14,7 +14,6 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
-    evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
 };
 use std::sync::Arc;
@@ -28,7 +27,6 @@ pub struct Board {
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NrOf::SQUARES],
-    pub material_count: [u16; Sides::BOTH],
     zr: Arc<ZobristRandoms>,
 }
 
@@ -42,7 +40,6 @@ impl Board {
             game_state: GameState::new(),
             history: History::new(),
             piece_list: [Pieces::NONE; NrOf::SQUARES],
-            material_count: [0; Sides::BOTH],
             zr: Arc::new(ZobristRandoms::new()),
         }
     }
@@ -75,7 +72,6 @@ impl Board {
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
-        self.material_count[side] -= PIECE_VALUES[piece];
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
         self.bb_pieces[side][piece] ^= BB_SQUARES[square];
         self.bb_side[side] ^= BB_SQUARES[square];
@@ -86,7 +82,6 @@ impl Board {
         self.bb_pieces[side][piece] |= BB_SQUARES[square];
         self.bb_side[side] |= BB_SQUARES[square];
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
-        self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square] = piece;
     }
 
@@ -138,7 +133,6 @@ impl Board {
         self.game_state = GameState::new();
         self.history.clear();
         self.piece_list = [Pieces::NONE; NrOf::SQUARES];
-        self.material_count = [0; Sides::BOTH];
     }
 
     // Main initialization function. This is used to initialize the "other"
@@ -150,13 +144,9 @@ impl Board {
         self.bb_side[Sides::WHITE] = pieces_per_side_bitboards.0;
         self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
-        // Initialize the piece list, zobrist key, and material count. These will
-        // later be updated incrementally.
+        // Initialize the piece list and zobrist key.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
-        let material = material::count(&self);
-        self.material_count[Sides::WHITE] = material.0;
-        self.material_count[Sides::BLACK] = material.1;
     }
 
     // Gather the pieces for each side into their own bitboard.
