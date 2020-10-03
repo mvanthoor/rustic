@@ -1,4 +1,6 @@
-// This structure implements Piece Square Tables (PSQT) for each piece.
+// This file implements Piece Square Tables (PSQT) for each piece type. The
+// PSQT's are written from White's point of view, as if looking at a chess
+// diagram, with A1 on the lower left corner.
 
 use crate::{
     board::Board,
@@ -8,7 +10,6 @@ use crate::{
 
 type PSQT = [i8; NrOf::SQUARES];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const KING_MG: PSQT = [
     -50,   -40,   -30,   -30,   -30,   -30,   -40,   -50,
@@ -21,7 +22,6 @@ const KING_MG: PSQT = [
      15,    20,    15,    -5,    -5,    -5,    20,    15
 ];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const QUEEN_MG: PSQT = [
     -30,  -20,  -10,  -10,  -10,  -10,  -20,  -30,
@@ -34,7 +34,6 @@ const QUEEN_MG: PSQT = [
     -30,  -20,  -10,  -10,  -10,  -10,  -20,  -30 
 ];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const ROOK_MG: PSQT = [
     0,   0,   0,   0,   0,   0,   0,   0,
@@ -47,7 +46,6 @@ const ROOK_MG: PSQT = [
     0,   0,   0,  10,  10,   5,   0,   0
 ];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const BISHOP_MG: PSQT = [
     -20,    0,    0,    0,    0,    0,    0,  -20,
@@ -60,7 +58,6 @@ const BISHOP_MG: PSQT = [
     -20,  -10,  -10,  -10,  -10,  -10,  -10,  -20
 ];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const KNIGHT_MG: PSQT = [
     -20, -10,  -10,  -10,  -10,  -10,  -10,  -20,
@@ -73,7 +70,6 @@ const KNIGHT_MG: PSQT = [
     -20, -10,  -10,  -10,  -10,  -10,  -10,  -20
 ];
 
-#[allow(dead_code)]
 #[rustfmt::skip]
 const PAWN_MG: PSQT = [
      0,   0,   0,   0,   0,   0,   0,   0,
