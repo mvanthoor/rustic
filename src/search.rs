@@ -23,7 +23,6 @@ pub enum SearchControl {
 }
 #[derive(PartialEq)]
 pub enum SearchReport {
-    Finished,         // Search is finished.
     RequestCompleted, // Requested operation is completed.
 }
 

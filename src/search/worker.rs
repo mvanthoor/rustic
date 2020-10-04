@@ -6,17 +6,17 @@ use std::{
     time,
 };
 
-pub struct Worker {
-    id: Arc<usize>,                            // Worker Id
-    control_handle: Option<JoinHandle<()>>,    // Thread handle
-    control_tx: Option<Sender<WorkerControl>>, // Sender for WorkerControl commands.
-}
-
 pub enum WorkerControl {
     Nothing,
     Start,
     Stop,
     Quit,
+}
+
+pub struct Worker {
+    id: Arc<usize>,                            // Worker Id
+    control_handle: Option<JoinHandle<()>>,    // Thread handle
+    control_tx: Option<Sender<WorkerControl>>, // Sender for WorkerControl commands.
 }
 
 impl Worker {

@@ -82,10 +82,6 @@ impl Engine {
 
     fn received_search_reports(&mut self, sr: SearchReport) {
         match sr {
-            SearchReport::Finished => {
-                println!("Search finished.");
-                self.comm.send(CommControl::Update);
-            }
             _ => (),
         }
     }
