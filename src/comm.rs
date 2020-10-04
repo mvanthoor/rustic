@@ -2,7 +2,7 @@ pub mod console;
 // pub mod uci;
 // pub mod xboard;
 
-use crate::{board::Board, engine::Information, misc::parse};
+use crate::{board::Board, engine::defs::Information, misc::parse};
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -16,13 +16,13 @@ impl CommType {
 
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
-    fn activate(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>);
+    fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>);
     fn send(&self, msg: CommControl);
     fn wait_for_shutdown(&mut self);
     fn get_protocol_name(&self) -> &'static str;
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq)]
 pub enum CommControl {
     Update,
     Quit,
@@ -33,6 +33,9 @@ pub enum CommControl {
 // engine in the main thread.
 #[derive(PartialEq, Clone)]
 pub enum CommReport {
+    Nothing,
+    InitCompleted,
+    Unknown,
     Quit,
     Start,
     Stop,

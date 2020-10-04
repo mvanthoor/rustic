@@ -11,9 +11,6 @@ pub fn evaluate_position(board: &Board) -> i16 {
     // Gets a (white, black) tuple with PSQT values.
     let wb_psqt = psqt::apply(board);
 
-    println!("w_psqt: {}", wb_psqt.0);
-    println!("b_psqt: {}", wb_psqt.1);
-
     value += wb_psqt.0 - wb_psqt.1;
 
     value

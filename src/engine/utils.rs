@@ -30,11 +30,12 @@ impl Engine {
     }
 
     // Print information about the engine.
-    pub fn about(&self) {
+    pub fn about(&self, threads: usize) {
         println!("Engine: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {}", About::AUTHOR);
         println!("EMail: {}", About::EMAIL);
         println!("Website: {}", About::WEBSITE);
+        println!("Threads: {}", threads);
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
@@ -51,9 +52,10 @@ impl Engine {
         let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
 
         // Lock the board, setup the FEN-string, and drop the lock.
-        let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-        mtx_board.fen_read(Some(fen))?; // Abort if setup fails.
-        std::mem::drop(mtx_board);
+        self.board
+            .lock()
+            .expect(ErrFatal::LOCK)
+            .fen_read(Some(fen))?;
 
         Ok(())
     }

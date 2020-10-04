@@ -1,13 +1,14 @@
+pub mod defs;
 mod main_loop;
 mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, CommReport, CommType, IComm},
+    comm::{console::Console, CommType, IComm},
     defs::EngineRunResult,
+    engine::defs::{ErrFatal, Information, Settings},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::{Search, SearchReport},
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
@@ -18,36 +19,6 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
-// This struct holds messages that are reported on fatal engine errors.
-// These should never happen; if they do the engine is in an unknown state,
-// and it will panic without trying any recovery whatsoever.
-pub struct ErrFatal;
-impl ErrFatal {
-    pub const CREATE_COMM: &'static str = "Comm creation failed.";
-    pub const LOCK: &'static str = "Lock failed.";
-    pub const READ_IO: &'static str = "Reading I/O failed.";
-    pub const FLUSH_IO: &'static str = "Flushing I/O failed.";
-    pub const HANDLE: &'static str = "Broken handle.";
-    pub const THREAD: &'static str = "Thread has failed.";
-    pub const CHANNEL: &'static str = "Broken channel.";
-    pub const NO_INFO_RX: &'static str = "No incoming Info channel.";
-}
-
-// This struct holds the engine's settings.
-pub struct Settings {
-    threads: usize,
-}
-
-// This enum provides informatin to the engine, with regard to incoming
-// messages and search results.
-#[derive(PartialEq)]
-pub enum Information {
-    Comm(CommReport),
-    Search(SearchReport),
-}
-
-pub const SEARCH_REQC: Information = Information::Search(SearchReport::RequestCompleted);
-
 // This struct holds the chess engine and its functions, so they are not
 // all seperate entities in the global space.
 pub struct Engine {
@@ -57,7 +28,6 @@ pub struct Engine {
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
-    search: Search,                         // Search (active).
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information
 }
 
@@ -85,7 +55,6 @@ impl Engine {
             comm: i,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            search: Search::new(),
             info_rx: None,
         }
     }
@@ -93,8 +62,10 @@ impl Engine {
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
         self.ascii_logo();
-        self.about();
-        self.setup_position()?; // ? means: Abort if position setup fails.
+        self.about(self.settings.threads);
+
+        // Setup position and abort if this fails.
+        self.setup_position()?;
 
         // Run a specific action if requested...
         let mut action_requested = false;
@@ -129,13 +100,9 @@ impl Engine {
             self.main_loop();
         }
 
-        println!("Engine shutdown completed.");
-
-        // Engine exits correctly. There are only two other possibilities
-        // to exit: if FEN-setup fails (which is reported and the engine
-        // exits normally through the main() function), and with a fatal
-        // error which will make the engine crash. In both cases, it'll not
-        // reach the Ok(()) here.
+        // There are three ways to exit the engine: when the FEN-setup
+        // fails, because of a crash, or normally. In the first two cases,
+        // this Ok(()) won't be reached.
         Ok(())
     }
 }
