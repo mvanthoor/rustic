@@ -3,7 +3,7 @@ use crate::{
     comm::{CommControl, CommReport},
     evaluation::evaluate_position,
     misc::parse,
-    search::{SearchControl, SearchReport},
+    search::{SearchControl, SearchData, SearchReport},
 };
 use std::sync::Arc;
 
@@ -63,11 +63,18 @@ impl Engine {
             CommReport::Move(m) => {
                 self.execute_cr_move(m);
 
+                let sd = SearchData {
+                    engine_board: Arc::clone(&self.board),
+                };
+
+                self.search.send(SearchControl::Sync(sd));
+
                 let board = self.board.lock().expect(ErrFatal::LOCK).clone();
                 let evaluation = evaluate_position(&board);
                 let msg = format!("Evaluation: {}", evaluation);
 
                 self.comm.send(CommControl::Write(msg));
+
                 self.comm.send(CommControl::Update);
             }
             CommReport::Evaluate => {

@@ -5,6 +5,7 @@ mod worker;
 use crate::{
     board::Board,
     engine::{ErrFatal, Information},
+    misc::print,
 };
 use crossbeam_channel::Sender;
 use std::{
@@ -13,10 +14,15 @@ use std::{
 };
 use worker::{Worker, WorkerControl};
 
-#[derive(PartialEq)]
+// This data is needed to be able to run a search.
+pub struct SearchData {
+    pub engine_board: Arc<Mutex<Board>>, // Reference to the current board position.
+}
+
 pub enum SearchControl {
     Nothing,
     CreateWorkers(usize),
+    Sync(SearchData),
     Start,
     Stop,
     Quit,
@@ -84,6 +90,13 @@ impl Search {
                     SearchControl::Quit => {
                         Search::shutdown_workers(&t_worker_pool);
                         quit = true;
+                    }
+
+                    SearchControl::Sync(data) => {
+                        println!("Search: receiving data for syncing.");
+                        let board = &data.engine_board.lock().expect(ErrFatal::LOCK);
+                        print::position(board, None);
+                        Search::request_completed(&report_tx);
                     }
 
                     _ => (),
