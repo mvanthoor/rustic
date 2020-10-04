@@ -9,6 +9,7 @@ use crate::{
     movegen::MoveGenerator,
     search::{Search, SearchReport},
 };
+use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
@@ -29,6 +30,7 @@ impl ErrFatal {
     pub const HANDLE: &'static str = "Broken handle.";
     pub const THREAD: &'static str = "Thread has failed.";
     pub const CHANNEL: &'static str = "Broken channel.";
+    pub const NO_INFO_RX: &'static str = "No incoming Info channel.";
 }
 
 // This struct holds the engine's settings.
@@ -44,16 +46,19 @@ pub enum Information {
     Search(SearchReport),
 }
 
+pub const SEARCH_REQC: Information = Information::Search(SearchReport::RequestCompleted);
+
 // This struct holds the chess engine and its functions, so they are not
 // all seperate entities in the global space.
 pub struct Engine {
-    quit: bool,               // Flag that will quit the main thread.
-    settings: Settings,       // Struct holding all the settings.
-    cmdline: CmdLine,         // Command line interpreter.
-    comm: Box<dyn IComm>,     // Communications (active).
-    board: Arc<Mutex<Board>>, // Board.
-    mg: Arc<MoveGenerator>,   // Move Generator.
-    search: Search,           // Search (active).
+    quit: bool,                             // Flag that will quit the main thread.
+    settings: Settings,                     // Struct holding all the settings.
+    cmdline: CmdLine,                       // Command line interpreter.
+    comm: Box<dyn IComm>,                   // Communications (active).
+    board: Arc<Mutex<Board>>,               // This is the main engine board.
+    mg: Arc<MoveGenerator>,                 // Move Generator.
+    search: Search,                         // Search (active).
+    info_rx: Option<Receiver<Information>>, // Receiver for incoming information
 }
 
 impl Engine {
@@ -81,6 +86,7 @@ impl Engine {
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
             search: Search::new(),
+            info_rx: None,
         }
     }
 

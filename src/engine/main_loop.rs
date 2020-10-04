@@ -1,4 +1,4 @@
-use super::{Engine, ErrFatal, Information};
+use super::{Engine, ErrFatal, Information, SEARCH_REQC};
 use crate::{
     comm::{CommControl, CommReport},
     evaluation::evaluate_position,
@@ -16,6 +16,9 @@ impl Engine {
         // Set up a channel for incoming information.
         let (info_tx, info_rx) = crossbeam_channel::unbounded::<Information>();
 
+        // Store the information receiver in the engine for use in other functions.
+        self.info_rx = Some(info_rx);
+
         // Activate communication module.
         self.comm.activate(info_tx.clone(), Arc::clone(&self.board));
 
@@ -27,14 +30,14 @@ impl Engine {
         self.search.send(SearchControl::CreateWorkers(n));
 
         // Wait for the workers to finish setting up. Then update Comm.
-        let result = info_rx.recv().expect(ErrFatal::CHANNEL);
-        if result == Information::Search(SearchReport::RequestCompleted) {
+        // let result = info_rx.recv().expect(ErrFatal::CHANNEL);
+        if self.info_rx() == SEARCH_REQC {
             self.comm.send(CommControl::Update);
         }
 
         // Keep looping forever until 'quit' received.
         while !self.quit {
-            let information = info_rx.recv().expect(ErrFatal::CHANNEL);
+            let information = self.info_rx();
 
             match information {
                 Information::Comm(cr) => self.received_comm_reports(cr),
@@ -51,6 +54,13 @@ impl Engine {
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
+    fn info_rx(&mut self) -> Information {
+        match &self.info_rx {
+            Some(i) => i.recv().expect(ErrFatal::CHANNEL),
+            None => panic!(ErrFatal::NO_INFO_RX),
+        }
+    }
+
     fn received_comm_reports(&mut self, cr: CommReport) {
         match cr {
             CommReport::Quit => {
