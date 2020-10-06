@@ -44,11 +44,6 @@ impl IComm for Console {
         // Start threads
         self.report_thread(report_tx.clone(), Arc::clone(&board));
         self.control_thread(board);
-
-        // Report to engine that init is finished.
-        report_tx
-            .send(Information::Comm(CommReport::InitCompleted))
-            .expect(ErrFatal::CHANNEL);
     }
 
     // The creator of the Comm module can use this function to send
@@ -158,7 +153,7 @@ impl Console {
 
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
-            CommReport::Nothing | CommReport::Move(_) | CommReport::InitCompleted => {
+            CommReport::Nothing | CommReport::Move(_) => {
                 Console::print_position(board);
                 Console::print_prompt();
             }

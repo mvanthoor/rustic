@@ -22,7 +22,10 @@ impl Engine {
 
         // Initialize Communications and Search modules.
         self.comm.init(info_tx.clone(), Arc::clone(&self.board));
-        self.search.init();
+        self.search.init(info_tx.clone(), Arc::clone(&self.board));
+
+        // Update the Comm interface screen output (if any).
+        self.comm.send(CommControl::Update);
 
         // Keep looping forever until 'quit' received.
         while !self.quit {
@@ -50,8 +53,6 @@ impl Engine {
 
     fn received_comm_reports(&mut self, cr: CommReport) {
         match cr {
-            CommReport::InitCompleted => self.comm.send(CommControl::Update),
-
             CommReport::Quit => {
                 self.comm.send(CommControl::Quit);
                 self.quit = true;
