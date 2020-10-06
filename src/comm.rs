@@ -34,7 +34,6 @@ pub enum CommControl {
 #[derive(PartialEq, Clone)]
 pub enum CommReport {
     Nothing,
-    InitCompleted,
     Unknown,
     Quit,
     Start,

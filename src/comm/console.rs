@@ -44,11 +44,6 @@ impl IComm for Console {
         // Start threads
         self.report_thread(report_tx.clone(), Arc::clone(&board));
         self.control_thread(board);
-
-        // Report to engine that init is finished.
-        report_tx
-            .send(Information::Comm(CommReport::InitCompleted))
-            .expect(ErrFatal::CHANNEL);
     }
 
     // The creator of the Comm module can use this function to send
@@ -99,27 +94,25 @@ impl Console {
                     .expect(ErrFatal::READ_IO);
                 let new_report = Console::create_report(&t_incoming_data);
 
-                // Terminate if 'quit' is detected.
-                quit = new_report == CommReport::Quit;
-
                 // Check validity of the created report and act accordingly.
                 if new_report.is_valid() {
                     // Valid. Save as last report, and send it to the engine.
                     *t_last_report.lock().expect(ErrFatal::LOCK) = new_report.clone();
-                    let information = Information::Comm(new_report.clone());
-                    t_report_tx.send(information).expect(ErrFatal::HANDLE);
+                    t_report_tx
+                        .send(Information::Comm(new_report.clone()))
+                        .expect(ErrFatal::HANDLE);
+                    // Terminate if 'CommReport::Quit' was sent.
+                    quit = new_report == CommReport::Quit;
                 } else {
-                    // Or give an error message, and print the board again.
+                    // Or give an error message, and update the screen.
                     print!("{} {}", UNKNOWN_INPUT, t_incoming_data);
                     *t_last_report.lock().expect(ErrFatal::LOCK) = CommReport::Unknown;
                     Console::update(&t_last_report, &t_board);
                 }
-
-                // Clear input for next iteration.
+                // Clear for next input
                 t_incoming_data = String::from("");
             }
         });
-
         // Store the handle.
         self.report_handle = Some(report_handle);
     }
@@ -160,7 +153,7 @@ impl Console {
 
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
-            CommReport::Nothing | CommReport::Move(_) | CommReport::InitCompleted => {
+            CommReport::Nothing | CommReport::Move(_) => {
                 Console::print_position(board);
                 Console::print_prompt();
             }

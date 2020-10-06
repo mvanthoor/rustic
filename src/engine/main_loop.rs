@@ -6,6 +6,7 @@ use crate::{
     comm::{CommControl, CommReport},
     evaluation::evaluate_position,
     misc::parse,
+    search::SearchControl,
 };
 use std::sync::Arc;
 
@@ -22,6 +23,10 @@ impl Engine {
 
         // Initialize Communications and Search modules.
         self.comm.init(info_tx.clone(), Arc::clone(&self.board));
+        self.search.init(info_tx.clone(), Arc::clone(&self.board));
+
+        // Update the Comm interface screen output (if any).
+        self.comm.send(CommControl::Update);
 
         // Keep looping forever until 'quit' received.
         while !self.quit {
@@ -34,6 +39,7 @@ impl Engine {
 
         // Main loop has ended.
         self.comm.wait_for_shutdown();
+        self.search.wait_for_shutdown();
     }
 }
 
@@ -49,10 +55,9 @@ impl Engine {
 
     fn received_comm_reports(&mut self, cr: CommReport) {
         match cr {
-            CommReport::InitCompleted => self.comm.send(CommControl::Update),
-
             CommReport::Quit => {
                 self.comm.send(CommControl::Quit);
+                self.search.send(SearchControl::Quit);
                 self.quit = true;
             }
 
@@ -80,13 +85,13 @@ impl Engine {
         // Prepare shorthand variables.
         let empty = (0usize, 0usize, 0usize);
         let potential_move = parse::algebraic_move_to_number(&m[..]).unwrap_or(empty);
-        let result = self.pseudo_legal(potential_move, &self.board, &self.mg);
+        let is_pseudo_legal = self.pseudo_legal(potential_move, &self.board, &self.mg);
 
         // If the move is possibly legal, execute it and determine that the
         // king is not left in check.
-        if let Ok(m) = result {
-            let is_ok = self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
-            if !is_ok {
+        if let Ok(m) = is_pseudo_legal {
+            let is_legal = self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
+            if !is_legal {
                 let msg = String::from(MOVE_NOT_ALLOWED);
                 self.comm.send(CommControl::Write(msg));
             }

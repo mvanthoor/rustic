@@ -9,6 +9,7 @@ use crate::{
     engine::defs::{ErrFatal, Information, Settings},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
+    search::Search,
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
@@ -29,6 +30,7 @@ pub struct Engine {
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information
+    search: Search,
 }
 
 impl Engine {
@@ -56,6 +58,7 @@ impl Engine {
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
             info_rx: None,
+            search: Search::new(),
         }
     }
 
