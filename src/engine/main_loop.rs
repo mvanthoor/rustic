@@ -22,6 +22,7 @@ impl Engine {
 
         // Initialize Communications and Search modules.
         self.comm.init(info_tx.clone(), Arc::clone(&self.board));
+        self.search.init();
 
         // Keep looping forever until 'quit' received.
         while !self.quit {
