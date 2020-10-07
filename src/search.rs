@@ -2,6 +2,7 @@
 
 use crate::{
     board::Board,
+    defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
 };
 use crossbeam_channel::Sender;
@@ -12,6 +13,8 @@ use std::{
 
 pub enum SearchControl {
     Quit,
+    Start,
+    Stop,
 }
 
 pub struct Search {
@@ -38,12 +41,19 @@ impl Search {
         // Create the search thread.
         let h = thread::spawn(move || {
             let mut quit = false;
+            let mut halt = true;
 
             while !quit {
                 let cmd = control_rx.recv().expect(ErrFatal::CHANNEL);
 
                 match cmd {
                     SearchControl::Quit => quit = true,
+                    SearchControl::Start => halt = false,
+                    SearchControl::Stop => halt = true,
+                }
+
+                if !halt {
+                    Search::iterative_deepening();
                 }
             }
         });
@@ -64,5 +74,26 @@ impl Search {
         if let Some(h) = self.handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
+    }
+}
+
+impl Search {
+    fn iterative_deepening() {
+        let mut depth = 1;
+
+        while depth <= MAX_DEPTH {
+            Search::alpha_beta(depth);
+            depth += 1;
+        }
+    }
+
+    fn alpha_beta(depth: u8) {
+        if depth == 0 {
+            println!("done.");
+            return;
+        }
+
+        println!("Depth: {}", depth);
+        Search::alpha_beta(depth - 1);
     }
 }

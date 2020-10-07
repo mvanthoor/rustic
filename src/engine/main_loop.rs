@@ -73,6 +73,9 @@ impl Engine {
                 self.comm.send(CommControl::Update);
             }
 
+            CommReport::Start => self.search.send(SearchControl::Start),
+            CommReport::Stop => self.search.send(SearchControl::Stop),
+
             _ => (),
         }
     }

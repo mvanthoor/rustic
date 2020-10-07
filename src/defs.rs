@@ -48,6 +48,7 @@ impl Castling {
 pub const EMPTY: u64 = 0;
 pub const MAX_GAME_MOVES: usize = 2048;
 pub const MAX_LEGAL_MOVES: u8 = 255;
+pub const MAX_DEPTH: u8 = 5;
 
 // Define errors
 pub type EngineRunResult = Result<(), u8>;
