@@ -11,6 +11,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+#[derive(PartialEq)]
 pub enum SearchControl {
     Start,
     Stop,
@@ -25,6 +26,7 @@ pub enum SearchTerminate {
     Nothing,
 }
 
+#[derive(PartialEq)]
 pub struct SearchInfo {
     pub termination: SearchTerminate,
 }
@@ -40,7 +42,6 @@ impl SearchInfo {
 pub struct Search {
     handle: Option<JoinHandle<()>>,
     control_tx: Option<Sender<SearchControl>>,
-    search_info: Arc<Mutex<SearchInfo>>,
 }
 
 impl Search {
@@ -48,7 +49,6 @@ impl Search {
         Self {
             handle: None,
             control_tx: None,
-            search_info: Arc::new(Mutex::new(SearchInfo::new())),
         }
     }
 
@@ -59,7 +59,7 @@ impl Search {
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
         let _t_arc_board = Arc::clone(&board);
-        let t_search_info = Arc::clone(&self.search_info);
+        let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
         let h = thread::spawn(move || {
@@ -71,8 +71,7 @@ impl Search {
 
                 match cmd {
                     SearchControl::Start => {
-                        let mut mtx_si = t_search_info.lock().expect(ErrFatal::LOCK);
-                        mtx_si.termination = SearchTerminate::Nothing;
+                        t_search_info.termination = SearchTerminate::Nothing;
                         halt = false;
                     }
                     SearchControl::Stop => halt = true,
@@ -81,11 +80,10 @@ impl Search {
                 }
 
                 if !halt && !quit {
-                    Search::iterative_deepening(&t_search_info, &control_rx);
+                    Search::iterative_deepening(&mut t_search_info, &control_rx);
                 }
 
-                let mtx_si = t_search_info.lock().expect(ErrFatal::LOCK);
-                match mtx_si.termination {
+                match t_search_info.termination {
                     SearchTerminate::Stop => {
                         halt = true;
                     }
@@ -119,51 +117,40 @@ impl Search {
 
 // Actual search routines.
 impl Search {
-    fn iterative_deepening(
-        search_info: &Arc<Mutex<SearchInfo>>,
-        control_rx: &Receiver<SearchControl>,
-    ) {
+    fn iterative_deepening(search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
         let mut depth = 1;
+        let mut terminate = false;
 
-        while depth <= MAX_DEPTH {
+        while depth <= MAX_DEPTH && !terminate {
             Search::alpha_beta(depth, search_info, control_rx);
-
-            let mtx_si = search_info.lock().expect(ErrFatal::LOCK);
-            if mtx_si.termination != SearchTerminate::Nothing {
-                return;
-            }
-            std::mem::drop(mtx_si);
-
             depth += 1;
+
+            // Check if termination is required.
+            terminate = search_info.termination != SearchTerminate::Nothing;
         }
     }
 
-    fn alpha_beta(
-        depth: u8,
-        search_info: &Arc<Mutex<SearchInfo>>,
-        control_rx: &Receiver<SearchControl>,
-    ) {
+    fn alpha_beta(depth: u8, search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
         if depth == 0 {
             println!("done.");
             return;
         }
 
+        // Check for stop or quit commands.
+        // ======================================================================
         let cmd = control_rx.try_recv().unwrap_or(SearchControl::Nothing);
-        let mut mtx_si = search_info.lock().expect(ErrFatal::LOCK);
-
         match cmd {
-            SearchControl::Quit => {
-                mtx_si.termination = SearchTerminate::Quit;
+            SearchControl::Stop => {
+                search_info.termination = SearchTerminate::Stop;
                 return;
             }
-            SearchControl::Stop => {
-                mtx_si.termination = SearchTerminate::Stop;
+            SearchControl::Quit => {
+                search_info.termination = SearchTerminate::Quit;
                 return;
             }
             _ => (),
-        }
-
-        std::mem::drop(mtx_si);
+        };
+        // ======================================================================
 
         println!("Depth: {}", depth);
         thread::sleep(std::time::Duration::from_secs(2));
