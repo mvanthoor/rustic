@@ -14,6 +14,7 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
+    evaluation::{defs::PIECE_VALUES, material},
     misc::bits,
 };
 use std::sync::Arc;
@@ -27,7 +28,8 @@ pub struct Board {
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NrOf::SQUARES],
-    zr: Arc<ZobristRandoms>,
+    pub material_count: [u16; Sides::BOTH],
+    zobrist_randoms: Arc<ZobristRandoms>,
 }
 
 // Public functions for use by other modules.
@@ -40,7 +42,8 @@ impl Board {
             game_state: GameState::new(),
             history: History::new(),
             piece_list: [Pieces::NONE; NrOf::SQUARES],
-            zr: Arc::new(ZobristRandoms::new()),
+            material_count: [0; Sides::BOTH],
+            zobrist_randoms: Arc::new(ZobristRandoms::new()),
         }
     }
 
@@ -72,7 +75,8 @@ impl Board {
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
-        self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
+        self.material_count[side] -= PIECE_VALUES[piece];
+        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
         self.bb_pieces[side][piece] ^= BB_SQUARES[square];
         self.bb_side[side] ^= BB_SQUARES[square];
     }
@@ -81,7 +85,8 @@ impl Board {
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.bb_pieces[side][piece] |= BB_SQUARES[square];
         self.bb_side[side] |= BB_SQUARES[square];
-        self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.piece(side, piece, square);
+        self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square] = piece;
     }
 
@@ -93,34 +98,34 @@ impl Board {
 
     // Set a square as being the current ep-square.
     pub fn set_ep_square(&mut self, square: Square) {
-        let gs_ep = self.game_state.en_passant;
-        self.game_state.zobrist_key ^= self.zr.en_passant(gs_ep);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
         self.game_state.en_passant = Some(square as u8);
-        self.game_state.zobrist_key ^= self.zr.en_passant(gs_ep);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Clear the ep-square. (If the ep-square is None already, nothing changes.)
     pub fn clear_ep_square(&mut self) {
-        let gs_ep = self.game_state.en_passant;
-        self.game_state.zobrist_key ^= self.zr.en_passant(gs_ep);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
         self.game_state.en_passant = None;
-        self.game_state.zobrist_key ^= self.zr.en_passant(gs_ep);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
     }
 
     // Swap side from WHITE <==> BLACK
     pub fn swap_side(&mut self) {
-        let gs_ac = self.game_state.active_color as usize;
-        self.game_state.zobrist_key ^= self.zr.side(gs_ac);
+        self.game_state.zobrist_key ^= self
+            .zobrist_randoms
+            .side(self.game_state.active_color as usize);
         self.game_state.active_color ^= 1;
-        self.game_state.zobrist_key ^= self.zr.side(gs_ac);
+        self.game_state.zobrist_key ^= self
+            .zobrist_randoms
+            .side(self.game_state.active_color as usize);
     }
 
     // Update castling permissions and take Zobrist-key into account.
     pub fn update_castling_permissions(&mut self, new_permissions: u8) {
-        let gs_c = self.game_state.castling;
-        self.game_state.zobrist_key ^= self.zr.castling(gs_c);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
         self.game_state.castling = new_permissions;
-        self.game_state.zobrist_key ^= self.zr.castling(gs_c);
+        self.game_state.zobrist_key ^= self.zobrist_randoms.castling(self.game_state.castling);
     }
 }
 
@@ -133,6 +138,7 @@ impl Board {
         self.game_state = GameState::new();
         self.history.clear();
         self.piece_list = [Pieces::NONE; NrOf::SQUARES];
+        self.material_count = [0; Sides::BOTH];
     }
 
     // Main initialization function. This is used to initialize the "other"
@@ -144,9 +150,13 @@ impl Board {
         self.bb_side[Sides::WHITE] = pieces_per_side_bitboards.0;
         self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
-        // Initialize the piece list and zobrist key.
+        // Initialize the piece list, zobrist key, and material count. These will
+        // later be updated incrementally.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
+        let material = material::count(&self);
+        self.material_count[Sides::WHITE] = material.0;
+        self.material_count[Sides::BLACK] = material.1;
     }
 
     // Gather the pieces for each side into their own bitboard.
@@ -203,6 +213,9 @@ impl Board {
         // Keep the key here.
         let mut key: u64 = 0;
 
+        // "zr" is just a shorthand for "&self.zobrist_randoms".
+        let zr = &self.zobrist_randoms;
+
         // Same here: "bb_w" is shorthand for
         // "self.bb_pieces[Sides::WHITE]".
         let bb_w = self.bb_pieces[Sides::WHITE];
@@ -225,20 +238,20 @@ impl Board {
             // square/piece combination into the zobrist key.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                key ^= &self.zr.piece(Sides::WHITE, piece_type, square);
+                key ^= zr.piece(Sides::WHITE, piece_type, square);
             }
 
             // Same for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                key ^= &self.zr.piece(Sides::BLACK, piece_type, square);
+                key ^= zr.piece(Sides::BLACK, piece_type, square);
             }
         }
 
         // Hash the castling, active color, and en-passant state into the key.
-        key ^= &self.zr.castling(self.game_state.castling);
-        key ^= &self.zr.side(self.game_state.active_color as usize);
-        key ^= &self.zr.en_passant(self.game_state.en_passant);
+        key ^= zr.castling(self.game_state.castling);
+        key ^= zr.side(self.game_state.active_color as usize);
+        key ^= zr.en_passant(self.game_state.en_passant);
 
         // Done; return the key.
         key

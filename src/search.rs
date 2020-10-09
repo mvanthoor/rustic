@@ -5,16 +5,38 @@ use crate::{
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
 };
-use crossbeam_channel::Sender;
+use crossbeam_channel::{Receiver, Sender};
 use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
 
+#[derive(PartialEq)]
 pub enum SearchControl {
-    Quit,
     Start,
     Stop,
+    Quit,
+    Nothing,
+}
+
+#[derive(PartialEq)]
+pub enum SearchTerminate {
+    Stop,
+    Quit,
+    Nothing,
+}
+
+#[derive(PartialEq)]
+pub struct SearchInfo {
+    pub termination: SearchTerminate,
+}
+
+impl SearchInfo {
+    pub fn new() -> Self {
+        Self {
+            termination: SearchTerminate::Nothing,
+        }
+    }
 }
 
 pub struct Search {
@@ -37,6 +59,7 @@ impl Search {
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
         let _t_arc_board = Arc::clone(&board);
+        let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
         let h = thread::spawn(move || {
@@ -47,13 +70,28 @@ impl Search {
                 let cmd = control_rx.recv().expect(ErrFatal::CHANNEL);
 
                 match cmd {
-                    SearchControl::Quit => quit = true,
-                    SearchControl::Start => halt = false,
+                    SearchControl::Start => {
+                        t_search_info.termination = SearchTerminate::Nothing;
+                        halt = false;
+                    }
                     SearchControl::Stop => halt = true,
+                    SearchControl::Quit => quit = true,
+                    SearchControl::Nothing => (),
                 }
 
-                if !halt {
-                    Search::iterative_deepening();
+                if !halt && !quit {
+                    Search::iterative_deepening(&mut t_search_info, &control_rx);
+                }
+
+                match t_search_info.termination {
+                    SearchTerminate::Stop => {
+                        halt = true;
+                    }
+                    SearchTerminate::Quit => {
+                        halt = true;
+                        quit = true;
+                    }
+                    SearchTerminate::Nothing => (),
                 }
             }
         });
@@ -77,23 +115,45 @@ impl Search {
     }
 }
 
+// Actual search routines.
 impl Search {
-    fn iterative_deepening() {
+    fn iterative_deepening(search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
         let mut depth = 1;
+        let mut terminate = false;
 
-        while depth <= MAX_DEPTH {
-            Search::alpha_beta(depth);
+        while depth <= MAX_DEPTH && !terminate {
+            Search::alpha_beta(depth, search_info, control_rx);
             depth += 1;
+
+            // Check if termination is required.
+            terminate = search_info.termination != SearchTerminate::Nothing;
         }
     }
 
-    fn alpha_beta(depth: u8) {
+    fn alpha_beta(depth: u8, search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
         if depth == 0 {
             println!("done.");
             return;
         }
 
+        // Check for stop or quit commands.
+        // ======================================================================
+        let cmd = control_rx.try_recv().unwrap_or(SearchControl::Nothing);
+        match cmd {
+            SearchControl::Stop => {
+                search_info.termination = SearchTerminate::Stop;
+                return;
+            }
+            SearchControl::Quit => {
+                search_info.termination = SearchTerminate::Quit;
+                return;
+            }
+            _ => (),
+        };
+        // ======================================================================
+
         println!("Depth: {}", depth);
-        Search::alpha_beta(depth - 1);
+        thread::sleep(std::time::Duration::from_secs(2));
+        Search::alpha_beta(depth - 1, search_info, control_rx);
     }
 }
