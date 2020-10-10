@@ -82,7 +82,7 @@ const PAWN_MG: PSQT = [
      0,   0,   0,   0,   0,   0,   0,   0
 ];
 
-const PSQT_MG: [PSQT; NrOf::PIECE_TYPES] =
+pub const PSQT_MG: [PSQT; NrOf::PIECE_TYPES] =
     [KING_MG, QUEEN_MG, ROOK_MG, BISHOP_MG, KNIGHT_MG, PAWN_MG];
 
 // To make the Piece Square tables easier to relate to, and easier to
@@ -138,7 +138,7 @@ const PSQT_MG: [PSQT; NrOf::PIECE_TYPES] =
 
 #[allow(dead_code)]
 #[rustfmt::skip]
-const FLIP: [usize; 64] = [
+pub const FLIP: [usize; 64] = [
     56, 57, 58, 59, 60, 61, 62, 63,
     48, 49, 50, 51, 52, 53, 54, 55,
     40, 41, 42, 43, 44, 45, 46, 47,

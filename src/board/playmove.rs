@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::defs::PIECE_VALUES,
+    evaluation::{defs::PIECE_VALUES, psqt},
     movegen::{defs::Move, MoveGenerator},
 };
 
@@ -212,7 +212,12 @@ fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_pieces[side][piece] ^= BB_SQUARES[square];
     board.bb_side[side] ^= BB_SQUARES[square];
     board.piece_list[square] = Pieces::NONE;
+
     board.material_count[side] -= PIECE_VALUES[piece];
+
+    let flip = side == Sides::WHITE;
+    let s = if flip { psqt::FLIP[square] } else { square };
+    board.psqt[side] -= psqt::PSQT_MG[piece][s] as i16;
 }
 
 // Puts a piece onto the board without Zobrist key updates.
@@ -220,7 +225,12 @@ fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_pieces[side][piece] |= BB_SQUARES[square];
     board.bb_side[side] |= BB_SQUARES[square];
     board.piece_list[square] = piece;
+
     board.material_count[side] += PIECE_VALUES[piece];
+
+    let flip = side == Sides::WHITE;
+    let s = if flip { psqt::FLIP[square] } else { square };
+    board.psqt[side] += psqt::PSQT_MG[piece][s] as i16;
 }
 
 // Moves a piece from one square to another.
@@ -239,7 +249,8 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 // perft() will crash.
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
-    let from_scratch_material = crate::evaluation::material::count(&board);
+    let from_scratch_material = crate::evaluation::material::count(board);
+    let from_scratch_psqt = psqt::apply(board);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
@@ -255,6 +266,16 @@ fn check_incrementals(board: &Board) -> bool {
 
     if result && from_scratch_material.1 != board.material_count[Sides::BLACK] {
         println!("Check Incrementals: Error in material count for black.");
+        result = false;
+    };
+
+    if result && from_scratch_psqt.0 != board.psqt[Sides::WHITE] {
+        println!("Check Incrementals: Error in PSQT for white.");
+        result = false;
+    };
+
+    if result && from_scratch_psqt.1 != board.psqt[Sides::BLACK] {
+        println!("Check Incrementals: Error in PSQT for black.");
         result = false;
     };
 

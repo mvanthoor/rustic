@@ -14,7 +14,7 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
-    evaluation::{defs::PIECE_VALUES, material},
+    evaluation::{defs::PIECE_VALUES, material, psqt},
     misc::bits,
 };
 use std::sync::Arc;
@@ -29,6 +29,7 @@ pub struct Board {
     pub history: History,
     pub piece_list: [Piece; NrOf::SQUARES],
     pub material_count: [u16; Sides::BOTH],
+    pub psqt: [i16; Sides::BOTH],
     zr: Arc<ZobristRandoms>,
 }
 
@@ -43,6 +44,7 @@ impl Board {
             history: History::new(),
             piece_list: [Pieces::NONE; NrOf::SQUARES],
             material_count: [0; Sides::BOTH],
+            psqt: [0; Sides::BOTH],
             zr: Arc::new(ZobristRandoms::new()),
         }
     }
@@ -75,10 +77,15 @@ impl Board {
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
         self.piece_list[square] = Pieces::NONE;
-        self.material_count[side] -= PIECE_VALUES[piece];
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
         self.bb_pieces[side][piece] ^= BB_SQUARES[square];
         self.bb_side[side] ^= BB_SQUARES[square];
+
+        self.material_count[side] -= PIECE_VALUES[piece];
+
+        let flip = side == Sides::WHITE;
+        let s = if flip { psqt::FLIP[square] } else { square };
+        self.psqt[side] -= psqt::PSQT_MG[piece][s] as i16;
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -86,8 +93,13 @@ impl Board {
         self.bb_pieces[side][piece] |= BB_SQUARES[square];
         self.bb_side[side] |= BB_SQUARES[square];
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
-        self.material_count[side] += PIECE_VALUES[piece];
         self.piece_list[square] = piece;
+
+        self.material_count[side] += PIECE_VALUES[piece];
+
+        let flip = side == Sides::WHITE;
+        let s = if flip { psqt::FLIP[square] } else { square };
+        self.psqt[side] += psqt::PSQT_MG[piece][s] as i16;
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
@@ -135,6 +147,7 @@ impl Board {
         self.history.clear();
         self.piece_list = [Pieces::NONE; NrOf::SQUARES];
         self.material_count = [0; Sides::BOTH];
+        self.psqt = [0; Sides::BOTH];
     }
 
     // Main initialization function. This is used to initialize the "other"
@@ -150,9 +163,14 @@ impl Board {
         // later be updated incrementally.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
+
         let material = material::count(&self);
         self.material_count[Sides::WHITE] = material.0;
         self.material_count[Sides::BLACK] = material.1;
+
+        let psqt = psqt::apply(&self);
+        self.psqt[Sides::WHITE] = psqt.0;
+        self.psqt[Sides::BLACK] = psqt.1;
     }
 
     // Gather the pieces for each side into their own bitboard.
