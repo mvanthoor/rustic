@@ -32,8 +32,6 @@ pub struct Board {
     pub game_state: GameState,
     pub history: History,
     pub piece_list: [Piece; NrOf::SQUARES],
-    pub material: [u16; Sides::BOTH],
-    pub psqt: [i16; Sides::BOTH],
     zr: Arc<ZobristRandoms>,
 }
 
@@ -47,8 +45,6 @@ impl Board {
             game_state: GameState::new(),
             history: History::new(),
             piece_list: [Pieces::NONE; NrOf::SQUARES],
-            material: [0; Sides::BOTH],
-            psqt: [0; Sides::BOTH],
             zr: Arc::new(ZobristRandoms::new()),
         }
     }
@@ -87,11 +83,11 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.material[side] -= PIECE_VALUES[piece];
+        self.game_state.material[side] -= PIECE_VALUES[piece];
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.psqt[side] -= PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] -= PSQT_MG[piece][s] as i16;
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -103,11 +99,11 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.material[side] += PIECE_VALUES[piece];
+        self.game_state.material[side] += PIECE_VALUES[piece];
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.psqt[side] += PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] += PSQT_MG[piece][s] as i16;
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
@@ -154,8 +150,6 @@ impl Board {
         self.game_state = GameState::new();
         self.history.clear();
         self.piece_list = [Pieces::NONE; NrOf::SQUARES];
-        self.material = [0; Sides::BOTH];
-        self.psqt = [0; Sides::BOTH];
     }
 
     // Main initialization function. This is used to initialize the "other"
@@ -173,12 +167,12 @@ impl Board {
         self.game_state.zobrist_key = self.init_zobrist_key();
 
         let material = material::count(&self);
-        self.material[Sides::WHITE] = material.0;
-        self.material[Sides::BLACK] = material.1;
+        self.game_state.material[Sides::WHITE] = material.0;
+        self.game_state.material[Sides::BLACK] = material.1;
 
         let psqt = psqt::apply(&self);
-        self.psqt[Sides::WHITE] = psqt.0;
-        self.psqt[Sides::BLACK] = psqt.1;
+        self.game_state.psqt[Sides::WHITE] = psqt.0;
+        self.game_state.psqt[Sides::BLACK] = psqt.1;
     }
 
     // Gather the pieces for each side into their own bitboard.

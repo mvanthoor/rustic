@@ -6,10 +6,6 @@ use super::{
 };
 use crate::{
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::{
-        defs::PIECE_VALUES,
-        psqt::{self, FLIP, PSQT_MG},
-    },
     movegen::{defs::Move, MoveGenerator},
 };
 
@@ -215,14 +211,6 @@ fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_pieces[side][piece] ^= BB_SQUARES[square];
     board.bb_side[side] ^= BB_SQUARES[square];
     board.piece_list[square] = Pieces::NONE;
-
-    // Incremental updates
-    // ======================================================================
-    board.material[side] -= PIECE_VALUES[piece];
-
-    let flip = side == Sides::WHITE;
-    let s = if flip { FLIP[square] } else { square };
-    board.psqt[side] -= PSQT_MG[piece][s] as i16;
 }
 
 // Puts a piece onto the board without Zobrist key updates.
@@ -230,14 +218,6 @@ fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
     board.bb_pieces[side][piece] |= BB_SQUARES[square];
     board.bb_side[side] |= BB_SQUARES[square];
     board.piece_list[square] = piece;
-
-    // Incremental updates
-    // ======================================================================
-    board.material[side] += PIECE_VALUES[piece];
-
-    let flip = side == Sides::WHITE;
-    let s = if flip { FLIP[square] } else { square };
-    board.psqt[side] += PSQT_MG[piece][s] as i16;
 }
 
 // Moves a piece from one square to another.
@@ -257,7 +237,7 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_material = crate::evaluation::material::count(board);
-    let from_scratch_psqt = psqt::apply(board);
+    let from_scratch_psqt = crate::evaluation::psqt::apply(board);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
@@ -266,22 +246,22 @@ fn check_incrementals(board: &Board) -> bool {
         result = false;
     };
 
-    if result && from_scratch_material.0 != board.material[Sides::WHITE] {
+    if result && from_scratch_material.0 != board.game_state.material[Sides::WHITE] {
         println!("Check Incrementals: Error in material count for white.");
         result = false;
     };
 
-    if result && from_scratch_material.1 != board.material[Sides::BLACK] {
+    if result && from_scratch_material.1 != board.game_state.material[Sides::BLACK] {
         println!("Check Incrementals: Error in material count for black.");
         result = false;
     };
 
-    if result && from_scratch_psqt.0 != board.psqt[Sides::WHITE] {
+    if result && from_scratch_psqt.0 != board.game_state.psqt[Sides::WHITE] {
         println!("Check Incrementals: Error in PSQT for white.");
         result = false;
     };
 
-    if result && from_scratch_psqt.1 != board.psqt[Sides::BLACK] {
+    if result && from_scratch_psqt.1 != board.game_state.psqt[Sides::BLACK] {
         println!("Check Incrementals: Error in PSQT for black.");
         result = false;
     };
