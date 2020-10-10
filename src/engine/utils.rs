@@ -4,7 +4,7 @@ use crate::{
     defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::parse::PotentialMove,
     movegen::{
-        defs::{Move, MoveList},
+        defs::{Move, MoveList, MoveType},
         MoveGenerator,
     },
 };
@@ -72,7 +72,7 @@ impl Engine {
         let mut ml = MoveList::new();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
 
-        mg.generate_moves(&mtx_board, &mut ml);
+        mg.generate_moves(&mtx_board, &mut ml, MoveType::All);
         std::mem::drop(mtx_board);
 
         // See if the provided potential move is a pseudo-legal move.

@@ -13,7 +13,7 @@ use crate::{
     defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
     misc::bits,
 };
-use defs::{Move, Shift};
+use defs::{Move, MoveType, Shift};
 use magics::Magic;
 use movelist::MoveList;
 
@@ -53,14 +53,14 @@ impl MoveGenerator {
     }
 
     //** This function takes a board, and generates all moves for the side that is to move. */
-    pub fn generate_moves(&self, board: &Board, ml: &mut MoveList) {
-        self.piece(board, Pieces::KING, ml);
-        self.piece(board, Pieces::KNIGHT, ml);
-        self.piece(board, Pieces::ROOK, ml);
-        self.piece(board, Pieces::BISHOP, ml);
-        self.piece(board, Pieces::QUEEN, ml);
-        self.pawns(board, ml);
-        self.castling(board, ml);
+    pub fn generate_moves(&self, board: &Board, ml: &mut MoveList, mt: MoveType) {
+        self.piece(board, Pieces::KING, ml, mt);
+        self.piece(board, Pieces::KNIGHT, ml, mt);
+        self.piece(board, Pieces::ROOK, ml, mt);
+        self.piece(board, Pieces::BISHOP, ml, mt);
+        self.piece(board, Pieces::QUEEN, ml, mt);
+        self.pawns(board, ml, mt);
+        self.castling(board, ml, mt);
     }
 
     /** Return non-slider (King, Knight) attacks for the given square. */
@@ -106,7 +106,7 @@ impl MoveGenerator {
 // *** === Getting the actual pseudo-legal moves. === *** //
 
 impl MoveGenerator {
-    pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList) {
+    pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList, mt: MoveType) {
         let us = board.us();
         let bb_occupancy = board.occupancy();
         let bb_own_pieces = board.bb_side[us];
@@ -129,7 +129,7 @@ impl MoveGenerator {
         }
     }
 
-    pub fn pawns(&self, board: &Board, list: &mut MoveList) {
+    pub fn pawns(&self, board: &Board, list: &mut MoveList, mt: MoveType) {
         const UP: i8 = 8;
         const DOWN: i8 = -8;
 
@@ -161,7 +161,7 @@ impl MoveGenerator {
         }
     }
 
-    pub fn castling(&self, board: &Board, list: &mut MoveList) {
+    pub fn castling(&self, board: &Board, list: &mut MoveList, mt: MoveType) {
         let us = board.us();
         let opponent = board.opponent();
         let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;

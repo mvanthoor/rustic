@@ -1,7 +1,10 @@
 use crate::{
     board::Board,
     misc::print,
-    movegen::{defs::MoveList, MoveGenerator},
+    movegen::{
+        defs::{MoveList, MoveType},
+        MoveGenerator,
+    },
 };
 use std::{
     sync::{Arc, Mutex},
@@ -78,7 +81,7 @@ pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
         return 1;
     }
 
-    mg.generate_moves(board, &mut move_list);
+    mg.generate_moves(board, &mut move_list, MoveType::All);
 
     // Run perft for each of the moves.
     for i in 0..move_list.len() {

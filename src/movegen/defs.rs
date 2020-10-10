@@ -52,6 +52,13 @@ impl Shift {
     // pub const EVAL_SCORE: usize = 24;
 }
 
+#[derive(Copy, Clone)]
+pub enum MoveType {
+    Quiet,
+    Capture,
+    All,
+}
+
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
  * it can provide all of the methods associated with it to easily decode the move data. */
 #[derive(Copy, Clone)]
