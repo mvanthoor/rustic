@@ -5,8 +5,8 @@ pub mod psqt;
 use crate::{board::Board, defs::Sides};
 
 pub fn evaluate_position(board: &Board) -> i16 {
-    let w_material = board.material_count[Sides::WHITE];
-    let b_material = board.material_count[Sides::BLACK];
+    let w_material = board.material[Sides::WHITE];
+    let b_material = board.material[Sides::BLACK];
 
     // Base evaluation, by counting material.
     let mut value = (w_material - b_material) as i16;
