@@ -11,6 +11,9 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+const INF: i16 = 25000;
+const MATE: i16 = 24000;
+
 #[derive(PartialEq)]
 pub enum SearchControl {
     Start,
@@ -122,7 +125,7 @@ impl Search {
         let mut terminate = false;
 
         while depth <= MAX_DEPTH && !terminate {
-            Search::alpha_beta(depth, search_info, control_rx);
+            Search::alpha_beta(depth, -INF, INF, search_info, control_rx);
             depth += 1;
 
             // Check if termination is required.
@@ -130,7 +133,13 @@ impl Search {
         }
     }
 
-    fn alpha_beta(depth: u8, search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
+    fn alpha_beta(
+        depth: u8,
+        alpha: i16,
+        beta: i16,
+        search_info: &mut SearchInfo,
+        control_rx: &Receiver<SearchControl>,
+    ) {
         if depth == 0 {
             println!("done.");
             return;
@@ -154,6 +163,6 @@ impl Search {
 
         println!("Depth: {}", depth);
         thread::sleep(std::time::Duration::from_secs(2));
-        Search::alpha_beta(depth - 1, search_info, control_rx);
+        Search::alpha_beta(depth - 1, INF, -INF, search_info, control_rx);
     }
 }

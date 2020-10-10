@@ -5,6 +5,10 @@ pub mod psqt;
 use crate::{board::Board, defs::Sides};
 
 pub fn evaluate_position(board: &Board) -> i16 {
+    // After white has moved, the position needs to be evaluated, but after
+    // the move, black is the active side. So, taking the opposite of the
+    // active side is the one to be evaluated.
+    let side = (board.game_state.active_color ^ 1) as usize;
     let w_material = board.game_state.material[Sides::WHITE];
     let b_material = board.game_state.material[Sides::BLACK];
 
@@ -13,6 +17,15 @@ pub fn evaluate_position(board: &Board) -> i16 {
 
     // Add PSQT values
     value += board.game_state.psqt[Sides::WHITE] - board.game_state.psqt[Sides::BLACK];
+
+    // This function calculates the evaluation from white's point of view:
+    // a positive value means "white is better", a negative value means
+    // "black is better". Alpha/Beta requires the value returned from the
+    // viewpoint of the side that is being evaluated. Therefore if it is
+    // black to move, the value must first be flipped to black's viewpoint
+    // before it can be returned.
+
+    value = if side == Sides::BLACK { -value } else { value };
 
     value
 }
