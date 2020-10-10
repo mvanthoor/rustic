@@ -165,7 +165,7 @@ impl MoveGenerator {
                 let bb_push = BB_SQUARES[to];
                 let bb_one_step = bb_push & bb_empty;
                 let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
-                bb_moves = bb_moves | bb_one_step | bb_two_step;
+                bb_moves |= bb_one_step | bb_two_step;
             }
 
             if mt == MoveType::All || mt == MoveType::Capture {
@@ -175,7 +175,7 @@ impl MoveGenerator {
                     Some(ep) => bb_targets & BB_SQUARES[ep as usize],
                     None => 0,
                 };
-                bb_moves = bb_moves | bb_captures | bb_ep_capture;
+                bb_moves |= bb_captures | bb_ep_capture;
             }
 
             self.add_move(board, Pieces::PAWN, from, bb_moves, list);
@@ -280,28 +280,24 @@ impl MoveGenerator {
             let castling = (piece == Pieces::KING) && ((to_square as i8 - from as i8).abs() == 2);
 
             // Gather all data for this move into one 64-bit integer.
-            let no_promotion_piece = Pieces::NONE << Shift::PROMOTION;
-            let move_data = (piece)
+            let mut move_data = (piece)
                 | from << Shift::FROM_SQ
                 | to_square << Shift::TO_SQ
                 | capture << Shift::CAPTURE
                 | (en_passant as usize) << Shift::EN_PASSANT
                 | (double_step as usize) << Shift::DOUBLE_STEP
-                | (castling as usize) << Shift::CASTLING
-                | no_promotion_piece;
+                | (castling as usize) << Shift::CASTLING;
 
-            // If no promomotion, just push the move to the move list. Otherwise,
-            // remove the no_promotion_piece from move_data. Then iterate over the
-            // promotion pieces, and push each promotion option to the move list.
-            match !promotion {
-                true => list.push(Move::new(move_data)),
-                false => {
-                    let reset = move_data ^ no_promotion_piece;
-                    PROMOTION_PIECES.iter().for_each(|piece| {
-                        let current_piece = *piece << Shift::PROMOTION;
-                        list.push(Move::new(reset | current_piece))
-                    });
-                }
+            // Push the move to the piece list...
+            if !promotion {
+                move_data |= Pieces::NONE << Shift::PROMOTION;
+                list.push(Move::new(move_data));
+            } else {
+                // ...or push four promotion moves.
+                PROMOTION_PIECES.iter().for_each(|piece| {
+                    let promotion_piece = *piece << Shift::PROMOTION;
+                    list.push(Move::new(move_data | promotion_piece))
+                });
             }
         }
     }
