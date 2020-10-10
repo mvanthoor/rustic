@@ -52,7 +52,7 @@ impl Shift {
     // pub const EVAL_SCORE: usize = 24;
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum MoveType {
     Quiet,
     Capture,

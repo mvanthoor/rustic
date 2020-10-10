@@ -60,7 +60,10 @@ impl MoveGenerator {
         self.piece(board, Pieces::BISHOP, ml, mt);
         self.piece(board, Pieces::QUEEN, ml, mt);
         self.pawns(board, ml, mt);
-        self.castling(board, ml, mt);
+
+        if mt == MoveType::All || mt == MoveType::Quiet {
+            self.castling(board, ml);
+        }
     }
 
     /** Return non-slider (King, Knight) attacks for the given square. */
@@ -109,22 +112,33 @@ impl MoveGenerator {
     pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList, mt: MoveType) {
         let us = board.us();
         let bb_occupancy = board.occupancy();
+
+        // Get squares that are empty, occupied by our own pieces, and occupied by
+        // our opponent's pieces.
+        let bb_empty = !bb_occupancy;
         let bb_own_pieces = board.bb_side[us];
-        let mut bb_side = board.get_pieces(piece, us);
+        let bb_opponent_pieces = board.bb_side[board.opponent()];
+
+        let mut bb_pieces = board.get_pieces(piece, us);
 
         // Generate moves for each piece of the type passed into the function.
-        while bb_side > 0 {
-            let from = bits::next(&mut bb_side);
+        while bb_pieces > 0 {
+            let from = bits::next(&mut bb_pieces);
             let bb_target = match piece {
                 Pieces::KING | Pieces::KNIGHT => self.get_non_slider_attacks(piece, from),
                 Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
                     self.get_slider_attacks(piece, from, bb_occupancy)
                 }
-                _ => panic!("Not a sliding piece: {}", piece),
+                _ => panic!("Not a piece: {}", piece),
             };
 
-            // A piece can move to where there is no piece of our own.
-            let bb_moves = bb_target & !bb_own_pieces;
+            // Generate moves according to requested move type.
+            let bb_moves = match mt {
+                MoveType::All => bb_target & !bb_own_pieces,
+                MoveType::Quiet => bb_target & bb_empty,
+                MoveType::Capture => bb_target & bb_opponent_pieces,
+            };
+
             self.add_move(board, piece, from, bb_moves, list);
         }
     }
@@ -145,23 +159,30 @@ impl MoveGenerator {
         while bb_pawns > 0 {
             let from = bits::next(&mut bb_pawns);
             let to = (from as i8 + direction) as usize;
-            let bb_push = BB_SQUARES[to];
-            let bb_one_step = bb_push & bb_empty;
-            let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
-            let bb_targets = self.get_pawn_attacks(us, from);
-            let bb_captures = bb_targets & bb_opponent_pieces;
-            let bb_ep_capture = match board.game_state.en_passant {
-                Some(ep) => bb_targets & BB_SQUARES[ep as usize],
-                None => 0,
-            };
+            let mut bb_moves = 0;
 
-            // Gather all moves for the pawn into one bitboard.
-            let bb_moves = bb_one_step | bb_two_step | bb_captures | bb_ep_capture;
+            if mt == MoveType::All || mt == MoveType::Quiet {
+                let bb_push = BB_SQUARES[to];
+                let bb_one_step = bb_push & bb_empty;
+                let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
+                bb_moves = bb_moves | bb_one_step | bb_two_step;
+            }
+
+            if mt == MoveType::All || mt == MoveType::Capture {
+                let bb_targets = self.get_pawn_attacks(us, from);
+                let bb_captures = bb_targets & bb_opponent_pieces;
+                let bb_ep_capture = match board.game_state.en_passant {
+                    Some(ep) => bb_targets & BB_SQUARES[ep as usize],
+                    None => 0,
+                };
+                bb_moves = bb_moves | bb_captures | bb_ep_capture;
+            }
+
             self.add_move(board, Pieces::PAWN, from, bb_moves, list);
         }
     }
 
-    pub fn castling(&self, board: &Board, list: &mut MoveList, mt: MoveType) {
+    pub fn castling(&self, board: &Board, list: &mut MoveList) {
         let us = board.us();
         let opponent = board.opponent();
         let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
