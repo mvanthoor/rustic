@@ -72,7 +72,7 @@ impl Engine {
         let mut ml = MoveList::new();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
 
-        mg.gen_all_moves(&mtx_board, &mut ml);
+        mg.generate_moves(&mtx_board, &mut ml);
         std::mem::drop(mtx_board);
 
         // See if the provided potential move is a pseudo-legal move.

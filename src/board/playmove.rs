@@ -200,11 +200,12 @@ impl Board {
 
 /*** Functions local to playmove.rs ====================================================== ***/
 
-// unamke() pops the entire game history from a list at the beginning,
-// including the Zobrist-key. Therefore the Zobrist-key is already set to
-// what it should be at the end of unmake(). Using the Board's functions
-// would calculate on that already finished Zobrist key and thus mess it
-// up. These helper functions don't calculate the Zobrist key.
+// unamke() pops the entire game history from a list at the beginning. This
+// includes the zobrist key, and any other incrementally updated values,
+// such as material count and PSQT evaluation. Because these values are
+// recovered instantly, they don't have to be recalculated backward.
+// Therefore, this module has its own remove_piece and put_piece functions
+// that omit the undoing of incremental updates.
 
 // Removes a piece from the board without Zobrist key updates.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
@@ -228,12 +229,12 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 
 /*** ======================================================================================= ***/
 
-// This function can be used to check if the Zobrist-key and material count
-// are updated correctly during make() and unmake(). The engine also keeps
-// a piece list that is updated incrementally, but this does not have to be
-// checked. If perft() runs and outputs the correct results, it is
-// guaranteed that the piece list will be correct. If it isn't correct,
-// perft() will crash.
+// This function can be used to check if incrementally updated values are
+// kept correctly correctly during make() and unmake(). If one of the
+// values is found to be incorrect (= different as compared to that value
+// being generated from scratch), the engine will panic. This function only
+// runs in debug mode.
+
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_material = crate::evaluation::material::count(board);

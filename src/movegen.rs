@@ -53,7 +53,7 @@ impl MoveGenerator {
     }
 
     //** This function takes a board, and generates all moves for the side that is to move. */
-    pub fn gen_all_moves(&self, board: &Board, ml: &mut MoveList) {
+    pub fn generate_moves(&self, board: &Board, ml: &mut MoveList) {
         self.piece(board, Pieces::KING, ml);
         self.piece(board, Pieces::KNIGHT, ml);
         self.piece(board, Pieces::ROOK, ml);

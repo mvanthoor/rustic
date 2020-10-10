@@ -78,7 +78,7 @@ pub fn perft(board: &mut Board, depth: u8, mg: &MoveGenerator) -> u64 {
         return 1;
     }
 
-    mg.gen_all_moves(board, &mut move_list);
+    mg.generate_moves(board, &mut move_list);
 
     // Run perft for each of the moves.
     for i in 0..move_list.len() {
