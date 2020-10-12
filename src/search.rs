@@ -1,5 +1,7 @@
 // search.rs contains the engine's search routine.
 
+pub mod sorting;
+
 use crate::{
     board::Board,
     defs::MAX_DEPTH,
