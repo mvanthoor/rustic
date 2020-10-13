@@ -168,20 +168,6 @@ impl Console {
 
 // Private functions for this module.
 impl Console {
-    const DIVIDER_LENGTH: usize = 48;
-    const HELP_UNDERLINE: usize = 65;
-    const PROMPT: &'static str = ">";
-
-    fn print_help() {
-        println!("The console supports both long and short commands:\n");
-        println!("{:<12}{:<10}{}", "Long", "Short", "Description");
-        println!("{}", "=".repeat(Console::HELP_UNDERLINE));
-        for line in HELP.iter() {
-            println!("{:<12}{:<10}{}", line.0, line.1, line.2);
-        }
-        println!();
-    }
-
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
             CommReport::Nothing | CommReport::Move(_) => {
@@ -190,31 +176,6 @@ impl Console {
             }
             _ => Console::print_prompt(),
         }
-    }
-
-    fn print_evaluation(eval: i16, side: Side) {
-        let result = if side == Sides::WHITE { eval } else { -eval };
-        let better = match result {
-            x if x < -50 => "Black is better.",
-            x if x > 50 => "White is better.",
-            x if x >= -50 && x <= 50 => "The position is equal.",
-            _ => "",
-        };
-
-        println!("Evaluation: {} ({})", result, better);
-    }
-
-    // Some protocols require output before reading; in the case of
-    // "console", the board position and prompt must be printed.
-    fn print_position(board: &Arc<Mutex<Board>>) {
-        println!("{}", "=".repeat(Console::DIVIDER_LENGTH));
-        print::position(&board.lock().expect(ErrFatal::LOCK), None);
-    }
-
-    // This function creates the engine's command prompt.
-    fn print_prompt() {
-        print!("{} {} ", About::ENGINE, Console::PROMPT);
-        io::stdout().flush().expect(ErrFatal::FLUSH_IO);
     }
 
     // This function transforms the typed characters into a command tht the
@@ -233,5 +194,48 @@ impl Console {
             "exit" | "x" => CommReport::Quit,
             _ => CommReport::Move(i),
         }
+    }
+}
+
+// Printing functions.
+impl Console {
+    const DIVIDER_LENGTH: usize = 48;
+    const HELP_UNDERLINE: usize = 65;
+    const PROMPT: &'static str = ">";
+
+    fn print_help() {
+        println!("The console supports both long and short commands:\n");
+        println!("{:<12}{:<10}{}", "Long", "Short", "Description");
+        println!("{}", "=".repeat(Console::HELP_UNDERLINE));
+        for line in HELP.iter() {
+            println!("{:<12}{:<10}{}", line.0, line.1, line.2);
+        }
+        println!();
+    }
+
+    // Some protocols require output before reading; in the case of
+    // "console", the board position and prompt must be printed.
+    fn print_position(board: &Arc<Mutex<Board>>) {
+        println!("{}", "=".repeat(Console::DIVIDER_LENGTH));
+        print::position(&board.lock().expect(ErrFatal::LOCK), None);
+    }
+
+    // This function creates the engine's command prompt.
+    fn print_prompt() {
+        print!("{} {} ", About::ENGINE, Console::PROMPT);
+        io::stdout().flush().expect(ErrFatal::FLUSH_IO);
+    }
+
+    // This function prints the evaluation from White's point of view.
+    fn print_evaluation(eval: i16, side: Side) {
+        let result = if side == Sides::WHITE { eval } else { -eval };
+        let better = match result {
+            x if x < -50 => "Black is better.",
+            x if x > 50 => "White is better.",
+            x if x >= -50 && x <= 50 => "The position is equal.",
+            _ => "",
+        };
+
+        println!("Evaluation: {} ({})", result, better);
     }
 }
