@@ -84,7 +84,11 @@ impl Engine {
             }
 
             CommReport::Takeback => {
-                self.board.lock().expect(ErrFatal::LOCK).unmake();
+                let ok = self.board.lock().expect(ErrFatal::LOCK).unmake();
+                if !ok {
+                    let msg = String::from("Nothing to take back.");
+                    self.comm.send(CommControl::Write(msg));
+                }
                 self.comm.send(CommControl::Update);
             }
 

@@ -50,9 +50,7 @@ impl History {
     // Returns the number of items in the history array. As make/unmake always
     // push/pop the same amount during search, this function is only needed for
     // checking if the array is not empty when taking back moves from the
-    // console. Therefore the code can be unused if the console isn't compiled
-    // into the engine.
-    #[allow(dead_code)]
+    // console.
     pub fn len(&self) -> usize {
         self.count
     }

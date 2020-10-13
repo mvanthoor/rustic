@@ -149,7 +149,12 @@ impl Board {
 impl Board {
     #[cfg_attr(debug_assertions, inline(never))]
     #[cfg_attr(not(debug_assertions), inline(always))]
-    pub fn unmake(&mut self) {
+    pub fn unmake(&mut self) -> bool {
+        // Immediately quit if there's nothing to take back.
+        if self.history.len() == 0 {
+            return false;
+        }
+
         self.game_state = self.history.pop();
 
         // Set "us" and "opponent"
@@ -195,6 +200,8 @@ impl Board {
         if en_passant {
             put_piece(self, opponent, Pieces::PAWN, to ^ 8);
         }
+
+        true
     }
 }
 
