@@ -83,6 +83,11 @@ impl Engine {
                 self.comm.send(CommControl::Update);
             }
 
+            CommReport::Takeback => {
+                self.board.lock().expect(ErrFatal::LOCK).unmake();
+                self.comm.send(CommControl::Update);
+            }
+
             // Start or stop the search.
             CommReport::Search => self.search.send(SearchControl::Start),
             CommReport::Cancel => self.search.send(SearchControl::Stop),

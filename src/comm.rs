@@ -43,6 +43,7 @@ pub enum CommReport {
     Cancel,
     Move(String),
     Evaluate,
+    Takeback,
 }
 
 impl CommReport {

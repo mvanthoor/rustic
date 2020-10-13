@@ -18,18 +18,7 @@ use std::{
 };
 
 type HelpLine = (&'static str, &'static str, &'static str);
-
 const UNKNOWN_INPUT: &'static str = "Unknown input:";
-
-const HELP: [HelpLine; 7] = [
-    ("a6a7q", " ", "Moves in long algebraic notation."),
-    ("help", "h", "This help information."),
-    ("search", "s", "Start searching for the best move."),
-    ("cancel", "c", "Cancel search and report the best move."),
-    ("evaluate", "e", "Evaluate the position."),
-    ("quit", "q", "Quit the console."),
-    ("exit", "x", "Quit the console."),
-];
 
 pub struct Console {
     control_handle: Option<JoinHandle<()>>,
@@ -164,7 +153,7 @@ impl Console {
 impl Console {
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
-            CommReport::Nothing | CommReport::Move(_) => {
+            CommReport::Nothing | CommReport::Move(_) | CommReport::Takeback => {
                 Console::print_position(board);
                 Console::print_prompt();
             }
@@ -184,6 +173,7 @@ impl Console {
             "search" | "s" => CommReport::Search,
             "cancel" | "c" => CommReport::Cancel,
             "evaluate" | "e" => CommReport::Evaluate,
+            "takeback" | "t" => CommReport::Takeback,
             "quit" | "q" => CommReport::Quit,
             "exit" | "x" => CommReport::Quit,
             _ => CommReport::Move(i),
@@ -196,12 +186,22 @@ impl Console {
     const DIVIDER_LENGTH: usize = 48;
     const HELP_UNDERLINE: usize = 65;
     const PROMPT: &'static str = ">";
+    const HELP: [HelpLine; 8] = [
+        ("a6a7q", " ", "Moves in long algebraic notation."),
+        ("help", "h", "This help information."),
+        ("search", "s", "Start searching for the best move."),
+        ("takeback", "t", "Take back the last move."),
+        ("cancel", "c", "Cancel search and report the best move."),
+        ("evaluate", "e", "Evaluate the position."),
+        ("quit", "q", "Quit the console."),
+        ("exit", "x", "Quit the console."),
+    ];
 
     fn print_help() {
         println!("The console supports both long and short commands:\n");
         println!("{:<12}{:<10}{}", "Long", "Short", "Description");
         println!("{}", "=".repeat(Console::HELP_UNDERLINE));
-        for line in HELP.iter() {
+        for line in Console::HELP.iter() {
             println!("{:<12}{:<10}{}", line.0, line.1, line.2);
         }
         println!();
