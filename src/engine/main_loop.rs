@@ -56,18 +56,20 @@ impl Engine {
 
     fn received_comm_reports(&mut self, cr: CommReport) {
         match cr {
+            // Quit Comm, Search, and then the engine itself.
             CommReport::Quit => {
                 self.comm.send(CommControl::Quit);
                 self.search.send(SearchControl::Quit);
                 self.quit = true;
             }
 
+            // Execute the received move.
             CommReport::Move(m) => {
                 self.execute_move(m);
                 self.comm.send(CommControl::Update);
             }
 
-            // Returns the evaluation from white's point of view.
+            // Send evaluation result upon request.
             CommReport::Evaluate => {
                 let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
                 let eval = evaluate_position(&mtx_board);
@@ -78,11 +80,20 @@ impl Engine {
                 std::mem::drop(mtx_board);
 
                 self.comm.send(CommControl::Evaluation(eval, side));
+                self.comm.send(CommControl::Update);
             }
 
+            // Start or stop the search.
             CommReport::Search => self.search.send(SearchControl::Start),
             CommReport::Cancel => self.search.send(SearchControl::Stop),
-            CommReport::Help => self.comm.send(CommControl::Help),
+
+            // Print the Help screen for the Comm module.
+            CommReport::Help => {
+                self.comm.send(CommControl::Help);
+                self.comm.send(CommControl::Update);
+            }
+
+            // Ignore if Nothing reported or report is Unknown.
             CommReport::Nothing | CommReport::Unknown => (),
         }
     }

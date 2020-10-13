@@ -148,14 +148,8 @@ impl Console {
                     CommControl::Quit => quit = true,
                     CommControl::Update => Console::update(&t_last_report, &board),
                     CommControl::Write(msg) => println!("{}", msg),
-                    CommControl::Help => {
-                        Console::print_help();
-                        Console::update(&t_last_report, &board);
-                    }
-                    CommControl::Evaluation(eval, side) => {
-                        Console::print_evaluation(eval, side);
-                        Console::update(&t_last_report, &board);
-                    }
+                    CommControl::Help => Console::print_help(),
+                    CommControl::Evaluation(eval, side) => Console::print_evaluation(eval, side),
                 }
             }
         });
