@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{
     comm::{CommControl, CommReport},
+    defs::Sides,
     evaluation::evaluate_position,
     misc::parse,
     search::SearchControl,
@@ -66,17 +67,29 @@ impl Engine {
                 self.comm.send(CommControl::Update);
             }
 
+            // Returns the evaluation from white's point of view.
             CommReport::Evaluate => {
-                let evaluation = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                let msg = format!("Evaluation: {}", evaluation);
+                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let white = (mtx_board.us() ^ 1) == Sides::WHITE;
+                let evaluation = evaluate_position(mtx_board);
+                let result = if white { evaluation } else { -evaluation };
+                let better = match result {
+                    x if x < -50 => "Black is better.",
+                    x if x > 50 => "White is better.",
+                    x if x >= -50 && x <= 50 => "The position is equal.",
+                    _ => "",
+                };
+                std::mem::drop(mtx_board);
+
+                let msg = format!("Evaluation: {} ({})", result, better);
                 self.comm.send(CommControl::Write(msg));
                 self.comm.send(CommControl::Update);
             }
 
-            CommReport::Start => self.search.send(SearchControl::Start),
-            CommReport::Stop => self.search.send(SearchControl::Stop),
-
-            _ => (),
+            CommReport::Search => self.search.send(SearchControl::Start),
+            CommReport::Cancel => self.search.send(SearchControl::Stop),
+            CommReport::Help => self.comm.send(CommControl::Help),
+            CommReport::Nothing | CommReport::Unknown => (),
         }
     }
 }

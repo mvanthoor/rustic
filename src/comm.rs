@@ -26,6 +26,7 @@ pub trait IComm {
 pub enum CommControl {
     Update,
     Quit,
+    Help,
     Write(String),
 }
 
@@ -35,9 +36,10 @@ pub enum CommControl {
 pub enum CommReport {
     Nothing,
     Unknown,
+    Help,
     Quit,
-    Start,
-    Stop,
+    Search,
+    Cancel,
     Move(String),
     Evaluate,
 }

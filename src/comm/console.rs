@@ -17,7 +17,19 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+type HelpLine = (&'static str, &'static str, &'static str);
+
 const UNKNOWN_INPUT: &'static str = "Unknown input:";
+
+const HELP: [HelpLine; 7] = [
+    ("a6a7q", " ", "Moves in long algebraic notation."),
+    ("help", "h", "This help information."),
+    ("search", "s", "Start searching for the best move."),
+    ("cancel", "c", "Cancel search and report the best move."),
+    ("evaluate", "e", "Evaluate the position."),
+    ("quit", "q", "Quit the console."),
+    ("exit", "x", "Quit the console."),
+];
 
 pub struct Console {
     control_handle: Option<JoinHandle<()>>,
@@ -92,8 +104,8 @@ impl Console {
                 io::stdin()
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
-                let new_report = Console::create_report(&t_incoming_data);
 
+                let new_report = Console::create_report(&t_incoming_data);
                 // Check validity of the created report and act accordingly.
                 if new_report.is_valid() {
                     // Valid. Save as last report, and send it to the engine.
@@ -136,6 +148,10 @@ impl Console {
                     CommControl::Quit => quit = true,
                     CommControl::Update => Console::update(&t_last_report, &board),
                     CommControl::Write(msg) => println!("{}", msg),
+                    CommControl::Help => {
+                        Console::print_help();
+                        Console::update(&t_last_report, &board)
+                    }
                 }
             }
         });
@@ -149,7 +165,18 @@ impl Console {
 // Private functions for this module.
 impl Console {
     const DIVIDER_LENGTH: usize = 48;
+    const HELP_UNDERLINE: usize = 65;
     const PROMPT: &'static str = ">";
+
+    fn print_help() {
+        println!("The console supports both long and short commands:\n");
+        println!("{:<12}{:<10}{}", "Long", "Short", "Description");
+        println!("{}", "=".repeat(Console::HELP_UNDERLINE));
+        for line in HELP.iter() {
+            println!("{:<12}{:<10}{}", line.0, line.1, line.2);
+        }
+        println!();
+    }
 
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
@@ -182,10 +209,12 @@ impl Console {
 
         // Convert to &str for matching the command.
         match &i[..] {
-            "quit" | "exit" => CommReport::Quit,
-            "start" => CommReport::Start,
-            "stop" => CommReport::Stop,
-            "e" => CommReport::Evaluate,
+            "help" | "h" => CommReport::Help,
+            "search" | "s" => CommReport::Search,
+            "cancel" | "c" => CommReport::Cancel,
+            "evaluate" | "e" => CommReport::Evaluate,
+            "quit" | "q" => CommReport::Quit,
+            "exit" | "x" => CommReport::Quit,
             _ => CommReport::Move(i),
         }
     }
