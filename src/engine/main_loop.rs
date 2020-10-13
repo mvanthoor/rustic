@@ -69,21 +69,15 @@ impl Engine {
 
             // Returns the evaluation from white's point of view.
             CommReport::Evaluate => {
-                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+                let eval = evaluate_position(&mtx_board);
+
+                // Determine if white or black has last moved.
                 let white = (mtx_board.us() ^ 1) == Sides::WHITE;
-                let evaluation = evaluate_position(mtx_board);
-                let result = if white { evaluation } else { -evaluation };
-                let better = match result {
-                    x if x < -50 => "Black is better.",
-                    x if x > 50 => "White is better.",
-                    x if x >= -50 && x <= 50 => "The position is equal.",
-                    _ => "",
-                };
+                let side = if white { Sides::WHITE } else { Sides::BLACK };
                 std::mem::drop(mtx_board);
 
-                let msg = format!("Evaluation: {} ({})", result, better);
-                self.comm.send(CommControl::Write(msg));
-                self.comm.send(CommControl::Update);
+                self.comm.send(CommControl::Evaluation(eval, side));
             }
 
             CommReport::Search => self.search.send(SearchControl::Start),

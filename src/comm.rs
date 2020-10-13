@@ -2,7 +2,7 @@ pub mod console;
 // pub mod uci;
 // pub mod xboard;
 
-use crate::{board::Board, engine::defs::Information, misc::parse};
+use crate::{board::Board, defs::Side, engine::defs::Information, misc::parse};
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -26,6 +26,7 @@ pub trait IComm {
 pub enum CommControl {
     Update,
     Quit,
+    Evaluation(i16, Side),
     Help,
     Write(String),
 }

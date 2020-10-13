@@ -6,7 +6,7 @@
 use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
     board::Board,
-    defs::About,
+    defs::{About, Side, Sides},
     engine::defs::{ErrFatal, Information},
     misc::print,
 };
@@ -150,7 +150,11 @@ impl Console {
                     CommControl::Write(msg) => println!("{}", msg),
                     CommControl::Help => {
                         Console::print_help();
-                        Console::update(&t_last_report, &board)
+                        Console::update(&t_last_report, &board);
+                    }
+                    CommControl::Evaluation(eval, side) => {
+                        Console::print_evaluation(eval, side);
+                        Console::update(&t_last_report, &board);
                     }
                 }
             }
@@ -186,6 +190,18 @@ impl Console {
             }
             _ => Console::print_prompt(),
         }
+    }
+
+    fn print_evaluation(eval: i16, side: Side) {
+        let result = if side == Sides::WHITE { eval } else { -eval };
+        let better = match result {
+            x if x < -50 => "Black is better.",
+            x if x > 50 => "White is better.",
+            x if x >= -50 && x <= 50 => "The position is equal.",
+            _ => "",
+        };
+
+        println!("Evaluation: {} ({})", result, better);
     }
 
     // Some protocols require output before reading; in the case of
