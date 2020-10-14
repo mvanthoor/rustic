@@ -109,9 +109,11 @@ impl Search {
                 }
 
                 if !halt && !quit {
+                    let mut search_params = SearchParams::new(6);
                     Search::iterative_deepening(
                         &mut t_board,
                         &t_mg,
+                        &mut search_params,
                         &mut t_search_info,
                         &control_rx,
                     );
@@ -154,14 +156,24 @@ impl Search {
     fn iterative_deepening(
         board: &Arc<Mutex<Board>>,
         mg: &Arc<MoveGenerator>,
+        search_params: &mut SearchParams,
         search_info: &mut SearchInfo,
         control_rx: &Receiver<SearchControl>,
     ) {
         let mut depth = 1;
         let mut terminate = false;
 
-        while depth <= MAX_DEPTH && !terminate {
-            Search::alpha_beta(depth, -INF, INF, board, mg, search_info, control_rx);
+        while depth <= search_params.depth && depth <= MAX_DEPTH && !terminate {
+            Search::alpha_beta(
+                depth,
+                -INF,
+                INF,
+                board,
+                mg,
+                search_params,
+                search_info,
+                control_rx,
+            );
             depth += 1;
 
             // Check if termination is required.
@@ -175,6 +187,7 @@ impl Search {
         beta: i16,
         board: &Arc<Mutex<Board>>,
         mg: &Arc<MoveGenerator>,
+        search_params: &mut SearchParams,
         search_info: &mut SearchInfo,
         control_rx: &Receiver<SearchControl>,
     ) {
@@ -200,7 +213,16 @@ impl Search {
         // ======================================================================
 
         println!("Depth: {}", depth);
-        thread::sleep(std::time::Duration::from_secs(2));
-        Search::alpha_beta(depth - 1, INF, -INF, board, mg, search_info, control_rx);
+        thread::sleep(std::time::Duration::from_secs(1));
+        Search::alpha_beta(
+            depth - 1,
+            INF,
+            -INF,
+            board,
+            mg,
+            search_params,
+            search_info,
+            control_rx,
+        );
     }
 }
