@@ -87,7 +87,7 @@ impl Search {
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
         let t_mg = Arc::clone(&mg);
-        let mut t_board = Arc::clone(&board);
+        let mut t_arc_board = Arc::clone(&board);
         let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
@@ -109,9 +109,13 @@ impl Search {
                 }
 
                 if !halt && !quit {
+                    let mtx_board = t_arc_board.lock().expect(ErrFatal::LOCK);
+                    let mut board = mtx_board.clone();
                     let mut search_params = SearchParams::new(6);
+                    std::mem::drop(mtx_board);
+
                     Search::iterative_deepening(
-                        &mut t_board,
+                        &mut board,
                         &t_mg,
                         &mut search_params,
                         &mut t_search_info,
@@ -154,7 +158,7 @@ impl Search {
 // Actual search routines.
 impl Search {
     fn iterative_deepening(
-        board: &Arc<Mutex<Board>>,
+        board: &mut Board,
         mg: &Arc<MoveGenerator>,
         search_params: &mut SearchParams,
         search_info: &mut SearchInfo,
@@ -185,7 +189,7 @@ impl Search {
         depth: u8,
         alpha: i16,
         beta: i16,
-        board: &Arc<Mutex<Board>>,
+        board: &mut Board,
         mg: &Arc<MoveGenerator>,
         search_params: &mut SearchParams,
         search_info: &mut SearchInfo,
