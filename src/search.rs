@@ -195,11 +195,6 @@ impl Search {
         search_info: &mut SearchInfo,
         control_rx: &Receiver<SearchControl>,
     ) {
-        if depth == 0 {
-            println!("done.");
-            return;
-        }
-
         // Check for stop or quit commands.
         // ======================================================================
         let cmd = control_rx.try_recv().unwrap_or(SearchControl::Nothing);
@@ -215,6 +210,11 @@ impl Search {
             _ => (),
         };
         // ======================================================================
+
+        if depth == 0 {
+            println!("done.");
+            return;
+        }
 
         println!("Depth: {}", depth);
         thread::sleep(std::time::Duration::from_secs(1));
