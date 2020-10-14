@@ -6,6 +6,10 @@ use crate::{
     board::Board,
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
+    movegen::{
+        defs::{Move, MoveList},
+        MoveGenerator,
+    },
 };
 use crossbeam_channel::{Receiver, Sender};
 use std::{
@@ -57,13 +61,19 @@ impl Search {
         }
     }
 
-    pub fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>) {
+    pub fn init(
+        &mut self,
+        report_tx: Sender<Information>,
+        board: Arc<Mutex<Board>>,
+        mg: Arc<MoveGenerator>,
+    ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
-        let _t_arc_board = Arc::clone(&board);
+        let t_mg = Arc::clone(&mg);
+        let mut t_board = Arc::clone(&board);
         let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
@@ -85,7 +95,12 @@ impl Search {
                 }
 
                 if !halt && !quit {
-                    Search::iterative_deepening(&mut t_search_info, &control_rx);
+                    Search::iterative_deepening(
+                        &mut t_board,
+                        &t_mg,
+                        &mut t_search_info,
+                        &control_rx,
+                    );
                 }
 
                 match t_search_info.termination {
@@ -122,12 +137,17 @@ impl Search {
 
 // Actual search routines.
 impl Search {
-    fn iterative_deepening(search_info: &mut SearchInfo, control_rx: &Receiver<SearchControl>) {
+    fn iterative_deepening(
+        board: &Arc<Mutex<Board>>,
+        mg: &Arc<MoveGenerator>,
+        search_info: &mut SearchInfo,
+        control_rx: &Receiver<SearchControl>,
+    ) {
         let mut depth = 1;
         let mut terminate = false;
 
         while depth <= MAX_DEPTH && !terminate {
-            Search::alpha_beta(depth, -INF, INF, search_info, control_rx);
+            Search::alpha_beta(depth, -INF, INF, board, mg, search_info, control_rx);
             depth += 1;
 
             // Check if termination is required.
@@ -139,6 +159,8 @@ impl Search {
         depth: u8,
         alpha: i16,
         beta: i16,
+        board: &Arc<Mutex<Board>>,
+        mg: &Arc<MoveGenerator>,
         search_info: &mut SearchInfo,
         control_rx: &Receiver<SearchControl>,
     ) {
@@ -165,6 +187,6 @@ impl Search {
 
         println!("Depth: {}", depth);
         thread::sleep(std::time::Duration::from_secs(2));
-        Search::alpha_beta(depth - 1, INF, -INF, search_info, control_rx);
+        Search::alpha_beta(depth - 1, INF, -INF, board, mg, search_info, control_rx);
     }
 }
