@@ -35,15 +35,29 @@ pub enum SearchTerminate {
     Nothing,
 }
 
+pub struct SearchParams {
+    depth: u8,
+}
+
+impl SearchParams {
+    pub fn new(depth: u8) -> Self {
+        Self { depth }
+    }
+}
+
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub termination: SearchTerminate,
+    pub nodes: usize,
+    pub ply: u8,
 }
 
 impl SearchInfo {
     pub fn new() -> Self {
         Self {
             termination: SearchTerminate::Nothing,
+            nodes: 0,
+            ply: 0,
         }
     }
 }
