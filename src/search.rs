@@ -34,8 +34,6 @@ pub enum SearchControl {
 pub enum SearchTerminate {
     Stop,
     Quit,
-    Checkmate,
-    Stalemate,
     Nothing,
 }
 
@@ -311,10 +309,11 @@ impl Search {
             let is_in_check = mg.square_attacked(board, board.opponent(), king_square);
 
             if is_in_check {
-                search_info.termination = SearchTerminate::Checkmate;
+                // It is minus checkmate (negative), because when checkmate
+                // is detected for the player to move, this is a very bad
+                // situation for that player.
                 return -CHECKMATE + (search_info.ply as i16);
             } else {
-                search_info.termination = SearchTerminate::Stalemate;
                 return STALEMATE;
             }
         }

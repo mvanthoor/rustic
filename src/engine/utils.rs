@@ -30,11 +30,12 @@ impl Engine {
     }
 
     // Print information about the engine.
-    pub fn about(&self, threads: usize) {
+    pub fn about(&self, threads: usize, protocol: &str) {
         println!("Engine: {} {}", About::ENGINE, About::VERSION);
         println!("Author: {}", About::AUTHOR);
         println!("EMail: {}", About::EMAIL);
         println!("Website: {}", About::WEBSITE);
+        println!("Protocol: {}", protocol);
         println!("Threads: {}", threads);
 
         #[cfg(debug_assertions)]

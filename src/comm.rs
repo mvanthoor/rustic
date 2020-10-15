@@ -2,7 +2,8 @@ pub mod console;
 // pub mod uci;
 // pub mod xboard;
 
-use crate::{board::Board, defs::Side, engine::defs::Information, misc::parse};
+use crate::{board::Board, engine::defs::Information, misc::parse};
+use console::ConsoleReport;
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -26,24 +27,25 @@ pub trait IComm {
 pub enum CommControl {
     Update,
     Quit,
-    Evaluation(i16, Side),
+    Evaluation(i16),
     Help,
     Write(String),
+}
+
+#[derive(PartialEq, Clone)]
+pub enum GeneralReport {
+    Nothing,
+    Unknown,
+    Help,
+    Quit,
 }
 
 // These are the commands a Comm module can create and send back to the
 // engine in the main thread.
 #[derive(PartialEq, Clone)]
 pub enum CommReport {
-    Nothing,
-    Unknown,
-    Help,
-    Quit,
-    Search,
-    Cancel,
-    Move(String),
-    Evaluate,
-    Takeback,
+    General(GeneralReport),
+    Console(ConsoleReport),
 }
 
 impl CommReport {
@@ -51,7 +53,9 @@ impl CommReport {
         // Match the incoming command.
         match self {
             // Check if squares and promotion piece actually exist.
-            Self::Move(m) => parse::algebraic_move_to_number(&m[..]).is_ok(),
+            Self::Console(ConsoleReport::Move(m)) => {
+                parse::algebraic_move_to_number(&m[..]).is_ok()
+            }
             _ => true,
         }
     }

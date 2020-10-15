@@ -14,6 +14,13 @@ impl ErrFatal {
     pub const NO_INFO_RX: &'static str = "No incoming Info channel.";
 }
 
+pub struct ErrNormal;
+impl ErrNormal {
+    pub const MOVE_NOT_ALLOWED: &'static str = "Move not allowed: King left in check.";
+    pub const MOVE_NOT_LEGAL: &'static str = "This is not a legal move.";
+    pub const NOTHING_TO_TAKE_BACK: &'static str = "Nothing to take back.";
+}
+
 // This struct holds the engine's settings.
 pub struct Settings {
     pub threads: usize,

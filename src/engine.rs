@@ -1,3 +1,5 @@
+mod actions;
+mod comm_reports;
 pub mod defs;
 mod main_loop;
 mod utils;
@@ -65,7 +67,7 @@ impl Engine {
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
         self.ascii_logo();
-        self.about(self.settings.threads);
+        self.about(self.settings.threads, self.comm.get_protocol_name());
 
         // Setup position and abort if this fails.
         self.setup_position()?;

@@ -1,12 +1,13 @@
 // This file implements the Console interface. In this communication mode,
 // the engine shows the current board position in the terminal, and it will
 // accept commands typed by the user. This interface is mainly used for
-// engine development.
+// engine development, but it can also be used to (laboriously) play a
+// complete game.
 
-use super::{CommControl, CommReport, CommType, IComm};
+use super::{CommControl, CommReport, CommType, GeneralReport, IComm};
 use crate::{
     board::Board,
-    defs::{About, Side, Sides},
+    defs::About,
     engine::defs::{ErrFatal, Information},
     misc::print,
 };
@@ -20,6 +21,18 @@ use std::{
 type HelpLine = (&'static str, &'static str, &'static str);
 const UNKNOWN_INPUT: &'static str = "Unknown input:";
 
+// Input will be turned into a report, which wil be sent to the engine. The
+// main engine thread will react accordingly.
+#[derive(PartialEq, Clone)]
+pub enum ConsoleReport {
+    Search,
+    Cancel,
+    Move(String),
+    Evaluate,
+    Takeback,
+}
+
+// This struct is used to instantiate the Comm Console module.
 pub struct Console {
     control_handle: Option<JoinHandle<()>>,
     report_handle: Option<JoinHandle<()>>,
@@ -29,12 +42,14 @@ pub struct Console {
 
 // Public functions
 impl Console {
+    // Create a new console.
     pub fn new() -> Self {
+        let nothing = CommReport::General(GeneralReport::Nothing);
         Self {
             control_handle: None,
             report_handle: None,
             control_tx: None,
-            last_report: Arc::new(Mutex::new(CommReport::Nothing)),
+            last_report: Arc::new(Mutex::new(nothing)),
         }
     }
 }
@@ -89,35 +104,49 @@ impl Console {
 
             // Keep running as long as 'quit' is not detected.
             while !quit {
-                // Get data from stdin and create a report from it.
+                // Get data from stdin.
                 io::stdin()
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
+                // Create a report from the incoming data.
                 let new_report = Console::create_report(&t_incoming_data);
-                // Check validity of the created report and act accordingly.
+
+                // Check if the created report is valid, so it is something
+                // the engine will understand.
                 if new_report.is_valid() {
-                    // Valid. Save as last report, and send it to the engine.
+                    // Valid. Save as last report.
                     *t_last_report.lock().expect(ErrFatal::LOCK) = new_report.clone();
+
+                    // Send it to the engine thread.
                     t_report_tx
                         .send(Information::Comm(new_report.clone()))
                         .expect(ErrFatal::HANDLE);
-                    // Terminate if 'CommReport::Quit' was sent.
-                    quit = new_report == CommReport::Quit;
+
+                    // Terminate the reporting thread if "Quit" was detected.
+                    quit = new_report == CommReport::General(GeneralReport::Quit);
                 } else {
-                    // Or give an error message, and update the screen.
+                    // Not a valid report. Save "Unkown" as last report.
+                    let unknown = CommReport::General(GeneralReport::Unknown);
+                    *t_last_report.lock().expect(ErrFatal::LOCK) = unknown;
+
+                    // Print an error.
                     print!("{} {}", UNKNOWN_INPUT, t_incoming_data);
-                    *t_last_report.lock().expect(ErrFatal::LOCK) = CommReport::Unknown;
+
+                    // Update the screen.
                     Console::update(&t_last_report, &t_board);
                 }
+
                 // Clear for next input
                 t_incoming_data = String::from("");
             }
         });
+
         // Store the handle.
         self.report_handle = Some(report_handle);
     }
 
+    // The control thread receives commands from the engine thread.
     fn control_thread(&mut self, board: Arc<Mutex<Board>>) {
         // Create an incoming channel for the control thread.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
@@ -138,7 +167,7 @@ impl Console {
                     CommControl::Update => Console::update(&t_last_report, &board),
                     CommControl::Write(msg) => println!("{}", msg),
                     CommControl::Help => Console::print_help(),
-                    CommControl::Evaluation(eval, side) => Console::print_evaluation(eval, side),
+                    CommControl::Evaluation(eval) => Console::print_evaluation(eval),
                 }
             }
         });
@@ -153,7 +182,9 @@ impl Console {
 impl Console {
     fn update(last_report: &Arc<Mutex<CommReport>>, board: &Arc<Mutex<Board>>) {
         match *last_report.lock().expect(ErrFatal::LOCK) {
-            CommReport::Nothing | CommReport::Move(_) | CommReport::Takeback => {
+            CommReport::General(GeneralReport::Nothing)
+            | CommReport::Console(ConsoleReport::Move(_))
+            | CommReport::Console(ConsoleReport::Takeback) => {
                 Console::print_position(board);
                 Console::print_prompt();
             }
@@ -169,14 +200,14 @@ impl Console {
 
         // Convert to &str for matching the command.
         match &i[..] {
-            "help" | "h" => CommReport::Help,
-            "search" | "s" => CommReport::Search,
-            "cancel" | "c" => CommReport::Cancel,
-            "evaluate" | "e" => CommReport::Evaluate,
-            "takeback" | "t" => CommReport::Takeback,
-            "quit" | "q" => CommReport::Quit,
-            "exit" | "x" => CommReport::Quit,
-            _ => CommReport::Move(i),
+            "help" | "h" => CommReport::General(GeneralReport::Help),
+            "search" | "s" => CommReport::Console(ConsoleReport::Search),
+            "cancel" | "c" => CommReport::Console(ConsoleReport::Cancel),
+            "evaluate" | "e" => CommReport::Console(ConsoleReport::Evaluate),
+            "takeback" | "t" => CommReport::Console(ConsoleReport::Takeback),
+            "quit" | "q" => CommReport::General(GeneralReport::Quit),
+            "exit" | "x" => CommReport::General(GeneralReport::Quit),
+            _ => CommReport::Console(ConsoleReport::Move(i)),
         }
     }
 }
@@ -221,7 +252,7 @@ impl Console {
     }
 
     // This function prints the evaluation from White's point of view.
-    fn print_evaluation(eval: i16, _side: Side) {
+    fn print_evaluation(eval: i16) {
         println!("Evaluation: {}", eval);
     }
 }
