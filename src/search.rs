@@ -3,11 +3,12 @@
 pub mod sorting;
 
 use crate::{
-    board::Board,
+    board::{defs::SQUARE_NAME, Board},
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
+    evaluation,
     movegen::{
-        defs::{Move, MoveList},
+        defs::{Move, MoveList, MoveType},
         MoveGenerator,
     },
 };
@@ -18,7 +19,6 @@ use std::{
 };
 
 const INF: i16 = 25000;
-const MATE: i16 = 24000;
 
 #[derive(PartialEq)]
 pub enum SearchControl {
@@ -47,6 +47,7 @@ impl SearchParams {
 
 #[derive(PartialEq)]
 pub struct SearchInfo {
+    pub best_move: Move,
     pub termination: SearchTerminate,
     pub nodes: usize,
     pub ply: u8,
@@ -55,6 +56,7 @@ pub struct SearchInfo {
 impl SearchInfo {
     pub fn new() -> Self {
         Self {
+            best_move: Move::new(0),
             termination: SearchTerminate::Nothing,
             nodes: 0,
             ply: 0,
@@ -87,7 +89,7 @@ impl Search {
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
         let t_mg = Arc::clone(&mg);
-        let mut t_arc_board = Arc::clone(&board);
+        let t_arc_board = Arc::clone(&board);
         let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
@@ -100,7 +102,6 @@ impl Search {
 
                 match cmd {
                     SearchControl::Start => {
-                        t_search_info.termination = SearchTerminate::Nothing;
                         halt = false;
                     }
                     SearchControl::Stop => halt = true,
@@ -111,7 +112,11 @@ impl Search {
                 if !halt && !quit {
                     let mtx_board = t_arc_board.lock().expect(ErrFatal::LOCK);
                     let mut board = mtx_board.clone();
-                    let mut search_params = SearchParams::new(6);
+
+                    let mut search_params = SearchParams::new(8);
+                    t_search_info = SearchInfo::new();
+                    t_search_info.termination = SearchTerminate::Nothing;
+
                     std::mem::drop(mtx_board);
 
                     Search::iterative_deepening(
@@ -168,7 +173,9 @@ impl Search {
         let mut terminate = false;
 
         while depth <= search_params.depth && depth <= MAX_DEPTH && !terminate {
-            Search::alpha_beta(
+            let now = std::time::Instant::now();
+
+            let eval = Search::alpha_beta(
                 depth,
                 -INF,
                 INF,
@@ -177,6 +184,19 @@ impl Search {
                 search_params,
                 search_info,
                 control_rx,
+            );
+
+            let elapsed = now.elapsed().as_millis();
+            let knps = ((search_info.nodes * 1000) as f64 / elapsed as f64).floor() as usize / 1000;
+
+            println!(
+                "depth: {}, best move: {}{}, eval: {}, nodes: {}, knps: {}",
+                depth,
+                SQUARE_NAME[search_info.best_move.from()],
+                SQUARE_NAME[search_info.best_move.to()],
+                eval,
+                search_info.nodes,
+                knps
             );
             depth += 1;
 
@@ -187,46 +207,106 @@ impl Search {
 
     fn alpha_beta(
         depth: u8,
-        alpha: i16,
+        mut alpha: i16,
         beta: i16,
         board: &mut Board,
         mg: &Arc<MoveGenerator>,
         search_params: &mut SearchParams,
         search_info: &mut SearchInfo,
         control_rx: &Receiver<SearchControl>,
-    ) {
+    ) -> i16 {
         // Check for stop or quit commands.
         // ======================================================================
+
+        /*
+
         let cmd = control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
             SearchControl::Stop => {
                 search_info.termination = SearchTerminate::Stop;
-                return;
+                return 0;
             }
             SearchControl::Quit => {
                 search_info.termination = SearchTerminate::Quit;
-                return;
+                return 0;
             }
             _ => (),
         };
+
+        */
         // ======================================================================
 
+        // We have arrived at the leaf node. Evaluate the position and
+        // return the result.
         if depth == 0 {
-            println!("done.");
-            return;
+            return evaluation::evaluate_position(board);
         }
 
-        println!("Depth: {}", depth);
-        thread::sleep(std::time::Duration::from_secs(1));
-        Search::alpha_beta(
-            depth - 1,
-            INF,
-            -INF,
-            board,
-            mg,
-            search_params,
-            search_info,
-            control_rx,
-        );
+        // Temporary variables.
+        let mut current_best_move = Move::new(0);
+        let old_alpha = alpha;
+
+        // Search a new node, so we increase the node counter.
+        search_info.nodes += 1;
+
+        // Generate the moves in this position
+        let mut move_list = MoveList::new();
+        mg.generate_moves(board, &mut move_list, MoveType::All);
+
+        for i in 0..move_list.len() {
+            let current_move = move_list.get_move(i);
+            let is_legal = board.make(current_move, mg);
+
+            // If not legal, skip the move and the rest of the function.
+            if !is_legal {
+                continue;
+            }
+
+            // Move is legal; increase the ply count.
+            search_info.ply += 1;
+
+            // We are not yet in a leaf node (the "bottom" of the tree, at
+            // the requested depth), so start Alpha-Beta again, for the
+            // opponent's side to go one ply deeper.
+            let eval_score = -Search::alpha_beta(
+                depth - 1,
+                -beta,
+                -alpha,
+                board,
+                mg,
+                search_params,
+                search_info,
+                control_rx,
+            );
+
+            // Take back the move, and decrease ply accordingly.
+            board.unmake();
+            search_info.ply -= 1;
+
+            // Beta-cut-off. We return this score, because searching any
+            // further down this path would make the situation worse for us
+            // and better for our opponent. This is called "fail-high".
+            if eval_score >= beta {
+                return beta;
+            }
+
+            // We found a better move for us.
+            if eval_score > alpha {
+                // Save our better evaluation score.
+                alpha = eval_score;
+                current_best_move = current_move;
+            }
+        }
+
+        // Alpha was improved while walking through the move list, so a
+        // better move was found.
+        if alpha != old_alpha {
+            search_info.best_move = current_best_move;
+        }
+
+        // We have traversed the entire move list and found the best
+        // possible move/eval_score for us at this depth, so return it.
+        // This called "fail low".
+        return alpha;
     }
 }

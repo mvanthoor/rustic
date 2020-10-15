@@ -61,7 +61,7 @@ pub enum MoveType {
 
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
  * it can provide all of the methods associated with it to easily decode the move data. */
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Move {
     data: usize,
 }

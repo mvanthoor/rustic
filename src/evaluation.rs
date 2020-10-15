@@ -5,10 +5,7 @@ pub mod psqt;
 use crate::{board::Board, defs::Sides};
 
 pub fn evaluate_position(board: &Board) -> i16 {
-    // After white has moved, the position needs to be evaluated, but after
-    // the move, black is the active side. So, taking the opposite of the
-    // active side is the one to be evaluated.
-    let side = (board.game_state.active_color ^ 1) as usize;
+    let side = board.game_state.active_color as usize;
     let w_material = board.game_state.material[Sides::WHITE];
     let b_material = board.game_state.material[Sides::BLACK];
 

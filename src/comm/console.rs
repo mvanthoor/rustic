@@ -221,15 +221,7 @@ impl Console {
     }
 
     // This function prints the evaluation from White's point of view.
-    fn print_evaluation(eval: i16, side: Side) {
-        let result = if side == Sides::WHITE { eval } else { -eval };
-        let better = match result {
-            x if x < -50 => "Black is better.",
-            x if x > 50 => "White is better.",
-            x if x >= -50 && x <= 50 => "The position is equal.",
-            _ => "",
-        };
-
-        println!("Evaluation: {} ({})", result, better);
+    fn print_evaluation(eval: i16, _side: Side) {
+        println!("Evaluation: {}", eval);
     }
 }
