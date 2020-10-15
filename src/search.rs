@@ -113,7 +113,7 @@ impl Search {
                     let mtx_board = t_arc_board.lock().expect(ErrFatal::LOCK);
                     let mut board = mtx_board.clone();
 
-                    let mut search_params = SearchParams::new(8);
+                    let mut search_params = SearchParams::new(7);
                     t_search_info = SearchInfo::new();
                     t_search_info.termination = SearchTerminate::Nothing;
 
