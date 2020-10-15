@@ -19,6 +19,8 @@ use std::{
 };
 
 const INF: i16 = 25000;
+const CHECKMATE: i16 = 24000;
+const STALEMATE: i16 = 0;
 
 #[derive(PartialEq)]
 pub enum SearchControl {
@@ -32,6 +34,8 @@ pub enum SearchControl {
 pub enum SearchTerminate {
     Stop,
     Quit,
+    Checkmate,
+    Stalemate,
     Nothing,
 }
 
@@ -136,7 +140,7 @@ impl Search {
                         halt = true;
                         quit = true;
                     }
-                    SearchTerminate::Nothing => (),
+                    _ => (),
                 }
             }
         });
@@ -199,9 +203,6 @@ impl Search {
                 knps
             );
             depth += 1;
-
-            // Check if termination is required.
-            terminate = search_info.termination != SearchTerminate::Nothing;
         }
     }
 
@@ -250,9 +251,11 @@ impl Search {
         search_info.nodes += 1;
 
         // Generate the moves in this position
+        let mut legal_moves_found = 0;
         let mut move_list = MoveList::new();
         mg.generate_moves(board, &mut move_list, MoveType::All);
 
+        // Iterate over the moves.
         for i in 0..move_list.len() {
             let current_move = move_list.get_move(i);
             let is_legal = board.make(current_move, mg);
@@ -261,6 +264,9 @@ impl Search {
             if !is_legal {
                 continue;
             }
+
+            // At this point, a legal move was found.
+            legal_moves_found += 1;
 
             // Move is legal; increase the ply count.
             search_info.ply += 1;
@@ -295,6 +301,21 @@ impl Search {
                 // Save our better evaluation score.
                 alpha = eval_score;
                 current_best_move = current_move;
+            }
+        }
+
+        // If we exit the loop without legal moves being found, the
+        // side to move is either in checkmate or stalemate.
+        if legal_moves_found == 0 {
+            let king_square = board.king_square(board.us());
+            let is_in_check = mg.square_attacked(board, board.opponent(), king_square);
+
+            if is_in_check {
+                search_info.termination = SearchTerminate::Checkmate;
+                return -CHECKMATE + (search_info.ply as i16);
+            } else {
+                search_info.termination = SearchTerminate::Stalemate;
+                return STALEMATE;
             }
         }
 
