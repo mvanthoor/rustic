@@ -2,7 +2,7 @@ use super::{defs::ErrFatal, Engine};
 use crate::{
     comm::{console::ConsoleReport, CommControl, CommReport, GeneralReport},
     evaluation::evaluate_position,
-    search::SearchControl,
+    search::defs::SearchControl,
 };
 
 // This block implements handling of incoming information, which will be in
