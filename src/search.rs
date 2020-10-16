@@ -37,6 +37,7 @@ pub enum SearchTerminate {
     Nothing,
 }
 
+// This struct holds all the search parameters as set by the engine.
 pub struct SearchParams {
     depth: u8,
 }
@@ -47,6 +48,7 @@ impl SearchParams {
     }
 }
 
+// The search function will put all findings into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub best_move: Move,
@@ -64,6 +66,14 @@ impl SearchInfo {
             ply: 0,
         }
     }
+}
+
+struct SearchRefs<'a> {
+    board: &'a mut Board,
+    mg: &'a Arc<MoveGenerator>,
+    search_params: &'a mut SearchParams,
+    search_info: &'a mut SearchInfo,
+    control_rx: &'a Receiver<SearchControl>,
 }
 
 pub struct Search {
@@ -90,12 +100,14 @@ impl Search {
 
         // Create thread-local variables.
         let _t_report_tx = report_tx.clone();
-        let t_mg = Arc::clone(&mg);
-        let t_arc_board = Arc::clone(&board);
-        let mut t_search_info = SearchInfo::new();
 
         // Create the search thread.
         let h = thread::spawn(move || {
+            // Pointer to Board and Move Generator for this thread.
+            let arc_board = Arc::clone(&board);
+            let arc_mg = Arc::clone(&mg);
+            let mut search_info = SearchInfo::new();
+
             let mut quit = false;
             let mut halt = true;
 
@@ -112,25 +124,26 @@ impl Search {
                 }
 
                 if !halt && !quit {
-                    let mtx_board = t_arc_board.lock().expect(ErrFatal::LOCK);
+                    let mtx_board = arc_board.lock().expect(ErrFatal::LOCK);
                     let mut board = mtx_board.clone();
-
-                    let mut search_params = SearchParams::new(7);
-                    t_search_info = SearchInfo::new();
-                    t_search_info.termination = SearchTerminate::Nothing;
-
                     std::mem::drop(mtx_board);
 
-                    Search::iterative_deepening(
-                        &mut board,
-                        &t_mg,
-                        &mut search_params,
-                        &mut t_search_info,
-                        &control_rx,
-                    );
+                    search_info = SearchInfo::new();
+                    search_info.termination = SearchTerminate::Nothing;
+
+                    let mut search_params = SearchParams::new(7);
+                    let mut search_refs = SearchRefs {
+                        board: &mut board,
+                        mg: &arc_mg,
+                        search_params: &mut search_params,
+                        search_info: &mut search_info,
+                        control_rx: &control_rx,
+                    };
+
+                    Search::iterative_deepening(&mut search_refs);
                 }
 
-                match t_search_info.termination {
+                match search_info.termination {
                     SearchTerminate::Stop => {
                         halt = true;
                     }
@@ -164,56 +177,34 @@ impl Search {
 
 // Actual search routines.
 impl Search {
-    fn iterative_deepening(
-        board: &mut Board,
-        mg: &Arc<MoveGenerator>,
-        search_params: &mut SearchParams,
-        search_info: &mut SearchInfo,
-        control_rx: &Receiver<SearchControl>,
-    ) {
+    fn iterative_deepening(refs: &mut SearchRefs) {
         let mut depth = 1;
-        let mut terminate = false;
+        let terminate = false;
 
-        while depth <= search_params.depth && depth <= MAX_DEPTH && !terminate {
+        while depth <= refs.search_params.depth && depth < MAX_DEPTH && !terminate {
             let now = std::time::Instant::now();
 
-            let eval = Search::alpha_beta(
-                depth,
-                -INF,
-                INF,
-                board,
-                mg,
-                search_params,
-                search_info,
-                control_rx,
-            );
+            let eval = Search::alpha_beta(depth, -INF, INF, refs);
 
-            let elapsed = now.elapsed().as_millis();
-            let knps = ((search_info.nodes * 1000) as f64 / elapsed as f64).floor() as usize / 1000;
+            let seconds = now.elapsed().as_millis() as f64 / 1000f64;
+            let knodes = refs.search_info.nodes as f64 / 1000f64;
+            let knps = (knodes / seconds).floor() as usize;
 
             println!(
                 "depth: {}, best move: {}{}, eval: {}, nodes: {}, knps: {}",
                 depth,
-                SQUARE_NAME[search_info.best_move.from()],
-                SQUARE_NAME[search_info.best_move.to()],
+                SQUARE_NAME[refs.search_info.best_move.from()],
+                SQUARE_NAME[refs.search_info.best_move.to()],
                 eval,
-                search_info.nodes,
+                refs.search_info.nodes,
                 knps
             );
+
             depth += 1;
         }
     }
 
-    fn alpha_beta(
-        depth: u8,
-        mut alpha: i16,
-        beta: i16,
-        board: &mut Board,
-        mg: &Arc<MoveGenerator>,
-        search_params: &mut SearchParams,
-        search_info: &mut SearchInfo,
-        control_rx: &Receiver<SearchControl>,
-    ) -> i16 {
+    fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
         // Check for stop or quit commands.
         // ======================================================================
 
@@ -238,7 +229,7 @@ impl Search {
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
         if depth == 0 {
-            return evaluation::evaluate_position(board);
+            return evaluation::evaluate_position(refs.board);
         }
 
         // Temporary variables.
@@ -246,17 +237,18 @@ impl Search {
         let old_alpha = alpha;
 
         // Search a new node, so we increase the node counter.
-        search_info.nodes += 1;
+        refs.search_info.nodes += 1;
 
         // Generate the moves in this position
         let mut legal_moves_found = 0;
         let mut move_list = MoveList::new();
-        mg.generate_moves(board, &mut move_list, MoveType::All);
+        refs.mg
+            .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
             let current_move = move_list.get_move(i);
-            let is_legal = board.make(current_move, mg);
+            let is_legal = refs.board.make(current_move, refs.mg);
 
             // If not legal, skip the move and the rest of the function.
             if !is_legal {
@@ -267,25 +259,16 @@ impl Search {
             legal_moves_found += 1;
 
             // Move is legal; increase the ply count.
-            search_info.ply += 1;
+            refs.search_info.ply += 1;
 
             // We are not yet in a leaf node (the "bottom" of the tree, at
             // the requested depth), so start Alpha-Beta again, for the
             // opponent's side to go one ply deeper.
-            let eval_score = -Search::alpha_beta(
-                depth - 1,
-                -beta,
-                -alpha,
-                board,
-                mg,
-                search_params,
-                search_info,
-                control_rx,
-            );
+            let eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, refs);
 
             // Take back the move, and decrease ply accordingly.
-            board.unmake();
-            search_info.ply -= 1;
+            refs.board.unmake();
+            refs.search_info.ply -= 1;
 
             // Beta-cut-off. We return this score, because searching any
             // further down this path would make the situation worse for us
@@ -305,14 +288,15 @@ impl Search {
         // If we exit the loop without legal moves being found, the
         // side to move is either in checkmate or stalemate.
         if legal_moves_found == 0 {
-            let king_square = board.king_square(board.us());
-            let is_in_check = mg.square_attacked(board, board.opponent(), king_square);
+            let king_square = refs.board.king_square(refs.board.us());
+            let opponent = refs.board.opponent();
+            let check = refs.mg.square_attacked(refs.board, opponent, king_square);
 
-            if is_in_check {
-                // It is minus checkmate (negative), because when checkmate
-                // is detected for the player to move, this is a very bad
-                // situation for that player.
-                return -CHECKMATE + (search_info.ply as i16);
+            if check {
+                // The return value is minus CHECKMATE (negative), because
+                // if we have no legal moves AND are in check, we have
+                // lost. This is a very negative outcome.
+                return -CHECKMATE + (refs.search_info.ply as i16);
             } else {
                 return STALEMATE;
             }
@@ -321,12 +305,12 @@ impl Search {
         // Alpha was improved while walking through the move list, so a
         // better move was found.
         if alpha != old_alpha {
-            search_info.best_move = current_best_move;
+            refs.search_info.best_move = current_best_move;
         }
 
         // We have traversed the entire move list and found the best
-        // possible move/eval_score for us at this depth, so return it.
-        // This called "fail low".
+        // possible move/eval_score for us at this depth. We can't improve
+        // this any further, so return the result. This called "fail-low".
         return alpha;
     }
 }
