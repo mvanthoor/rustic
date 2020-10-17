@@ -1,5 +1,5 @@
 use super::{
-    defs::{CHECKMATE, STALEMATE},
+    defs::{SearchControl, SearchTerminate, CHECKMATE, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -12,22 +12,13 @@ impl Search {
         // Check for stop or quit commands.
         // ======================================================================
 
-        /*
-
-        let cmd = control_rx.try_recv().unwrap_or(SearchControl::Nothing);
+        let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
-            SearchControl::Stop => {
-                search_info.termination = SearchTerminate::Stop;
-                return 0;
-            }
-            SearchControl::Quit => {
-                search_info.termination = SearchTerminate::Quit;
-                return 0;
-            }
+            SearchControl::Stop => refs.search_info.termination = SearchTerminate::Stop,
+            SearchControl::Quit => refs.search_info.termination = SearchTerminate::Quit,
             _ => (),
         };
 
-        */
         // ======================================================================
 
         // We have arrived at the leaf node. Evaluate the position and
@@ -51,6 +42,10 @@ impl Search {
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
+            if refs.search_info.termination != SearchTerminate::Nothing {
+                break;
+            }
+
             let current_move = move_list.get_move(i);
             let is_legal = refs.board.make(current_move, refs.mg);
 

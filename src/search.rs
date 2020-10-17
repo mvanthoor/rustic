@@ -47,7 +47,6 @@ impl Search {
             // Pointer to Board and Move Generator for this thread.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
-            let mut search_info = SearchInfo::new();
 
             let mut quit = false;
             let mut halt = true;
@@ -69,10 +68,10 @@ impl Search {
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
-                    search_info = SearchInfo::new();
+                    let mut search_params = SearchParams::new(9);
+                    let mut search_info = SearchInfo::new();
                     search_info.termination = SearchTerminate::Nothing;
 
-                    let mut search_params = SearchParams::new(7);
                     let mut search_refs = SearchRefs {
                         board: &mut board,
                         mg: &arc_mg,
@@ -82,17 +81,17 @@ impl Search {
                     };
 
                     Search::iterative_deepening(&mut search_refs);
-                }
 
-                match search_info.termination {
-                    SearchTerminate::Stop => {
-                        halt = true;
+                    match search_info.termination {
+                        SearchTerminate::Stop => {
+                            halt = true;
+                        }
+                        SearchTerminate::Quit => {
+                            halt = true;
+                            quit = true;
+                        }
+                        SearchTerminate::Nothing => (),
                     }
-                    SearchTerminate::Quit => {
-                        halt = true;
-                        quit = true;
-                    }
-                    _ => (),
                 }
             }
         });
@@ -120,32 +119,37 @@ impl Search {
 impl Search {
     fn iterative_deepening(refs: &mut SearchRefs) {
         let mut depth = 1;
-        let terminate = false;
+        let mut terminate = false;
 
         while depth <= refs.search_params.depth && depth < MAX_DEPTH && !terminate {
             let now = std::time::Instant::now();
 
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
 
-            let mut knps = 0;
-            let seconds = now.elapsed().as_millis() as f64 / 1000f64;
-            if seconds > 0f64 {
-                let knodes = refs.search_info.nodes as f64 / 1000f64;
-                knps = (knodes / seconds).round() as usize;
+            // Terminate iterative deepning if requested.
+            terminate = refs.search_info.termination != SearchTerminate::Nothing;
+
+            if !terminate {
+                let mut knps = 0;
+                let seconds = now.elapsed().as_millis() as f64 / 1000f64;
+                if seconds > 0f64 {
+                    let knodes = refs.search_info.nodes as f64 / 1000f64;
+                    knps = (knodes / seconds).round() as usize;
+                }
+
+                println!(
+                    "depth: {}, best move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
+                    depth,
+                    SQUARE_NAME[refs.search_info.best_move.from()],
+                    SQUARE_NAME[refs.search_info.best_move.to()],
+                    eval,
+                    seconds,
+                    refs.search_info.nodes,
+                    knps
+                );
+
+                depth += 1;
             }
-
-            println!(
-                "depth: {}, best move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
-                depth,
-                SQUARE_NAME[refs.search_info.best_move.from()],
-                SQUARE_NAME[refs.search_info.best_move.to()],
-                eval,
-                seconds,
-                refs.search_info.nodes,
-                knps
-            );
-
-            depth += 1;
         }
     }
 }
