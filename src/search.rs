@@ -127,16 +127,20 @@ impl Search {
 
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
 
+            let mut knps = 0;
             let seconds = now.elapsed().as_millis() as f64 / 1000f64;
-            let knodes = refs.search_info.nodes as f64 / 1000f64;
-            let knps = (knodes / seconds).floor() as usize;
+            if seconds > 0f64 {
+                let knodes = refs.search_info.nodes as f64 / 1000f64;
+                knps = (knodes / seconds).round() as usize;
+            }
 
             println!(
-                "depth: {}, best move: {}{}, eval: {}, nodes: {}, knps: {}",
+                "depth: {}, best move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
                 depth,
                 SQUARE_NAME[refs.search_info.best_move.from()],
                 SQUARE_NAME[refs.search_info.best_move.to()],
                 eval,
+                seconds,
                 refs.search_info.nodes,
                 knps
             );
