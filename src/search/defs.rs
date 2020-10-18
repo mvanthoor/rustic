@@ -3,7 +3,7 @@ use crate::{
     movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::Receiver;
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 pub const INF: i16 = 25000;
 pub const CHECKMATE: i16 = 24000;
@@ -30,17 +30,22 @@ pub enum SearchTerminate {
 // This struct holds all the search parameters as set by the engine.
 pub struct SearchParams {
     pub depth: u8,
+    pub time_for_move: u128,
 }
 
 impl SearchParams {
-    pub fn new(depth: u8) -> Self {
-        Self { depth }
+    pub fn new(depth: u8, time_for_move: u128) -> Self {
+        Self {
+            depth,
+            time_for_move,
+        }
     }
 }
 
 // The search function will put all findings into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
+    pub start_time: Instant,
     pub best_move: Move,
     pub termination: SearchTerminate,
     pub nodes: usize,
@@ -50,6 +55,7 @@ pub struct SearchInfo {
 impl SearchInfo {
     pub fn new() -> Self {
         Self {
+            start_time: Instant::now(),
             best_move: Move::new(0),
             termination: SearchTerminate::Nothing,
             nodes: 0,

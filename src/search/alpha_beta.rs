@@ -13,14 +13,21 @@ impl Search {
         // ======================================================================
 
         let checkpoint = refs.search_info.nodes % CHECKPOINT == 0;
-
         if checkpoint {
+            // Terminate search if stop or quit command is received.
             let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
             match cmd {
                 SearchControl::Stop => refs.search_info.termination = SearchTerminate::Stop,
                 SearchControl::Quit => refs.search_info.termination = SearchTerminate::Quit,
                 _ => (),
             };
+
+            // Terminate search if allowed time for this move has run out.
+            let elapsed = refs.search_info.start_time.elapsed().as_millis();
+            let time_up = elapsed >= refs.search_params.time_for_move;
+            if time_up {
+                refs.search_info.termination = SearchTerminate::Stop
+            }
         }
 
         // ======================================================================

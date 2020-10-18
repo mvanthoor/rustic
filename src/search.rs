@@ -68,7 +68,7 @@ impl Search {
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
-                    let mut search_params = SearchParams::new(9);
+                    let mut search_params = SearchParams::new(MAX_DEPTH, 500);
                     let mut search_info = SearchInfo::new();
                     search_info.termination = SearchTerminate::Nothing;
 
