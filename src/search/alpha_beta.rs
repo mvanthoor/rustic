@@ -1,5 +1,5 @@
 use super::{
-    defs::{SearchControl, SearchTerminate, CHECKMATE, STALEMATE},
+    defs::{SearchControl, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -12,12 +12,16 @@ impl Search {
         // Check for stop or quit commands.
         // ======================================================================
 
-        let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
-        match cmd {
-            SearchControl::Stop => refs.search_info.termination = SearchTerminate::Stop,
-            SearchControl::Quit => refs.search_info.termination = SearchTerminate::Quit,
-            _ => (),
-        };
+        let checkpoint = refs.search_info.nodes % CHECKPOINT == 0;
+
+        if checkpoint {
+            let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
+            match cmd {
+                SearchControl::Stop => refs.search_info.termination = SearchTerminate::Stop,
+                SearchControl::Quit => refs.search_info.termination = SearchTerminate::Quit,
+                _ => (),
+            };
+        }
 
         // ======================================================================
 

@@ -8,6 +8,7 @@ use std::sync::Arc;
 pub const INF: i16 = 25000;
 pub const CHECKMATE: i16 = 24000;
 pub const STALEMATE: i16 = 0;
+pub const CHECKPOINT: usize = 20_000; // nodes
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
