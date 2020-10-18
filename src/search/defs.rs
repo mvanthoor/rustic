@@ -78,3 +78,8 @@ pub struct SearchRefs<'a> {
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
 }
+
+#[derive(PartialEq)]
+pub enum SearchReport {
+    Finished,
+}

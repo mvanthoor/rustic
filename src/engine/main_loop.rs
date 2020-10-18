@@ -30,6 +30,7 @@ impl Engine {
 
             match information {
                 Information::Comm(cr) => self.comm_reports(cr),
+                Information::Search(sr) => self.search_reports(sr),
             }
         }
 

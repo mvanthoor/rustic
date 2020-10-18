@@ -11,7 +11,9 @@ use crate::{
     movegen::MoveGenerator,
 };
 use crossbeam_channel::Sender;
-use defs::{SearchControl, SearchInfo, SearchParams, SearchRefs, SearchTerminate, INF};
+use defs::{
+    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminate, INF,
+};
 use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
@@ -32,15 +34,15 @@ impl Search {
 
     pub fn init(
         &mut self,
-        report_tx: Sender<Information>,
-        board: Arc<Mutex<Board>>,
-        mg: Arc<MoveGenerator>,
+        report_tx: Sender<Information>, // Used to send information to engine.
+        board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
+        mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
         // Create thread-local variables.
-        let _t_report_tx = report_tx.clone();
+        let t_report_tx = report_tx.clone();
 
         // Create the search thread.
         let h = thread::spawn(move || {
@@ -51,37 +53,51 @@ impl Search {
             let mut quit = false;
             let mut halt = true;
 
+            // As long as the search isn't quit, keep this thread alive.
             while !quit {
+                // Wait for the next incoming command from the engine.
                 let cmd = control_rx.recv().expect(ErrFatal::CHANNEL);
 
+                // And react accordingly.
                 match cmd {
                     SearchControl::Start => {
-                        halt = false;
+                        halt = false; // This will start the search.
                     }
                     SearchControl::Stop => halt = true,
                     SearchControl::Quit => quit = true,
                     SearchControl::Nothing => (),
                 }
 
+                // Search isn't halted and not going to quit.
                 if !halt && !quit {
+                    // Copy the current board to be used in this thread.
                     let mtx_board = arc_board.lock().expect(ErrFatal::LOCK);
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
+                    // Set up search parameters.
                     let mut search_params = SearchParams::new(MAX_DEPTH, 1000 * 60 * 2);
                     let mut search_info = SearchInfo::new();
                     search_info.terminate = SearchTerminate::Nothing;
 
+                    // Create references to all needed information.
                     let mut search_refs = SearchRefs {
-                        board: &mut board,
-                        mg: &arc_mg,
-                        search_params: &mut search_params,
-                        search_info: &mut search_info,
-                        control_rx: &control_rx,
+                        board: &mut board,                 // Just copied board.
+                        mg: &arc_mg,                       // Move generator within engine.
+                        search_params: &mut search_params, // Search parameters.
+                        search_info: &mut search_info,     // A place to put search results.
+                        control_rx: &control_rx,           // This thread's command receiver.
                     };
 
+                    // Start the search using Iterative Deepening.
                     Search::iterative_deepening(&mut search_refs);
 
+                    // Inform the engine that the search has finished.
+                    let information = Information::Search(SearchReport::Finished);
+                    t_report_tx.send(information).expect(ErrFatal::CHANNEL);
+
+                    // If the search was finished due to a Stop or Quit
+                    // command then either halt or quit the search.
                     match search_info.terminate {
                         SearchTerminate::Stop => {
                             halt = true;
@@ -92,7 +108,6 @@ impl Search {
                         }
                         SearchTerminate::Nothing => (),
                     }
-                    println!("Search done.");
                 }
             }
         });
@@ -109,6 +124,8 @@ impl Search {
         }
     }
 
+    // After sending the quit command, the engine calls this function to
+    // wait for the search to shut down.
     pub fn wait_for_shutdown(&mut self) {
         if let Some(h) = self.handle.take() {
             h.join().expect(ErrFatal::THREAD);

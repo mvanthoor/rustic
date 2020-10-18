@@ -2,6 +2,7 @@ mod actions;
 mod comm_reports;
 pub mod defs;
 mod main_loop;
+mod search_reports;
 mod utils;
 
 use crate::{

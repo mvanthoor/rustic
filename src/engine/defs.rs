@@ -1,4 +1,4 @@
-use crate::comm::CommReport;
+use crate::{comm::CommReport, search::defs::SearchReport};
 // This struct holds messages that are reported on fatal engine errors.
 // These should never happen; if they do the engine is in an unknown state,
 // and it will panic without trying any recovery whatsoever.
@@ -31,4 +31,5 @@ pub struct Settings {
 #[derive(PartialEq)]
 pub enum Information {
     Comm(CommReport),
+    Search(SearchReport),
 }
