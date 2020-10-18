@@ -42,7 +42,7 @@ impl Search {
         refs.search_info.nodes += 1;
 
         // Temporary variables.
-        let mut current_best_move = Move::new(0);
+        let mut best_move_at_depth = Move::new(0);
         let old_alpha = alpha;
 
         // Generate the moves in this position
@@ -91,7 +91,7 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                current_best_move = current_move;
+                best_move_at_depth = current_move;
             }
         }
 
@@ -115,7 +115,7 @@ impl Search {
         // Alpha was improved while walking through the move list, so a
         // better move was found.
         if alpha != old_alpha {
-            refs.search_info.best_move = current_best_move;
+            refs.search_info.curr_move = best_move_at_depth;
         }
 
         // We have traversed the entire move list and found the best

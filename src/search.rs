@@ -93,7 +93,7 @@ impl Search {
                     Search::iterative_deepening(&mut search_refs);
 
                     // Inform the engine that the search has finished.
-                    let best_move = search_info.best_move;
+                    let best_move = search_info.curr_move;
                     let information = Information::Search(SearchReport::Finished(best_move));
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);
 
@@ -159,8 +159,8 @@ impl Search {
                 println!(
                     "depth: {}, best move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
                     depth,
-                    SQUARE_NAME[refs.search_info.best_move.from()],
-                    SQUARE_NAME[refs.search_info.best_move.to()],
+                    SQUARE_NAME[refs.search_info.curr_move.from()],
+                    SQUARE_NAME[refs.search_info.curr_move.to()],
                     eval,
                     seconds,
                     refs.search_info.nodes,

@@ -46,7 +46,7 @@ impl SearchParams {
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub start_time: Instant,
-    pub best_move: Move,
+    pub curr_move: Move,
     pub nodes: usize,
     pub ply: u8,
     pub terminate: SearchTerminate,
@@ -56,7 +56,7 @@ impl SearchInfo {
     pub fn new() -> Self {
         Self {
             start_time: Instant::now(),
-            best_move: Move::new(0),
+            curr_move: Move::new(0),
             nodes: 0,
             ply: 0,
             terminate: SearchTerminate::Nothing,
