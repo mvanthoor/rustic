@@ -10,6 +10,8 @@ pub const CHECKMATE: i16 = 24000;
 pub const STALEMATE: i16 = 0;
 pub const CHECKPOINT: usize = 10_000; // nodes
 
+pub type SearchResult = (Move, SearchTerminate);
+
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
@@ -20,7 +22,7 @@ pub enum SearchControl {
 }
 
 // Ways to terminate a search.
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum SearchTerminate {
     Stop,    // Search is halted.
     Quit,    // Search module is quit completely.

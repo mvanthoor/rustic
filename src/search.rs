@@ -8,11 +8,12 @@ use crate::{
     board::{defs::SQUARE_NAME, Board},
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
-    movegen::MoveGenerator,
+    movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::Sender;
 use defs::{
-    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminate, INF,
+    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchResult,
+    SearchTerminate, INF,
 };
 use std::{
     sync::{Arc, Mutex},
@@ -90,16 +91,15 @@ impl Search {
                     };
 
                     // Start the search using Iterative Deepening.
-                    Search::iterative_deepening(&mut search_refs);
+                    let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
 
                     // Inform the engine that the search has finished.
-                    let best_move = search_info.curr_move;
                     let information = Information::Search(SearchReport::Finished(best_move));
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);
 
                     // If the search was finished due to a Stop or Quit
                     // command then either halt or quit the search.
-                    match search_info.terminate {
+                    match terminate {
                         SearchTerminate::Stop => {
                             halt = true;
                         }
@@ -136,19 +136,27 @@ impl Search {
 
 // Actual search routines.
 impl Search {
-    fn iterative_deepening(refs: &mut SearchRefs) {
+    fn iterative_deepening(refs: &mut SearchRefs) -> SearchResult {
         let mut depth = 1;
-        let mut terminate = false;
+        let mut interrupted = false;
+        let mut best_move = Move::new(0);
 
-        while depth <= refs.search_params.depth && depth < MAX_DEPTH && !terminate {
+        while depth <= refs.search_params.depth && depth < MAX_DEPTH && !interrupted {
+            // Record the time at which this depth was started.
             let now = std::time::Instant::now();
 
+            // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
 
-            // Terminate iterative deepning if requested.
-            terminate = refs.search_info.terminate != SearchTerminate::Nothing;
+            // Detect if searching this depth was interrupted.
+            interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
 
-            if !terminate {
+            // If searching this depth was not interrupted...
+            if !interrupted {
+                // Save the best move until now.
+                best_move = refs.search_info.curr_move;
+
+                // Calculate speed.
                 let mut knps = 0;
                 let seconds = now.elapsed().as_millis() as f64 / 1000f64;
                 if seconds > 0f64 {
@@ -156,8 +164,9 @@ impl Search {
                     knps = (knodes / seconds).round() as usize;
                 }
 
+                // Print search information.
                 println!(
-                    "depth: {}, best move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
+                    "depth: {}, current move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
                     depth,
                     SQUARE_NAME[refs.search_info.curr_move.from()],
                     SQUARE_NAME[refs.search_info.curr_move.to()],
@@ -167,8 +176,12 @@ impl Search {
                     knps
                 );
 
+                // Search one ply deepr.
                 depth += 1;
             }
         }
+
+        // Search is done. Report best move and reason to terminate.
+        (best_move, refs.search_info.terminate)
     }
 }
