@@ -68,9 +68,9 @@ impl Search {
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
-                    let mut search_params = SearchParams::new(MAX_DEPTH, 500);
+                    let mut search_params = SearchParams::new(MAX_DEPTH, 1000 * 60 * 2);
                     let mut search_info = SearchInfo::new();
-                    search_info.termination = SearchTerminate::Nothing;
+                    search_info.terminate = SearchTerminate::Nothing;
 
                     let mut search_refs = SearchRefs {
                         board: &mut board,
@@ -82,7 +82,7 @@ impl Search {
 
                     Search::iterative_deepening(&mut search_refs);
 
-                    match search_info.termination {
+                    match search_info.terminate {
                         SearchTerminate::Stop => {
                             halt = true;
                         }
@@ -92,6 +92,7 @@ impl Search {
                         }
                         SearchTerminate::Nothing => (),
                     }
+                    println!("Search done.");
                 }
             }
         });
@@ -127,7 +128,7 @@ impl Search {
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
 
             // Terminate iterative deepning if requested.
-            terminate = refs.search_info.termination != SearchTerminate::Nothing;
+            terminate = refs.search_info.terminate != SearchTerminate::Nothing;
 
             if !terminate {
                 let mut knps = 0;

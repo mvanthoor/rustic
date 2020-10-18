@@ -8,7 +8,7 @@ use std::{sync::Arc, time::Instant};
 pub const INF: i16 = 25000;
 pub const CHECKMATE: i16 = 24000;
 pub const STALEMATE: i16 = 0;
-pub const CHECKPOINT: usize = 20_000; // nodes
+pub const CHECKPOINT: usize = 10_000; // nodes
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
@@ -47,9 +47,9 @@ impl SearchParams {
 pub struct SearchInfo {
     pub start_time: Instant,
     pub best_move: Move,
-    pub termination: SearchTerminate,
     pub nodes: usize,
     pub ply: u8,
+    pub terminate: SearchTerminate,
 }
 
 impl SearchInfo {
@@ -57,9 +57,9 @@ impl SearchInfo {
         Self {
             start_time: Instant::now(),
             best_move: Move::new(0),
-            termination: SearchTerminate::Nothing,
             nodes: 0,
             ply: 0,
+            terminate: SearchTerminate::Nothing,
         }
     }
 }

@@ -17,8 +17,8 @@ impl Search {
             // Terminate search if stop or quit command is received.
             let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
             match cmd {
-                SearchControl::Stop => refs.search_info.termination = SearchTerminate::Stop,
-                SearchControl::Quit => refs.search_info.termination = SearchTerminate::Quit,
+                SearchControl::Stop => refs.search_info.terminate = SearchTerminate::Stop,
+                SearchControl::Quit => refs.search_info.terminate = SearchTerminate::Quit,
                 _ => (),
             };
 
@@ -26,7 +26,7 @@ impl Search {
             let elapsed = refs.search_info.start_time.elapsed().as_millis();
             let time_up = elapsed >= refs.search_params.time_for_move;
             if time_up {
-                refs.search_info.termination = SearchTerminate::Stop
+                refs.search_info.terminate = SearchTerminate::Stop
             }
         }
 
@@ -38,12 +38,12 @@ impl Search {
             return evaluation::evaluate_position(refs.board);
         }
 
+        // Search a new node, so we increase the node counter.
+        refs.search_info.nodes += 1;
+
         // Temporary variables.
         let mut current_best_move = Move::new(0);
         let old_alpha = alpha;
-
-        // Search a new node, so we increase the node counter.
-        refs.search_info.nodes += 1;
 
         // Generate the moves in this position
         let mut legal_moves_found = 0;
@@ -53,7 +53,7 @@ impl Search {
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
-            if refs.search_info.termination != SearchTerminate::Nothing {
+            if refs.search_info.terminate != SearchTerminate::Nothing {
                 break;
             }
 
