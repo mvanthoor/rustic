@@ -81,5 +81,5 @@ pub struct SearchRefs<'a> {
 
 #[derive(PartialEq)]
 pub enum SearchReport {
-    Finished,
+    Finished(Move),
 }

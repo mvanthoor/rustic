@@ -2,7 +2,7 @@ pub mod console;
 // pub mod uci;
 // pub mod xboard;
 
-use crate::{board::Board, engine::defs::Information, misc::parse};
+use crate::{board::Board, engine::defs::Information, misc::parse, movegen::defs::Move};
 use console::ConsoleReport;
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
@@ -27,9 +27,10 @@ pub trait IComm {
 pub enum CommControl {
     Update,
     Quit,
-    Evaluation(i16),
     Help,
+    Evaluation(i16),
     Write(String),
+    BestMove(Move),
 }
 
 #[derive(PartialEq, Clone)]

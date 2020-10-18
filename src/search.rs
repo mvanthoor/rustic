@@ -93,7 +93,8 @@ impl Search {
                     Search::iterative_deepening(&mut search_refs);
 
                     // Inform the engine that the search has finished.
-                    let information = Information::Search(SearchReport::Finished);
+                    let best_move = search_info.best_move;
+                    let information = Information::Search(SearchReport::Finished(best_move));
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);
 
                     // If the search was finished due to a Stop or Quit

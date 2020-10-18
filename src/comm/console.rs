@@ -6,7 +6,7 @@
 
 use super::{CommControl, CommReport, CommType, GeneralReport, IComm};
 use crate::{
-    board::Board,
+    board::{defs::SQUARE_NAME, Board},
     defs::About,
     engine::defs::{ErrFatal, Information},
     misc::print,
@@ -165,8 +165,13 @@ impl Console {
                 match control {
                     CommControl::Quit => quit = true,
                     CommControl::Update => Console::update(&t_last_report, &board),
-                    CommControl::Write(msg) => println!("{}", msg),
                     CommControl::Help => Console::print_help(),
+                    CommControl::BestMove(m) => println!(
+                        "best move: {}{}",
+                        SQUARE_NAME[m.from()],
+                        SQUARE_NAME[m.to()]
+                    ),
+                    CommControl::Write(msg) => println!("{}", msg),
                     CommControl::Evaluation(eval) => Console::print_evaluation(eval),
                 }
             }
