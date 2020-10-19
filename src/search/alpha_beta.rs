@@ -51,6 +51,8 @@ impl Search {
         refs.mg
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
+        Search::score_moves(&mut move_list);
+
         // Iterate over the moves.
         for i in 0..move_list.len() {
             if refs.search_info.terminate != SearchTerminate::Nothing {

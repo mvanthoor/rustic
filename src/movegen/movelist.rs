@@ -44,4 +44,8 @@ impl MoveList {
     pub fn get_move(&self, index: u8) -> Move {
         self.list[index as usize]
     }
+
+    pub fn get_mut_move(&mut self, index: u8) -> &mut Move {
+        &mut self.list[index as usize]
+    }
 }

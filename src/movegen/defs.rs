@@ -20,10 +20,10 @@ Bits:       3           3           6           6           3
 Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
 & Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
-Field:      EVALSCORE   CASTLING    DOUBLESTEP  ENPASSANT
-            14          1           1           1
+Field:      SCORE       CASTLING    DOUBLESTEP  ENPASSANT
+            8           1           1           1
 Shift:      24 bits     23 bits     22 bits     21 bits
-& Value:    0x3FFF      0x1         0x1 (1)     0x1 (1)
+& Value:    0xFF        0x1         0x1 (1)     0x1 (1)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -49,7 +49,7 @@ impl Shift {
     pub const EN_PASSANT: usize = 21;
     pub const DOUBLE_STEP: usize = 22;
     pub const CASTLING: usize = 23;
-    // pub const EVAL_SCORE: usize = 24;
+    pub const SCORE: usize = 24;
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -104,7 +104,11 @@ impl Move {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
-    // pub fn eval_sore(self) -> u16 {
-    //     ((self.data >> Shift::EVAL_SCORE as u64) & 0x3FFF) as u16
-    // }
+    pub fn score(self) -> u8 {
+        ((self.data >> Shift::SCORE as u64) & 0xFF) as u8
+    }
+
+    pub fn add_score(&mut self, value: u8) {
+        self.data += (value as usize) << Shift::SCORE;
+    }
 }

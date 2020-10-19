@@ -161,15 +161,16 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
 #[allow(dead_code)]
 pub fn movelist(ml: &MoveList) {
     for i in 0..ml.len() {
-        move_data(ml.get_move(i));
+        move_data(ml.get_move(i), i);
     }
 }
 
 // Prints decoded move data to the screen.
 #[allow(dead_code)]
-pub fn move_data(m: Move) {
+pub fn move_data(m: Move, nr: u8) {
     println!(
-        "Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}",
+        "{}. Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}, score: {}",
+        nr + 1,
         PIECE_CHAR[m.piece()],
         SQUARE_NAME[m.from()],
         SQUARE_NAME[m.to()],
@@ -178,5 +179,6 @@ pub fn move_data(m: Move) {
         m.en_passant(),
         m.double_step(),
         m.castling(),
+        m.score(),
     );
 }
