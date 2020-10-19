@@ -115,7 +115,7 @@ impl Search {
         // Alpha was improved while walking through the move list, so a
         // better move was found.
         if alpha != old_alpha {
-            refs.search_info.curr_move = best_move_at_depth;
+            refs.search_info.bm_at_depth = best_move_at_depth;
         }
 
         // We have traversed the entire move list and found the best

@@ -52,7 +52,7 @@ impl SearchParams {
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub start_time: Instant,
-    pub curr_move: Move,
+    pub bm_at_depth: Move,
     pub nodes: usize,
     pub ply: u8,
     pub terminate: SearchTerminate,
@@ -62,7 +62,7 @@ impl SearchInfo {
     pub fn new() -> Self {
         Self {
             start_time: Instant::now(),
-            curr_move: Move::new(0),
+            bm_at_depth: Move::new(0),
             nodes: 0,
             ply: 0,
             terminate: SearchTerminate::Nothing,
@@ -77,13 +77,13 @@ impl SearchInfo {
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchSummary {
-    pub depth: u8,       // depth reached during search
-    pub time: u128,      // milliseconds
-    pub cp: i16,         // centipawns score
-    pub mate: u8,        // mate in X moves
-    pub nodes: usize,    // nodes searched
-    pub nps: usize,      // nodes per second
-    pub curr_move: Move, // move considered at current depth
+    pub depth: u8,         // depth reached during search
+    pub time: u128,        // milliseconds
+    pub cp: i16,           // centipawns score
+    pub mate: u8,          // mate in X moves
+    pub nodes: usize,      // nodes searched
+    pub nps: usize,        // nodes per second
+    pub bm_at_depth: Move, // best move after this depth
 }
 
 // The search process needs references to a lot of data, such as a copy of

@@ -156,7 +156,7 @@ impl Search {
             // If searching this depth was not interrupted...
             if !interrupted {
                 // Save the best move until now.
-                best_move = refs.search_info.curr_move;
+                best_move = refs.search_info.bm_at_depth;
 
                 // Create search summary for this depth.
                 let elapsed = start.elapsed().as_millis();
@@ -168,7 +168,7 @@ impl Search {
                     mate: 0,
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
-                    curr_move: best_move,
+                    bm_at_depth: best_move,
                 };
 
                 // Create information for the engine

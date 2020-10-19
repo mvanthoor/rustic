@@ -269,8 +269,8 @@ impl Console {
         println!(
             "depth: {}, bestmove: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
             s.depth,
-            SQUARE_NAME[s.curr_move.from()],
-            SQUARE_NAME[s.curr_move.to()],
+            SQUARE_NAME[s.bm_at_depth.from()],
+            SQUARE_NAME[s.bm_at_depth.to()],
             s.cp, // centipawns
             seconds,
             s.nodes,
