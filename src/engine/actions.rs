@@ -19,11 +19,11 @@ impl Engine {
             let is_legal = self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
             if !is_legal {
                 let msg = String::from(ErrNormal::MOVE_NOT_ALLOWED);
-                self.comm.send(CommControl::Write(msg));
+                self.comm.send(CommControl::Print(msg));
             }
         } else {
             let msg = String::from(ErrNormal::MOVE_NOT_LEGAL);
-            self.comm.send(CommControl::Write(msg));
+            self.comm.send(CommControl::Print(msg));
         }
     }
 
@@ -35,7 +35,7 @@ impl Engine {
             mtx_board.unmake();
         } else {
             let msg = String::from(ErrNormal::NOTHING_TO_TAKE_BACK);
-            self.comm.send(CommControl::Write(msg));
+            self.comm.send(CommControl::Print(msg));
         }
     }
 }

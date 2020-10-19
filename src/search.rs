@@ -3,16 +3,17 @@
 mod alpha_beta;
 pub mod defs;
 mod sorting;
+mod utils;
 
 use crate::{
-    board::{defs::SQUARE_NAME, Board},
+    board::Board,
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
     movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::Sender;
 use defs::{
-    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchResult,
+    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchResult, SearchSummary,
     SearchTerminate, INF,
 };
 use std::{
@@ -88,6 +89,7 @@ impl Search {
                         search_params: &mut search_params, // Search parameters.
                         search_info: &mut search_info,     // A place to put search results.
                         control_rx: &control_rx,           // This thread's command receiver.
+                        report_tx: &t_report_tx,           // Report to engine thread.
                     };
 
                     // Start the search using Iterative Deepening.
@@ -143,7 +145,7 @@ impl Search {
 
         while depth <= refs.search_params.depth && depth < MAX_DEPTH && !interrupted {
             // Record the time at which this depth was started.
-            let now = std::time::Instant::now();
+            let start = std::time::Instant::now();
 
             // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
@@ -156,25 +158,22 @@ impl Search {
                 // Save the best move until now.
                 best_move = refs.search_info.curr_move;
 
-                // Calculate speed.
-                let mut knps = 0;
-                let seconds = now.elapsed().as_millis() as f64 / 1000f64;
-                if seconds > 0f64 {
-                    let knodes = refs.search_info.nodes as f64 / 1000f64;
-                    knps = (knodes / seconds).round() as usize;
-                }
-
-                // Print search information.
-                println!(
-                    "depth: {}, current move: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
+                // Create search summary for this depth.
+                let elapsed = start.elapsed().as_millis();
+                let nodes = refs.search_info.nodes;
+                let summary = SearchSummary {
                     depth,
-                    SQUARE_NAME[refs.search_info.curr_move.from()],
-                    SQUARE_NAME[refs.search_info.curr_move.to()],
-                    eval,
-                    seconds,
-                    refs.search_info.nodes,
-                    knps
-                );
+                    time: elapsed,
+                    cp: eval,
+                    mate: 0,
+                    nodes,
+                    nps: Search::nodes_per_second(nodes, elapsed),
+                    curr_move: best_move,
+                };
+
+                // Create information for the engine
+                let information = Information::Search(SearchReport::Summary(summary));
+                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
 
                 // Search one ply deepr.
                 depth += 1;

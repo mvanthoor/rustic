@@ -27,7 +27,7 @@ impl Engine {
 
             // Print the Help screen for the Comm module.
             CommReport::General(GeneralReport::Help) => {
-                self.comm.send(CommControl::Help);
+                self.comm.send(CommControl::PrintHelp);
                 self.comm.send(CommControl::Update);
             }
 
@@ -50,7 +50,7 @@ impl Engine {
             // Send evaluation result upon request.
             CommReport::Console(ConsoleReport::Evaluate) => {
                 let eval = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(CommControl::Evaluation(eval));
+                self.comm.send(CommControl::PrintEvaluation(eval));
                 self.comm.send(CommControl::Update);
             }
 

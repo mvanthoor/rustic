@@ -1,12 +1,13 @@
 use crate::{
     board::Board,
+    engine::defs::Information,
     movegen::{defs::Move, MoveGenerator},
 };
-use crossbeam_channel::Receiver;
+use crossbeam_channel::{Receiver, Sender};
 use std::{sync::Arc, time::Instant};
 
-pub const INF: i16 = 25000;
-pub const CHECKMATE: i16 = 24000;
+pub const INF: i16 = 25_000;
+pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
 pub const CHECKPOINT: usize = 10_000; // nodes
 
@@ -29,7 +30,9 @@ pub enum SearchTerminate {
     Nothing, // No command received yet.
 }
 
-// This struct holds all the search parameters as set by the engine.
+// This struct holds all the search parameters as set by the engine thread.
+// (These parameters are either default, or provided by the user interface
+// before the game starts.)
 pub struct SearchParams {
     pub depth: u8,
     pub time_for_move: u128,
@@ -44,7 +47,8 @@ impl SearchParams {
     }
 }
 
-// The search function will put all findings into this struct.
+// The search function will put all findings collected during the running
+// search into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub start_time: Instant,
@@ -66,6 +70,22 @@ impl SearchInfo {
     }
 }
 
+// After each completed depth, iterative deepening summarizes the running
+// search results within this struct before sending it to the engine
+// thread. The engine thread will send it to Comm, which will transform the
+// information into UCI/XBoard/Console output and print it to STDOUT.
+
+#[derive(PartialEq, Copy, Clone)]
+pub struct SearchSummary {
+    pub depth: u8,       // depth reached during search
+    pub time: u128,      // milliseconds
+    pub cp: i16,         // centipawns score
+    pub mate: u8,        // mate in X moves
+    pub nodes: usize,    // nodes searched
+    pub nps: usize,      // nodes per second
+    pub curr_move: Move, // move considered at current depth
+}
+
 // The search process needs references to a lot of data, such as a copy of
 // the current board to make moves on, the move generator, search paramters
 // (depth, time available, etc...), SearchInfo to put the results, and a
@@ -79,9 +99,11 @@ pub struct SearchRefs<'a> {
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
+    pub report_tx: &'a Sender<Information>,
 }
 
 #[derive(PartialEq)]
 pub enum SearchReport {
     Finished(Move),
+    Summary(SearchSummary),
 }

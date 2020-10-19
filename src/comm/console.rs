@@ -10,6 +10,7 @@ use crate::{
     defs::About,
     engine::defs::{ErrFatal, Information},
     misc::print,
+    search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -165,14 +166,15 @@ impl Console {
                 match control {
                     CommControl::Quit => quit = true,
                     CommControl::Update => Console::update(&t_last_report, &board),
-                    CommControl::Help => Console::print_help(),
-                    CommControl::BestMove(m) => println!(
-                        "best move: {}{}",
-                        SQUARE_NAME[m.from()],
-                        SQUARE_NAME[m.to()]
-                    ),
-                    CommControl::Write(msg) => println!("{}", msg),
-                    CommControl::Evaluation(eval) => Console::print_evaluation(eval),
+                    CommControl::PrintHelp => Console::print_help(),
+                    CommControl::PrintBestMove(m) => {
+                        println!("bestmove: {}{}", SQUARE_NAME[m.from()], SQUARE_NAME[m.to()])
+                    }
+                    CommControl::Print(msg) => println!("{}", msg),
+                    CommControl::PrintEvaluation(eval) => Console::print_evaluation(eval),
+                    CommControl::PrintSearchSummary(summary) => {
+                        Console::print_search_summary(summary)
+                    }
                 }
             }
         });
@@ -259,5 +261,20 @@ impl Console {
     // This function prints the evaluation from White's point of view.
     fn print_evaluation(eval: i16) {
         println!("Evaluation: {}", eval);
+    }
+
+    fn print_search_summary(s: SearchSummary) {
+        let seconds = s.time as f64 / 1_000f64;
+        let knps = (s.nps as f64 / 1_000f64).round() as usize;
+        println!(
+            "depth: {}, bestmove: {}{}, eval: {}, time: {}s, nodes: {}, knps: {}",
+            s.depth,
+            SQUARE_NAME[s.curr_move.from()],
+            SQUARE_NAME[s.curr_move.to()],
+            s.cp, // centipawns
+            seconds,
+            s.nodes,
+            knps
+        );
     }
 }
