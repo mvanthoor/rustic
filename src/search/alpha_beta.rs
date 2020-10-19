@@ -51,6 +51,7 @@ impl Search {
         refs.mg
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
+        // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list);
 
         // Iterate over the moves.
@@ -58,6 +59,11 @@ impl Search {
             if refs.search_info.terminate != SearchTerminate::Nothing {
                 break;
             }
+
+            // This function finds the best move to test according to the
+            // move scoring, and puts it at the current index of the move
+            // list, so get_move() will get this next.
+            Search::pick_move(&mut move_list, i);
 
             let current_move = move_list.get_move(i);
             let is_legal = refs.board.make(current_move, refs.mg);

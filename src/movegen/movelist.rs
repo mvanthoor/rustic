@@ -48,4 +48,15 @@ impl MoveList {
     pub fn get_mut_move(&mut self, index: u8) -> &mut Move {
         &mut self.list[index as usize]
     }
+
+    pub fn swap(&mut self, a: usize, b: usize) {
+        unsafe {
+            // Take two raw pointers to the moves.
+            let ptr_a: *mut Move = &mut self.list[a];
+            let ptr_b: *mut Move = &mut self.list[b];
+
+            // Swap those pointers, so now the moves are swapped.
+            std::ptr::swap(ptr_a, ptr_b);
+        }
+    }
 }

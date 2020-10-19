@@ -22,4 +22,12 @@ impl Search {
             m.add_score(value);
         }
     }
+
+    pub fn pick_move(ml: &mut MoveList, index: u8) {
+        for i in (index + 1)..ml.len() {
+            if ml.get_move(i).score() > ml.get_move(index).score() {
+                ml.swap(i as usize, index as usize);
+            }
+        }
+    }
 }

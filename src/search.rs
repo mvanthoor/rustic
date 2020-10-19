@@ -78,7 +78,7 @@ impl Search {
                     std::mem::drop(mtx_board);
 
                     // Set up search parameters.
-                    let mut search_params = SearchParams::new(1, 1000 * 15);
+                    let mut search_params = SearchParams::new(MAX_DEPTH, 1000 * 60 * 2);
                     let mut search_info = SearchInfo::new();
                     search_info.terminate = SearchTerminate::Nothing;
 
