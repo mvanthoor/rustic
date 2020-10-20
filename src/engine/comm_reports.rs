@@ -71,30 +71,9 @@ impl Engine {
     // Handles "Uci" Comm reports sent by the UCI-module.
     fn comm_reports_uci(&mut self, comm_report: &CommReport) {
         match comm_report {
-            // Received command: 'uci'
+            // Uci commands
             CommReport::Uci(UciReport::Uci) => self.comm.send(CommControl::Identify),
-
-            // Execute the received move.
-            CommReport::Uci(UciReport::Move(m)) => {
-                self.execute_move(m.clone());
-                self.comm.send(CommControl::Update);
-            }
-
-            // Send evaluation result upon request.
-            CommReport::Uci(UciReport::Evaluate) => {
-                let eval = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(CommControl::PrintEvaluation(eval));
-                self.comm.send(CommControl::Update);
-            }
-
-            CommReport::Uci(UciReport::Takeback) => {
-                self.takeback_move();
-                self.comm.send(CommControl::Update);
-            }
-
-            // Start or stop the search.
-            CommReport::Uci(UciReport::Search) => self.search.send(SearchControl::Start),
-            CommReport::Uci(UciReport::Cancel) => self.search.send(SearchControl::Stop),
+            CommReport::Uci(UciReport::Board) => self.comm.send(CommControl::PrintBoard),
             _ => (),
         }
     }

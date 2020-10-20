@@ -35,6 +35,7 @@ pub enum CommControl {
 
     // Output to screen or (G)UI
     PrintHelp,
+    PrintBoard,
     PrintEvaluation(i16),
     PrintMessage(String),
     PrintBestMove(Move),
