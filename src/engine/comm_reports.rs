@@ -71,6 +71,9 @@ impl Engine {
     // Handles "Uci" Comm reports sent by the UCI-module.
     fn comm_reports_uci(&mut self, comm_report: &CommReport) {
         match comm_report {
+            // Received command: 'uci'
+            CommReport::Uci(UciReport::Uci) => self.comm.send(CommControl::Identify),
+
             // Execute the received move.
             CommReport::Uci(UciReport::Move(m)) => {
                 self.execute_move(m.clone());

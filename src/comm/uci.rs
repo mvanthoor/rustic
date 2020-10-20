@@ -27,6 +27,9 @@ pub enum UciReport {
     Move(String),
     Evaluate,
     Takeback,
+
+    // Incoming Uci commands
+    Uci,
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -160,15 +163,22 @@ impl Uci {
                 let control = control_rx.recv().expect(ErrFatal::CHANNEL);
 
                 match control {
+                    CommControl::Identify => {
+                        println!("id name {} {}", About::ENGINE, About::VERSION);
+                        println!("id author {}", About::AUTHOR)
+                    }
+
+                    //
                     CommControl::Quit => quit = true,
                     CommControl::Update => Uci::update(&t_last_report, &board),
                     CommControl::PrintHelp => Uci::print_help(),
                     CommControl::PrintBestMove(m) => {
                         println!("bestmove: {}{}", SQUARE_NAME[m.from()], SQUARE_NAME[m.to()])
                     }
-                    CommControl::Print(msg) => println!("{}", msg),
+                    CommControl::PrintMessage(msg) => println!("{}", msg),
                     CommControl::PrintEvaluation(eval) => Uci::print_evaluation(eval),
                     CommControl::PrintSearchSummary(summary) => Uci::print_search_summary(summary),
+                    _ => (),
                 }
             }
         });
@@ -201,6 +211,8 @@ impl Uci {
 
         // Convert to &str for matching the command.
         match &i[..] {
+            "uci" => CommReport::Uci(UciReport::Uci),
+
             "help" | "h" => CommReport::General(GeneralReport::Help),
             "search" | "s" => CommReport::Uci(UciReport::Search),
             "cancel" | "c" => CommReport::Uci(UciReport::Cancel),

@@ -31,9 +31,12 @@ pub trait IComm {
 pub enum CommControl {
     Update,
     Quit,
+    Identify,
+
+    // Output to screen or (G)UI
     PrintHelp,
     PrintEvaluation(i16),
-    Print(String),
+    PrintMessage(String),
     PrintBestMove(Move),
     PrintSearchSummary(SearchSummary),
 }

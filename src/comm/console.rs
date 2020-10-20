@@ -170,11 +170,12 @@ impl Console {
                     CommControl::PrintBestMove(m) => {
                         println!("bestmove: {}{}", SQUARE_NAME[m.from()], SQUARE_NAME[m.to()])
                     }
-                    CommControl::Print(msg) => println!("{}", msg),
+                    CommControl::PrintMessage(msg) => println!("{}", msg),
                     CommControl::PrintEvaluation(eval) => Console::print_evaluation(eval),
                     CommControl::PrintSearchSummary(summary) => {
                         Console::print_search_summary(summary)
                     }
+                    _ => (),
                 }
             }
         });
