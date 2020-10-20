@@ -19,9 +19,9 @@ impl CmdLineArgs {
     // Interface
     const COMM_LONG: &'static str = "comm";
     const COMM_SHORT: &'static str = "c";
-    const COMM_HELP: &'static str = "Define communication to use";
+    const COMM_HELP: &'static str = "Select communication to use";
     const COMM_VALUES: [&'static str; 3] = ["uci", "xboard", "console"];
-    const COMM_DEFAULT: &'static str = "console";
+    const COMM_DEFAULT: &'static str = "uci";
 
     // Threads
     const THREADS_LONG: &'static str = "threads";
@@ -31,6 +31,7 @@ impl CmdLineArgs {
 
     // Kiwipete
     const KIWI_LONG: &'static str = "kiwipete";
+    const KIWI_SHORT: &'static str = "k";
     const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
 
     // Wizardry
@@ -140,6 +141,7 @@ impl CmdLine {
             .arg(
                 Arg::with_name(CmdLineArgs::KIWI_LONG)
                     .long(CmdLineArgs::KIWI_LONG)
+                    .short(CmdLineArgs::KIWI_SHORT)
                     .help(CmdLineArgs::KIWI_HELP)
                     .takes_value(false),
             );

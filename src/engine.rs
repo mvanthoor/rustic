@@ -7,7 +7,7 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, CommType, IComm},
+    comm::{console::Console, uci::Uci, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{ErrFatal, Information, Settings},
     misc::{cmdline::CmdLine, perft},
@@ -44,8 +44,8 @@ impl Engine {
 
         // Create the communication interface
         let i: Box<dyn IComm> = match &c.comm()[..] {
-            // CommType::UCI => Box::new(Uci::new()),
             // CommType::XBOARD => Box::new(Xboard::new()),
+            CommType::UCI => Box::new(Uci::new()),
             CommType::CONSOLE => Box::new(Console::new()),
             _ => panic!(ErrFatal::CREATE_COMM),
         };

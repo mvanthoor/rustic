@@ -1,5 +1,5 @@
 pub mod console;
-// pub mod uci;
+pub mod uci;
 // pub mod xboard;
 
 use crate::{
@@ -9,12 +9,13 @@ use crate::{
 use console::ConsoleReport;
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
+use uci::UciReport;
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;
 impl CommType {
-    // pub const UCI: &'static str = "uci";
     // pub const XBOARD: &'static str = "xboard";
+    pub const UCI: &'static str = "uci";
     pub const CONSOLE: &'static str = "console";
 }
 
@@ -51,6 +52,7 @@ pub enum GeneralReport {
 pub enum CommReport {
     General(GeneralReport),
     Console(ConsoleReport),
+    Uci(UciReport),
 }
 
 impl CommReport {

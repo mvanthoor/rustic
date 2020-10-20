@@ -1,6 +1,6 @@
 use super::{defs::ErrFatal, Engine};
 use crate::{
-    comm::{console::ConsoleReport, CommControl, CommReport, GeneralReport},
+    comm::{console::ConsoleReport, uci::UciReport, CommControl, CommReport, GeneralReport},
     evaluation::evaluate_position,
     search::defs::SearchControl,
 };
@@ -9,9 +9,11 @@ use crate::{
 // the form of either Comm or Search reports.
 impl Engine {
     pub fn comm_reports(&mut self, comm_report: &CommReport) {
+        // Split out the comm reports according to their source.
         match comm_report {
             CommReport::General(_) => self.comm_reports_general(comm_report),
             CommReport::Console(_) => self.comm_reports_console(comm_report),
+            CommReport::Uci(_) => self.comm_reports_uci(comm_report),
         }
     }
 
@@ -62,6 +64,34 @@ impl Engine {
             // Start or stop the search.
             CommReport::Console(ConsoleReport::Search) => self.search.send(SearchControl::Start),
             CommReport::Console(ConsoleReport::Cancel) => self.search.send(SearchControl::Stop),
+            _ => (),
+        }
+    }
+
+    // Handles "Uci" Comm reports sent by the UCI-module.
+    fn comm_reports_uci(&mut self, comm_report: &CommReport) {
+        match comm_report {
+            // Execute the received move.
+            CommReport::Uci(UciReport::Move(m)) => {
+                self.execute_move(m.clone());
+                self.comm.send(CommControl::Update);
+            }
+
+            // Send evaluation result upon request.
+            CommReport::Uci(UciReport::Evaluate) => {
+                let eval = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
+                self.comm.send(CommControl::PrintEvaluation(eval));
+                self.comm.send(CommControl::Update);
+            }
+
+            CommReport::Uci(UciReport::Takeback) => {
+                self.takeback_move();
+                self.comm.send(CommControl::Update);
+            }
+
+            // Start or stop the search.
+            CommReport::Uci(UciReport::Search) => self.search.send(SearchControl::Start),
+            CommReport::Uci(UciReport::Cancel) => self.search.send(SearchControl::Stop),
             _ => (),
         }
     }
