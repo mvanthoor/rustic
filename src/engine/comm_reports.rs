@@ -73,6 +73,9 @@ impl Engine {
         match comm_report {
             // Uci commands
             CommReport::Uci(UciReport::Uci) => self.comm.send(CommControl::Identify),
+            CommReport::Uci(UciReport::IsReady) => self.comm.send(CommControl::Ready),
+
+            // Custom commands
             CommReport::Uci(UciReport::Board) => self.comm.send(CommControl::PrintBoard),
             _ => (),
         }

@@ -29,11 +29,14 @@ pub trait IComm {
 
 #[derive(PartialEq)]
 pub enum CommControl {
-    Update,
-    Quit,
-    Identify,
+    // Reaction of engine to incoming commands.
+    Update,   // Request Comm module to update its state.
+    Quit,     // Quit the Comm module.
+    Identify, // Transmit identification of the engine.
+    Ready,    // Transmit that the engine is ready.
 
-    // Output to screen or (G)UI
+    // Output to screen for custom commands.
+    // Mostly used for running in a terminal window.
     PrintHelp,
     PrintBoard,
     PrintEvaluation(i16),

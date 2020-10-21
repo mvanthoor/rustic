@@ -20,6 +20,7 @@ use std::{
 pub enum UciReport {
     // Uci commands
     Uci,
+    IsReady,
 
     // Custom commands
     Board,
@@ -141,8 +142,10 @@ impl Uci {
                         Uci::id();
                         Uci::uciok();
                     }
+                    CommControl::Ready => Uci::readyok(),
                     CommControl::Quit => quit = true,
                     CommControl::PrintBoard => Uci::print_board(&t_board),
+                    CommControl::PrintHelp => Uci::print_help(),
                     _ => (),
                 }
             }
@@ -166,9 +169,11 @@ impl Uci {
         match &i[..] {
             // UCI commands
             "uci" => CommReport::Uci(UciReport::Uci),
-            "quit" => CommReport::General(GeneralReport::Quit),
+            "isready" => CommReport::Uci(UciReport::IsReady),
+            "quit" | "exit" => CommReport::General(GeneralReport::Quit),
 
             // Custom commands
+            "help" => CommReport::General(GeneralReport::Help),
             "board" => CommReport::Uci(UciReport::Board),
 
             // Everything else is ignored.
@@ -187,6 +192,10 @@ impl Uci {
     fn uciok() {
         println!("uciok");
     }
+
+    fn readyok() {
+        println!("readyok");
+    }
 }
 
 // implements handling of custom commands. These are mostly used when using
@@ -194,5 +203,17 @@ impl Uci {
 impl Uci {
     fn print_board(board: &Arc<Mutex<Board>>) {
         print::position(&board.lock().expect(ErrFatal::LOCK), None);
+    }
+
+    fn print_help() {
+        println!("The engine is in UCI communication mode. It supports some custom");
+        println!("non-UCI commands to make use through a terminal window easier.");
+        println!();
+        println!("Custom commands");
+        println!("================================================================");
+        println!("help      :   This help information.");
+        println!("board     :   Print the current board state.");
+        println!("exit      :   Quit/Exit the engine.");
+        println!();
     }
 }
