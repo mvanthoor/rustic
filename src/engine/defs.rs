@@ -7,7 +7,6 @@ impl ErrFatal {
     pub const CREATE_COMM: &'static str = "Comm creation failed.";
     pub const LOCK: &'static str = "Lock failed.";
     pub const READ_IO: &'static str = "Reading I/O failed.";
-    pub const FLUSH_IO: &'static str = "Flushing I/O failed.";
     pub const HANDLE: &'static str = "Broken handle.";
     pub const THREAD: &'static str = "Thread has failed.";
     pub const CHANNEL: &'static str = "Broken channel.";
@@ -16,9 +15,8 @@ impl ErrFatal {
 
 pub struct ErrNormal;
 impl ErrNormal {
-    pub const MOVE_NOT_ALLOWED: &'static str = "Move not allowed: King left in check.";
-    pub const MOVE_NOT_LEGAL: &'static str = "This is not a legal move.";
-    pub const NOTHING_TO_TAKE_BACK: &'static str = "Nothing to take back.";
+    pub const NOT_LEGAL: &'static str = "This is not a legal move in this position.";
+    pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
 }
 
 // This struct holds the engine's settings.

@@ -1,9 +1,9 @@
 // This file implements the UCI communication module.
 
-use super::{CommControl, CommReport, CommType, GeneralReport, IComm};
+use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
     board::Board,
-    defs::About,
+    defs::{About, FEN_START_POSITION},
     engine::defs::{ErrFatal, Information},
     misc::print,
 };
@@ -21,9 +21,15 @@ pub enum UciReport {
     // Uci commands
     Uci,
     IsReady,
+    Position(String, Vec<String>),
+    Quit,
 
     // Custom commands
     Board,
+    Help,
+
+    // Empty or unknown command.
+    Unknown,
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -110,7 +116,7 @@ impl Uci {
                         .expect(ErrFatal::HANDLE);
 
                     // Terminate the reporting thread if "Quit" was detected.
-                    quit = new_report == CommReport::General(GeneralReport::Quit);
+                    quit = new_report == CommReport::Uci(UciReport::Quit);
                 }
 
                 // Clear for next input
@@ -146,7 +152,12 @@ impl Uci {
                     CommControl::Quit => quit = true,
                     CommControl::PrintBoard => Uci::print_board(&t_board),
                     CommControl::PrintHelp => Uci::print_help(),
-                    _ => (),
+                    CommControl::PrintMessage(msg) => println!("{}", msg),
+
+                    // Comm Control commands that are not (yet) used.
+                    CommControl::PrintBestMove(_)
+                    | CommControl::PrintSearchSummary(_)
+                    | CommControl::Update => (),
                 }
             }
         });
@@ -166,18 +177,52 @@ impl Uci {
         let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
-        match &i[..] {
+        match i {
             // UCI commands
-            "uci" => CommReport::Uci(UciReport::Uci),
-            "isready" => CommReport::Uci(UciReport::IsReady),
-            "quit" | "exit" => CommReport::General(GeneralReport::Quit),
+            cmd if cmd == "uci" => CommReport::Uci(UciReport::Uci),
+            cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
+            cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
+            cmd if cmd.starts_with("position startpos") => Uci::parse_position_startpos(&cmd),
+            cmd if cmd.starts_with("position fen") => Uci::parse_position_fen(&cmd),
 
             // Custom commands
-            "help" => CommReport::General(GeneralReport::Help),
-            "board" => CommReport::Uci(UciReport::Board),
+            cmd if cmd == "board" => CommReport::Uci(UciReport::Board),
+            cmd if cmd == "help" => CommReport::Uci(UciReport::Help),
 
             // Everything else is ignored.
-            _ => CommReport::General(GeneralReport::Unknown),
+            _ => CommReport::Uci(UciReport::Unknown),
+        }
+    }
+
+    fn parse_position_startpos(cmd: &String) -> CommReport {
+        let cmd = cmd.replace("position startpos", "").trim().to_string();
+        let fen = FEN_START_POSITION.to_string();
+        let moves: Vec<String> = Uci::parse_position_moves(&cmd);
+
+        CommReport::Uci(UciReport::Position(fen, moves))
+    }
+
+    fn parse_position_fen(cmd: &String) -> CommReport {
+        let cmd = cmd.replace("position fen", "").trim().to_string();
+        let mut fen = String::from("");
+        for c in cmd.chars() {
+            fen.push(c);
+        }
+        fen.trim().to_string();
+        CommReport::Uci(UciReport::Position(fen, Vec::<String>::new()))
+    }
+
+    fn parse_position_moves(cmd: &String) -> Vec<String> {
+        const SPACE: &str = " ";
+
+        // Return the moves or an empty vector. The engine will determine
+        // by itself if the moves are actually legal.
+        if cmd.starts_with("moves") {
+            let cmd = cmd.replace("moves", "").trim().to_string();
+            let algebraic_moves: Vec<String> = cmd.split(SPACE).map(|m| m.to_string()).collect();
+            algebraic_moves
+        } else {
+            Vec::new()
         }
     }
 }

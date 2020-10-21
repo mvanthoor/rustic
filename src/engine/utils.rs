@@ -1,7 +1,8 @@
-use super::{Engine, ErrFatal};
+use super::{defs::ErrFatal, Engine};
 use crate::{
     board::Board,
-    defs::{About, EngineRunResult, FEN_KIWIPETE_POSITION},
+    defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
+    misc::parse,
     misc::parse::PotentialMove,
     movegen::{
         defs::{Move, MoveList, MoveType},
@@ -11,39 +12,7 @@ use crate::{
 use if_chain::if_chain;
 use std::sync::Mutex;
 
-// This notice is displayed if the engine is a debug binary. (Debug
-// binaries are unoptimized and slower than release binaries.)
-#[cfg(debug_assertions)]
-const NOTICE_DEBUG_MODE: &str = "Notice: Running in debug mode";
-
 impl Engine {
-    pub fn ascii_logo(&self) {
-        println!();
-        println!("d888888b                      dP   oo        ");
-        println!("88     88                     88             ");
-        println!("88oooo88  88    88  d8888b  d8888P dP d88888b");
-        println!("88    88  88    88  8ooooo    88   88 88     ");
-        println!("88     88 88    88       88   88   88 88     ");
-        println!("88     88  88888P  888888P    dP   dP 888888P");
-        println!("ooooooooooooooooooooooooooooooooooooooooooooo");
-        println!();
-    }
-
-    // Print information about the engine.
-    pub fn about(&self, threads: usize, protocol: &str) {
-        println!("Engine: {} {}", About::ENGINE, About::VERSION);
-        println!("Author: {}", About::AUTHOR);
-        println!("EMail: {}", About::EMAIL);
-        println!("Website: {}", About::WEBSITE);
-        println!("Protocol: {}", protocol);
-        println!("Threads: {}", threads);
-
-        #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
-
-        println!();
-    }
-
     // This function sets up a position using a given FEN-string.
     pub fn setup_position(&mut self) -> EngineRunResult {
         // Get either the provided FEN-string or KiwiPete. If both are
@@ -61,6 +30,19 @@ impl Engine {
         Ok(())
     }
 
+    pub fn execute_move(&mut self, m: String) -> bool {
+        // Prepare shorthand variables.
+        let empty = (0usize, 0usize, 0usize);
+        let potential_move = parse::algebraic_move_to_number(&m[..]).unwrap_or(empty);
+        let is_pseudo_legal = self.pseudo_legal(potential_move, &self.board, &self.mg);
+        let mut is_legal = false;
+
+        if let Ok(ips) = is_pseudo_legal {
+            is_legal = self.board.lock().expect(ErrFatal::LOCK).make(ips, &self.mg);
+        }
+        is_legal
+    }
+
     // After the engine receives an incoming move, it checks if this move
     // is actually possible in the current board position.
     pub fn pseudo_legal(
@@ -72,13 +54,12 @@ impl Engine {
         let mut result = Err(());
         let mut ml = MoveList::new();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
-
         mg.generate_moves(&mtx_board, &mut ml, MoveType::All);
         std::mem::drop(mtx_board);
 
-        // See if the provided potential move is a pseudo-legal move.
-        // make() will later determine final legality, i.e. if the king is
-        // left in check.
+        // See if the provided potential move is actually a possible
+        // pseudo-legal move. make() will later determine final legality,
+        // i.e. if the king is left in check.
         for i in 0..ml.len() {
             let current = ml.get_move(i);
             if_chain! {
@@ -91,7 +72,6 @@ impl Engine {
                 }
             }
         }
-
         result
     }
 }

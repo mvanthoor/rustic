@@ -1,4 +1,4 @@
-mod actions;
+mod about;
 mod comm_reports;
 pub mod defs;
 mod main_loop;
@@ -7,12 +7,12 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{console::Console, uci::Uci, CommType, IComm},
+    comm::{uci::Uci, CommControl, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{ErrFatal, Information, Settings},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::Search,
+    search::{defs::SearchControl, Search},
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
@@ -46,7 +46,6 @@ impl Engine {
         let i: Box<dyn IComm> = match &c.comm()[..] {
             // CommType::XBOARD => Box::new(Xboard::new()),
             CommType::UCI => Box::new(Uci::new()),
-            CommType::CONSOLE => Box::new(Console::new()),
             _ => panic!(ErrFatal::CREATE_COMM),
         };
 
@@ -67,8 +66,10 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // self.ascii_logo();
-        // self.about(self.settings.threads, self.comm.get_protocol_name());
+        self.print_ascii_logo();
+        self.print_about();
+        self.print_settings(self.settings.threads, self.comm.get_protocol_name());
+        println!();
 
         // Setup position and abort if this fails.
         self.setup_position()?;
@@ -110,5 +111,12 @@ impl Engine {
         // fails, because of a crash, or normally. In the first two cases,
         // this Ok(()) won't be reached.
         Ok(())
+    }
+
+    // This function quits Commm, Search, and then the engine thread itself.
+    pub fn quit(&mut self) {
+        self.search.send(SearchControl::Quit);
+        self.comm.send(CommControl::Quit);
+        self.quit = true;
     }
 }

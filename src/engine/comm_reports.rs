@@ -1,9 +1,8 @@
-use super::{defs::ErrFatal, Engine};
-use crate::{
-    comm::{console::ConsoleReport, uci::UciReport, CommControl, CommReport, GeneralReport},
-    evaluation::evaluate_position,
-    search::defs::SearchControl,
+use super::{
+    defs::{ErrFatal, ErrNormal},
+    Engine,
 };
+use crate::comm::{uci::UciReport, CommControl, CommReport};
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -11,73 +10,43 @@ impl Engine {
     pub fn comm_reports(&mut self, comm_report: &CommReport) {
         // Split out the comm reports according to their source.
         match comm_report {
-            CommReport::General(_) => self.comm_reports_general(comm_report),
-            CommReport::Console(_) => self.comm_reports_console(comm_report),
-            CommReport::Uci(_) => self.comm_reports_uci(comm_report),
-        }
-    }
-
-    // Handles "General" Comm reports, that can be sent by any Comm module.
-    fn comm_reports_general(&mut self, comm_report: &CommReport) {
-        match comm_report {
-            // Quit Comm, Search, and then the engine itself.
-            CommReport::General(GeneralReport::Quit) => {
-                self.comm.send(CommControl::Quit);
-                self.search.send(SearchControl::Quit);
-                self.quit = true;
-            }
-
-            // Print the Help screen for the Comm module.
-            CommReport::General(GeneralReport::Help) => {
-                self.comm.send(CommControl::PrintHelp);
-                self.comm.send(CommControl::Update);
-            }
-
-            // Ignore if Nothing reported or report is Unknown.
-            CommReport::General(GeneralReport::Nothing) => (),
-            CommReport::General(GeneralReport::Unknown) => (),
-            _ => (),
-        }
-    }
-
-    // Handles "Console" Comm reports coming from the Console module.
-    fn comm_reports_console(&mut self, comm_report: &CommReport) {
-        match comm_report {
-            // Execute the received move.
-            CommReport::Console(ConsoleReport::Move(m)) => {
-                self.execute_move(m.clone());
-                self.comm.send(CommControl::Update);
-            }
-
-            // Send evaluation result upon request.
-            CommReport::Console(ConsoleReport::Evaluate) => {
-                let eval = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(CommControl::PrintEvaluation(eval));
-                self.comm.send(CommControl::Update);
-            }
-
-            CommReport::Console(ConsoleReport::Takeback) => {
-                self.takeback_move();
-                self.comm.send(CommControl::Update);
-            }
-
-            // Start or stop the search.
-            CommReport::Console(ConsoleReport::Search) => self.search.send(SearchControl::Start),
-            CommReport::Console(ConsoleReport::Cancel) => self.search.send(SearchControl::Stop),
-            _ => (),
+            CommReport::Uci(u) => self.comm_reports_uci(u),
         }
     }
 
     // Handles "Uci" Comm reports sent by the UCI-module.
-    fn comm_reports_uci(&mut self, comm_report: &CommReport) {
-        match comm_report {
+    fn comm_reports_uci(&mut self, u: &UciReport) {
+        match u {
             // Uci commands
-            CommReport::Uci(UciReport::Uci) => self.comm.send(CommControl::Identify),
-            CommReport::Uci(UciReport::IsReady) => self.comm.send(CommControl::Ready),
+            UciReport::Uci => self.comm.send(CommControl::Identify),
+            UciReport::IsReady => self.comm.send(CommControl::Ready),
+            UciReport::Position(fen, moves) => {
+                let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
+
+                if fen_result.is_ok() {
+                    for m in moves.iter() {
+                        let ok = self.execute_move(m.clone());
+                        if !ok {
+                            let msg = format!("{}: {}", m, ErrNormal::NOT_LEGAL);
+                            self.comm.send(CommControl::PrintMessage(msg));
+                            break;
+                        }
+                    }
+                }
+
+                if fen_result.is_err() {
+                    let msg = ErrNormal::FEN_FAILED.to_string();
+                    self.comm.send(CommControl::PrintMessage(msg));
+                }
+            }
+
+            // Quit received. Shut down engine.
+            UciReport::Quit => self.quit(),
 
             // Custom commands
-            CommReport::Uci(UciReport::Board) => self.comm.send(CommControl::PrintBoard),
-            _ => (),
+            UciReport::Board => self.comm.send(CommControl::PrintBoard),
+            UciReport::Help => self.comm.send(CommControl::PrintHelp),
+            UciReport::Unknown => (),
         }
     }
 }

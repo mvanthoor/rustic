@@ -19,8 +19,8 @@ impl CmdLineArgs {
     // Interface
     const COMM_LONG: &'static str = "comm";
     const COMM_SHORT: &'static str = "c";
-    const COMM_HELP: &'static str = "Select communication to use";
-    const COMM_VALUES: [&'static str; 3] = ["uci", "xboard", "console"];
+    const COMM_HELP: &'static str = "Select communication protocol to use";
+    const COMM_VALUES: [&'static str; 2] = ["uci", "xboard"];
     const COMM_DEFAULT: &'static str = "uci";
 
     // Threads

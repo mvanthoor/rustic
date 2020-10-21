@@ -46,12 +46,4 @@ impl History {
         self.count -= 1;
         self.list[self.count]
     }
-
-    // Returns the number of items in the history array. As make/unmake always
-    // push/pop the same amount during search, this function is only needed for
-    // checking if the array is not empty when taking back moves from the
-    // console.
-    pub fn len(&self) -> usize {
-        self.count
-    }
 }
