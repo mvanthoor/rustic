@@ -30,6 +30,8 @@ impl Engine {
         Ok(())
     }
 
+    // This function executes a move on the internal board, if it legal to
+    // do so in the given position.
     pub fn execute_move(&mut self, m: String) -> bool {
         // Prepare shorthand variables.
         let empty = (0usize, 0usize, 0usize);
@@ -44,7 +46,7 @@ impl Engine {
     }
 
     // After the engine receives an incoming move, it checks if this move
-    // is actually possible in the current board position.
+    // is actually in the list of pseudo-legal moves for this position.
     pub fn pseudo_legal(
         &self,
         m: PotentialMove,
@@ -52,14 +54,15 @@ impl Engine {
         mg: &MoveGenerator,
     ) -> Result<Move, ()> {
         let mut result = Err(());
+
+        // Get the pseudo-legal move list for this position.
         let mut ml = MoveList::new();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
         mg.generate_moves(&mtx_board, &mut ml, MoveType::All);
         std::mem::drop(mtx_board);
 
-        // See if the provided potential move is actually a possible
-        // pseudo-legal move. make() will later determine final legality,
-        // i.e. if the king is left in check.
+        // Determine if the potential move is pseudo-legal. make() wil
+        // determine final legality when executing the move.
         for i in 0..ml.len() {
             let current = ml.get_move(i);
             if_chain! {

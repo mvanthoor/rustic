@@ -150,6 +150,8 @@ impl Uci {
                     }
                     CommControl::Ready => Uci::readyok(),
                     CommControl::Quit => quit = true,
+
+                    // Custom prints for use in the console.
                     CommControl::PrintBoard => Uci::print_board(&t_board),
                     CommControl::PrintHelp => Uci::print_help(),
                     CommControl::PrintMessage(msg) => println!("{}", msg),
@@ -194,7 +196,9 @@ impl Uci {
         }
     }
 
+    // Parses "position startpos [moves ...]"
     fn parse_position_startpos(cmd: &String) -> CommReport {
+        // Cut off "position startpos", so ony "moves ..." remains.
         let cmd = cmd.replace("position startpos", "").trim().to_string();
         let fen = FEN_START_POSITION.to_string();
         let moves: Vec<String> = Uci::parse_position_moves(&cmd);
@@ -202,27 +206,37 @@ impl Uci {
         CommReport::Uci(UciReport::Position(fen, moves))
     }
 
+    // Parses "position fen <fen_string> [moves ...]"
     fn parse_position_fen(cmd: &String) -> CommReport {
+        // Cut "position fen" from the beginning of the command.
         let cmd = cmd.replace("position fen", "").trim().to_string();
-        let mut fen = String::from("");
-        for c in cmd.chars() {
-            fen.push(c);
-        }
-        fen.trim().to_string();
-        CommReport::Uci(UciReport::Position(fen, Vec::<String>::new()))
+
+        // Split into "fen" and "moves" part.
+        let parts: Vec<String> = cmd.split("moves").map(|s| s.trim().to_string()).collect();
+
+        let (fen, moves): (String, Vec<String>) = match parts.len() {
+            0 => (String::from(""), Vec::<String>::new()),
+            1 => (parts[0].clone(), Vec::<String>::new()),
+            _ => {
+                let m = format!("moves {}", &parts[1]);
+                (parts[0].clone(), Uci::parse_position_moves(&m))
+            }
+        };
+
+        CommReport::Uci(UciReport::Position(fen, moves))
     }
 
-    fn parse_position_moves(cmd: &String) -> Vec<String> {
+    fn parse_position_moves(part: &String) -> Vec<String> {
         const SPACE: &str = " ";
 
-        // Return the moves or an empty vector. The engine will determine
-        // by itself if the moves are actually legal.
-        if cmd.starts_with("moves") {
-            let cmd = cmd.replace("moves", "").trim().to_string();
-            let algebraic_moves: Vec<String> = cmd.split(SPACE).map(|m| m.to_string()).collect();
-            algebraic_moves
+        // If the word "moves" is in this string, then remove it and
+        // transform the moves after it into a list.
+        if part.starts_with("moves") {
+            let part = part.replace("moves", "").trim().to_string();
+            let list: Vec<String> = part.split(SPACE).map(|m| m.to_string()).collect();
+            list
         } else {
-            Vec::new()
+            Vec::<String>::new()
         }
     }
 }
