@@ -51,6 +51,7 @@ impl SearchParams {
 // search into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
+    pub depth: u8,
     pub start_time: Instant,
     pub bm_at_depth: Move,
     pub nodes: usize,
@@ -61,6 +62,7 @@ pub struct SearchInfo {
 impl SearchInfo {
     pub fn new() -> Self {
         Self {
+            depth: 0,
             start_time: Instant::now(),
             bm_at_depth: Move::new(0),
             nodes: 0,
@@ -86,6 +88,21 @@ pub struct SearchSummary {
     pub bm_at_depth: Move, // best move after this depth
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct SearchCurrentMove {
+    pub curr_move: Move,
+    pub curr_move_number: u8,
+}
+
+impl SearchCurrentMove {
+    pub fn new(curr_move: Move, curr_move_number: u8) -> Self {
+        Self {
+            curr_move,
+            curr_move_number,
+        }
+    }
+}
+
 // The search process needs references to a lot of data, such as a copy of
 // the current board to make moves on, the move generator, search paramters
 // (depth, time available, etc...), SearchInfo to put the results, and a
@@ -106,4 +123,5 @@ pub struct SearchRefs<'a> {
 pub enum SearchReport {
     Finished(Move),
     SearchSummary(SearchSummary),
+    SearchCurrentMove(SearchCurrentMove),
 }

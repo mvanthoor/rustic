@@ -80,7 +80,6 @@ impl Search {
                     // Set up search parameters.
                     let mut search_params = SearchParams::new(MAX_DEPTH, std::u128::MAX);
                     let mut search_info = SearchInfo::new();
-                    search_info.terminate = SearchTerminate::Nothing;
 
                     // Create references to all needed information.
                     let mut search_refs = SearchRefs {
@@ -144,8 +143,8 @@ impl Search {
         let mut best_move = Move::new(0);
 
         while depth <= refs.search_params.depth && depth < MAX_DEPTH && !interrupted {
-            // Record the time at which this depth was started.
-            let start = std::time::Instant::now();
+            // Set the current depth
+            refs.search_info.depth = depth;
 
             // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, -INF, INF, refs);
@@ -159,7 +158,7 @@ impl Search {
                 best_move = refs.search_info.bm_at_depth;
 
                 // Create search summary for this depth.
-                let elapsed = start.elapsed().as_millis();
+                let elapsed = refs.search_info.start_time.elapsed().as_millis();
                 let nodes = refs.search_info.nodes;
                 let summary = SearchSummary {
                     depth,

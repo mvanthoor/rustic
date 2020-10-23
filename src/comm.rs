@@ -2,7 +2,10 @@ pub mod uci;
 // pub mod xboard;
 
 use crate::{
-    board::Board, engine::defs::Information, movegen::defs::Move, search::defs::SearchSummary,
+    board::Board,
+    engine::defs::Information,
+    movegen::defs::Move,
+    search::defs::{SearchCurrentMove, SearchSummary},
 };
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
@@ -26,13 +29,14 @@ pub trait IComm {
 #[derive(PartialEq)]
 pub enum CommControl {
     // Reactions of engine to incoming commands.
-    Update,                       // Request Comm module to update its state.
-    Quit,                         // Quit the Comm module.
-    Identify,                     // Transmit identification of the engine.
-    Ready,                        // Transmit that the engine is ready.
-    SearchSummary(SearchSummary), // Transmit search information.
-    InfoString(String),           // Transmit general information.
-    BestMove(Move),               // Transmit the engine's best move.
+    Update,                           // Request Comm module to update its state.
+    Quit,                             // Quit the Comm module.
+    Identify,                         // Transmit identification of the engine.
+    Ready,                            // Transmit that the engine is ready.
+    SearchSummary(SearchSummary),     // Transmit search information.
+    SearchCurrent(SearchCurrentMove), // Transmit currently considered move.
+    InfoString(String),               // Transmit general information.
+    BestMove(Move),                   // Transmit the engine's best move.
 
     // Output to screen when running in a terminal window.
     PrintBoard,

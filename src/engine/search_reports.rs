@@ -9,6 +9,10 @@ impl Engine {
                 self.comm.send(CommControl::Update);
             }
 
+            SearchReport::SearchCurrentMove(current) => {
+                self.comm.send(CommControl::SearchCurrent(*current));
+            }
+
             SearchReport::SearchSummary(summary) => {
                 self.comm.send(CommControl::SearchSummary(*summary));
             }

@@ -1,8 +1,9 @@
 use super::{
-    defs::{SearchControl, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE},
-    Search, SearchRefs,
+    defs::{SearchControl, SearchCurrentMove, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE},
+    Search, SearchRefs, SearchReport,
 };
 use crate::{
+    engine::defs::{ErrFatal, Information},
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
@@ -78,6 +79,15 @@ impl Search {
 
             // Move is legal; increase the ply count.
             refs.search_info.ply += 1;
+
+            // Send currently researched move to engine thread. Send this
+            // only when we are at the root of the tree.
+            if refs.search_info.depth == depth {
+                let scm = SearchCurrentMove::new(current_move, legal_moves_found);
+                let scm_report = SearchReport::SearchCurrentMove(scm);
+                let information = Information::Search(scm_report);
+                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+            }
 
             // We are not yet in a leaf node (the "bottom" of the tree, at
             // the requested depth), so start Alpha-Beta again, for the

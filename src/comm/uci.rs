@@ -7,7 +7,7 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     misc::print,
     movegen::defs::Move,
-    search::defs::SearchSummary,
+    search::defs::{SearchCurrentMove, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -156,6 +156,7 @@ impl Uci {
                     CommControl::Ready => Uci::readyok(),
                     CommControl::Quit => quit = true,
                     CommControl::SearchSummary(summary) => Uci::search_summary(&summary),
+                    CommControl::SearchCurrent(current) => Uci::search_current(&current),
                     CommControl::InfoString(msg) => Uci::info_string(&msg),
                     CommControl::BestMove(bm) => Uci::best_move(&bm),
 
@@ -288,6 +289,15 @@ impl Uci {
         );
 
         println!("{}", info);
+    }
+
+    fn search_current(c: &SearchCurrentMove) {
+        println!(
+            "info currmove {}{} currmovenumber {}",
+            SQUARE_NAME[c.curr_move.from()],
+            SQUARE_NAME[c.curr_move.to()],
+            c.curr_move_number
+        );
     }
 
     fn info_string(msg: &String) {
