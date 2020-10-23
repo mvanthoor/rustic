@@ -2,10 +2,12 @@
 
 use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
-    board::Board,
+    board::{defs::SQUARE_NAME, Board},
     defs::{About, FEN_START_POSITION},
     engine::defs::{ErrFatal, Information},
     misc::print,
+    movegen::defs::Move,
+    search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -22,10 +24,13 @@ pub enum UciReport {
     Uci,
     IsReady,
     Position(String, Vec<String>),
+    GoInfinite,
+    Stop,
     Quit,
 
     // Custom commands
     Board,
+    Eval,
     Help,
 
     // Empty or unknown command.
@@ -150,16 +155,16 @@ impl Uci {
                     }
                     CommControl::Ready => Uci::readyok(),
                     CommControl::Quit => quit = true,
+                    CommControl::SearchSummary(summary) => Uci::search_summary(&summary),
+                    CommControl::InfoString(msg) => Uci::info_string(&msg),
+                    CommControl::BestMove(bm) => Uci::best_move(&bm),
 
                     // Custom prints for use in the console.
                     CommControl::PrintBoard => Uci::print_board(&t_board),
                     CommControl::PrintHelp => Uci::print_help(),
-                    CommControl::PrintMessage(msg) => println!("{}", msg),
 
                     // Comm Control commands that are not (yet) used.
-                    CommControl::PrintBestMove(_)
-                    | CommControl::PrintSearchSummary(_)
-                    | CommControl::Update => (),
+                    CommControl::Update => (),
                 }
             }
         });
@@ -183,12 +188,15 @@ impl Uci {
             // UCI commands
             cmd if cmd == "uci" => CommReport::Uci(UciReport::Uci),
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
+            cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
             cmd if cmd.starts_with("position startpos") => Uci::parse_position_startpos(&cmd),
             cmd if cmd.starts_with("position fen") => Uci::parse_position_fen(&cmd),
+            cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
             // Custom commands
             cmd if cmd == "board" => CommReport::Uci(UciReport::Board),
+            cmd if cmd == "eval" => CommReport::Uci(UciReport::Eval),
             cmd if cmd == "help" => CommReport::Uci(UciReport::Help),
 
             // Everything else is ignored.
@@ -239,6 +247,17 @@ impl Uci {
             Vec::<String>::new()
         }
     }
+
+    fn parse_go(cmd: &String) -> CommReport {
+        let cmd = cmd.replace("go", "").trim().to_string();
+        let mut report = CommReport::Uci(UciReport::Unknown);
+        let go_infinite = cmd == "infinite" || cmd.is_empty();
+
+        if go_infinite {
+            report = CommReport::Uci(UciReport::GoInfinite);
+        }
+        report
+    }
 }
 
 // Implements UCI responses to send to the G(UI).
@@ -254,6 +273,33 @@ impl Uci {
 
     fn readyok() {
         println!("readyok");
+    }
+
+    fn search_summary(s: &SearchSummary) {
+        let pv_move = format!(
+            "{}{}",
+            SQUARE_NAME[s.bm_at_depth.from()],
+            SQUARE_NAME[s.bm_at_depth.to()]
+        );
+
+        let info = format!(
+            "info score cp {} depth {} time {} nodes {} nps {} pv {}",
+            s.cp, s.depth, s.time, s.nodes, s.nps, pv_move,
+        );
+
+        println!("{}", info);
+    }
+
+    fn info_string(msg: &String) {
+        println!("info string {}", msg);
+    }
+
+    fn best_move(bm: &Move) {
+        println!(
+            "bestmove {}{}",
+            SQUARE_NAME[bm.from()],
+            SQUARE_NAME[bm.to()]
+        );
     }
 }
 
@@ -272,6 +318,7 @@ impl Uci {
         println!("================================================================");
         println!("help      :   This help information.");
         println!("board     :   Print the current board state.");
+        println!("eval      :   Print evaluation for side to move.");
         println!("exit      :   Quit/Exit the engine.");
         println!();
     }

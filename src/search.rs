@@ -78,7 +78,7 @@ impl Search {
                     std::mem::drop(mtx_board);
 
                     // Set up search parameters.
-                    let mut search_params = SearchParams::new(MAX_DEPTH, 1000 * 60 * 2);
+                    let mut search_params = SearchParams::new(MAX_DEPTH, std::u128::MAX);
                     let mut search_info = SearchInfo::new();
                     search_info.terminate = SearchTerminate::Nothing;
 
@@ -172,7 +172,8 @@ impl Search {
                 };
 
                 // Create information for the engine
-                let information = Information::Search(SearchReport::Summary(summary));
+                let report = SearchReport::SearchSummary(summary);
+                let information = Information::Search(report);
                 refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
 
                 // Search one ply deepr.

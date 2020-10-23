@@ -26,16 +26,15 @@ pub trait IComm {
 #[derive(PartialEq)]
 pub enum CommControl {
     // Reactions of engine to incoming commands.
-    Update,   // Request Comm module to update its state.
-    Quit,     // Quit the Comm module.
-    Identify, // Transmit identification of the engine.
-    Ready,    // Transmit that the engine is ready.
-
-    PrintBestMove(Move),
-    PrintSearchSummary(SearchSummary),
+    Update,                       // Request Comm module to update its state.
+    Quit,                         // Quit the Comm module.
+    Identify,                     // Transmit identification of the engine.
+    Ready,                        // Transmit that the engine is ready.
+    SearchSummary(SearchSummary), // Transmit search information.
+    InfoString(String),           // Transmit general information.
+    BestMove(Move),               // Transmit the engine's best move.
 
     // Output to screen when running in a terminal window.
-    PrintMessage(String),
     PrintBoard,
     PrintHelp,
 }

@@ -2,7 +2,11 @@ use super::{
     defs::{ErrFatal, ErrNormal},
     Engine,
 };
-use crate::comm::{uci::UciReport, CommControl, CommReport};
+use crate::{
+    comm::{uci::UciReport, CommControl, CommReport},
+    evaluation::evaluate_position,
+    search::defs::SearchControl,
+};
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -28,7 +32,7 @@ impl Engine {
                         let ok = self.execute_move(m.clone());
                         if !ok {
                             let msg = format!("{}: {}", m, ErrNormal::NOT_LEGAL);
-                            self.comm.send(CommControl::PrintMessage(msg));
+                            self.comm.send(CommControl::InfoString(msg));
                             break;
                         }
                     }
@@ -36,15 +40,21 @@ impl Engine {
 
                 if fen_result.is_err() {
                     let msg = ErrNormal::FEN_FAILED.to_string();
-                    self.comm.send(CommControl::PrintMessage(msg));
+                    self.comm.send(CommControl::InfoString(msg));
                 }
             }
 
-            // Quit received. Shut down engine.
+            UciReport::GoInfinite => self.search.send(SearchControl::Start),
+            UciReport::Stop => self.search.send(SearchControl::Stop),
             UciReport::Quit => self.quit(),
 
             // Custom commands
             UciReport::Board => self.comm.send(CommControl::PrintBoard),
+            UciReport::Eval => {
+                let e = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
+                let msg = format!("Evaluation: {} centipawns", e);
+                self.comm.send(CommControl::InfoString(msg));
+            }
             UciReport::Help => self.comm.send(CommControl::PrintHelp),
             UciReport::Unknown => (),
         }
