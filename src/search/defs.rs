@@ -10,6 +10,7 @@ pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
 pub const CHECKPOINT: usize = 10_000; // nodes
+pub const UPDATE_STATS: usize = 5_000_000; // nodes
 
 pub type SearchResult = (Move, SearchTerminate);
 
@@ -53,6 +54,7 @@ impl SearchParams {
 pub struct SearchInfo {
     pub depth: u8,
     pub start_time: Instant,
+    pub last_stats: usize,
     pub bm_at_depth: Move,
     pub nodes: usize,
     pub ply: u8,
@@ -64,6 +66,7 @@ impl SearchInfo {
         Self {
             depth: 0,
             start_time: Instant::now(),
+            last_stats: 0,
             bm_at_depth: Move::new(0),
             nodes: 0,
             ply: 0,
@@ -89,6 +92,9 @@ pub struct SearchSummary {
 }
 
 #[derive(PartialEq, Copy, Clone)]
+// This struct holds the currently searched move, and its move number in
+// the list of legal moves. This struct is sent through the engine thread
+// to Comm, to be transmitted to the (G)UI.
 pub struct SearchCurrentMove {
     pub curr_move: Move,
     pub curr_move_number: u8,
@@ -103,13 +109,26 @@ impl SearchCurrentMove {
     }
 }
 
+// This struct holds search statistics. These will be sent through the
+// engine thread to Comm, to be transmitted to the (G)UI.
+#[derive(PartialEq, Copy, Clone)]
+pub struct SearchStats {
+    pub nodes: usize, // Number of nodes searched
+    pub nps: usize,   // Speed in nodes per second
+}
+
+impl SearchStats {
+    pub fn new(nodes: usize, nps: usize) -> Self {
+        Self { nodes, nps }
+    }
+}
+
 // The search process needs references to a lot of data, such as a copy of
 // the current board to make moves on, the move generator, search paramters
 // (depth, time available, etc...), SearchInfo to put the results, and a
 // control receiver so the search can receive commands from the engine.
 // These references are grouped in SearchRefs, so they don't have to be
 // passed one by one as function arguments.
-
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
@@ -124,4 +143,5 @@ pub enum SearchReport {
     Finished(Move),
     SearchSummary(SearchSummary),
     SearchCurrentMove(SearchCurrentMove),
+    SearchStats(SearchStats),
 }

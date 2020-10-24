@@ -1,5 +1,8 @@
 use super::{
-    defs::{SearchControl, SearchCurrentMove, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE},
+    defs::{
+        SearchControl, SearchCurrentMove, SearchStats, SearchTerminate, CHECKMATE, CHECKPOINT,
+        STALEMATE, UPDATE_STATS,
+    },
     Search, SearchRefs, SearchReport,
 };
 use crate::{
@@ -82,11 +85,23 @@ impl Search {
 
             // Send currently researched move to engine thread. Send this
             // only when we are at the root of the tree.
-            if refs.search_info.depth == depth {
+            if Search::is_root(refs.search_info.depth, depth) {
                 let scm = SearchCurrentMove::new(current_move, legal_moves_found);
                 let scm_report = SearchReport::SearchCurrentMove(scm);
                 let information = Information::Search(scm_report);
                 refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+            }
+
+            // Send search stats to the engine, once per second. These are
+            // technical stats such as nodes, speed, TT full, etc.
+            if refs.search_info.nodes >= refs.search_info.last_stats + UPDATE_STATS {
+                let milli_seconds = refs.search_info.start_time.elapsed().as_millis();
+                let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
+                let stats = SearchStats::new(refs.search_info.nodes, nps);
+                let stats_report = SearchReport::SearchStats(stats);
+                let information = Information::Search(stats_report);
+                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                refs.search_info.last_stats = refs.search_info.nodes;
             }
 
             // We are not yet in a leaf node (the "bottom" of the tree, at

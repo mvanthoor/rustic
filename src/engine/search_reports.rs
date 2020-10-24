@@ -16,6 +16,10 @@ impl Engine {
             SearchReport::SearchSummary(summary) => {
                 self.comm.send(CommControl::SearchSummary(*summary));
             }
+
+            SearchReport::SearchStats(stats) => {
+                self.comm.send(CommControl::SearchStats(*stats));
+            }
         }
     }
 }

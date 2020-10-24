@@ -5,7 +5,7 @@ use crate::{
     board::Board,
     engine::defs::Information,
     movegen::defs::Move,
-    search::defs::{SearchCurrentMove, SearchSummary},
+    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
@@ -35,6 +35,7 @@ pub enum CommControl {
     Ready,                            // Transmit that the engine is ready.
     SearchSummary(SearchSummary),     // Transmit search information.
     SearchCurrent(SearchCurrentMove), // Transmit currently considered move.
+    SearchStats(SearchStats),         // Transmit search Statistics.
     InfoString(String),               // Transmit general information.
     BestMove(Move),                   // Transmit the engine's best move.
 

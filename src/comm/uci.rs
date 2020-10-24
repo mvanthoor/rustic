@@ -7,7 +7,7 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     misc::print,
     movegen::defs::Move,
-    search::defs::{SearchCurrentMove, SearchSummary},
+    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -157,6 +157,7 @@ impl Uci {
                     CommControl::Quit => quit = true,
                     CommControl::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommControl::SearchCurrent(current) => Uci::search_current(&current),
+                    CommControl::SearchStats(stats) => Uci::search_stats(&stats),
                     CommControl::InfoString(msg) => Uci::info_string(&msg),
                     CommControl::BestMove(bm) => Uci::best_move(&bm),
 
@@ -298,6 +299,10 @@ impl Uci {
             SQUARE_NAME[c.curr_move.to()],
             c.curr_move_number
         );
+    }
+
+    fn search_stats(s: &SearchStats) {
+        println!("info nodes {} nps {}", s.nodes, s.nps);
     }
 
     fn info_string(msg: &String) {
