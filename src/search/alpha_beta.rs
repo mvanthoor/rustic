@@ -16,7 +16,7 @@ impl Search {
         // Check for stop or quit commands.
         // ======================================================================
 
-        let checkpoint = refs.search_info.nodes % CHECKPOINT == 0;
+        let checkpoint = refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT;
         if checkpoint {
             // Terminate search if stop or quit command is received.
             let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
@@ -32,6 +32,9 @@ impl Search {
             if time_up {
                 refs.search_info.terminate = SearchTerminate::Stop
             }
+
+            // Update last checkpoint
+            refs.search_info.last_checkpoint = refs.search_info.nodes;
         }
 
         // ======================================================================

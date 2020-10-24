@@ -54,6 +54,7 @@ impl SearchParams {
 pub struct SearchInfo {
     pub depth: u8,
     pub start_time: Instant,
+    pub last_checkpoint: usize,
     pub last_stats: usize,
     pub bm_at_depth: Move,
     pub nodes: usize,
@@ -66,6 +67,7 @@ impl SearchInfo {
         Self {
             depth: 0,
             start_time: Instant::now(),
+            last_checkpoint: 0,
             last_stats: 0,
             bm_at_depth: Move::new(0),
             nodes: 0,
