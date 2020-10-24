@@ -45,6 +45,8 @@ impl Engine {
             }
 
             UciReport::GoInfinite => self.search.send(SearchControl::Start),
+            UciReport::GoDepth(depth) => println!("depth: {}", depth),
+            UciReport::GoMoveTime(seconds) => println!("secs: {}", seconds),
             UciReport::Stop => self.search.send(SearchControl::Stop),
             UciReport::Quit => self.quit(),
 

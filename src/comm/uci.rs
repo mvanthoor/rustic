@@ -27,6 +27,8 @@ pub enum UciReport {
     IsReady,
     Position(String, Vec<String>),
     GoInfinite,
+    GoDepth(u8),
+    GoMoveTime(usize),
     Stop,
     Quit,
 
@@ -195,7 +197,6 @@ impl Uci {
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
-            // cmd if cmd.starts_with("position fen") => Uci::parse_position_fen(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
             // Custom commands
@@ -209,48 +210,76 @@ impl Uci {
     }
 
     fn parse_position(cmd: &String) -> CommReport {
+        enum Tokens {
+            Nothing,
+            Fen,
+            Moves,
+        }
+
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
-        let mut fen = String::from(FEN_START_POSITION);
+        let mut fen = String::from("");
         let mut moves: Vec<String> = Vec::new();
         let mut skip_fen = false;
-        let mut process_fen = false;
-        let mut process_moves = false;
+        let mut token = Tokens::Nothing;
 
         for p in parts {
             match p {
-                token if token == "position" => (), // Skip. We know we're parsing "position".
-                token if token == "startpos" => skip_fen = true, // "fen" is now invalidated.
-                token if token == "fen" && !skip_fen => {
-                    fen = String::from("");
-                    process_fen = true;
-                }
-                token if token == "moves" => {
-                    process_fen = false; // FEN string ends when "moves" is found.
-                    process_moves = true; // Everything else is considered to be moves.
-                }
-                _ => {
-                    if process_fen {
+                t if t == "position" => (), // Skip. We know we're parsing "position".
+                t if t == "startpos" => skip_fen = true, // "fen" is now invalidated.
+                t if t == "fen" && !skip_fen => token = Tokens::Fen,
+                t if t == "moves" => token = Tokens::Moves,
+                _ => match token {
+                    Tokens::Nothing => (),
+                    Tokens::Fen => {
                         fen.push_str(&p[..]);
                         fen.push(' ');
                     }
-
-                    if process_moves {
-                        moves.push(p);
-                    }
-                }
+                    Tokens::Moves => moves.push(p),
+                },
             }
+        }
+        // No FEN part in the command. Use the start position.
+        if fen.is_empty() {
+            fen = String::from(FEN_START_POSITION)
         }
         CommReport::Uci(UciReport::Position(fen.trim().to_string(), moves))
     }
 
     fn parse_go(cmd: &String) -> CommReport {
+        enum Tokens {
+            Nothing,
+            Depth,
+            MoveTime,
+        }
+
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
-        let report = CommReport::Uci(UciReport::GoInfinite);
+        let mut report = CommReport::Uci(UciReport::GoInfinite);
+        let mut token = Tokens::Nothing;
+        let mut finished = false;
+
         for p in parts {
             match p {
-                token if token == "go" => (),       // Skip. We know we're parsing "go".
-                token if token == "infinite" => (), // Skip. Infinite is the default.
-                _ => (),
+                t if t == "go" => (),
+                t if t == "infinite" => (),
+                t if t == "depth" => token = Tokens::Depth,
+                t if t == "movetime" => token = Tokens::MoveTime,
+                _ => {
+                    if !finished {
+                        match token {
+                            Tokens::Nothing => (),
+                            Tokens::Depth => {
+                                let depth = p.parse::<u8>().unwrap_or(1);
+                                report = CommReport::Uci(UciReport::GoDepth(depth));
+                                finished = true;
+                            }
+                            Tokens::MoveTime => {
+                                let seconds = p.parse::<usize>().unwrap_or(1);
+                                report = CommReport::Uci(UciReport::GoMoveTime(seconds));
+                                finished = true;
+                            }
+                        }
+                    }
+                }
             }
         }
         report
