@@ -1,5 +1,5 @@
 use super::{
-    defs::{SearchControl, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE, UPDATE_STATS},
+    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE, UPDATE_STATS},
     Search, SearchRefs,
 };
 use crate::{
@@ -14,23 +14,7 @@ impl Search {
 
         let checkpoint = refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT;
         if checkpoint {
-            // Terminate search if stop or quit command is received.
-            let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
-            match cmd {
-                SearchControl::Stop => refs.search_info.terminate = SearchTerminate::Stop,
-                SearchControl::Quit => refs.search_info.terminate = SearchTerminate::Quit,
-                _ => (),
-            };
-
-            // Terminate search if allowed time for this move has run out.
-            let elapsed = refs.search_info.start_time.elapsed().as_millis();
-            let time_up = elapsed >= refs.search_params.time_for_move;
-            if time_up {
-                refs.search_info.terminate = SearchTerminate::Stop
-            }
-
-            // Update last checkpoint
-            refs.search_info.last_checkpoint = refs.search_info.nodes;
+            Search::check_for_termination(refs);
         }
 
         // ======================================================================
