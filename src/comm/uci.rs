@@ -244,12 +244,14 @@ impl Uci {
     }
 
     fn parse_go(cmd: &String) -> CommReport {
-        let cmd = cmd.replace("go", "").trim().to_string();
-        let mut report = CommReport::Uci(UciReport::Unknown);
-        let go_infinite = cmd == "infinite" || cmd.is_empty();
-
-        if go_infinite {
-            report = CommReport::Uci(UciReport::GoInfinite);
+        let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
+        let report = CommReport::Uci(UciReport::GoInfinite);
+        for p in parts {
+            match p {
+                token if token == "go" => (),       // Skip. We know we're parsing "go".
+                token if token == "infinite" => (), // Skip. Infinite is the default.
+                _ => (),
+            }
         }
         report
     }
