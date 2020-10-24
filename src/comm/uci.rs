@@ -16,6 +16,8 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+const SPACE: &'static str = " ";
+
 // Input will be turned into a report, which wil be sent to the engine. The
 // main engine thread will react accordingly.
 #[derive(PartialEq, Clone)]
@@ -192,8 +194,8 @@ impl Uci {
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
-            cmd if cmd.starts_with("position startpos") => Uci::parse_position_startpos(&cmd),
-            cmd if cmd.starts_with("position fen") => Uci::parse_position_fen(&cmd),
+            cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
+            // cmd if cmd.starts_with("position fen") => Uci::parse_position_fen(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
             // Custom commands
@@ -206,48 +208,39 @@ impl Uci {
         }
     }
 
-    // Parses "position startpos [moves ...]"
-    fn parse_position_startpos(cmd: &String) -> CommReport {
-        // Cut off "position startpos", so ony "moves ..." remains.
-        let cmd = cmd.replace("position startpos", "").trim().to_string();
-        let fen = FEN_START_POSITION.to_string();
-        let moves: Vec<String> = Uci::parse_position_moves(&cmd);
+    fn parse_position(cmd: &String) -> CommReport {
+        let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
+        let mut fen = String::from(FEN_START_POSITION);
+        let mut moves: Vec<String> = Vec::new();
+        let mut skip_fen = false;
+        let mut process_fen = false;
+        let mut process_moves = false;
 
-        CommReport::Uci(UciReport::Position(fen, moves))
-    }
+        for p in parts {
+            match p {
+                token if token == "position" => (), // Skip. We know we're parsing "position".
+                token if token == "startpos" => skip_fen = true, // "fen" is now invalidated.
+                token if token == "fen" && !skip_fen => {
+                    fen = String::from("");
+                    process_fen = true;
+                }
+                token if token == "moves" => {
+                    process_fen = false; // FEN string ends when "moves" is found.
+                    process_moves = true; // Everything else is considered to be moves.
+                }
+                _ => {
+                    if process_fen {
+                        fen.push_str(&p[..]);
+                        fen.push(' ');
+                    }
 
-    // Parses "position fen <fen_string> [moves ...]"
-    fn parse_position_fen(cmd: &String) -> CommReport {
-        // Cut "position fen" from the beginning of the command.
-        let cmd = cmd.replace("position fen", "").trim().to_string();
-
-        // Split into "fen" and "moves" part.
-        let parts: Vec<String> = cmd.split("moves").map(|s| s.trim().to_string()).collect();
-
-        let (fen, moves): (String, Vec<String>) = match parts.len() {
-            0 => (String::from(""), Vec::<String>::new()),
-            1 => (parts[0].clone(), Vec::<String>::new()),
-            _ => {
-                let m = format!("moves {}", &parts[1]);
-                (parts[0].clone(), Uci::parse_position_moves(&m))
+                    if process_moves {
+                        moves.push(p);
+                    }
+                }
             }
-        };
-
-        CommReport::Uci(UciReport::Position(fen, moves))
-    }
-
-    fn parse_position_moves(part: &String) -> Vec<String> {
-        const SPACE: &str = " ";
-
-        // If the word "moves" is in this string, then remove it and
-        // transform the moves after it into a list.
-        if part.starts_with("moves") {
-            let part = part.replace("moves", "").trim().to_string();
-            let list: Vec<String> = part.split(SPACE).map(|m| m.to_string()).collect();
-            list
-        } else {
-            Vec::<String>::new()
         }
+        CommReport::Uci(UciReport::Position(fen.trim().to_string(), moves))
     }
 
     fn parse_go(cmd: &String) -> CommReport {
