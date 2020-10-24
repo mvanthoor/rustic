@@ -1,12 +1,8 @@
 use super::{
-    defs::{
-        SearchControl, SearchCurrentMove, SearchStats, SearchTerminate, CHECKMATE, CHECKPOINT,
-        STALEMATE, UPDATE_STATS,
-    },
-    Search, SearchRefs, SearchReport,
+    defs::{SearchControl, SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE, UPDATE_STATS},
+    Search, SearchRefs,
 };
 use crate::{
-    engine::defs::{ErrFatal, Information},
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
@@ -89,22 +85,14 @@ impl Search {
             // Send currently researched move to engine thread. Send this
             // only when we are at the root of the tree.
             if Search::is_root(refs.search_info.depth, depth) {
-                let scm = SearchCurrentMove::new(current_move, legal_moves_found);
-                let scm_report = SearchReport::SearchCurrentMove(scm);
-                let information = Information::Search(scm_report);
-                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                Search::send_updated_current_move(refs, current_move, legal_moves_found);
             }
 
-            // Send search stats to the engine, once per second. These are
-            // technical stats such as nodes, speed, TT full, etc.
+            // Send search stats to the engine, every time the node count
+            // has counted UPDATE_STATS number of nodes. These are stats
+            // such as nodes, speed, TT full, etc.
             if refs.search_info.nodes >= refs.search_info.last_stats + UPDATE_STATS {
-                let milli_seconds = refs.search_info.start_time.elapsed().as_millis();
-                let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
-                let stats = SearchStats::new(refs.search_info.nodes, nps);
-                let stats_report = SearchReport::SearchStats(stats);
-                let information = Information::Search(stats_report);
-                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
-                refs.search_info.last_stats = refs.search_info.nodes;
+                Search::send_updated_stats(refs);
             }
 
             // We are not yet in a leaf node (the "bottom" of the tree, at
