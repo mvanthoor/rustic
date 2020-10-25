@@ -21,30 +21,22 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, STALEMATE, UPDATE_STATS},
+    defs::{SearchTerminate, CHECKMATE, STALEMATE, UPDATE_STATS},
     Search, SearchRefs,
 };
-use crate::{
-    evaluation,
-    movegen::defs::{Move, MoveList, MoveType},
-};
+use crate::movegen::defs::{Move, MoveList, MoveType};
 
 impl Search {
     pub fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
-        // Check for stop or quit commands.
-        // ======================================================================
-
-        let checkpoint = refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT;
-        if checkpoint {
+        // Check if termination condition is met.
+        if Search::is_checkpoint(refs) {
             Search::check_for_termination(refs);
         }
-
-        // ======================================================================
 
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
         if depth == 0 {
-            return evaluation::evaluate_position(refs.board);
+            return Search::quiescence(alpha, beta, refs);
         }
 
         // Search a new node, so we increase the node counter.

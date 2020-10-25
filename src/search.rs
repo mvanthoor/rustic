@@ -24,6 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mod alpha_beta;
 pub mod defs;
+mod qsearch;
 mod sorting;
 mod utils;
 
@@ -165,9 +166,7 @@ impl Search {
         let mut interrupted = false;
         let mut best_move = Move::new(0);
 
-        let forever = refs.search_params.search_mode == SearchMode::Infinite;
-        let max_depth = (depth <= refs.search_params.depth) && (depth < MAX_DEPTH);
-        while (forever || !max_depth) && !interrupted {
+        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !interrupted {
             // Set the current depth
             refs.search_info.depth = depth;
 

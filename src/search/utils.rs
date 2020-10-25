@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate,
+        SearchTerminate, CHECKPOINT,
     },
     Search,
 };
@@ -47,6 +47,10 @@ impl Search {
     // the root position.
     pub fn is_root(current_depth: u8, ab_depth: u8) -> bool {
         current_depth == ab_depth
+    }
+
+    pub fn is_checkpoint(refs: &mut SearchRefs) -> bool {
+        refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT
     }
 
     // This function sends the currently searched move to the engine thread.

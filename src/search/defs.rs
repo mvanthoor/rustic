@@ -9,7 +9,7 @@ use std::{sync::Arc, time::Instant};
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
-pub const CHECKPOINT: usize = 10_000; // nodes
+pub const CHECKPOINT: usize = 1_000; // nodes
 pub const UPDATE_STATS: usize = 5_000_000; // nodes
 
 pub type SearchResult = (Move, SearchTerminate);
