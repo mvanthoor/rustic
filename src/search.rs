@@ -165,7 +165,7 @@ impl Search {
         let mut interrupted = false;
         let mut best_move = Move::new(0);
 
-        while depth < MAX_DEPTH && !interrupted {
+        while depth <= refs.search_params.depth && depth < MAX_DEPTH && !interrupted {
             // Set the current depth
             refs.search_info.depth = depth;
 
