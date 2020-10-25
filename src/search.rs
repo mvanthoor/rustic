@@ -13,8 +13,8 @@ use crate::{
 };
 use crossbeam_channel::Sender;
 use defs::{
-    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchResult, SearchSummary,
-    SearchTerminate, INF,
+    SearchControl, SearchInfo, SearchMode, SearchParams, SearchRefs, SearchReport, SearchResult,
+    SearchSummary, SearchTerminate, INF,
 };
 use std::{
     sync::{Arc, Mutex},
@@ -51,6 +51,7 @@ impl Search {
             // Pointer to Board and Move Generator for this thread.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
+            let mut search_params = SearchParams::new(0, 0, 0, SearchMode::Nothing);
 
             let mut quit = false;
             let mut halt = true;
@@ -62,7 +63,8 @@ impl Search {
 
                 // And react accordingly.
                 match cmd {
-                    SearchControl::Start => {
+                    SearchControl::Start(sp) => {
+                        search_params = sp;
                         halt = false; // This will start the search.
                     }
                     SearchControl::Stop => halt = true,
@@ -77,8 +79,7 @@ impl Search {
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
-                    // Set up search parameters.
-                    let mut search_params = SearchParams::new(MAX_DEPTH, std::u128::MAX);
+                    // Create a place to put search information
                     let mut search_info = SearchInfo::new();
 
                     // Create references to all needed information.
@@ -142,7 +143,7 @@ impl Search {
         let mut interrupted = false;
         let mut best_move = Move::new(0);
 
-        while depth <= refs.search_params.depth && depth < MAX_DEPTH && !interrupted {
+        while depth < MAX_DEPTH && !interrupted {
             // Set the current depth
             refs.search_info.depth = depth;
 

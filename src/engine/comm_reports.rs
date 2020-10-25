@@ -5,7 +5,7 @@ use super::{
 use crate::{
     comm::{uci::UciReport, CommControl, CommReport},
     evaluation::evaluate_position,
-    search::defs::SearchControl,
+    search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
 // This block implements handling of incoming information, which will be in
@@ -44,9 +44,26 @@ impl Engine {
                 }
             }
 
-            UciReport::GoInfinite => self.search.send(SearchControl::Start),
-            UciReport::GoDepth(depth) => println!("depth: {}", depth),
-            UciReport::GoMoveTime(seconds) => println!("secs: {}", seconds),
+            UciReport::GoInfinite => {
+                let sp = SearchParams::new(0, 0, 0, SearchMode::Infinite);
+                self.search.send(SearchControl::Start(sp));
+            }
+
+            UciReport::GoDepth(depth) => {
+                let sp = SearchParams::new(*depth, 0, 0, SearchMode::Depth);
+                self.search.send(SearchControl::Start(sp));
+            }
+
+            UciReport::GoMoveTime(milliseconds) => {
+                let sp = SearchParams::new(0, *milliseconds, 0, SearchMode::MoveTime);
+                self.search.send(SearchControl::Start(sp));
+            }
+
+            UciReport::GoNodes(nodes) => {
+                let sp = SearchParams::new(0, 0, *nodes, SearchMode::Nodes);
+                self.search.send(SearchControl::Start(sp));
+            }
+
             UciReport::Stop => self.search.send(SearchControl::Stop),
             UciReport::Quit => self.quit(),
 

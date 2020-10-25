@@ -1,6 +1,7 @@
 use super::{
     defs::{
-        SearchControl, SearchCurrentMove, SearchRefs, SearchReport, SearchStats, SearchTerminate,
+        SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
+        SearchTerminate,
     },
     Search,
 };
@@ -53,14 +54,31 @@ impl Search {
         match cmd {
             SearchControl::Stop => refs.search_info.terminate = SearchTerminate::Stop,
             SearchControl::Quit => refs.search_info.terminate = SearchTerminate::Quit,
-            _ => (),
+            SearchControl::Start(_) | SearchControl::Nothing => (),
         };
 
-        // Terminate search if allowed time for this move has run out.
-        let elapsed = refs.search_info.start_time.elapsed().as_millis();
-        let time_up = elapsed >= refs.search_params.time_for_move;
-        if time_up {
-            refs.search_info.terminate = SearchTerminate::Stop
+        // Terminate search if certain conditions are met.
+        let search_mode = refs.search_params.search_mode;
+        match search_mode {
+            SearchMode::Depth => {
+                if refs.search_info.depth > refs.search_params.depth {
+                    refs.search_info.terminate = SearchTerminate::Stop
+                }
+            }
+            SearchMode::MoveTime => {
+                let elapsed = refs.search_info.start_time.elapsed().as_millis();
+                if elapsed > (refs.search_params.move_time) {
+                    refs.search_info.terminate = SearchTerminate::Stop
+                }
+            }
+            SearchMode::Nodes => {
+                if refs.search_info.nodes > refs.search_params.nodes {
+                    refs.search_info.terminate = SearchTerminate::Stop
+                }
+            }
+            SearchMode::GameTime => (),
+            SearchMode::Infinite => (), // Handled by a direct 'stop' command
+            SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }
 
         // Update last checkpoint

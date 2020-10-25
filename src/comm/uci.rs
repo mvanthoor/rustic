@@ -28,7 +28,8 @@ pub enum UciReport {
     Position(String, Vec<String>),
     GoInfinite,
     GoDepth(u8),
-    GoMoveTime(usize),
+    GoMoveTime(u128),
+    GoNodes(usize),
     Stop,
     Quit,
 
@@ -249,41 +250,43 @@ impl Uci {
         enum Tokens {
             Nothing,
             Depth,
+            Nodes,
             MoveTime,
         }
 
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
         let mut report = CommReport::Uci(UciReport::GoInfinite);
         let mut token = Tokens::Nothing;
-        let mut finished = false;
 
         for p in parts {
             match p {
                 t if t == "go" => (),
-                t if t == "infinite" => (),
+                t if t == "infinite" => break,
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
-                _ => {
-                    if !finished {
-                        match token {
-                            Tokens::Nothing => (),
-                            Tokens::Depth => {
-                                let depth = p.parse::<u8>().unwrap_or(1);
-                                report = CommReport::Uci(UciReport::GoDepth(depth));
-                                finished = true;
-                            }
-                            Tokens::MoveTime => {
-                                let seconds = p.parse::<usize>().unwrap_or(1);
-                                report = CommReport::Uci(UciReport::GoMoveTime(seconds));
-                                finished = true;
-                            }
-                        }
+                t if t == "nodes" => token = Tokens::Nodes,
+                _ => match token {
+                    Tokens::Nothing => (),
+                    Tokens::Depth => {
+                        let depth = p.parse::<u8>().unwrap_or(1);
+                        report = CommReport::Uci(UciReport::GoDepth(depth));
+                        break; // break for-loop: nothing more to do.
                     }
-                }
-            }
-        }
+                    Tokens::MoveTime => {
+                        let milliseconds = p.parse::<u128>().unwrap_or(1000);
+                        report = CommReport::Uci(UciReport::GoMoveTime(milliseconds));
+                        break; // break for-loop: nothing more to do.
+                    }
+                    Tokens::Nodes => {
+                        let nodes = p.parse::<usize>().unwrap_or(1);
+                        report = CommReport::Uci(UciReport::GoNodes(nodes));
+                        break; // break for-loop: nothing more to do.
+                    }
+                }, // end match token
+            } // end match p
+        } // end for
         report
-    }
+    } // end parse_go()
 }
 
 // Implements UCI responses to send to the G(UI).

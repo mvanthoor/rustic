@@ -17,7 +17,7 @@ pub type SearchResult = (Move, SearchTerminate);
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
-    Start,
+    Start(SearchParams),
     Stop,
     Quit,
     Nothing,
@@ -31,19 +31,36 @@ pub enum SearchTerminate {
     Nothing, // No command received yet.
 }
 
+// SearchMode lists how the search termination criteria will be evaluated,
+// to see if the search has to be stopped.
+#[derive(PartialEq, Copy, Clone)]
+pub enum SearchMode {
+    Depth,    // Run until requested depth is reached.
+    MoveTime, // Run until 'time per move' is used up.
+    Nodes,    // Run until the number of requested nodes was reached.
+    GameTime, // Search determines when to quit, depending on available time.
+    Infinite, // Run forever, until the 'stop' command is received.
+    Nothing,  // No search mode has been defined.
+}
+
 // This struct holds all the search parameters as set by the engine thread.
 // (These parameters are either default, or provided by the user interface
 // before the game starts.)
+#[derive(PartialEq, Copy, Clone)]
 pub struct SearchParams {
     pub depth: u8,
-    pub time_for_move: u128,
+    pub move_time: u128,
+    pub nodes: usize,
+    pub search_mode: SearchMode,
 }
 
 impl SearchParams {
-    pub fn new(depth: u8, time_for_move: u128) -> Self {
+    pub fn new(depth: u8, move_time: u128, nodes: usize, search_mode: SearchMode) -> Self {
         Self {
             depth,
-            time_for_move,
+            move_time,
+            nodes,
+            search_mode,
         }
     }
 }
@@ -81,7 +98,6 @@ impl SearchInfo {
 // search results within this struct before sending it to the engine
 // thread. The engine thread will send it to Comm, which will transform the
 // information into UCI/XBoard/Console output and print it to STDOUT.
-
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchSummary {
     pub depth: u8,         // depth reached during search
@@ -127,10 +143,11 @@ impl SearchStats {
 
 // The search process needs references to a lot of data, such as a copy of
 // the current board to make moves on, the move generator, search paramters
-// (depth, time available, etc...), SearchInfo to put the results, and a
-// control receiver so the search can receive commands from the engine.
-// These references are grouped in SearchRefs, so they don't have to be
-// passed one by one as function arguments.
+// (depth, time available, etc...), SearchInfo to put the results. It also
+// needs references to the control receiver and report sender so it can
+// receive commands from the engine and send reports back. These references
+// are grouped in SearchRefs, so they don't have to be passed one by one as
+// function arguments.
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
@@ -140,10 +157,11 @@ pub struct SearchRefs<'a> {
     pub report_tx: &'a Sender<Information>,
 }
 
+// This struct holds all the reports a search can send to the engine.
 #[derive(PartialEq)]
 pub enum SearchReport {
-    Finished(Move),
-    SearchSummary(SearchSummary),
-    SearchCurrentMove(SearchCurrentMove),
-    SearchStats(SearchStats),
+    Finished(Move),                       // Search done. Contains the best move.
+    SearchSummary(SearchSummary),         // Periodic intermediate results.
+    SearchCurrentMove(SearchCurrentMove), // Move currently searched.
+    SearchStats(SearchStats),             // General search statistics
 }
