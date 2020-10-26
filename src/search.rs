@@ -24,20 +24,20 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mod alpha_beta;
 pub mod defs;
+mod iter_deep;
 mod qsearch;
 mod sorting;
 mod utils;
 
 use crate::{
     board::Board,
-    defs::MAX_DEPTH,
     engine::defs::{ErrFatal, Information},
-    movegen::{defs::Move, MoveGenerator},
+    movegen::MoveGenerator,
 };
 use crossbeam_channel::Sender;
 use defs::{
-    SearchControl, SearchInfo, SearchMode, SearchParams, SearchRefs, SearchReport, SearchResult,
-    SearchSummary, SearchTerminate, INF,
+    SearchControl, SearchInfo, SearchMode, SearchParams, SearchRefs, SearchReport, SearchSummary,
+    SearchTerminate,
 };
 use std::{
     sync::{Arc, Mutex},
@@ -156,55 +156,5 @@ impl Search {
         if let Some(h) = self.handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
-    }
-}
-
-// Actual search routines.
-impl Search {
-    fn iterative_deepening(refs: &mut SearchRefs) -> SearchResult {
-        let mut depth = 1;
-        let mut interrupted = false;
-        let mut best_move = Move::new(0);
-
-        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !interrupted {
-            // Set the current depth
-            refs.search_info.depth = depth;
-
-            // Get the evaluation for this depth.
-            let eval = Search::alpha_beta(depth, -INF, INF, refs);
-
-            // Detect if searching this depth was interrupted.
-            interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
-
-            // If searching this depth was not interrupted...
-            if !interrupted {
-                // Save the best move until now.
-                best_move = refs.search_info.bm_at_depth;
-
-                // Create search summary for this depth.
-                let elapsed = refs.search_info.start_time.elapsed().as_millis();
-                let nodes = refs.search_info.nodes;
-                let summary = SearchSummary {
-                    depth,
-                    time: elapsed,
-                    cp: eval,
-                    mate: 0,
-                    nodes,
-                    nps: Search::nodes_per_second(nodes, elapsed),
-                    bm_at_depth: best_move,
-                };
-
-                // Create information for the engine
-                let report = SearchReport::SearchSummary(summary);
-                let information = Information::Search(report);
-                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
-
-                // Search one ply deepr.
-                depth += 1;
-            }
-        }
-
-        // Search is done. Report best move and reason to terminate.
-        (best_move, refs.search_info.terminate)
     }
 }
