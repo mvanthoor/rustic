@@ -39,9 +39,6 @@ impl Search {
             return Search::quiescence(alpha, beta, refs);
         }
 
-        // Search a new node, so we increase the node counter.
-        refs.search_info.nodes += 1;
-
         // Temporary variables.
         let mut best_move_at_depth = Move::new(0);
         let old_alpha = alpha;
@@ -54,6 +51,9 @@ impl Search {
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list);
+
+        // We created a new node which we'll search, so count it.
+        refs.search_info.nodes += 1;
 
         // Iterate over the moves.
         for i in 0..move_list.len() {

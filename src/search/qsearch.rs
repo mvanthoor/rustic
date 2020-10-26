@@ -36,9 +36,6 @@ impl Search {
             Search::check_for_termination(refs);
         }
 
-        // We created another node, so increase node count.
-        refs.search_info.nodes += 1;
-
         // Do a stand-pat here: Check how we're doing, even before we make
         // a move. If the evaluation score is larger than beta, then we're
         // already so bad we don't need to search any further. Just return
@@ -72,6 +69,9 @@ impl Search {
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list);
+
+        // We created a new node which we'll search, so count it.
+        refs.search_info.nodes += 1;
 
         // Iterate over the capture moves.
         for i in 0..move_list.len() {
