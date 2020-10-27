@@ -68,4 +68,12 @@ impl History {
         self.count -= 1;
         self.list[self.count]
     }
+
+    pub fn get_ref(&self, index: usize) -> &GameState {
+        &self.list[index]
+    }
+
+    pub fn len(&self) -> usize {
+        self.count
+    }
 }

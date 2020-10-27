@@ -28,6 +28,7 @@ use super::{
     Search,
 };
 use crate::{
+    board::Board,
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
 };
@@ -109,5 +110,22 @@ impl Search {
 
         // Update last checkpoint
         refs.search_info.last_checkpoint = refs.search_info.nodes;
+    }
+
+    pub fn is_repetition(board: &Board) -> bool {
+        let mut found = false;
+        let mut i = 0;
+
+        // If the half-move clock is 10, the position cannot have been
+        // repeated in the last 10 moves. Therefore, don't search for
+        // repetitions beyond that point.
+        let max = board.history.len() - (board.game_state.halfmove_clock as usize);
+
+        while i < max && !found {
+            let historic = board.history.get_ref(i);
+            found = historic.zobrist_key == board.game_state.zobrist_key;
+            i += 1;
+        }
+        found
     }
 }

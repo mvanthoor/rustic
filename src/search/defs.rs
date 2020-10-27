@@ -6,11 +6,13 @@ use crate::{
 use crossbeam_channel::{Receiver, Sender};
 use std::{sync::Arc, time::Instant};
 
+const MILLION: usize = 1_000 * 1_000;
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
+pub const DRAW: i16 = 0;
 pub const CHECKPOINT: usize = 1_000; // nodes
-pub const UPDATE_STATS: usize = 5_000_000; // nodes
+pub const UPDATE_STATS: usize = 5 * MILLION; // nodes
 
 pub type SearchResult = (Move, SearchTerminate);
 

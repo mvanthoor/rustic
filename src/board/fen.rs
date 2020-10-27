@@ -32,7 +32,7 @@ use super::{
     Board,
 };
 use crate::{
-    defs::{Castling, Sides, Square, FEN_START_POSITION, MAX_GAME_MOVES},
+    defs::{Castling, Sides, Square, FEN_START_POSITION, MAX_GAME_MOVES, MAX_MOVE_RULE},
     misc::parse,
 };
 use if_chain::if_chain;
@@ -40,6 +40,7 @@ use std::ops::RangeInclusive;
 
 /** Definitions used by the FEN-reader */
 const NR_OF_FEN_PARTS: usize = 6;
+const SHORT_FEN_PARTS: usize = 4;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
 const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
@@ -56,13 +57,17 @@ impl Board {
     // This function reads a provided FEN-string or uses the default position.
     pub fn fen_read(&mut self, fen_string: Option<&str>) -> FenResult {
         // Split the string into parts. There should be 6 parts.
-        let fen_parts: Vec<String> = match fen_string {
+        let mut fen_parts: Vec<String> = match fen_string {
             Some(f) => f,
             None => FEN_START_POSITION,
         }
         .split(SPACE)
         .map(|s| s.to_string())
         .collect();
+
+        if fen_parts.len() == SHORT_FEN_PARTS {
+            fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
+        }
 
         // Check the number of fen parts.
         let nr_of_parts_ok = fen_parts.len() == NR_OF_FEN_PARTS;
@@ -248,7 +253,7 @@ fn hmc(board: &mut Board, part: &str) -> bool {
     if_chain! {
         if length == 1 || length == 2;
         if let Ok(x) = part.parse::<u8>();
-        if x <= 50;
+        if x <= MAX_MOVE_RULE;
         then {
             board.game_state.halfmove_clock = x;
             result = true;

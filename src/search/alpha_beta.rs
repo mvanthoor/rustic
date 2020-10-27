@@ -21,10 +21,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, STALEMATE, UPDATE_STATS},
+    defs::{SearchTerminate, CHECKMATE, DRAW, STALEMATE, UPDATE_STATS},
     Search, SearchRefs,
 };
-use crate::movegen::defs::{Move, MoveList, MoveType};
+use crate::{
+    defs::MAX_MOVE_RULE,
+    movegen::defs::{Move, MoveList, MoveType},
+};
 
 impl Search {
     pub fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
@@ -37,6 +40,13 @@ impl Search {
         // return the result.
         if depth == 0 {
             return Search::quiescence(alpha, beta, refs);
+        }
+
+        // Return a draw score if this position is a repetition, or if the
+        // number of moves without captures or pawn moves was exceeded.
+        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
+        if Search::is_repetition(refs.board) || max_move_rule {
+            return DRAW;
         }
 
         // Temporary variables.
