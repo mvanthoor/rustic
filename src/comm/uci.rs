@@ -24,10 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
-    board::{
-        defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
-        Board,
-    },
+    board::Board,
     defs::{About, FEN_START_POSITION},
     engine::defs::{ErrFatal, Information},
     misc::print,
@@ -333,13 +330,7 @@ impl Uci {
     }
 
     fn search_summary(s: &SearchSummary) {
-        let pv_move = format!(
-            "{}{}{}",
-            SQUARE_NAME[s.bm_at_depth.from()],
-            SQUARE_NAME[s.bm_at_depth.to()],
-            PIECE_CHAR_SMALL[s.bm_at_depth.promoted()],
-        );
-
+        let pv_move = s.bm_at_depth.as_string();
         let info = format!(
             "info score cp {} depth {} time {} nodes {} nps {} pv {}",
             s.cp, s.depth, s.time, s.nodes, s.nps, pv_move,
@@ -350,10 +341,8 @@ impl Uci {
 
     fn search_current(c: &SearchCurrentMove) {
         println!(
-            "info currmove {}{}{} currmovenumber {}",
-            SQUARE_NAME[c.curr_move.from()],
-            SQUARE_NAME[c.curr_move.to()],
-            PIECE_CHAR_SMALL[c.curr_move.promoted()],
+            "info currmove {} currmovenumber {}",
+            c.curr_move.as_string(),
             c.curr_move_number
         );
     }
@@ -367,12 +356,7 @@ impl Uci {
     }
 
     fn best_move(m: &Move) {
-        println!(
-            "bestmove {}{}{}",
-            SQUARE_NAME[m.from()],
-            SQUARE_NAME[m.to()],
-            PIECE_CHAR_SMALL[m.promoted()],
-        );
+        println!("bestmove {}", m.as_string());
     }
 }
 
@@ -393,7 +377,7 @@ impl Uci {
 
         for i in 0..length {
             let h = mtx_board.history.get_ref(i);
-            println!("{:<3}| ply: {} {}", i, i + 1, h.to_string());
+            println!("{:<3}| ply: {} {}", i, i + 1, h.as_string());
         }
 
         std::mem::drop(mtx_board);

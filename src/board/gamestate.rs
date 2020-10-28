@@ -60,7 +60,7 @@ impl GameState {
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn as_string(&self) -> String {
         let ep = if let Some(x) = self.en_passant {
             SQUARE_NAME[x as usize]
         } else {

@@ -56,7 +56,10 @@ Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
 pub use super::{magics::Magic, movelist::MoveList};
-use crate::defs::{Piece, Square};
+use crate::{
+    board::defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
+    defs::{Piece, Square},
+};
 
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store
  * move data in a specific place within the u64 integer. This makes sure that, should the
@@ -132,5 +135,14 @@ impl Move {
 
     pub fn add_score(&mut self, value: u8) {
         self.data += (value as usize) << Shift::SCORE;
+    }
+
+    pub fn as_string(&self) -> String {
+        format!(
+            "{}{}{}",
+            SQUARE_NAME[self.from()],
+            SQUARE_NAME[self.to()],
+            PIECE_CHAR_SMALL[self.promoted()]
+        )
     }
 }
