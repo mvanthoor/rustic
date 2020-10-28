@@ -24,10 +24,7 @@ use super::{
     defs::{SearchTerminate, CHECKMATE, DRAW, STALEMATE, UPDATE_STATS},
     Search, SearchRefs,
 };
-use crate::{
-    defs::MAX_MOVE_RULE,
-    movegen::defs::{Move, MoveList, MoveType},
-};
+use crate::movegen::defs::{Move, MoveList, MoveType};
 
 impl Search {
     pub fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
@@ -44,8 +41,7 @@ impl Search {
 
         // Return a draw score if this position is a repetition, or if the
         // number of moves without captures or pawn moves was exceeded.
-        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
-        if Search::is_repetition(refs.board) || max_move_rule {
+        if Search::is_draw(refs) {
             return DRAW;
         }
 

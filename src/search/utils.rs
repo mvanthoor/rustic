@@ -29,6 +29,7 @@ use super::{
 };
 use crate::{
     board::Board,
+    defs::MAX_MOVE_RULE,
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
 };
@@ -52,6 +53,11 @@ impl Search {
 
     pub fn is_checkpoint(refs: &mut SearchRefs) -> bool {
         refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT
+    }
+
+    pub fn is_draw(refs: &mut SearchRefs) -> bool {
+        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
+        Search::is_repetition(refs.board) || max_move_rule
     }
 
     // This function sends the currently searched move to the engine thread.
