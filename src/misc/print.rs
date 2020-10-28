@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::{
-        defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
+        defs::{Pieces, RangeOf, PIECE_CHAR_CAPS, PIECE_NAME, SQUARE_NAME},
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Sides},
@@ -44,7 +44,6 @@ const CHAR_BR: char = 'r';
 const CHAR_BB: char = 'b';
 const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
-const PIECE_CHAR: [&str; 7] = ["K", "Q", "R", "B", "N", "", "_"];
 
 // Prints the current position to the screen.
 pub fn position(board: &Board, mark_square: Option<u8>) {
@@ -197,7 +196,7 @@ pub fn move_data(m: Move, nr: u8) {
     println!(
         "{}. Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}, score: {}",
         nr + 1,
-        PIECE_CHAR[m.piece()],
+        PIECE_CHAR_CAPS[m.piece()],
         SQUARE_NAME[m.from()],
         SQUARE_NAME[m.to()],
         PIECE_NAME[m.captured()],

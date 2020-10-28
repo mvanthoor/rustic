@@ -24,7 +24,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
-    board::{defs::SQUARE_NAME, Board},
+    board::{
+        defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
+        Board,
+    },
     defs::{About, FEN_START_POSITION},
     engine::defs::{ErrFatal, Information},
     misc::print,
@@ -331,9 +334,10 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         let pv_move = format!(
-            "{}{}",
+            "{}{}{}",
             SQUARE_NAME[s.bm_at_depth.from()],
-            SQUARE_NAME[s.bm_at_depth.to()]
+            SQUARE_NAME[s.bm_at_depth.to()],
+            PIECE_CHAR_SMALL[s.bm_at_depth.promoted()],
         );
 
         let info = format!(
@@ -346,9 +350,10 @@ impl Uci {
 
     fn search_current(c: &SearchCurrentMove) {
         println!(
-            "info currmove {}{} currmovenumber {}",
+            "info currmove {}{}{} currmovenumber {}",
             SQUARE_NAME[c.curr_move.from()],
             SQUARE_NAME[c.curr_move.to()],
+            PIECE_CHAR_SMALL[c.curr_move.promoted()],
             c.curr_move_number
         );
     }
@@ -361,11 +366,12 @@ impl Uci {
         println!("info string {}", msg);
     }
 
-    fn best_move(bm: &Move) {
+    fn best_move(m: &Move) {
         println!(
-            "bestmove {}{}",
-            SQUARE_NAME[bm.from()],
-            SQUARE_NAME[bm.to()]
+            "bestmove {}{}{}",
+            SQUARE_NAME[m.from()],
+            SQUARE_NAME[m.to()],
+            PIECE_CHAR_SMALL[m.promoted()],
         );
     }
 }
