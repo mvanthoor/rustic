@@ -114,14 +114,9 @@ impl Search {
 
     pub fn is_repetition(board: &Board) -> bool {
         let mut found = false;
-        let mut i = 0;
+        let mut i = board.history.len() - (board.game_state.halfmove_clock as usize);
 
-        // If the half-move clock is 10, the position cannot have been
-        // repeated in the last 10 moves. Therefore, don't search for
-        // repetitions beyond that point.
-        let max = board.history.len() - (board.game_state.halfmove_clock as usize);
-
-        while i < max && !found {
+        while i < board.history.len() && !found {
             let historic = board.history.get_ref(i);
             found = historic.zobrist_key == board.game_state.zobrist_key;
             i += 1;

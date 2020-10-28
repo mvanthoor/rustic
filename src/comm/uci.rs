@@ -57,6 +57,7 @@ pub enum UciReport {
 
     // Custom commands
     Board,
+    History,
     Eval,
     Help,
 
@@ -190,6 +191,7 @@ impl Uci {
 
                     // Custom prints for use in the console.
                     CommControl::PrintBoard => Uci::print_board(&t_board),
+                    CommControl::PrintHistory => Uci::print_history(&t_board),
                     CommControl::PrintHelp => Uci::print_help(),
 
                     // Comm Control commands that are not (yet) used.
@@ -224,6 +226,7 @@ impl Uci {
 
             // Custom commands
             cmd if cmd == "board" => CommReport::Uci(UciReport::Board),
+            cmd if cmd == "history" => CommReport::Uci(UciReport::History),
             cmd if cmd == "eval" => CommReport::Uci(UciReport::Eval),
             cmd if cmd == "help" => CommReport::Uci(UciReport::Help),
 
@@ -374,14 +377,32 @@ impl Uci {
         print::position(&board.lock().expect(ErrFatal::LOCK), None);
     }
 
+    fn print_history(board: &Arc<Mutex<Board>>) {
+        let mtx_board = board.lock().expect(ErrFatal::LOCK);
+        let length = mtx_board.history.len();
+
+        if length == 0 {
+            println!("No history available.");
+        }
+
+        for i in 0..length {
+            let h = mtx_board.history.get_ref(i);
+            println!("{:<3}| ply: {} {}", i, i + 1, h.to_string());
+        }
+
+        std::mem::drop(mtx_board);
+    }
+
     fn print_help() {
         println!("The engine is in UCI communication mode. It supports some custom");
         println!("non-UCI commands to make use through a terminal window easier.");
+        println!("These commands can also be very useful for debugging purposes.");
         println!();
         println!("Custom commands");
         println!("================================================================");
         println!("help      :   This help information.");
         println!("board     :   Print the current board state.");
+        println!("history   :   Print a list of past board states.");
         println!("eval      :   Print evaluation for side to move.");
         println!("exit      :   Quit/Exit the engine.");
         println!();

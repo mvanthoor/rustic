@@ -20,7 +20,12 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::{defs::Sides, movegen::defs::Move};
+use crate::{
+    board::defs::{Pieces, PIECE_NAME, SQUARE_NAME},
+    defs::Sides,
+    misc::print,
+    movegen::defs::Move,
+};
 
 // This is simply a struct that collects all the variables holding the game sate.
 // It makes it very easy to make a backup of the game state during make(), and
@@ -53,5 +58,36 @@ impl GameState {
             psqt: [0; Sides::BOTH],
             next_move: Move::new(0),
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        let ep = if let Some(x) = self.en_passant {
+            SQUARE_NAME[x as usize]
+        } else {
+            "-"
+        };
+
+        let promotion = if self.next_move.promoted() != Pieces::NONE {
+            PIECE_NAME[self.next_move.promoted()]
+        } else {
+            ""
+        };
+
+        format!(
+            "zk: {:x} ac: {} cperm: {} ep: {} hmc: {} fmn: {} mat: {}/{}, psqt: {}/{} next: {}{}{}",
+            self.zobrist_key,
+            self.active_color,
+            print::castling_as_string(self.castling),
+            ep,
+            self.halfmove_clock,
+            self.fullmove_number,
+            self.material[Sides::WHITE],
+            self.material[Sides::BLACK],
+            self.psqt[Sides::WHITE],
+            self.psqt[Sides::BLACK],
+            SQUARE_NAME[self.next_move.from()],
+            SQUARE_NAME[self.next_move.to()],
+            promotion
+        )
     }
 }

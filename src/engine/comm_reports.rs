@@ -92,6 +92,7 @@ impl Engine {
 
             // Custom commands
             UciReport::Board => self.comm.send(CommControl::PrintBoard),
+            UciReport::History => self.comm.send(CommControl::PrintHistory),
             UciReport::Eval => {
                 let e = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
                 let msg = format!("Evaluation: {} centipawns", e);

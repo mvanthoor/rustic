@@ -156,7 +156,7 @@ fn metadata(board: &Board) {
 }
 
 // Converts castling permissions to a string.
-fn castling_as_string(permissions: u8) -> String {
+pub fn castling_as_string(permissions: u8) -> String {
     let mut castling_as_string: String = String::from("");
     let p = permissions;
 
@@ -164,6 +164,10 @@ fn castling_as_string(permissions: u8) -> String {
     castling_as_string += if p & Castling::WQ > 0 { "Q" } else { "" };
     castling_as_string += if p & Castling::BK > 0 { "k" } else { "" };
     castling_as_string += if p & Castling::BQ > 0 { "q" } else { "" };
+
+    if castling_as_string.is_empty() {
+        castling_as_string = String::from("-");
+    }
 
     castling_as_string
 }

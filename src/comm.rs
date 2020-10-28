@@ -63,6 +63,7 @@ pub enum CommControl {
 
     // Output to screen when running in a terminal window.
     PrintBoard,
+    PrintHistory,
     PrintHelp,
 }
 
