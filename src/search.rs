@@ -67,7 +67,7 @@ impl Search {
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
 
         // Create thread-local variables.
-        let t_report_tx = report_tx.clone();
+        let t_report_tx = report_tx;
 
         // Create the search thread.
         let h = thread::spawn(move || {

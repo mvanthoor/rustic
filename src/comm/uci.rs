@@ -38,7 +38,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-const SPACE: &'static str = " ";
+const SPACE: &str = " ";
 
 // Input will be turned into a report, which wil be sent to the engine. The
 // main engine thread will react accordingly.
@@ -88,7 +88,7 @@ impl Uci {
 impl IComm for Uci {
     fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>) {
         // Start threads
-        self.report_thread(report_tx.clone());
+        self.report_thread(report_tx);
         self.control_thread(board);
     }
 
@@ -124,7 +124,7 @@ impl Uci {
     fn report_thread(&mut self, report_tx: Sender<Information>) {
         // Create thread-local variables
         let mut t_incoming_data = String::from("");
-        let t_report_tx = report_tx.clone(); // Report sender
+        let t_report_tx = report_tx; // Report sender
 
         // Actual thread creation.
         let report_handle = thread::spawn(move || {
@@ -235,7 +235,7 @@ impl Uci {
         }
     }
 
-    fn parse_position(cmd: &String) -> CommReport {
+    fn parse_position(cmd: &str) -> CommReport {
         enum Tokens {
             Nothing,
             Fen,
@@ -271,7 +271,7 @@ impl Uci {
         CommReport::Uci(UciReport::Position(fen.trim().to_string(), moves))
     }
 
-    fn parse_go(cmd: &String) -> CommReport {
+    fn parse_go(cmd: &str) -> CommReport {
         enum Tokens {
             Nothing,
             Depth,
@@ -351,7 +351,7 @@ impl Uci {
         println!("info nodes {} nps {}", s.nodes, s.nps);
     }
 
-    fn info_string(msg: &String) {
+    fn info_string(msg: &str) {
         println!("info string {}", msg);
     }
 

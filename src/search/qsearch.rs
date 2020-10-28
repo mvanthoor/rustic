@@ -128,6 +128,6 @@ impl Search {
 
         // We have traversed the entire move list and found the best score for us,
         // so we return this.
-        return alpha;
+        alpha
     }
 }

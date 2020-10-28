@@ -76,9 +76,6 @@ pub enum CommReport {
 
 impl CommReport {
     pub fn is_valid(&self) -> bool {
-        // Match the incoming command.
-        match self {
-            _ => true,
-        }
+        true
     }
 }

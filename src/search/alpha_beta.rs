@@ -153,6 +153,6 @@ impl Search {
         // We have traversed the entire move list and found the best
         // possible move/eval_score for us at this depth. We can't improve
         // this any further, so return the result. This called "fail-low".
-        return alpha;
+        alpha
     }
 }
