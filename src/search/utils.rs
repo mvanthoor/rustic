@@ -120,12 +120,26 @@ impl Search {
 
     pub fn is_repetition(board: &Board) -> bool {
         let mut found = false;
-        let mut i = board.history.len() - (board.game_state.halfmove_clock as usize);
+        let mut stop = false;
+        let mut i = board.history.len() - 1;
 
-        while i < board.history.len() && !found {
+        // Search the history list.
+        while i != 0 && !found && !stop {
             let historic = board.history.get_ref(i);
+
+            // If the historic zobrist key is equal to the one of the board
+            // passed into the function, then we found a repetition.
             found = historic.zobrist_key == board.game_state.zobrist_key;
-            i += 1;
+
+            // If the historic HMC is 0, it indicates that this position
+            // was created by a capture or pawn move. We don't have to
+            // search further back, because before this, we can't ever
+            // repeat. After all, the capture or pawn move can't be
+            // reverted or repeated.
+            stop = historic.halfmove_clock == 0;
+
+            // Search backwards.
+            i -= 1;
         }
         found
     }

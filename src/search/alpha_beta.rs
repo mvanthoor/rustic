@@ -39,12 +39,6 @@ impl Search {
             return Search::quiescence(alpha, beta, refs);
         }
 
-        // Return a draw score if this position is a repetition, or if the
-        // number of moves without captures or pawn moves was exceeded.
-        if Search::is_draw(refs) {
-            return DRAW;
-        }
-
         // Temporary variables.
         let mut best_move_at_depth = Move::new(0);
         let old_alpha = alpha;
@@ -99,10 +93,17 @@ impl Search {
                 Search::send_updated_stats(refs);
             }
 
-            // We are not yet in a leaf node (the "bottom" of the tree, at
-            // the requested depth), so start Alpha-Beta again, for the
-            // opponent's side to go one ply deeper.
-            let eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, refs);
+            //We just made a move. We are not yet at one of the leaf nodes,
+            //so we must search deeper. We do this by calling alpha/beta
+            //again to go to the next ply, but ONLY if this move is NOT
+            //causing a draw by repetition or 50-move rule. If it is, we
+            //don't have to search anymore: we can just assign DRAW as the
+            //eval_score.
+            let eval_score = if !Search::is_draw(refs) {
+                -Search::alpha_beta(depth - 1, -beta, -alpha, refs)
+            } else {
+                DRAW
+            };
 
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();
