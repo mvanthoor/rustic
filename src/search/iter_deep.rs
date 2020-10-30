@@ -46,7 +46,7 @@ impl Search {
             // If searching this depth was not interrupted...
             if !interrupted {
                 // Save the best move until now.
-                best_move = refs.search_info.bm_at_depth;
+                best_move = refs.search_info.best_move;
 
                 // Create search summary for this depth.
                 let elapsed = refs.search_info.start_time.elapsed().as_millis();

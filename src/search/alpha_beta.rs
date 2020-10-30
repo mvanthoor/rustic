@@ -40,8 +40,8 @@ impl Search {
         }
 
         // Temporary variables.
-        let mut best_move_at_depth = Move::new(0);
-        let old_alpha = alpha;
+        let mut best_move = Move::new(0);
+        let start_alpha = alpha;
 
         // Generate the moves in this position
         let mut legal_moves_found = 0;
@@ -120,7 +120,7 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move_at_depth = current_move;
+                best_move = current_move;
             }
         }
 
@@ -143,8 +143,8 @@ impl Search {
 
         // Alpha was improved while walking through the move list, so a
         // better move was found.
-        if alpha != old_alpha {
-            refs.search_info.bm_at_depth = best_move_at_depth;
+        if alpha != start_alpha {
+            refs.search_info.best_move = best_move;
         }
 
         // We have traversed the entire move list and found the best

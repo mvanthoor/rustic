@@ -59,8 +59,8 @@ impl Search {
         // Then the function will return after looping the move list.
 
         // Temporary variables.
-        let mut best_move_at_depth = Move::new(0);
-        let old_alpha = alpha;
+        let mut best_move = Move::new(0);
+        let start_alpha = alpha;
 
         // Generate only capture moves.
         let mut move_list = MoveList::new();
@@ -116,14 +116,14 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move_at_depth = current_move;
+                best_move = current_move;
             }
         }
 
         // Alpha was improved while walking through the move list, so a
         // better move was found.
-        if alpha != old_alpha {
-            refs.search_info.bm_at_depth = best_move_at_depth;
+        if alpha != start_alpha {
+            refs.search_info.best_move = best_move;
         }
 
         // We have traversed the entire move list and found the best score for us,
