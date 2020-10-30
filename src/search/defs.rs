@@ -77,6 +77,7 @@ pub struct SearchInfo {
     pub last_stats: usize,
     pub best_move: Move,
     pub nodes: usize,
+    pub pv: Vec<Move>,
     pub ply: u8,
     pub terminate: SearchTerminate,
 }
@@ -90,6 +91,7 @@ impl SearchInfo {
             last_stats: 0,
             best_move: Move::new(0),
             nodes: 0,
+            pv: Vec::new(),
             ply: 0,
             terminate: SearchTerminate::Nothing,
         }
@@ -100,7 +102,7 @@ impl SearchInfo {
 // search results within this struct before sending it to the engine
 // thread. The engine thread will send it to Comm, which will transform the
 // information into UCI/XBoard/Console output and print it to STDOUT.
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct SearchSummary {
     pub depth: u8,         // depth reached during search
     pub time: u128,        // milliseconds
@@ -108,7 +110,19 @@ pub struct SearchSummary {
     pub mate: u8,          // mate in X moves
     pub nodes: usize,      // nodes searched
     pub nps: usize,        // nodes per second
+    pub pv: Vec<Move>,     // Principal Variation
     pub bm_at_depth: Move, // best move after this depth
+}
+
+impl SearchSummary {
+    pub fn pv_as_string(&self) -> String {
+        let mut pv = String::from("");
+        for next_move in self.pv.iter() {
+            let m = format!(" {}", next_move.as_string());
+            pv.push_str(&m[..]);
+        }
+        pv
+    }
 }
 
 #[derive(PartialEq, Copy, Clone)]

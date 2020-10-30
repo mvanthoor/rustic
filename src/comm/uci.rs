@@ -330,10 +330,10 @@ impl Uci {
     }
 
     fn search_summary(s: &SearchSummary) {
-        let pv_move = s.bm_at_depth.as_string();
+        let pv = s.pv_as_string();
         let info = format!(
             "info score cp {} depth {} time {} nodes {} nps {} pv {}",
-            s.cp, s.depth, s.time, s.nodes, s.nps, pv_move,
+            s.cp, s.depth, s.time, s.nodes, s.nps, pv,
         );
 
         println!("{}", info);

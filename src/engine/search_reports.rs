@@ -36,7 +36,7 @@ impl Engine {
             }
 
             SearchReport::SearchSummary(summary) => {
-                self.comm.send(CommControl::SearchSummary(*summary));
+                self.comm.send(CommControl::SearchSummary(summary.clone()));
             }
 
             SearchReport::SearchStats(stats) => {

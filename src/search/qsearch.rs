@@ -20,10 +20,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{
-    defs::{SearchTerminate, UPDATE_STATS},
-    Search, SearchRefs,
-};
+use super::{defs::SearchTerminate, Search, SearchRefs};
 use crate::{
     defs::MAX_DEPTH,
     evaluation,
@@ -31,7 +28,7 @@ use crate::{
 };
 
 impl Search {
-    pub fn quiescence(mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
+    pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
         // Check if search needs to be terminated.
         if Search::is_checkpoint(refs) {
             Search::check_for_termination(refs);
@@ -104,8 +101,11 @@ impl Search {
                 Search::send_updated_stats(refs);
             }
 
+            // Create a PV for this node.
+            let mut node_pv: Vec<Move> = Vec::new();
+
             // The position is not yet quiet. Go one ply deeper.
-            let eval_score = -Search::quiescence(-beta, -alpha, refs);
+            let eval_score = -Search::quiescence(-beta, -alpha, &mut node_pv, refs);
 
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();
@@ -122,6 +122,9 @@ impl Search {
                 // Save our better evaluation score.
                 alpha = eval_score;
                 best_move = current_move;
+                pv.clear();
+                pv.push(best_move);
+                pv.append(&mut node_pv);
             }
         }
 
@@ -129,6 +132,7 @@ impl Search {
         // better move was found.
         if alpha != start_alpha {
             refs.search_info.best_move = best_move;
+            refs.search_info.pv = pv.clone();
         }
 
         // We have traversed the entire move list and found the best score for us,

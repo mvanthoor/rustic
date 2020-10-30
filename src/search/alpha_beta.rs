@@ -31,7 +31,13 @@ use crate::{
 };
 
 impl Search {
-    pub fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
+    pub fn alpha_beta(
+        depth: u8,
+        mut alpha: i16,
+        beta: i16,
+        pv: &mut Vec<Move>,
+        refs: &mut SearchRefs,
+    ) -> i16 {
         // Check if termination condition is met.
         if Search::is_checkpoint(refs) {
             Search::check_for_termination(refs);
@@ -40,7 +46,7 @@ impl Search {
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
         if depth == 0 {
-            return Search::quiescence(alpha, beta, refs);
+            return Search::quiescence(alpha, beta, pv, refs);
         }
 
         // Stop going deeper if we hit MAX_DEPTH.
@@ -100,6 +106,9 @@ impl Search {
             legal_moves_found += 1;
             refs.search_info.ply += 1;
 
+            // Create a node PV for this move.
+            let mut node_pv: Vec<Move> = Vec::new();
+
             //We just made a move. We are not yet at one of the leaf nodes,
             //so we must search deeper. We do this by calling alpha/beta
             //again to go to the next ply, but ONLY if this move is NOT
@@ -107,7 +116,7 @@ impl Search {
             //don't have to search anymore: we can just assign DRAW as the
             //eval_score.
             let eval_score = if !Search::is_draw(refs) {
-                -Search::alpha_beta(depth - 1, -beta, -alpha, refs)
+                -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
             } else {
                 DRAW
             };
@@ -128,6 +137,10 @@ impl Search {
                 // Save our better evaluation score.
                 alpha = eval_score;
                 best_move = current_move;
+
+                pv.clear();
+                pv.push(best_move);
+                pv.append(&mut node_pv);
             }
         }
 
@@ -152,6 +165,7 @@ impl Search {
         // better move was found.
         if alpha != start_alpha {
             refs.search_info.best_move = best_move;
+            refs.search_info.pv = pv.clone();
         }
 
         // We have traversed the entire move list and found the best
