@@ -25,6 +25,7 @@ use super::{
     Search, SearchRefs,
 };
 use crate::{
+    defs::MAX_DEPTH,
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
@@ -34,6 +35,10 @@ impl Search {
         // Check if search needs to be terminated.
         if Search::is_checkpoint(refs) {
             Search::check_for_termination(refs);
+        }
+
+        if refs.search_info.ply >= MAX_DEPTH {
+            return evaluation::evaluate_position(refs.board);
         }
 
         // Do a stand-pat here: Check how we're doing, even before we make
@@ -95,7 +100,7 @@ impl Search {
             refs.search_info.ply += 1;
 
             // Update search stats in the GUI.
-            if refs.search_info.nodes >= refs.search_info.last_stats + UPDATE_STATS {
+            if Search::is_update_stats(refs) {
                 Search::send_updated_stats(refs);
             }
 

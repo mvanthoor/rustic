@@ -21,10 +21,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, DRAW, STALEMATE, UPDATE_STATS},
+    defs::{SearchTerminate, CHECKMATE, DRAW, STALEMATE},
     Search, SearchRefs,
 };
-use crate::movegen::defs::{Move, MoveList, MoveType};
+use crate::{
+    defs::MAX_DEPTH,
+    evaluation,
+    movegen::defs::{Move, MoveList, MoveType},
+};
 
 impl Search {
     pub fn alpha_beta(depth: u8, mut alpha: i16, beta: i16, refs: &mut SearchRefs) -> i16 {
@@ -37,6 +41,11 @@ impl Search {
         // return the result.
         if depth == 0 {
             return Search::quiescence(alpha, beta, refs);
+        }
+
+        // Stop going deeper if we hit MAX_DEPTH.
+        if refs.search_info.ply >= MAX_DEPTH {
+            return evaluation::evaluate_position(refs.board);
         }
 
         // Temporary variables.
@@ -74,24 +83,22 @@ impl Search {
                 continue;
             }
 
-            // At this point, a legal move was found.
-            legal_moves_found += 1;
-
-            // Move is legal; increase the ply count.
-            refs.search_info.ply += 1;
-
-            // Send currently researched move to engine thread. Send this
-            // only when we are at the root of the tree.
-            if Search::is_root(refs.search_info.depth, depth) {
+            // Send currently researched move, but only when we are still
+            // at the root. This is before we update legal move count, ply,
+            // and then recurse deeper.
+            if Search::is_root(refs) {
                 Search::send_updated_current_move(refs, current_move, legal_moves_found);
             }
 
-            // Send search stats to the engine, every time the node count
-            // has counted UPDATE_STATS number of nodes. These are stats
-            // such as nodes, speed, TT full, etc.
-            if refs.search_info.nodes >= refs.search_info.last_stats + UPDATE_STATS {
+            // Send current search stats after a certain number of nodes
+            // has been searched.
+            if Search::is_update_stats(refs) {
                 Search::send_updated_stats(refs);
             }
+
+            // We found a legal move.
+            legal_moves_found += 1;
+            refs.search_info.ply += 1;
 
             //We just made a move. We are not yet at one of the leaf nodes,
             //so we must search deeper. We do this by calling alpha/beta
