@@ -45,10 +45,6 @@ impl Search {
         nps
     }
 
-    pub fn is_root(refs: &mut SearchRefs) -> bool {
-        refs.search_info.ply == 0
-    }
-
     pub fn is_checkpoint(refs: &mut SearchRefs) -> bool {
         refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT
     }

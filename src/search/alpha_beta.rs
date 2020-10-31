@@ -38,6 +38,9 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
+        // If we haven't made any moves yet, we're at the root.
+        let is_root = refs.search_info.ply == 0;
+
         // Check if termination condition is met.
         if Search::is_checkpoint(refs) {
             Search::check_for_termination(refs);
@@ -91,7 +94,7 @@ impl Search {
             // Send currently researched move, but only when we are still
             // at the root. This is before we update legal move count, ply,
             // and then recurse deeper.
-            if Search::is_root(refs) {
+            if is_root {
                 Search::send_updated_current_move(refs, current_move, legal_moves_found);
             }
 
