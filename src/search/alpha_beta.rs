@@ -56,7 +56,6 @@ impl Search {
 
         // Temporary variables.
         let mut best_move = Move::new(0);
-        let start_alpha = alpha;
 
         // Generate the moves in this position
         let mut legal_moves_found = 0;
@@ -161,12 +160,9 @@ impl Search {
             }
         }
 
-        // Alpha was improved while walking through the move list, so a
-        // better move was found.
-        if alpha != start_alpha {
-            refs.search_info.best_move = best_move;
-            refs.search_info.pv = pv.clone();
-        }
+        // We store our best move and best PV.
+        refs.search_info.best_move = best_move;
+        refs.search_info.pv = pv.clone();
 
         // We have traversed the entire move list and found the best
         // possible move/eval_score for us at this depth. We can't improve

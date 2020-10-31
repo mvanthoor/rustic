@@ -62,7 +62,6 @@ impl Search {
 
         // Temporary variables.
         let mut best_move = Move::new(0);
-        let start_alpha = alpha;
 
         // Generate only capture moves.
         let mut move_list = MoveList::new();
@@ -128,12 +127,9 @@ impl Search {
             }
         }
 
-        // Alpha was improved while walking through the move list, so a
-        // better move was found.
-        if alpha != start_alpha {
-            refs.search_info.best_move = best_move;
-            refs.search_info.pv = pv.clone();
-        }
+        // Store the best move and best PV we found.
+        refs.search_info.best_move = best_move;
+        refs.search_info.pv = pv.clone();
 
         // We have traversed the entire move list and found the best score for us,
         // so we return this.
