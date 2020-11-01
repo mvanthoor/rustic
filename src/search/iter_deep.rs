@@ -61,7 +61,6 @@ impl Search {
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
                     pv: refs.search_info.pv.clone(),
-                    bm_at_depth: best_move,
                 };
 
                 // Create information for the engine

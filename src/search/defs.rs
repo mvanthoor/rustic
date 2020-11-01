@@ -101,15 +101,14 @@ impl SearchInfo {
 // information into UCI/XBoard/Console output and print it to STDOUT.
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
-    pub depth: u8,         // depth reached during search
-    pub seldepth: u8,      // Maximum selective depth reached
-    pub time: u128,        // milliseconds
-    pub cp: i16,           // centipawns score
-    pub mate: u8,          // mate in X moves
-    pub nodes: usize,      // nodes searched
-    pub nps: usize,        // nodes per second
-    pub pv: Vec<Move>,     // Principal Variation
-    pub bm_at_depth: Move, // best move after this depth
+    pub depth: u8,     // depth reached during search
+    pub seldepth: u8,  // Maximum selective depth reached
+    pub time: u128,    // milliseconds
+    pub cp: i16,       // centipawns score
+    pub mate: u8,      // mate in X moves
+    pub nodes: usize,  // nodes searched
+    pub nps: usize,    // nodes per second
+    pub pv: Vec<Move>, // Principal Variation
 }
 
 impl SearchSummary {
