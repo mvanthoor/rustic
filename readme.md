@@ -11,13 +11,12 @@ dedications to their spouses/children/families in their books.
 * My girlfriend. Even though she is not a programmer, nor particularly
   interested in computers, I could not have written this chess engine
   without her. Just the fact that she's around when times are not the best,
-  would be enough in itself. Taking care of many things in and around the
-  house frees up so much time for me that I wouldn't even have had the
-  option of thinking about a project like this, let alone write it, had I
-  still been a bachelor. In addition, she also helped in the development of
-  the engine by listening to me blabbering about it, and then saying thigs
-  like: "Maybe I'm asking a stupid question, but...",which helped me to
-  avoid some stupid mistake more than once.
+  would be enough in itself, but she takes care of so much stuff in and
+  around the house that without her, I wouldn't have even had the time to
+  consider a project like this. In addition, she also helped in the
+  development of the engine by listening to me blabbering about it, and
+  then saying thigs like: "Maybe I'm asking a stupid question,
+  but...",which helped me to avoid some stupid mistake more than once.
 
 Many people on the [Talkchess.com](http://talkchess.com/forum3/index.php)
 forum have provided insights and assistance that greatly helped in the
