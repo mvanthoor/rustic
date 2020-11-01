@@ -277,16 +277,21 @@ impl Uci {
             Depth,
             Nodes,
             MoveTime,
+            WTime,
+            BTime,
+            WInc,
+            BInc,
+            MovesToGo,
         }
 
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
-        let mut report = CommReport::Uci(UciReport::GoInfinite);
+        let mut report = CommReport::Uci(UciReport::Unknown);
         let mut token = Tokens::Nothing;
 
         for p in parts {
             match p {
-                t if t == "go" => (),
-                t if t == "infinite" => break,
+                t if t == "go" => report = CommReport::Uci(UciReport::GoInfinite),
+                t if t == "infinite" => break, // Already Infinite; nothing more to do.
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
                 t if t == "nodes" => token = Tokens::Nodes,
@@ -307,6 +312,11 @@ impl Uci {
                         report = CommReport::Uci(UciReport::GoNodes(nodes));
                         break; // break for-loop: nothing more to do.
                     }
+                    Tokens::WTime => (),
+                    Tokens::BTime => (),
+                    Tokens::WInc => (),
+                    Tokens::BInc => (),
+                    Tokens::MovesToGo => (),
                 }, // end match token
             } // end match p
         } // end for

@@ -44,6 +44,27 @@ pub enum SearchMode {
     Nothing,  // No search mode has been defined.
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct GameTime {
+    wtime: u128, // White time on the clock in milliseconds
+    btime: u128, // Black time on the clock in milliseconds
+    winc: u128,  // White time increment in milliseconds (if wtime > 0)
+    binc: u128,  // Black time increment in milliseconds (if btime > 0)
+    mtg: usize,  // Moves to go to next time control (0 = sudden death)
+}
+
+impl GameTime {
+    pub fn new(wtime: u128, btime: u128, winc: u128, binc: u128, mtg: usize) -> Self {
+        Self {
+            wtime,
+            btime,
+            winc,
+            binc,
+            mtg,
+        }
+    }
+}
+
 // This struct holds all the search parameters as set by the engine thread.
 // (These parameters are either default, or provided by the user interface
 // before the game starts.)
@@ -52,15 +73,23 @@ pub struct SearchParams {
     pub depth: u8,
     pub move_time: u128,
     pub nodes: usize,
+    pub game_time: GameTime,
     pub search_mode: SearchMode,
 }
 
 impl SearchParams {
-    pub fn new(depth: u8, move_time: u128, nodes: usize, search_mode: SearchMode) -> Self {
+    pub fn new(
+        depth: u8,
+        move_time: u128,
+        nodes: usize,
+        game_time: GameTime,
+        search_mode: SearchMode,
+    ) -> Self {
         Self {
             depth,
             move_time,
             nodes,
+            game_time,
             search_mode,
         }
     }
