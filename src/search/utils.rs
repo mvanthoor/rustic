@@ -115,8 +115,8 @@ impl Search {
 
                 // Initialize time variables and moves to go.
                 let (time, inc, moves_to_go): (u128, u128, usize) = if white {
-                    let mtg = if gt.moves_to_go > 0 {
-                        gt.moves_to_go
+                    let mtg = if let Some(x) = gt.moves_to_go {
+                        x
                     } else {
                         let moves_made = refs.board.history.len() / 2;
                         DEFAULT_GAME_LENGTH - moves_made
@@ -124,8 +124,8 @@ impl Search {
 
                     (gt.wtime, gt.winc, mtg)
                 } else {
-                    let mtg = if gt.moves_to_go > 0 {
-                        gt.moves_to_go
+                    let mtg = if let Some(x) = gt.moves_to_go {
+                        x
                     } else {
                         let moves_made = (refs.board.history.len() - 1) / 2;
                         DEFAULT_GAME_LENGTH - moves_made

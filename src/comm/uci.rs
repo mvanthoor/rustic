@@ -288,7 +288,7 @@ impl Uci {
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
         let mut report = CommReport::Uci(UciReport::Unknown);
         let mut token = Tokens::Nothing;
-        let mut game_time = GameTime::new(0, 0, 0, 0, 0);
+        let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
         for p in parts {
             match p {
@@ -323,7 +323,13 @@ impl Uci {
                     Tokens::BTime => game_time.btime = p.parse::<u128>().unwrap_or(0),
                     Tokens::WInc => game_time.winc = p.parse::<u128>().unwrap_or(0),
                     Tokens::BInc => game_time.binc = p.parse::<u128>().unwrap_or(0),
-                    Tokens::MovesToGo => game_time.moves_to_go = p.parse::<usize>().unwrap_or(0),
+                    Tokens::MovesToGo => {
+                        game_time.moves_to_go = if let Ok(x) = p.parse::<usize>() {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    }
                 }, // end match token
             } // end match p
         } // end for

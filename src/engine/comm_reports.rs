@@ -44,7 +44,7 @@ impl Engine {
     // Handles "Uci" Comm reports sent by the UCI-module.
     fn comm_reports_uci(&mut self, u: &UciReport) {
         // Default GameTime is empty; only used by GameTime mode.
-        let gt = GameTime::new(0, 0, 0, 0, 0);
+        let gt = GameTime::new(0, 0, 0, 0, None);
         let side = self.board.lock().expect(ErrFatal::LOCK).us();
 
         match u {

@@ -74,7 +74,7 @@ impl Search {
             // Pointer to Board and Move Generator for this thread.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
-            let gt = GameTime::new(0, 0, 0, 0, 0);
+            let gt = GameTime::new(0, 0, 0, 0, None);
             let mut search_params = SearchParams::new(0, 0, 0, 0, gt, SearchMode::Nothing);
 
             let mut quit = false;
