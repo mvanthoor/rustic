@@ -11,7 +11,7 @@ pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
-pub const CHECKPOINT: usize = 1_000; // nodes
+pub const CHECKPOINT: usize = 0x7FF; // 2047 nodes
 pub const UPDATE_STATS: usize = 5 * MILLION; // nodes
 
 pub type SearchResult = (Move, SearchTerminate);
@@ -74,7 +74,6 @@ pub struct SearchInfo {
     pub depth: u8,
     pub seldepth: u8,
     pub start_time: Instant,
-    pub last_checkpoint: usize,
     pub last_stats: usize,
     pub best_move: Move,
     pub nodes: usize,
@@ -89,7 +88,6 @@ impl SearchInfo {
             depth: 0,
             seldepth: 0,
             start_time: Instant::now(),
-            last_checkpoint: 0,
             last_stats: 0,
             best_move: Move::new(0),
             nodes: 0,

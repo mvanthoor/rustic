@@ -21,7 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, DRAW, STALEMATE},
+    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, DRAW, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -42,8 +42,8 @@ impl Search {
         let is_root = refs.search_info.ply == 0;
 
         // Check if termination condition is met.
-        if Search::is_checkpoint(refs) {
-            Search::check_for_termination(refs);
+        if refs.search_info.nodes & CHECKPOINT == 0 {
+            Search::check_termination(refs);
         }
 
         // We have arrived at the leaf node. Evaluate the position and

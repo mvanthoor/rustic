@@ -20,7 +20,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{defs::SearchTerminate, Search, SearchRefs};
+use super::{
+    defs::{SearchTerminate, CHECKPOINT},
+    Search, SearchRefs,
+};
 use crate::{
     defs::MAX_DEPTH,
     evaluation,
@@ -30,8 +33,8 @@ use crate::{
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
         // Check if search needs to be terminated.
-        if Search::is_checkpoint(refs) {
-            Search::check_for_termination(refs);
+        if refs.search_info.nodes & CHECKPOINT == 0 {
+            Search::check_termination(refs);
         }
 
         if refs.search_info.ply >= MAX_DEPTH {
@@ -94,7 +97,12 @@ impl Search {
 
             // Move is legal; increase the ply count.
             refs.search_info.ply += 1;
-            refs.search_info.seldepth = refs.search_info.ply;
+
+            // If we are deeper down in the three than is indicated by the
+            // depth, then we're doing a selective search.
+            if refs.search_info.ply > refs.search_info.depth {
+                refs.search_info.seldepth = refs.search_info.ply;
+            }
 
             // Update search stats in the GUI.
             if Search::is_update_stats(refs) {

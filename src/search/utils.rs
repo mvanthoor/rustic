@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate, CHECKPOINT, UPDATE_STATS,
+        SearchTerminate, UPDATE_STATS,
     },
     Search,
 };
@@ -43,10 +43,6 @@ impl Search {
             nps = (nodes as f64 / seconds).round() as usize;
         }
         nps
-    }
-
-    pub fn is_checkpoint(refs: &mut SearchRefs) -> bool {
-        refs.search_info.nodes >= refs.search_info.last_checkpoint + CHECKPOINT
     }
 
     pub fn is_update_stats(refs: &mut SearchRefs) -> bool {
@@ -79,7 +75,7 @@ impl Search {
 
     // This function checks termination conditions and sets the termination
     // flag if this is required.
-    pub fn check_for_termination(refs: &mut SearchRefs) {
+    pub fn check_termination(refs: &mut SearchRefs) {
         // Terminate search if stop or quit command is received.
         let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
@@ -111,9 +107,6 @@ impl Search {
             SearchMode::Infinite => (), // Handled by a direct 'stop' command
             SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }
-
-        // Update last checkpoint
-        refs.search_info.last_checkpoint = refs.search_info.nodes;
     }
 
     pub fn is_repetition(board: &Board) -> bool {
