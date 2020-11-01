@@ -21,7 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, DRAW, STALEMATE},
+    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, DRAW, STALEMATE, UPDATE_STATS},
     Search, SearchRefs,
 };
 use crate::{
@@ -72,6 +72,12 @@ impl Search {
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
 
+        // Send current search stats after a certain number of nodes
+        // has been searched.
+        if refs.search_info.nodes & UPDATE_STATS == 0 {
+            Search::send_updated_stats(refs);
+        }
+
         // Iterate over the moves.
         for i in 0..move_list.len() {
             if refs.search_info.terminate != SearchTerminate::Nothing {
@@ -96,12 +102,6 @@ impl Search {
             // and then recurse deeper.
             if is_root {
                 Search::send_updated_current_move(refs, current_move, legal_moves_found);
-            }
-
-            // Send current search stats after a certain number of nodes
-            // has been searched.
-            if Search::is_update_stats(refs) {
-                Search::send_updated_stats(refs);
             }
 
             // We found a legal move.

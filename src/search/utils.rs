@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate, UPDATE_STATS,
+        SearchTerminate,
     },
     Search,
 };
@@ -43,10 +43,6 @@ impl Search {
             nps = (nodes as f64 / seconds).round() as usize;
         }
         nps
-    }
-
-    pub fn is_update_stats(refs: &mut SearchRefs) -> bool {
-        refs.search_info.nodes >= refs.search_info.last_stats + UPDATE_STATS
     }
 
     pub fn is_draw(refs: &mut SearchRefs) -> bool {
@@ -70,7 +66,6 @@ impl Search {
         let stats_report = SearchReport::SearchStats(stats);
         let information = Information::Search(stats_report);
         refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
-        refs.search_info.last_stats = refs.search_info.nodes;
     }
 
     // This function checks termination conditions and sets the termination

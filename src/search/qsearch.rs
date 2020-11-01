@@ -21,7 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKPOINT},
+    defs::{SearchTerminate, CHECKPOINT, UPDATE_STATS},
     Search, SearchRefs,
 };
 use crate::{
@@ -77,6 +77,11 @@ impl Search {
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
 
+        // Update search stats in the GUI.
+        if refs.search_info.nodes & UPDATE_STATS == 0 {
+            Search::send_updated_stats(refs);
+        }
+
         // Iterate over the capture moves.
         for i in 0..move_list.len() {
             // Break the loop if a termination condition was met.
@@ -102,11 +107,6 @@ impl Search {
             // depth, then we're doing a selective search.
             if refs.search_info.ply > refs.search_info.depth {
                 refs.search_info.seldepth = refs.search_info.ply;
-            }
-
-            // Update search stats in the GUI.
-            if Search::is_update_stats(refs) {
-                Search::send_updated_stats(refs);
             }
 
             // Create a PV for this node.
