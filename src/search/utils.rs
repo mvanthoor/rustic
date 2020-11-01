@@ -29,7 +29,7 @@ use super::{
 };
 use crate::{
     board::Board,
-    defs::MAX_MOVE_RULE,
+    defs::{Sides, MAX_MOVE_RULE},
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
 };
@@ -98,7 +98,52 @@ impl Search {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
-            SearchMode::GameTime => (),
+            SearchMode::GameTime => {
+                // Use this as the basis for game length if "movestogo" is
+                // not supplied (base time is for entire game).
+                const DEFAULT_GAME_LENGTH: usize = 80;
+
+                // Substract some time for communication to the GUI, so the
+                // engine won't overshoot its time.
+                const COMM_OVERHEAD: u128 = 100;
+
+                // Shorthand for game_time.
+                let gt = &refs.search_params.game_time;
+
+                // Get which side to search for.
+                let white = refs.search_params.search_side == Sides::WHITE;
+
+                // Initialize time variables and moves to go.
+                let (time, inc, moves_to_go): (u128, u128, usize) = if white {
+                    let mtg = if let Some(x) = gt.moves_to_go {
+                        x
+                    } else {
+                        let moves_made = refs.board.history.len() / 2;
+                        DEFAULT_GAME_LENGTH - moves_made
+                    };
+
+                    (gt.wtime, gt.winc, mtg)
+                } else {
+                    let mtg = if let Some(x) = gt.moves_to_go {
+                        x
+                    } else {
+                        let moves_made = (refs.board.history.len() - 1) / 2;
+                        DEFAULT_GAME_LENGTH - moves_made
+                    };
+
+                    (gt.btime, gt.binc, mtg)
+                };
+
+                // Calculate time per move. Stop if this time has elapsed
+                // since the search began.
+                let base = (time as f64 / moves_to_go as f64).round() as u128;
+                let available = base + inc - COMM_OVERHEAD;
+                let elapsed = refs.search_info.start_time.elapsed().as_millis();
+
+                if elapsed >= available {
+                    refs.search_info.terminate = SearchTerminate::Stop
+                }
+            }
             SearchMode::Infinite => (), // Handled by a direct 'stop' command
             SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }

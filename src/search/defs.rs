@@ -1,5 +1,6 @@
 use crate::{
     board::Board,
+    defs::Side,
     engine::defs::Information,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -44,23 +45,61 @@ pub enum SearchMode {
     Nothing,  // No search mode has been defined.
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct GameTime {
+    pub wtime: u128,                // White time on the clock in milliseconds
+    pub btime: u128,                // Black time on the clock in milliseconds
+    pub winc: u128,                 // White time increment in milliseconds (if wtime > 0)
+    pub binc: u128,                 // Black time increment in milliseconds (if btime > 0)
+    pub moves_to_go: Option<usize>, // Moves to go to next time control (0 = sudden death)
+}
+
+impl GameTime {
+    pub fn new(
+        wtime: u128,
+        btime: u128,
+        winc: u128,
+        binc: u128,
+        moves_to_go: Option<usize>,
+    ) -> Self {
+        Self {
+            wtime,
+            btime,
+            winc,
+            binc,
+            moves_to_go,
+        }
+    }
+}
+
 // This struct holds all the search parameters as set by the engine thread.
 // (These parameters are either default, or provided by the user interface
 // before the game starts.)
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchParams {
-    pub depth: u8,
-    pub move_time: u128,
-    pub nodes: usize,
-    pub search_mode: SearchMode,
+    pub search_side: Side,       // Side to start the search for
+    pub depth: u8,               // Maximum depth to search to
+    pub move_time: u128,         // Maximum time per move to search
+    pub nodes: usize,            // Maximum number of nodes to search
+    pub game_time: GameTime,     // Time available for entire game
+    pub search_mode: SearchMode, // Defines the mode to search in
 }
 
 impl SearchParams {
-    pub fn new(depth: u8, move_time: u128, nodes: usize, search_mode: SearchMode) -> Self {
+    pub fn new(
+        search_side: Side,
+        depth: u8,
+        move_time: u128,
+        nodes: usize,
+        game_time: GameTime,
+        search_mode: SearchMode,
+    ) -> Self {
         Self {
+            search_side,
             depth,
             move_time,
             nodes,
+            game_time,
             search_mode,
         }
     }
