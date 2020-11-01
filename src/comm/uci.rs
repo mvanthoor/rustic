@@ -323,7 +323,7 @@ impl Uci {
                     Tokens::BTime => game_time.btime = p.parse::<u128>().unwrap_or(0),
                     Tokens::WInc => game_time.winc = p.parse::<u128>().unwrap_or(0),
                     Tokens::BInc => game_time.binc = p.parse::<u128>().unwrap_or(0),
-                    Tokens::MovesToGo => game_time.mtg = p.parse::<usize>().unwrap_or(0),
+                    Tokens::MovesToGo => game_time.moves_to_go = p.parse::<usize>().unwrap_or(0),
                 }, // end match token
             } // end match p
         } // end for

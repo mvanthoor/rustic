@@ -75,7 +75,7 @@ impl Search {
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
             let gt = GameTime::new(0, 0, 0, 0, 0);
-            let mut search_params = SearchParams::new(0, 0, 0, gt, SearchMode::Nothing);
+            let mut search_params = SearchParams::new(0, 0, 0, 0, gt, SearchMode::Nothing);
 
             let mut quit = false;
             let mut halt = true;
