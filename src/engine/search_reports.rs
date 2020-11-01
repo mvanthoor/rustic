@@ -31,8 +31,8 @@ impl Engine {
                 self.comm.send(CommControl::Update);
             }
 
-            SearchReport::SearchCurrentMove(current) => {
-                self.comm.send(CommControl::SearchCurrent(*current));
+            SearchReport::SearchCurrentMove(curr_move) => {
+                self.comm.send(CommControl::SearchCurrMove(*curr_move));
             }
 
             SearchReport::SearchSummary(summary) => {

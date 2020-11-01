@@ -72,6 +72,7 @@ impl SearchParams {
 #[derive(PartialEq)]
 pub struct SearchInfo {
     pub depth: u8,
+    pub seldepth: u8,
     pub start_time: Instant,
     pub last_checkpoint: usize,
     pub last_stats: usize,
@@ -86,6 +87,7 @@ impl SearchInfo {
     pub fn new() -> Self {
         Self {
             depth: 0,
+            seldepth: 0,
             start_time: Instant::now(),
             last_checkpoint: 0,
             last_stats: 0,
@@ -105,6 +107,7 @@ impl SearchInfo {
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
     pub depth: u8,         // depth reached during search
+    pub seldepth: u8,      // Maximum selective depth reached
     pub time: u128,        // milliseconds
     pub cp: i16,           // centipawns score
     pub mate: u8,          // mate in X moves
@@ -121,7 +124,7 @@ impl SearchSummary {
             let m = format!(" {}", next_move.as_string());
             pv.push_str(&m[..]);
         }
-        pv
+        pv.trim().to_string()
     }
 }
 

@@ -94,6 +94,7 @@ impl Search {
 
             // Move is legal; increase the ply count.
             refs.search_info.ply += 1;
+            refs.search_info.seldepth = refs.search_info.ply;
 
             // Update search stats in the GUI.
             if Search::is_update_stats(refs) {

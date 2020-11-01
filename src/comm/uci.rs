@@ -184,7 +184,7 @@ impl Uci {
                     CommControl::Ready => Uci::readyok(),
                     CommControl::Quit => quit = true,
                     CommControl::SearchSummary(summary) => Uci::search_summary(&summary),
-                    CommControl::SearchCurrent(current) => Uci::search_current(&current),
+                    CommControl::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommControl::SearchStats(stats) => Uci::search_stats(&stats),
                     CommControl::InfoString(msg) => Uci::info_string(&msg),
                     CommControl::BestMove(bm) => Uci::best_move(&bm),
@@ -331,15 +331,20 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         let pv = s.pv_as_string();
+        let seldepth = if s.seldepth > 0 {
+            format!(" seldepth {}", s.seldepth)
+        } else {
+            String::from("")
+        };
         let info = format!(
-            "info score cp {} depth {} time {} nodes {} nps {} pv {}",
-            s.cp, s.depth, s.time, s.nodes, s.nps, pv,
+            "info score cp {} depth {}{} time {} nodes {} nps {} pv {}",
+            s.cp, s.depth, seldepth, s.time, s.nodes, s.nps, pv,
         );
 
         println!("{}", info);
     }
 
-    fn search_current(c: &SearchCurrentMove) {
+    fn search_currmove(c: &SearchCurrentMove) {
         println!(
             "info currmove {} currmovenumber {}",
             c.curr_move.as_string(),

@@ -54,6 +54,7 @@ impl Search {
                 let nodes = refs.search_info.nodes;
                 let summary = SearchSummary {
                     depth,
+                    seldepth: refs.search_info.seldepth,
                     time: elapsed,
                     cp: eval,
                     mate: 0,
