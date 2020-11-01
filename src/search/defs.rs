@@ -46,11 +46,11 @@ pub enum SearchMode {
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct GameTime {
-    wtime: u128, // White time on the clock in milliseconds
-    btime: u128, // Black time on the clock in milliseconds
-    winc: u128,  // White time increment in milliseconds (if wtime > 0)
-    binc: u128,  // Black time increment in milliseconds (if btime > 0)
-    mtg: usize,  // Moves to go to next time control (0 = sudden death)
+    pub wtime: u128, // White time on the clock in milliseconds
+    pub btime: u128, // Black time on the clock in milliseconds
+    pub winc: u128,  // White time increment in milliseconds (if wtime > 0)
+    pub binc: u128,  // Black time increment in milliseconds (if btime > 0)
+    pub mtg: usize,  // Moves to go to next time control (0 = sudden death)
 }
 
 impl GameTime {

@@ -90,6 +90,11 @@ impl Engine {
                 self.search.send(SearchControl::Start(sp));
             }
 
+            UciReport::GoGameTime(gt) => {
+                let sp = SearchParams::new(MAX_DEPTH, 0, 0, *gt, SearchMode::GameTime);
+                self.search.send(SearchControl::Start(sp));
+            }
+
             UciReport::Stop => self.search.send(SearchControl::Stop),
             UciReport::Quit => self.quit(),
 

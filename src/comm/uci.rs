@@ -29,7 +29,7 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     misc::print,
     movegen::defs::Move,
-    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -52,6 +52,7 @@ pub enum UciReport {
     GoDepth(u8),
     GoMoveTime(u128),
     GoNodes(usize),
+    GoGameTime(GameTime),
     Stop,
     Quit,
 
@@ -287,6 +288,7 @@ impl Uci {
         let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
         let mut report = CommReport::Uci(UciReport::Unknown);
         let mut token = Tokens::Nothing;
+        let mut game_time = GameTime::new(0, 0, 0, 0, 0);
 
         for p in parts {
             match p {
@@ -295,6 +297,11 @@ impl Uci {
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
                 t if t == "nodes" => token = Tokens::Nodes,
+                t if t == "wtime" => token = Tokens::WTime,
+                t if t == "btime" => token = Tokens::BTime,
+                t if t == "winc" => token = Tokens::WInc,
+                t if t == "binc" => token = Tokens::BInc,
+                t if t == "movestogo" => token = Tokens::MovesToGo,
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
@@ -312,14 +319,23 @@ impl Uci {
                         report = CommReport::Uci(UciReport::GoNodes(nodes));
                         break; // break for-loop: nothing more to do.
                     }
-                    Tokens::WTime => (),
-                    Tokens::BTime => (),
-                    Tokens::WInc => (),
-                    Tokens::BInc => (),
-                    Tokens::MovesToGo => (),
+                    Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
+                    Tokens::BTime => game_time.btime = p.parse::<u128>().unwrap_or(0),
+                    Tokens::WInc => game_time.winc = p.parse::<u128>().unwrap_or(0),
+                    Tokens::BInc => game_time.binc = p.parse::<u128>().unwrap_or(0),
+                    Tokens::MovesToGo => game_time.mtg = p.parse::<usize>().unwrap_or(0),
                 }, // end match token
             } // end match p
         } // end for
+
+        // If the mode is still the default "GoInfinte", but "go
+        // wtime/btime" was parsed, then set the mode to GameTime.
+        let is_default_mode = report == CommReport::Uci(UciReport::GoInfinite);
+        let is_game_time = game_time.wtime > 0 || game_time.btime > 0;
+        if is_default_mode && is_game_time {
+            report = CommReport::Uci(UciReport::GoGameTime(game_time));
+        }
+
         report
     } // end parse_go()
 }
