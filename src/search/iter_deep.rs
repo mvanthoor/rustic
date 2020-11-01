@@ -32,14 +32,14 @@ impl Search {
         let mut depth = 1;
         let mut interrupted = false;
         let mut best_move = Move::new(0);
-        let mut pv: Vec<Move> = Vec::new();
+        let mut temp_pv: Vec<Move> = Vec::new();
 
         while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !interrupted {
             // Set the current depth
             refs.search_info.depth = depth;
 
             // Get the evaluation for this depth.
-            let eval = Search::alpha_beta(depth, -INF, INF, &mut pv, refs);
+            let eval = Search::alpha_beta(depth, -INF, INF, &mut temp_pv, refs);
 
             // Detect if searching this depth was interrupted.
             interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
@@ -60,7 +60,7 @@ impl Search {
                     mate: 0,
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
-                    pv: pv.clone(),
+                    pv: refs.search_info.pv.clone(),
                     bm_at_depth: best_move,
                 };
 
