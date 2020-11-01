@@ -6,13 +6,12 @@ use crate::{
 use crossbeam_channel::{Receiver, Sender};
 use std::{sync::Arc, time::Instant};
 
-const MILLION: usize = 1_000 * 1_000;
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
-pub const CHECKPOINT: usize = 1_000; // nodes
-pub const UPDATE_STATS: usize = 5 * MILLION; // nodes
+pub const CHECKPOINT: usize = 0x7FF; // 2047 nodes
+pub const UPDATE_STATS: usize = 0x3FFFFF; // 4.194.303 nodes
 
 pub type SearchResult = (Move, SearchTerminate);
 
@@ -74,8 +73,6 @@ pub struct SearchInfo {
     pub depth: u8,
     pub seldepth: u8,
     pub start_time: Instant,
-    pub last_checkpoint: usize,
-    pub last_stats: usize,
     pub best_move: Move,
     pub nodes: usize,
     pub pv: Vec<Move>,
@@ -89,8 +86,6 @@ impl SearchInfo {
             depth: 0,
             seldepth: 0,
             start_time: Instant::now(),
-            last_checkpoint: 0,
-            last_stats: 0,
             best_move: Move::new(0),
             nodes: 0,
             pv: Vec::new(),
@@ -106,15 +101,14 @@ impl SearchInfo {
 // information into UCI/XBoard/Console output and print it to STDOUT.
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
-    pub depth: u8,         // depth reached during search
-    pub seldepth: u8,      // Maximum selective depth reached
-    pub time: u128,        // milliseconds
-    pub cp: i16,           // centipawns score
-    pub mate: u8,          // mate in X moves
-    pub nodes: usize,      // nodes searched
-    pub nps: usize,        // nodes per second
-    pub pv: Vec<Move>,     // Principal Variation
-    pub bm_at_depth: Move, // best move after this depth
+    pub depth: u8,     // depth reached during search
+    pub seldepth: u8,  // Maximum selective depth reached
+    pub time: u128,    // milliseconds
+    pub cp: i16,       // centipawns score
+    pub mate: u8,      // mate in X moves
+    pub nodes: usize,  // nodes searched
+    pub nps: usize,    // nodes per second
+    pub pv: Vec<Move>, // Principal Variation
 }
 
 impl SearchSummary {
