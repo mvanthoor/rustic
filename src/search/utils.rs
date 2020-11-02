@@ -29,7 +29,7 @@ use super::{
 };
 use crate::{
     board::Board,
-    defs::{Sides, MAX_MOVE_RULE},
+    defs::MAX_MOVE_RULE,
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
 };
@@ -45,13 +45,8 @@ impl Search {
         nps
     }
 
-    pub fn is_draw(refs: &mut SearchRefs) -> bool {
-        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
-        Search::is_repetition(refs.board) || max_move_rule
-    }
-
     // This function sends the currently searched move to the engine thread.
-    pub fn send_updated_current_move(refs: &mut SearchRefs, current: Move, count: u8) {
+    pub fn send_current_move(refs: &mut SearchRefs, current: Move, count: u8) {
         let scm = SearchCurrentMove::new(current, count);
         let scm_report = SearchReport::SearchCurrentMove(scm);
         let information = Information::Search(scm_report);
@@ -59,7 +54,7 @@ impl Search {
     }
 
     // This function sends updated search statistics to the engine thread.
-    pub fn send_updated_stats(refs: &mut SearchRefs) {
+    pub fn send_stats(refs: &mut SearchRefs) {
         let milli_seconds = refs.search_info.start_time.elapsed().as_millis();
         let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
         let stats = SearchStats::new(refs.search_info.nodes, nps);
@@ -89,64 +84,28 @@ impl Search {
             }
             SearchMode::MoveTime => {
                 let elapsed = refs.search_info.start_time.elapsed().as_millis();
-                if elapsed > (refs.search_params.move_time) {
+                if elapsed >= refs.search_params.move_time {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
             SearchMode::Nodes => {
-                if refs.search_info.nodes > refs.search_params.nodes {
+                if refs.search_info.nodes >= refs.search_params.nodes {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
             SearchMode::GameTime => {
-                // Use this as the basis for game length if "movestogo" is
-                // not supplied (base time is for entire game).
-                const DEFAULT_GAME_LENGTH: usize = 80;
-
-                // Substract some time for communication to the GUI, so the
-                // engine won't overshoot its time.
-                const COMM_OVERHEAD: u128 = 100;
-
-                // Shorthand for game_time.
-                let gt = &refs.search_params.game_time;
-
-                // Get which side to search for.
-                let white = refs.search_params.search_side == Sides::WHITE;
-
-                // Initialize time variables and moves to go.
-                let (time, inc, moves_to_go): (u128, u128, usize) = if white {
-                    let mtg = if let Some(x) = gt.moves_to_go {
-                        x
-                    } else {
-                        let moves_made = refs.board.history.len() / 2;
-                        DEFAULT_GAME_LENGTH - moves_made
-                    };
-
-                    (gt.wtime, gt.winc, mtg)
-                } else {
-                    let mtg = if let Some(x) = gt.moves_to_go {
-                        x
-                    } else {
-                        let moves_made = (refs.board.history.len() - 1) / 2;
-                        DEFAULT_GAME_LENGTH - moves_made
-                    };
-
-                    (gt.btime, gt.binc, mtg)
-                };
-
-                // Calculate time per move. Stop if this time has elapsed
-                // since the search began.
-                let base = (time as f64 / moves_to_go as f64).round() as u128;
-                let available = base + inc - COMM_OVERHEAD;
-                let elapsed = refs.search_info.start_time.elapsed().as_millis();
-
-                if elapsed >= available {
+                if Search::out_of_time(refs) {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
             SearchMode::Infinite => (), // Handled by a direct 'stop' command
             SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }
+    }
+
+    pub fn is_draw(refs: &mut SearchRefs) -> bool {
+        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
+        Search::is_repetition(refs.board) || max_move_rule
     }
 
     pub fn is_repetition(board: &Board) -> bool {

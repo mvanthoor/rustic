@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::Side,
+    defs::{Side, Sides, MAX_DEPTH},
     engine::defs::Information,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -83,24 +83,19 @@ pub struct SearchParams {
     pub nodes: usize,            // Maximum number of nodes to search
     pub game_time: GameTime,     // Time available for entire game
     pub search_mode: SearchMode, // Defines the mode to search in
+    pub quiet: bool,             // No intermediate search stats updates
 }
 
 impl SearchParams {
-    pub fn new(
-        search_side: Side,
-        depth: u8,
-        move_time: u128,
-        nodes: usize,
-        game_time: GameTime,
-        search_mode: SearchMode,
-    ) -> Self {
+    pub fn new() -> Self {
         Self {
-            search_side,
-            depth,
-            move_time,
-            nodes,
-            game_time,
-            search_mode,
+            search_side: Sides::WHITE,
+            depth: MAX_DEPTH,
+            move_time: 0,
+            nodes: 0,
+            game_time: GameTime::new(0, 0, 0, 0, None),
+            search_mode: SearchMode::Nothing,
+            quiet: false,
         }
     }
 }

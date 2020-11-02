@@ -51,6 +51,11 @@ impl CmdLineArgs {
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: &'static str = "1";
 
+    // Quiet (no search stats updates except on depth change)
+    const QUIET_LONG: &'static str = "quiet";
+    const QUIET_SHORT: &'static str = "q";
+    const QUIET_HELP: &'static str = "No intermediate search stats updates";
+
     // Kiwipete
     const KIWI_LONG: &'static str = "kiwipete";
     const KIWI_SHORT: &'static str = "k";
@@ -112,6 +117,10 @@ impl CmdLine {
         self.arguments.is_present(CmdLineArgs::KIWI_LONG)
     }
 
+    pub fn has_quiet(&self) -> bool {
+        self.arguments.is_present(CmdLineArgs::QUIET_LONG)
+    }
+
     #[cfg(feature = "extra")]
     pub fn has_wizardry(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
@@ -165,6 +174,13 @@ impl CmdLine {
                     .long(CmdLineArgs::KIWI_LONG)
                     .short(CmdLineArgs::KIWI_SHORT)
                     .help(CmdLineArgs::KIWI_HELP)
+                    .takes_value(false),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::QUIET_LONG)
+                    .long(CmdLineArgs::QUIET_LONG)
+                    .short(CmdLineArgs::QUIET_SHORT)
+                    .help(CmdLineArgs::QUIET_HELP)
                     .takes_value(false),
             );
 

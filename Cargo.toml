@@ -10,7 +10,7 @@ edition = "2018"
 rand = { version = "0.7.3", features = ["small_rng"] }
 if_chain = "1.0.1"
 clap = "2.33.3"
-crossbeam-channel = "0.4.4"
+crossbeam-channel = "0.5.0"
 
 [features]
 extra = []

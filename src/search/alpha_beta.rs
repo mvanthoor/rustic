@@ -38,6 +38,9 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
+        // If quiet, don't send intermediate stats updates.
+        let quiet = refs.search_params.quiet;
+
         // If we haven't made any moves yet, we're at the root.
         let is_root = refs.search_info.ply == 0;
 
@@ -74,8 +77,8 @@ impl Search {
 
         // Send current search stats after a certain number of nodes
         // has been searched.
-        if refs.search_info.nodes & UPDATE_STATS == 0 {
-            Search::send_updated_stats(refs);
+        if !quiet && (refs.search_info.nodes & UPDATE_STATS == 0) {
+            Search::send_stats(refs);
         }
 
         // Iterate over the moves.
@@ -97,16 +100,16 @@ impl Search {
                 continue;
             }
 
-            // Send currently researched move, but only when we are still
-            // at the root. This is before we update legal move count, ply,
-            // and then recurse deeper.
-            if is_root {
-                Search::send_updated_current_move(refs, current_move, legal_moves_found);
-            }
-
             // We found a legal move.
             legal_moves_found += 1;
             refs.search_info.ply += 1;
+
+            // Send currently researched move, but only when we are still
+            // at the root. This is before we update legal move count, ply,
+            // and then recurse deeper.
+            if !quiet && is_root {
+                Search::send_current_move(refs, current_move, legal_moves_found);
+            }
 
             // Create a node PV for this move.
             let mut node_pv: Vec<Move> = Vec::new();

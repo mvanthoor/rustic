@@ -27,6 +27,7 @@ use crate::{comm::CommReport, search::defs::SearchReport};
 pub struct ErrFatal;
 impl ErrFatal {
     pub const CREATE_COMM: &'static str = "Comm creation failed.";
+    pub const NEW_GAME: &'static str = "Setting up new game failed.";
     pub const LOCK: &'static str = "Lock failed.";
     pub const READ_IO: &'static str = "Reading I/O failed.";
     pub const HANDLE: &'static str = "Broken handle.";
@@ -44,6 +45,7 @@ impl ErrNormal {
 // This struct holds the engine's settings.
 pub struct Settings {
     pub threads: usize,
+    pub quiet: bool,
 }
 
 // This enum provides informatin to the engine, with regard to incoming
