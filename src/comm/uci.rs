@@ -29,7 +29,7 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     misc::print,
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -39,6 +39,7 @@ use std::{
 };
 
 const SPACE: &str = " ";
+const MAX_MATE: i16 = 64;
 
 // Input will be turned into a report, which wil be sent to the engine. The
 // main engine thread will react accordingly.
@@ -364,15 +365,39 @@ impl Uci {
     }
 
     fn search_summary(s: &SearchSummary) {
-        let pv = s.pv_as_string();
-        let seldepth = if s.seldepth > 0 {
-            format!(" seldepth {}", s.seldepth)
+        // If mate found, report this; otherwise report normal score.
+        let score = if (s.cp.abs() < CHECKMATE) && (s.cp.abs() > CHECKMATE - MAX_MATE) {
+            // Number of plies to mate.
+            let ply = CHECKMATE - s.cp.abs();
+
+            // Check if the number of ply's is odd
+            let is_odd = ply % 2 == 1;
+
+            // Calculate number of moves to mate
+            let moves = if is_odd { (ply + 1) / 2 } else { ply / 2 };
+
+            // If the engine is being mated itself, flip the score.
+            let flip = if s.cp < 0 { -1 } else { 1 };
+
+            // Report the mate
+            format!("mate {}", moves * flip)
         } else {
-            String::from("")
+            // Report the normal score if there's no mate detected.
+            format!("cp {}", s.cp)
         };
+
+        // Report depth and seldepth (if available).
+        let depth = if s.seldepth > 0 {
+            format!("depth {} seldepth {}", s.depth, s.seldepth)
+        } else {
+            format!("depth {}", s.depth)
+        };
+
+        let pv = s.pv_as_string();
+
         let info = format!(
-            "info score cp {} depth {}{} time {} nodes {} nps {} pv {}",
-            s.cp, s.depth, seldepth, s.time, s.nodes, s.nps, pv,
+            "info score {} {} time {} nodes {} nps {} pv {}",
+            score, depth, s.time, s.nodes, s.nps, pv,
         );
 
         println!("{}", info);
