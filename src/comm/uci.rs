@@ -46,6 +46,7 @@ const SPACE: &str = " ";
 pub enum UciReport {
     // Uci commands
     Uci,
+    UciNewGame,
     IsReady,
     Position(String, Vec<String>),
     GoInfinite,
@@ -219,6 +220,7 @@ impl Uci {
         match i {
             // UCI commands
             cmd if cmd == "uci" => CommReport::Uci(UciReport::Uci),
+            cmd if cmd == "ucinewgame" => CommReport::Uci(UciReport::UciNewGame),
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),

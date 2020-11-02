@@ -26,9 +26,9 @@ use super::{
 };
 use crate::{
     comm::{uci::UciReport, CommControl, CommReport},
-    defs::MAX_DEPTH,
+    defs::FEN_START_POSITION,
     evaluation::evaluate_position,
-    search::defs::{GameTime, SearchControl, SearchMode, SearchParams},
+    search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
 // This block implements handling of incoming information, which will be in
@@ -43,13 +43,20 @@ impl Engine {
 
     // Handles "Uci" Comm reports sent by the UCI-module.
     fn comm_reports_uci(&mut self, u: &UciReport) {
-        // Default GameTime is empty; only used by GameTime mode.
-        let gt = GameTime::new(0, 0, 0, 0, None);
-        let side = self.board.lock().expect(ErrFatal::LOCK).us();
+        // Setup default variables.
+        let mut sp = SearchParams::new();
+        sp.search_side = self.board.lock().expect(ErrFatal::LOCK).us();
+        sp.quiet = self.settings.quiet;
 
         match u {
             // Uci commands
             UciReport::Uci => self.comm.send(CommControl::Identify),
+            UciReport::UciNewGame => self
+                .board
+                .lock()
+                .expect(ErrFatal::LOCK)
+                .fen_read(Some(FEN_START_POSITION))
+                .expect(ErrFatal::NEW_GAME),
             UciReport::IsReady => self.comm.send(CommControl::Ready),
             UciReport::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
@@ -72,27 +79,31 @@ impl Engine {
             }
 
             UciReport::GoInfinite => {
-                let sp = SearchParams::new(side, MAX_DEPTH, 0, 0, gt, SearchMode::Infinite);
+                sp.search_mode = SearchMode::Infinite;
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoDepth(depth) => {
-                let sp = SearchParams::new(side, *depth, 0, 0, gt, SearchMode::Depth);
+                sp.depth = *depth;
+                sp.search_mode = SearchMode::Depth;
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoMoveTime(msecs) => {
-                let sp = SearchParams::new(side, MAX_DEPTH, *msecs, 0, gt, SearchMode::MoveTime);
+                sp.move_time = *msecs;
+                sp.search_mode = SearchMode::MoveTime;
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoNodes(nodes) => {
-                let sp = SearchParams::new(side, MAX_DEPTH, 0, *nodes, gt, SearchMode::Nodes);
+                sp.nodes = *nodes;
+                sp.search_mode = SearchMode::Nodes;
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoGameTime(gt) => {
-                let sp = SearchParams::new(side, MAX_DEPTH, 0, 0, *gt, SearchMode::GameTime);
+                sp.game_time = *gt;
+                sp.search_mode = SearchMode::GameTime;
                 self.search.send(SearchControl::Start(sp));
             }
 

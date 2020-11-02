@@ -71,12 +71,17 @@ impl Engine {
             _ => panic!(ErrFatal::CREATE_COMM),
         };
 
+        // Get engine settings from the command-line
         let t = c.threads();
+        let q = c.has_quiet();
 
         // Create the engine itself.
         Self {
             quit: false,
-            settings: Settings { threads: t },
+            settings: Settings {
+                threads: t,
+                quiet: q,
+            },
             cmdline: c,
             comm: i,
             board: Arc::new(Mutex::new(Board::new())),

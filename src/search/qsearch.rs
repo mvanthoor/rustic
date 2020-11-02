@@ -32,6 +32,9 @@ use crate::{
 
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
+        // No intermediate stats updates if quiet.
+        let quiet = refs.search_params.quiet;
+
         // Check if search needs to be terminated.
         if refs.search_info.nodes & CHECKPOINT == 0 {
             Search::check_termination(refs);
@@ -78,8 +81,8 @@ impl Search {
         refs.search_info.nodes += 1;
 
         // Update search stats in the GUI.
-        if refs.search_info.nodes & UPDATE_STATS == 0 {
-            Search::send_updated_stats(refs);
+        if !quiet && (refs.search_info.nodes & UPDATE_STATS == 0) {
+            Search::send_stats(refs);
         }
 
         // Iterate over the capture moves.
@@ -105,7 +108,7 @@ impl Search {
 
             // If we are deeper down in the three than is indicated by the
             // depth, then we're doing a selective search.
-            if refs.search_info.ply > refs.search_info.depth {
+            if refs.search_info.ply >= refs.search_info.depth {
                 refs.search_info.seldepth = refs.search_info.ply;
             }
 

@@ -27,6 +27,7 @@ pub mod defs;
 mod iter_deep;
 mod qsearch;
 mod sorting;
+mod time;
 mod utils;
 
 use crate::{
@@ -36,8 +37,8 @@ use crate::{
 };
 use crossbeam_channel::Sender;
 use defs::{
-    GameTime, SearchControl, SearchInfo, SearchMode, SearchParams, SearchRefs, SearchReport,
-    SearchSummary, SearchTerminate,
+    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
+    SearchTerminate,
 };
 use std::{
     sync::{Arc, Mutex},
@@ -74,8 +75,7 @@ impl Search {
             // Pointer to Board and Move Generator for this thread.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
-            let gt = GameTime::new(0, 0, 0, 0, None);
-            let mut search_params = SearchParams::new(0, 0, 0, 0, gt, SearchMode::Nothing);
+            let mut search_params = SearchParams::new();
 
             let mut quit = false;
             let mut halt = true;
