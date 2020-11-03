@@ -38,7 +38,6 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-const SPACE: &str = " ";
 const MAX_MATE: i16 = 64;
 
 // Input will be turned into a report, which wil be sent to the engine. The
@@ -246,7 +245,7 @@ impl Uci {
             Moves,
         }
 
-        let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
         let mut fen = String::from("");
         let mut moves: Vec<String> = Vec::new();
         let mut skip_fen = false;
@@ -288,7 +287,7 @@ impl Uci {
             MovesToGo,
         }
 
-        let parts: Vec<String> = cmd.split(SPACE).map(|s| s.trim().to_string()).collect();
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
         let mut report = CommReport::Uci(UciReport::Unknown);
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
