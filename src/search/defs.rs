@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::{Side, Sides, MAX_DEPTH},
+    defs::MAX_DEPTH,
     engine::defs::Information,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -11,8 +11,10 @@ pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
-pub const CHECKPOINT: usize = 0x7FF; // 2047 nodes
-pub const UPDATE_STATS: usize = 0x3FFFFF; // 4.194.303 nodes
+pub const CHECK_TERMINATION: usize = 0x7FF; // 2.047 nodes
+pub const SEND_STATS: usize = 0x7FFFF; // 524.287 nodes
+pub const MIN_TIME_STATS: u128 = 2_000; // Minimum time for sending stats
+pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_move
 
 pub type SearchResult = (Move, SearchTerminate);
 
@@ -77,7 +79,6 @@ impl GameTime {
 // before the game starts.)
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchParams {
-    pub search_side: Side,       // Side to start the search for
     pub depth: u8,               // Maximum depth to search to
     pub move_time: u128,         // Maximum time per move to search
     pub nodes: usize,            // Maximum number of nodes to search
@@ -89,7 +90,6 @@ pub struct SearchParams {
 impl SearchParams {
     pub fn new() -> Self {
         Self {
-            search_side: Sides::WHITE,
             depth: MAX_DEPTH,
             move_time: 0,
             nodes: 0,
@@ -104,27 +104,45 @@ impl SearchParams {
 // search into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
-    pub depth: u8,
-    pub seldepth: u8,
-    pub start_time: Instant,
-    pub best_move: Move,
-    pub nodes: usize,
-    pub pv: Vec<Move>,
-    pub ply: u8,
-    pub terminate: SearchTerminate,
+    start_time: Option<Instant>,    // Time the search started
+    pub depth: u8,                  // Depth currently being searched
+    pub seldepth: u8,               // Maximum selective depth reached
+    pub time_for_move: u128,        // Alloted msecs to spend on move
+    pub best_move: Move,            // Best move found
+    pub nodes: usize,               // Nodes searched
+    pub pv: Vec<Move>,              // Current principal variation
+    pub ply: u8,                    // Number of plys from the root
+    pub last_stats: u128,           // When last stats update was sent
+    pub last_curr_move: u128,       // When last current move was sent
+    pub terminate: SearchTerminate, // Terminate flag
 }
 
 impl SearchInfo {
     pub fn new() -> Self {
         Self {
+            start_time: None,
             depth: 0,
             seldepth: 0,
-            start_time: Instant::now(),
+            time_for_move: 0,
             best_move: Move::new(0),
             nodes: 0,
             pv: Vec::new(),
             ply: 0,
+            last_stats: 0,
+            last_curr_move: 0,
             terminate: SearchTerminate::Nothing,
+        }
+    }
+
+    pub fn timer_start(&mut self) {
+        self.start_time = Some(Instant::now());
+    }
+
+    pub fn timer_elapsed(&self) -> u128 {
+        if let Some(x) = self.start_time {
+            x.elapsed().as_millis()
+        } else {
+            0
         }
     }
 }

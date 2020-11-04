@@ -45,7 +45,6 @@ impl Engine {
     fn comm_reports_uci(&mut self, u: &UciReport) {
         // Setup default variables.
         let mut sp = SearchParams::new();
-        sp.search_side = self.board.lock().expect(ErrFatal::LOCK).us();
         sp.quiet = self.settings.quiet;
 
         match u {

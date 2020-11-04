@@ -29,28 +29,33 @@ use crate::{defs::MAX_DEPTH, movegen::defs::Move};
 // Actual search routines.
 impl Search {
     pub fn iterative_deepening(refs: &mut SearchRefs) -> SearchResult {
+        // Working variables
         let mut depth = 1;
-        let mut interrupted = false;
         let mut best_move = Move::new(0);
         let mut temp_pv: Vec<Move> = Vec::new();
+        let mut stop = false;
 
-        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !interrupted {
+        // Set up time management.
+        let allotted = Search::time_for_move(refs);
+        let max_time = (allotted as f64 * 0.25).round() as u128;
+        refs.search_info.time_for_move = allotted;
+        refs.search_info.timer_start();
+
+        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
 
             // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, -INF, INF, &mut temp_pv, refs);
 
-            // Detect if searching this depth was interrupted.
-            interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
-
-            // If searching this depth was not interrupted...
+            // Create summary if search was not interrupted.
+            let interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
             if !interrupted {
                 // Save the best move until now.
                 best_move = refs.search_info.best_move;
 
                 // Create search summary for this depth.
-                let elapsed = refs.search_info.start_time.elapsed().as_millis();
+                let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
                 let summary = SearchSummary {
                     depth,
@@ -71,6 +76,11 @@ impl Search {
                 // Search one ply deepr.
                 depth += 1;
             }
+
+            // Determine if trying for another depth is feasible.
+            let elapsed = refs.search_info.timer_elapsed();
+            let abort = elapsed > max_time;
+            stop = interrupted || abort;
         }
 
         // Search is done. Report best move and reason to terminate.

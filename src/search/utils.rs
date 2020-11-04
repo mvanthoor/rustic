@@ -55,7 +55,7 @@ impl Search {
 
     // This function sends updated search statistics to the engine thread.
     pub fn send_stats(refs: &mut SearchRefs) {
-        let milli_seconds = refs.search_info.start_time.elapsed().as_millis();
+        let milli_seconds = refs.search_info.timer_elapsed();
         let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
         let stats = SearchStats::new(refs.search_info.nodes, nps);
         let stats_report = SearchReport::SearchStats(stats);
@@ -83,7 +83,7 @@ impl Search {
                 }
             }
             SearchMode::MoveTime => {
-                let elapsed = refs.search_info.start_time.elapsed().as_millis();
+                let elapsed = refs.search_info.timer_elapsed();
                 if elapsed >= refs.search_params.move_time {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }

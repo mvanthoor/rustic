@@ -21,7 +21,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECKPOINT, DRAW, STALEMATE, UPDATE_STATS},
+    defs::{
+        SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
+        SEND_STATS, STALEMATE,
+    },
     Search, SearchRefs,
 };
 use crate::{
@@ -45,7 +48,7 @@ impl Search {
         let is_root = refs.search_info.ply == 0;
 
         // Check if termination condition is met.
-        if refs.search_info.nodes & CHECKPOINT == 0 {
+        if refs.search_info.nodes & CHECK_TERMINATION == 0 {
             Search::check_termination(refs);
         }
 
@@ -75,10 +78,16 @@ impl Search {
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
 
-        // Send current search stats after a certain number of nodes
-        // has been searched.
-        if !quiet && (refs.search_info.nodes & UPDATE_STATS == 0) {
-            Search::send_stats(refs);
+        // After SEND_STATS nodes have been searched, check if the
+        // MIN_TIME_STATS has been exceeded; if so, sne dthe current
+        // statistics to the GUI.
+        if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
+            let elapsed = refs.search_info.timer_elapsed();
+            let last_stats = refs.search_info.last_stats;
+            if elapsed >= last_stats + MIN_TIME_STATS {
+                Search::send_stats(refs);
+                refs.search_info.last_stats = elapsed;
+            }
         }
 
         // Iterate over the moves.
@@ -104,11 +113,14 @@ impl Search {
             legal_moves_found += 1;
             refs.search_info.ply += 1;
 
-            // Send currently researched move, but only when we are still
-            // at the root. This is before we update legal move count, ply,
-            // and then recurse deeper.
+            // Send currently searched move to GUI.
             if !quiet && is_root {
-                Search::send_current_move(refs, current_move, legal_moves_found);
+                let elapsed = refs.search_info.timer_elapsed();
+                let lcm = refs.search_info.last_curr_move;
+                if elapsed >= lcm + MIN_TIME_CURR_MOVE {
+                    Search::send_current_move(refs, current_move, legal_moves_found);
+                    refs.search_info.last_curr_move = elapsed;
+                }
             }
 
             // Create a node PV for this move.

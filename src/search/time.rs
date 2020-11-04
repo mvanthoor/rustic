@@ -23,49 +23,48 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
+const OVERHEAD: u128 = 100;
+const GAME_LENGTH: usize = 60;
+const MIN_MOVES_TO_GO: usize = 20;
+const MIN_TIME: u128 = 1250;
+
 impl Search {
     pub fn out_of_time(refs: &mut SearchRefs) -> bool {
-        // Use this as the basis for game length if "movestogo" is
-        // not supplied (base time is for entire game).
-        const DEFAULT_GAME_LENGTH: usize = 80;
+        let elapsed = refs.search_info.timer_elapsed();
+        let allotted = refs.search_info.time_for_move;
 
-        // Substract some time for communication to the GUI, so the
-        // engine won't overshoot its time.
-        const COMM_OVERHEAD: u128 = 100;
+        elapsed >= allotted
+    }
 
-        // Shorthand for game_time.
+    pub fn time_for_move(refs: &SearchRefs) -> u128 {
         let gt = &refs.search_params.game_time;
-
-        // Get which side to search for.
-        let white = refs.search_params.search_side == Sides::WHITE;
-
-        // Initialize time variables and moves to go.
-        let (time, inc, moves_to_go): (u128, u128, usize) = if white {
-            let mtg = if let Some(x) = gt.moves_to_go {
-                x
-            } else {
-                let moves_made = refs.board.history.len() / 2;
-                DEFAULT_GAME_LENGTH - moves_made
-            };
-
-            (gt.wtime, gt.winc, mtg)
+        let mtg = Search::moves_to_go(refs);
+        let white = refs.board.us() == Sides::WHITE;
+        let clock = if white { gt.wtime } else { gt.btime };
+        let increment = if white { gt.winc } else { gt.binc };
+        let base_time = if clock > MIN_TIME || (increment == 0) {
+            ((clock as f64 * 0.8) / (mtg as f64)).round() as u128
         } else {
-            let mtg = if let Some(x) = gt.moves_to_go {
-                x
-            } else {
-                let moves_made = (refs.board.history.len() - 1) / 2;
-                DEFAULT_GAME_LENGTH - moves_made
-            };
-
-            (gt.btime, gt.binc, mtg)
+            0
         };
 
-        // Calculate time per move. Stop if this time has elapsed
-        // since the search began.
-        let base = (time as f64 / moves_to_go as f64).round() as u128;
-        let available = base + inc - COMM_OVERHEAD;
-        let elapsed = refs.search_info.start_time.elapsed().as_millis();
+        base_time + increment - OVERHEAD
+    }
 
-        elapsed >= available
+    fn moves_to_go(refs: &SearchRefs) -> usize {
+        // If moves to go was supplied, then use this.
+        if let Some(x) = refs.search_params.game_time.moves_to_go {
+            x
+        } else {
+            // Guess moves to go if not supplied.
+            let white = refs.board.us() == Sides::WHITE;
+            let ply = refs.board.history.len();
+            let moves_made = if white { ply / 2 } else { (ply - 1) / 2 };
+            if moves_made < (GAME_LENGTH - MIN_MOVES_TO_GO) {
+                GAME_LENGTH - moves_made
+            } else {
+                MIN_MOVES_TO_GO
+            }
+        }
     }
 }
