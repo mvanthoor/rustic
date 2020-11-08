@@ -45,7 +45,7 @@ impl Search {
         nps
     }
 
-    // This function sends the currently searched move to the engine thread.
+    // Send currently searched move to the engine thread.
     pub fn send_current_move(refs: &mut SearchRefs, current: Move, count: u8) {
         let scm = SearchCurrentMove::new(current, count);
         let scm_report = SearchReport::SearchCurrentMove(scm);
@@ -53,7 +53,7 @@ impl Search {
         refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
     }
 
-    // This function sends updated search statistics to the engine thread.
+    // Send updated search statistics to the engine thread.
     pub fn send_stats(refs: &mut SearchRefs) {
         let milli_seconds = refs.search_info.timer_elapsed();
         let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
@@ -103,11 +103,13 @@ impl Search {
         }
     }
 
+    // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(refs: &mut SearchRefs) -> bool {
         let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
         Search::is_repetition(refs.board) || max_move_rule
     }
 
+    // Detects position repetitions in the game's history.
     pub fn is_repetition(board: &Board) -> bool {
         let mut found = false;
         let mut stop = false;

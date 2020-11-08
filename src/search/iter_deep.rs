@@ -37,7 +37,7 @@ impl Search {
 
         // Set up time management.
         let allotted = Search::time_for_move(refs);
-        let max_time = (allotted as f64 * 0.25).round() as u128;
+        let max_time = (allotted as f64 * 0.35).round() as u128;
         refs.search_info.time_for_move = allotted;
         refs.search_info.timer_start();
 
