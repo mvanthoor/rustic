@@ -36,7 +36,7 @@ use uci::UciReport;
 // These are the types of communication the engine is capable of.
 pub struct CommType;
 impl CommType {
-    // pub const XBOARD: &'static str = "xboard";
+    pub const XBOARD: &'static str = "xboard";
     pub const UCI: &'static str = "uci";
 }
 
