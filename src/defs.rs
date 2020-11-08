@@ -76,7 +76,7 @@ pub const MAX_MOVE_RULE: u8 = 100; // 50/75 move rule
 
 // Define errors
 pub type EngineRunResult = Result<(), u8>;
-pub const ENGINE_RUN_ERRORS: [&str; 7] = [
+pub const ENGINE_RUN_ERRORS: [&str; 8] = [
     "FEN: Must have six parts",
     "FEN: Pieces and squares incorrect",
     "FEN: Color selection incorrect",
@@ -84,4 +84,5 @@ pub const ENGINE_RUN_ERRORS: [&str; 7] = [
     "FEN: En-passant square incorrect",
     "FEN: Half-move clock incorrect",
     "FEN: Full-move number incorrect",
+    "XBoard not yet implemented.",
 ];

@@ -55,7 +55,8 @@ pub struct Engine {
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information
-    search: Search,
+    search: Search,                         // Search object
+    tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
 impl Engine {
@@ -63,10 +64,14 @@ impl Engine {
     pub fn new() -> Self {
         // Create the command-line object.
         let c = CmdLine::new();
+        let mut is_xboard = false;
 
         // Create the communication interface
         let i: Box<dyn IComm> = match &c.comm()[..] {
-            CommType::XBOARD => Box::new(Uci::new()),
+            CommType::XBOARD => {
+                is_xboard = true;
+                Box::new(Uci::new())
+            }
             CommType::UCI => Box::new(Uci::new()),
             _ => panic!(ErrFatal::CREATE_COMM),
         };
@@ -88,11 +93,16 @@ impl Engine {
             mg: Arc::new(MoveGenerator::new()),
             info_rx: None,
             search: Search::new(),
+            tmp_no_xboard: is_xboard,
         }
     }
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
+        if self.tmp_no_xboard {
+            return Err(7);
+        }
+
         self.print_ascii_logo();
         self.print_about();
         self.print_settings(self.settings.threads, self.comm.get_protocol_name());
