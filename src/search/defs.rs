@@ -107,13 +107,14 @@ pub struct SearchInfo {
     start_time: Option<Instant>,    // Time the search started
     pub depth: u8,                  // Depth currently being searched
     pub seldepth: u8,               // Maximum selective depth reached
-    pub allotted_time: u128,        // Allotted msecs to spend on move
     pub best_move: Move,            // Best move found
     pub nodes: usize,               // Nodes searched
     pub pv: Vec<Move>,              // Current principal variation
     pub ply: u8,                    // Number of plys from the root
     pub last_stats: u128,           // When last stats update was sent
     pub last_curr_move: u128,       // When last current move was sent
+    pub allotted_time: u128,        // Allotted msecs to spend on move
+    pub max_time: u128,             //Maximum time to spend on move
     pub terminate: SearchTerminate, // Terminate flag
 }
 
@@ -123,13 +124,14 @@ impl SearchInfo {
             start_time: None,
             depth: 0,
             seldepth: 0,
-            allotted_time: 0,
             best_move: Move::new(0),
             nodes: 0,
             pv: Vec::new(),
             ply: 0,
             last_stats: 0,
             last_curr_move: 0,
+            allotted_time: 0,
+            max_time: 0,
             terminate: SearchTerminate::Nothing,
         }
     }

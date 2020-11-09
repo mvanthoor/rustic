@@ -34,13 +34,25 @@ impl Search {
         let mut best_move = Move::new(0);
         let mut temp_pv: Vec<Move> = Vec::new();
         let mut stop = false;
+        let is_game_time = refs.search_params.search_mode == SearchMode::GameTime;
 
-        // Set up time management.
-        let allotted = Search::allot_time(refs);
-        let max_time = (allotted as f64 * 0.35).round() as u128;
-        refs.search_info.allotted_time = allotted;
+        // Determine available time in case of GameTime search mode.
+        if is_game_time {
+            // After this percentage of time has been used, stop iterating
+            // to the next depth because it will be unlikely that this
+            // iteration can be finished. That time would be wasted.
+            let factor = 0.35;
+
+            // Allot thinking time.
+            let allotted_time = Search::allot_time(refs);
+            let max_time = (allotted_time as f64 * factor).round() as u128;
+
+            refs.search_info.allotted_time = allotted_time;
+            refs.search_info.max_time = max_time;
+        }
+
+        // Start the search
         refs.search_info.timer_start();
-
         while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
@@ -78,9 +90,8 @@ impl Search {
             }
 
             // Determine if trying for another depth is feasible.
-            let is_game_time = refs.search_params.search_mode == SearchMode::GameTime;
             let elapsed = refs.search_info.timer_elapsed();
-            let abort = elapsed > max_time && is_game_time;
+            let abort = elapsed > refs.search_info.max_time && is_game_time;
             stop = interrupted || abort;
         }
 
