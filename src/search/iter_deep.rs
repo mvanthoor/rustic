@@ -38,17 +38,16 @@ impl Search {
 
         // Determine available time in case of GameTime search mode.
         if is_game_time {
-            // After this percentage of time has been used, stop iterating
-            // to the next depth because it will be unlikely that this
-            // iteration can be finished. That time would be wasted.
+            // Stop deepening the search after using this percentage of
+            // time. This makes sure that iterative deepning doesn't waste
+            // too much time by searching a depth it can't finish.
             let factor = 0.35;
 
-            // Allot thinking time.
-            let allotted_time = Search::allot_time(refs);
-            let max_time = (allotted_time as f64 * factor).round() as u128;
+            // Determine the maximum time slice available for this move.
+            let time_slice = Search::allocate_time_slice(refs);
 
-            refs.search_info.allotted_time = allotted_time;
-            refs.search_info.max_time = max_time;
+            // Determine the actual time to allot for this search.
+            refs.search_info.allocated_time = (time_slice as f64 * factor).round() as u128;
         }
 
         // Start the search
@@ -89,10 +88,16 @@ impl Search {
                 depth += 1;
             }
 
-            // Determine if trying for another depth is feasible.
-            let elapsed = refs.search_info.timer_elapsed();
-            let abort = elapsed > refs.search_info.max_time && is_game_time;
-            stop = interrupted || abort;
+            // Determine if time is up, when in GameTime mode.
+            let time_up = if is_game_time {
+                refs.search_info.timer_elapsed() > refs.search_info.allocated_time
+            } else {
+                false
+            };
+
+            // Stop deepening the search if the current depth was
+            // interrupted, or if the time is up.
+            stop = interrupted || time_up;
         }
 
         // Search is done. Report best move and reason to terminate.

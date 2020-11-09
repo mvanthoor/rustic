@@ -34,26 +34,26 @@ impl Search {
     // searched move is up.
     pub fn out_of_time(refs: &mut SearchRefs) -> bool {
         let elapsed = refs.search_info.timer_elapsed();
-        let allotted = refs.search_info.allotted_time;
+        let allocated = refs.search_info.allocated_time;
 
         // Calculate a factor with which it is allowed to overshoot the
         // allocated search time. The more time the engine has, the more it
-        // is allowed to use more time for the move, beyond to what was
-        // initially allocated.
-        let factor = match allotted {
+        // is allowed to use more time for the move, trying to finish the
+        // depth it is currently searching.
+        let overshoot_factor = match allocated {
             x if x > OK_TIME => 2.0,                  // Allow large overshoot.
             x if x > MIN_TIME && x <= OK_TIME => 1.5, // Low on time. Reduce overshoot.
             x if x <= MIN_TIME => 1.0,                // Critical time. Don't overshoot.
             _ => 1.0,                                 // General case should never happen.
         };
 
-        elapsed >= (factor * allotted as f64).round() as u128
+        elapsed >= (overshoot_factor * allocated as f64).round() as u128
     }
 
     // This function calculates the time the engine allocates for searching
     // a single move. This depends on the number of moves still to go in
     // the game.
-    pub fn allot_time(refs: &SearchRefs) -> u128 {
+    pub fn allocate_time_slice(refs: &SearchRefs) -> u128 {
         let gt = &refs.search_params.game_time;
         let mtg = Search::moves_to_go(refs);
         let white = refs.board.us() == Sides::WHITE;
