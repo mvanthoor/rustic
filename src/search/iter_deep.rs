@@ -41,7 +41,7 @@ impl Search {
             // Stop deepening the search after using this percentage of
             // time. This makes sure that iterative deepning doesn't waste
             // too much time by searching a depth it can't finish.
-            let factor = 0.35;
+            let factor = 0.40;
 
             // Determine the maximum time slice available for this move.
             let time_slice = Search::allocate_time_slice(refs);
