@@ -411,7 +411,7 @@ impl Uci {
     }
 
     fn search_stats(s: &SearchStats) {
-        println!("info nodes {} nps {}", s.nodes, s.nps);
+        println!("info time {} nodes {} nps {}", s.time, s.nodes, s.nps);
     }
 
     fn info_string(msg: &str) {

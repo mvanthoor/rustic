@@ -196,13 +196,14 @@ impl SearchCurrentMove {
 // engine thread to Comm, to be transmitted to the (G)UI.
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchStats {
+    pub time: u128,   // Time spent searching
     pub nodes: usize, // Number of nodes searched
     pub nps: usize,   // Speed in nodes per second
 }
 
 impl SearchStats {
-    pub fn new(nodes: usize, nps: usize) -> Self {
-        Self { nodes, nps }
+    pub fn new(time: u128, nodes: usize, nps: usize) -> Self {
+        Self { time, nodes, nps }
     }
 }
 

@@ -55,9 +55,9 @@ impl Search {
 
     // Send updated search statistics to the engine thread.
     pub fn send_stats(refs: &mut SearchRefs) {
-        let milli_seconds = refs.search_info.timer_elapsed();
-        let nps = Search::nodes_per_second(refs.search_info.nodes, milli_seconds);
-        let stats = SearchStats::new(refs.search_info.nodes, nps);
+        let msecs = refs.search_info.timer_elapsed();
+        let nps = Search::nodes_per_second(refs.search_info.nodes, msecs);
+        let stats = SearchStats::new(msecs, refs.search_info.nodes, nps);
         let stats_report = SearchReport::SearchStats(stats);
         let information = Information::Search(stats_report);
         refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
