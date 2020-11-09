@@ -23,6 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
+const OVERHEAD: i128 = 100;
 const GAME_LENGTH: usize = 50;
 const MIN_MOVES_TO_GO: usize = 10;
 const SPEED_MOVES_TO_GO: usize = 20;
@@ -53,7 +54,7 @@ impl Search {
     // This function calculates the time the engine allocates for searching
     // a single move. This depends on the number of moves still to go in
     // the game.
-    pub fn allocate_time_slice(refs: &SearchRefs) -> u128 {
+    pub fn allocate_time_slice(refs: &SearchRefs) -> i128 {
         let gt = &refs.search_params.game_time;
         let mtg = Search::moves_to_go(refs);
         let white = refs.board.us() == Sides::WHITE;
@@ -65,7 +66,7 @@ impl Search {
             0
         };
 
-        base_time + increment
+        (base_time + increment) as i128 - OVERHEAD
     }
 
     // This function tries to come up with some sort of sensible value for
