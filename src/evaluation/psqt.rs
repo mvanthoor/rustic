@@ -173,8 +173,8 @@ pub const FLIP: [usize; 64] = [
 
 // Apply PSQT's to position
 pub fn apply(board: &Board) -> (i16, i16) {
-    let mut w_psqt = 0;
-    let mut b_psqt = 0;
+    let mut w_psqt: i16 = 0;
+    let mut b_psqt: i16 = 0;
     let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
     let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 

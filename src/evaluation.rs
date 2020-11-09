@@ -28,11 +28,11 @@ use crate::{board::Board, defs::Sides};
 
 pub fn evaluate_position(board: &Board) -> i16 {
     let side = board.game_state.active_color as usize;
-    let w_material = board.game_state.material[Sides::WHITE];
-    let b_material = board.game_state.material[Sides::BLACK];
+    let w_material = board.game_state.material[Sides::WHITE] as i16;
+    let b_material = board.game_state.material[Sides::BLACK] as i16;
 
     // Base evaluation, by counting material.
-    let mut value = (w_material - b_material) as i16;
+    let mut value = w_material - b_material;
 
     // Add PSQT values
     value += board.game_state.psqt[Sides::WHITE] - board.game_state.psqt[Sides::BLACK];

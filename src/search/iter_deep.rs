@@ -21,7 +21,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchRefs, SearchResult, SearchTerminate, INF},
+    defs::{SearchMode, SearchRefs, SearchResult, SearchTerminate, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
 use crate::{defs::MAX_DEPTH, movegen::defs::Move};
@@ -36,9 +36,9 @@ impl Search {
         let mut stop = false;
 
         // Set up time management.
-        let allotted = Search::time_for_move(refs);
+        let allotted = Search::allot_time(refs);
         let max_time = (allotted as f64 * 0.35).round() as u128;
-        refs.search_info.time_for_move = allotted;
+        refs.search_info.allotted_time = allotted;
         refs.search_info.timer_start();
 
         while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
@@ -78,8 +78,9 @@ impl Search {
             }
 
             // Determine if trying for another depth is feasible.
+            let is_game_time = refs.search_params.search_mode == SearchMode::GameTime;
             let elapsed = refs.search_info.timer_elapsed();
-            let abort = elapsed > max_time;
+            let abort = elapsed > max_time && is_game_time;
             stop = interrupted || abort;
         }
 

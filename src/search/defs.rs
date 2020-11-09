@@ -107,7 +107,7 @@ pub struct SearchInfo {
     start_time: Option<Instant>,    // Time the search started
     pub depth: u8,                  // Depth currently being searched
     pub seldepth: u8,               // Maximum selective depth reached
-    pub time_for_move: u128,        // Alloted msecs to spend on move
+    pub allotted_time: u128,        // Allotted msecs to spend on move
     pub best_move: Move,            // Best move found
     pub nodes: usize,               // Nodes searched
     pub pv: Vec<Move>,              // Current principal variation
@@ -123,7 +123,7 @@ impl SearchInfo {
             start_time: None,
             depth: 0,
             seldepth: 0,
-            time_for_move: 0,
+            allotted_time: 0,
             best_move: Move::new(0),
             nodes: 0,
             pv: Vec::new(),

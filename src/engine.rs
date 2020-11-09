@@ -54,8 +54,8 @@ pub struct Engine {
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
-    info_rx: Option<Receiver<Information>>, // Receiver for incoming information
-    search: Search,                         // Search object
+    info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
+    search: Search,                         // Search object (active).
     tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
@@ -63,11 +63,11 @@ impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
         // Create the command-line object.
-        let c = CmdLine::new();
+        let cmdline = CmdLine::new();
         let mut is_xboard = false;
 
         // Create the communication interface
-        let i: Box<dyn IComm> = match &c.comm()[..] {
+        let comm: Box<dyn IComm> = match &cmdline.comm()[..] {
             CommType::XBOARD => {
                 is_xboard = true;
                 Box::new(Uci::new())
@@ -77,18 +77,15 @@ impl Engine {
         };
 
         // Get engine settings from the command-line
-        let t = c.threads();
-        let q = c.has_quiet();
+        let threads = cmdline.threads();
+        let quiet = cmdline.has_quiet();
 
         // Create the engine itself.
         Self {
             quit: false,
-            settings: Settings {
-                threads: t,
-                quiet: q,
-            },
-            cmdline: c,
-            comm: i,
+            settings: Settings { threads, quiet },
+            cmdline,
+            comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
             info_rx: None,
@@ -99,6 +96,8 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
+        // This is temporary. Quit the engine immediately if anyone tries
+        // to start it in XBoard mode, as this is not implemented yet.
         if self.tmp_no_xboard {
             return Err(7);
         }
