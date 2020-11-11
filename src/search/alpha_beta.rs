@@ -32,10 +32,11 @@ use crate::{
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
+use std::cmp;
 
 impl Search {
     pub fn alpha_beta(
-        depth: u8,
+        mut depth: u8,
         mut alpha: i16,
         beta: i16,
         pv: &mut Vec<Move>,
@@ -62,6 +63,21 @@ impl Search {
         if refs.search_info.ply >= MAX_DEPTH {
             return evaluation::evaluate_position(refs.board);
         }
+
+        // Determine if we are in check.
+        let is_check = refs.mg.square_attacked(
+            refs.board,
+            refs.board.opponent(),
+            refs.board.king_square(refs.board.us()),
+        );
+
+        // If so, extend search depth by 1 to determine the best way to get
+        // out of the check before we go into quiescence search.
+        if is_check {
+            depth += 1;
+        }
+
+        /*=== Actual searching starts here ===*/
 
         // Temporary variables.
         let mut best_move = Move::new(0);
@@ -112,6 +128,9 @@ impl Search {
             // We found a legal move.
             legal_moves_found += 1;
             refs.search_info.ply += 1;
+
+            // Update seldepth if searching deeper than specified depth.
+            refs.search_info.seldepth = cmp::max(refs.search_info.ply, refs.search_info.depth);
 
             // Send currently searched move to GUI.
             if !quiet && is_root {
@@ -164,11 +183,7 @@ impl Search {
         // If we exit the loop without legal moves being found, the
         // side to move is either in checkmate or stalemate.
         if legal_moves_found == 0 {
-            let king_square = refs.board.king_square(refs.board.us());
-            let opponent = refs.board.opponent();
-            let check = refs.mg.square_attacked(refs.board, opponent, king_square);
-
-            if check {
+            if is_check {
                 // The return value is minus CHECKMATE (negative), because
                 // if we have no legal moves AND are in check, we have
                 // lost. This is a very negative outcome.

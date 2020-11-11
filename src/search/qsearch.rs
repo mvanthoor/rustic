@@ -29,6 +29,7 @@ use crate::{
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
+use std::cmp;
 
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
@@ -112,11 +113,8 @@ impl Search {
             // Move is legal; increase the ply count.
             refs.search_info.ply += 1;
 
-            // If we are deeper down in the three than is indicated by the
-            // depth, then we're doing a selective search.
-            if refs.search_info.ply >= refs.search_info.depth {
-                refs.search_info.seldepth = refs.search_info.ply;
-            }
+            // Update seldepth if we're searching deeper than requested.
+            refs.search_info.seldepth = cmp::max(refs.search_info.ply, refs.search_info.depth);
 
             // Create a PV for this node.
             let mut node_pv: Vec<Move> = Vec::new();
