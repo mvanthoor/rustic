@@ -55,14 +55,14 @@ impl Search {
         let mtg = Search::moves_to_go(refs);
         let white = refs.board.us() == Sides::WHITE;
         let clock = if white { gt.wtime } else { gt.btime };
-        let increment = if white { gt.winc } else { gt.binc };
+        let increment = if white { gt.winc } else { gt.binc } as i128;
         let base_time = if clock > CRITICAL_TIME || (increment == 0) {
-            ((clock as f64) / (mtg as f64)).round() as u128
+            ((clock as f64) / (mtg as f64)).round() as i128
         } else {
             0
         };
 
-        (base_time + increment) as i128 - OVERHEAD
+        base_time + increment - OVERHEAD
     }
 
     // Here we try to come up with some sort of sensible value for "moves
