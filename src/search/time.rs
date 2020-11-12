@@ -24,7 +24,7 @@ use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
 const OVERHEAD: i128 = 100;
-const GAME_LENGTH: usize = 30;
+const GAME_LENGTH: usize = 25;
 const MOVES_BUFFER: usize = 5;
 const CRITICAL_TIME: u128 = 1_000;
 const OK_TIME: u128 = CRITICAL_TIME * 5;
@@ -77,15 +77,7 @@ impl Search {
             let ply = refs.board.history.len();
             let moves_made = if white { ply / 2 } else { (ply - 1) / 2 };
 
-            // Every GAME_LENGTH, another phase starts.
-            let phase = (moves_made / GAME_LENGTH) + 1;
-
-            // Each phase, assume less moves remaining than before.
-            let length = GAME_LENGTH / phase;
-
-            // Make sure to never return less than MOVES_BUFFER, so as not
-            // to spend all time on the last move of a phase.
-            std::cmp::max(length - (moves_made % length), MOVES_BUFFER)
+            GAME_LENGTH - (moves_made % GAME_LENGTH) + MOVES_BUFFER
         }
     }
 }
