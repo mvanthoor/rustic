@@ -23,11 +23,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
-const OVERHEAD: i128 = 100;
-const GAME_LENGTH: usize = 25;
-const MOVES_BUFFER: usize = 5;
-const CRITICAL_TIME: u128 = 1_000;
-const OK_TIME: u128 = CRITICAL_TIME * 5;
+const OVERHEAD: i128 = 50; // msecs
+const GAME_LENGTH: usize = 25; // moves
+const MOVES_BUFFER: usize = 5; //moves
+const CRITICAL_TIME: u128 = 1_000; // msecs
+const OK_TIME: u128 = CRITICAL_TIME * 5; // msecs
 
 impl Search {
     // Determine if allocated search time has been used up.
@@ -50,19 +50,28 @@ impl Search {
 
     // Calculates the time the engine allocates for searching a single
     // move. This depends on the number of moves still to go in the game.
-    pub fn calculate_time_slice(refs: &SearchRefs) -> i128 {
+    pub fn calculate_time_slice(refs: &SearchRefs) -> u128 {
+        // Calculate the time slice step by step.
         let gt = &refs.search_params.game_time;
         let mtg = Search::moves_to_go(refs);
         let white = refs.board.us() == Sides::WHITE;
         let clock = if white { gt.wtime } else { gt.btime };
         let increment = if white { gt.winc } else { gt.binc } as i128;
-        let base_time = if clock > CRITICAL_TIME || (increment == 0) {
-            ((clock as f64) / (mtg as f64)).round() as i128
-        } else {
-            0
-        };
+        let base_time = ((clock as f64) / (mtg as f64)).round() as i128;
+        let time_slice = base_time + increment - OVERHEAD;
 
-        base_time + increment - OVERHEAD
+        // Make sure we're never sending less than 0 msecs of available time.
+        if time_slice > 0 {
+            // Just send the calculated slice.
+            time_slice as u128
+        } else if (base_time + increment) > (OVERHEAD / 5) {
+            // Don't substract GUI lag protection (overhead) if this leads
+            // to a negative time allocation.
+            (base_time + increment) as u128
+        } else {
+            // We actually don't have any time.
+            0
+        }
     }
 
     // Here we try to come up with some sort of sensible value for "moves

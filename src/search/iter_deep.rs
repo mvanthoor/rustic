@@ -38,6 +38,7 @@ impl Search {
 
         // Determine available time in case of GameTime search mode.
         if is_game_time {
+            println!("GameTime mode.");
             // Stop deepening the search after using this percentage of
             // time. This makes sure that iterative deepning doesn't waste
             // too much time by searching a depth it can't finish.
