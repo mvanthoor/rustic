@@ -99,10 +99,10 @@ impl Search {
         // statistics to the GUI.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
             let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats;
+            let last_stats = refs.search_info.last_stats_sent;
             if elapsed >= last_stats + MIN_TIME_STATS {
                 Search::send_stats(refs);
-                refs.search_info.last_stats = elapsed;
+                refs.search_info.last_stats_sent = elapsed;
             }
         }
 
@@ -135,10 +135,10 @@ impl Search {
             // Send currently searched move to GUI.
             if !quiet && is_root {
                 let elapsed = refs.search_info.timer_elapsed();
-                let lcm = refs.search_info.last_curr_move;
+                let lcm = refs.search_info.last_curr_move_sent;
                 if elapsed >= lcm + MIN_TIME_CURR_MOVE {
                     Search::send_current_move(refs, current_move, legal_moves_found);
-                    refs.search_info.last_curr_move = elapsed;
+                    refs.search_info.last_curr_move_sent = elapsed;
                 }
             }
 

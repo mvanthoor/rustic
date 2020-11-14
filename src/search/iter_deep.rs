@@ -44,7 +44,7 @@ impl Search {
             let factor = 0.40;
 
             // Determine the maximum time slice available for this move.
-            let time_slice = Search::allocate_time_slice(refs);
+            let time_slice = Search::calculate_time_slice(refs);
 
             // Determine the actual time to allot for this search.
             refs.search_info.allocated_time = (time_slice as f64 * factor).round() as u128;

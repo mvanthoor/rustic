@@ -111,8 +111,8 @@ pub struct SearchInfo {
     pub nodes: usize,               // Nodes searched
     pub pv: Vec<Move>,              // Current principal variation
     pub ply: u8,                    // Number of plys from the root
-    pub last_stats: u128,           // When last stats update was sent
-    pub last_curr_move: u128,       // When last current move was sent
+    pub last_stats_sent: u128,      // When last stats update was sent
+    pub last_curr_move_sent: u128,  // When last current move was sent
     pub allocated_time: u128,       // Allotted msecs to spend on move
     pub terminate: SearchTerminate, // Terminate flag
 }
@@ -127,8 +127,8 @@ impl SearchInfo {
             nodes: 0,
             pv: Vec::new(),
             ply: 0,
-            last_stats: 0,
-            last_curr_move: 0,
+            last_stats_sent: 0,
+            last_curr_move_sent: 0,
             allocated_time: 0,
             terminate: SearchTerminate::Nothing,
         }

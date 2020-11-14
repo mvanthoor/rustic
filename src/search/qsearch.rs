@@ -85,10 +85,10 @@ impl Search {
         // the minium MIN_TIME_STATS has elapsed before sending.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
             let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats;
+            let last_stats = refs.search_info.last_stats_sent;
             if elapsed >= last_stats + MIN_TIME_STATS {
                 Search::send_stats(refs);
-                refs.search_info.last_stats = elapsed;
+                refs.search_info.last_stats_sent = elapsed;
             }
         }
 

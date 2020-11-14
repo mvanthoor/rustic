@@ -50,7 +50,7 @@ impl Search {
 
     // Calculates the time the engine allocates for searching a single
     // move. This depends on the number of moves still to go in the game.
-    pub fn allocate_time_slice(refs: &SearchRefs) -> i128 {
+    pub fn calculate_time_slice(refs: &SearchRefs) -> i128 {
         let gt = &refs.search_params.game_time;
         let mtg = Search::moves_to_go(refs);
         let white = refs.board.us() == Sides::WHITE;

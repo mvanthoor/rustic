@@ -110,7 +110,7 @@ impl Default for Magic {
  * - For 12 bits, there are 4096 possible configuration of blockers (2 to the power of 12).
  * - Thus, square A1 has 4096 blocker boards.
  * - The get_index() function receives a board occupancy when called.
- * - occupancy * self.mask (the mask for the piece on the square the magic belongs to) yields
+ * - "occupancy & self.mask" (the mask for the piece on the square the magic belongs to) yields
  *      a blocker board.
  * - Each blocker board (configuration of blockers) goes with one attack board (the squares the)
  *      piece can actually attack). This attack board is in the attack table.
