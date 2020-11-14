@@ -336,10 +336,13 @@ impl Uci {
             } // end match p
         } // end for
 
-        // If the mode is still the default "GoInfinte", but "go
-        // wtime/btime" was parsed, then set the mode to GameTime.
+        // If we are still in the default "go infinite" mode, we must
+        // switch to GameTime mode if at least one parameter of "go wtime
+        // btime winc binc" was set to something else but 0.
         let is_default_mode = report == CommReport::Uci(UciReport::GoInfinite);
-        let is_game_time = game_time.wtime > 0 || game_time.btime > 0;
+        let has_time = game_time.wtime > 0 || game_time.btime > 0;
+        let has_inc = game_time.winc > 0 || game_time.binc > 0;
+        let is_game_time = has_time || has_inc;
         if is_default_mode && is_game_time {
             report = CommReport::Uci(UciReport::GoGameTime(game_time));
         }

@@ -38,14 +38,13 @@ impl Search {
 
         // Determine available time in case of GameTime search mode.
         if is_game_time {
-            println!("GameTime mode.");
-            // Stop deepening the search after using this percentage of
-            // time. This makes sure that iterative deepning doesn't waste
-            // too much time by searching a depth it can't finish.
-            let factor = 0.40;
-
             // Determine the maximum time slice available for this move.
             let time_slice = Search::calculate_time_slice(refs);
+
+            // Experience reveals that after using about 40-50% of the
+            // available time, the next depth will not be finished, so
+            // don't allocated more than 40% of the calculated move time.
+            let factor = 0.40;
 
             // If we have time, do a normal search in GameTime mode.
             if time_slice > 0 {
