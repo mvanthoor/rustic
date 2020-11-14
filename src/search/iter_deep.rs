@@ -47,8 +47,17 @@ impl Search {
             // Determine the maximum time slice available for this move.
             let time_slice = Search::calculate_time_slice(refs);
 
-            // Determine the actual time to allot for this search.
-            refs.search_info.allocated_time = (time_slice as f64 * factor).round() as u128;
+            // If we have time, do a normal search in GameTime mode.
+            if time_slice > 0 {
+                // Determine the actual time to allot for this search.
+                refs.search_info.allocated_time = (time_slice as f64 * factor).round() as u128;
+            } else {
+                // We have no time. Send the best move from ply 1 to avoid
+                // killing ourselves by sending no move at all. Change mode
+                // to "depth" and set it to 1 ply.
+                refs.search_params.search_mode = SearchMode::Depth;
+                refs.search_params.depth = 1;
+            }
         }
 
         // Start the search
