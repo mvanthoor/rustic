@@ -106,22 +106,24 @@ impl Search {
     // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(refs: &mut SearchRefs) -> bool {
         let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
-        Search::is_repetition(refs.board) || max_move_rule
+        Search::is_repetition(refs.board) > 0 || max_move_rule
     }
 
     // Detects position repetitions in the game's history.
-    pub fn is_repetition(board: &Board) -> bool {
-        let mut found = false;
+    pub fn is_repetition(board: &Board) -> u8 {
+        let mut count = 0;
         let mut stop = false;
         let mut i = board.history.len() - 1;
 
         // Search the history list.
-        while i != 0 && !found && !stop {
+        while i != 0 && !stop {
             let historic = board.history.get_ref(i);
 
             // If the historic zobrist key is equal to the one of the board
             // passed into the function, then we found a repetition.
-            found = historic.zobrist_key == board.game_state.zobrist_key;
+            if historic.zobrist_key == board.game_state.zobrist_key {
+                count += 1;
+            }
 
             // If the historic HMC is 0, it indicates that this position
             // was created by a capture or pawn move. We don't have to
@@ -133,6 +135,6 @@ impl Search {
             // Search backwards.
             i -= 1;
         }
-        found
+        count
     }
 }
