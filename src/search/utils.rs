@@ -155,11 +155,9 @@ impl Search {
         let w_r = refs.board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0;
         let b_r = refs.board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0;
         // ...or two bishops for one side.
+        // FIXME : Bishops must be on squares of different color
         let w_b = refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 1;
         let b_b = refs.board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() > 1;
-        // ...or two knights for one side (only theoretical mate though)
-        let w_n = refs.board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() > 1;
-        let b_n = refs.board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() > 1;
         // ... or a bishop+knight for at least one side.
         let w_bn =
             refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 0 &&
@@ -170,6 +168,6 @@ impl Search {
          
         // If one of the conditions above is true, we still have enough
         // material for checkmate, so insufficient_material returns false.
-        !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b || w_n || b_n || w_bn || b_bn)
+        !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b ||  w_bn || b_bn)
     }
 }
