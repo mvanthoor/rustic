@@ -28,8 +28,8 @@ use super::{
     Search,
 };
 use crate::{
-    board::Board,
-    defs::MAX_MOVE_RULE,
+    board::{defs::Pieces, Board},
+    defs::{Sides, MAX_MOVE_RULE},
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
 };
@@ -104,9 +104,11 @@ impl Search {
     }
 
     // Returns true if the position should be evaluated as a draw.
-    pub fn is_draw(refs: &mut SearchRefs) -> bool {
-        let max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
-        Search::is_repetition(refs.board) > 0 || max_move_rule
+    pub fn is_draw(refs: &SearchRefs) -> bool {
+        let is_max_move_rule = refs.board.game_state.halfmove_clock >= MAX_MOVE_RULE;
+        Search::is_insufficient_material(refs)
+            || Search::is_repetition(refs.board) > 0
+            || is_max_move_rule
     }
 
     // Detects position repetitions in the game's history.
@@ -136,5 +138,38 @@ impl Search {
             i -= 1;
         }
         count
+    }
+}
+
+// This is in its own block so rustfmt::skip can be applied. Otherwhise
+// the layout of this function becomes very messy.
+#[rustfmt::skip]
+impl Search {
+    pub fn is_insufficient_material(refs: &SearchRefs) -> bool {
+        // It's not a draw if: ...there are still pawns.
+        let w_p = refs.board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0;     
+        let b_p = refs.board.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0;        
+        // ...there's a major piece on the board.
+        let w_q = refs.board.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0;
+        let b_q = refs.board.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0;
+        let w_r = refs.board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0;
+        let b_r = refs.board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0;
+        // ...or two bishops for one side.
+        let w_b = refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 1;
+        let b_b = refs.board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() > 1;
+        // ...or two knights for one side (only theoretical mate though)
+        let w_n = refs.board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() > 1;
+        let b_n = refs.board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() > 1;
+        // ... or a bishop+knight for at least one side.
+        let w_bn =
+            refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 0 &&
+            refs.board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() > 0;
+        let b_bn =
+            refs.board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() > 0 &&
+            refs.board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() > 0;
+         
+        // If one of the conditions above is true, we still have enough
+        // material for checkmate, so insufficient_material returns false.
+        !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b || w_n || b_n || w_bn || b_bn)
     }
 }
