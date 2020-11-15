@@ -8,6 +8,8 @@ concepts that have been well-known in chess programming for many decades;
 therefore, the engine still stands on the shoulders of the giants of the
 past.
 
+# User interface
+
 The engine does not provide its own user interface. It uses the UCI and
 XBoard protocols to communicate with graphical user interfaces. (XBoard is
 not yet completely implemented at the time of writing. For now, use the
