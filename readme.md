@@ -2,6 +2,91 @@
 
 # Rustic Chess Engine
 
+Rustic is a chess engine written from scratch in the Rust programming
+language. It is not derived from any other engine, but it uses many
+concepts that have been well-known in chess programming for many decades;
+therefore, the engine still stands on the shoulders of the giants of the
+past.
+
+The engine does not provide its own user interface. It uses the UCI and
+XBoard protocols to communicate with graphical user interfaces. (XBoard is
+not yet completely implemented at the time of writing. For now, use the
+engine in UCI mode, which is the default.) It is recommended that you use
+such an interface to play games against the engine. Rustic is tested with
+these user interfaces:
+
+- [Arena Chess GUI](http://www.playwitharena.de/)
+- [XBoard/Winboard](https://www.gnu.org/software/xboard/FAQ.html)
+- [CuteChess](https://cutechess.com/)
+- [Tarrasch](https://www.triplehappy.com/)
+- [The Shredder GUI](https://www.shredderchess.com/)
+- [Fritz / Chessbase series](https://en.chessbase.com/)
+- [Scid vs PC (database)](http://scidvspc.sourceforge.net/)
+- [Banksia GUI](https://banksiagui.com/)
+
+There are many other user interfaces that will probably work just fine, but its
+obviously impossible to test all of them. If you have problems with a user
+interface, open an issue so I can see if it can be fixed. (Assuming the
+user interface is either free or open source, as I can't go and buy GUI's
+just for testing purposes.)
+
+# Features
+
+At the time of writing (15-11-2020) Rustic does not yet have many features,
+if any at all. The basiscs to be able to play a decent game of chess have
+been implemented. This will be the base version for establishing an initial
+Elo rating, before more features are added. This is done so the Elo-gain of
+each added feature can be determined. The current feature set is:
+
+- Engine:
+  - Bitboard board representation
+  - Magic bitboard move generator
+  - UCI-protocol
+- Search
+  - Alpha/Beta search
+  - Quiescence search
+  - MVV-LVA move ordering
+  - Check extension
+- Evaluation
+  - Material counting
+  - Piece-Square Tables
+
+There are many features that will be added in the future, such as:
+- Finishing the XBoard protocol.
+- Several pruning options in the search
+- Add a transposition table
+- option/setoption in UCI to control engine options
+- Tapered evaluation for middle game/endgame
+- Many more evaluation terms
+- Add Lazy SMP
+
+These will be listed under "Features" as they are implemented.
+
+# Quick compiling tips
+
+Follow the instructions below if you want to compile the engine yourself.
+
+- First install [Rust](https://www.rust-lang.org/) for your platform. Make
+  sure you install at least version 1.46, as Rustic uses featurse that only
+  became available in that version.
+- Make sure you install the correct toolchain for your platform.
+- If you are running Windows, it is recommended to have
+  [MSYS2](https://www.msys2.org/) installed, because it provides Bash. If
+  you have Git and Git Bash installed, you can possibly omit MSYS2.
+- Clone (or download/unzip) this repository onto your computer.
+- Change to the root folder of the repository (where cargo.toml is).
+- Run the following command, without quotes:
+  - "cargo build --release"
+- You will find the binary in "./target/release/", called "rustic(.exe)".
+- You can strip any debug symbols from the binary using "strip":
+  - "strip -s ./target/release/rustic" (for Linux/Unix/Mac)
+  - "strip -s ./target/release/rustic.exe" (for Windows)
+- The above will give you a generic executable (64-bit, assuming you are
+  compilng to a 64-bit target, which is highly recommended). If you want to
+  make the compile optimized for the CPU you're compiling on, set the
+  following environment variable before compiling:
+    - RUSTFLAGS='-C target-cpu=native'
+
 # Credits
 
 There is one credit that doesn't have to do a lot with chess programming,
@@ -53,6 +138,8 @@ more contributions (in no particular order).
 * Ronald de Man (author of the Syzygy tablebases, CFish and RustFish): for
   helping to untangle the mess within my head regarding Principal Variation
   Search.
+* Taimo ("unserializable"): for pointing out a potential variable underflow
+  problem within the time management, that made Rustic crash in debug-mode.
 * Ed Schröder (author of Rebel and Gideon) and Robert Hyatt (author of Cray
   Blitz and Crafty): for still hanging around chess forums, answering
   questions, even after writing chess engines for 40 or 50 years.
@@ -62,7 +149,7 @@ programs. I have always wanted to have my own chess engine, but there was
 always "something" that got in the way of actually writing it.
 
 Now it's done: even though it is not very strong yet, I wrote my own chess
-engine from scratch, and I'm now "one of them." It was a long process and
-lots of work, but thanks to the help of the chess programming community, it
-went relatively smoothly. Thanks guys.
+engine from scratch. It was a long process and lots of work, but thanks to
+the help of the chess programming community, it went relatively smoothly.
+Thanks guys.
 
