@@ -32,7 +32,6 @@ use crate::{
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
-use std::cmp;
 
 impl Search {
     pub fn alpha_beta(
@@ -130,7 +129,9 @@ impl Search {
             refs.search_info.ply += 1;
 
             // Update seldepth if searching deeper than specified depth.
-            refs.search_info.seldepth = cmp::max(refs.search_info.ply, refs.search_info.depth);
+            if refs.search_info.ply > refs.search_info.depth {
+                refs.search_info.seldepth = refs.search_info.ply;
+            }
 
             // Send currently searched move to GUI.
             if !quiet && is_root {
