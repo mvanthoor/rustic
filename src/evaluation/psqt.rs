@@ -107,6 +107,20 @@ const PAWN_MG: PSQT = [
 pub const PSQT_MG: [PSQT; NrOf::PIECE_TYPES] =
     [KING_MG, QUEEN_MG, ROOK_MG, BISHOP_MG, KNIGHT_MG, PAWN_MG];
 
+// When one side has a bare king, this PSQT is used to drive that king to
+// the edge of the board and mate it there.
+#[rustfmt::skip]
+pub const KING_EDGE: PSQT = [
+    -95,  -95,  -90,  -90,  -90,  -90,  -95,  -95,  
+    -95,  -50,  -50,  -50,  -50,  -50,  -50,  -95,  
+    -90,  -50,  -20,  -20,  -20,  -20,  -50,  -90,  
+    -90,  -50,  -20,    0,    0,  -20,  -50,  -90,  
+    -90,  -50,  -20,    0,    0,  -20,  -50,  -90,  
+    -90,  -50,  -20,  -20,  -20,  -20,  -50,  -90,  
+    -95,  -50,  -50,  -50,  -50,  -50,  -50,  -95,  
+    -95,  -95,  -90,  -90,  -90,  -90,  -95,  -95,
+];
+
 // To make the Piece Square tables easier to relate to, and easier to
 // edit, they have been laid out as a normal chess board, with A1 at
 // the lower left. Because the square numbers start with A1 = 0, a
