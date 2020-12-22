@@ -48,6 +48,7 @@ const WHITE_OR_BLACK: &str = "wb";
 const CASTLING_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
+const EM_DASH: char = '–';
 const SPACE: char = ' ';
 
 type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
@@ -61,6 +62,7 @@ impl Board {
             Some(f) => f,
             None => FEN_START_POSITION,
         }
+        .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
         .split(SPACE)
         .map(|s| s.to_string())
         .collect();
