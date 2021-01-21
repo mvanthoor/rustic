@@ -1,6 +1,7 @@
 /* =======================================================================
 Rustic is a chess playing engine.
 Copyright (C) 2019-2021, Marcel Vanthoor
+https://rustic-chess.org/
 
 Rustic is written in the Rust programming language. It is an original
 work, not derived from any engine that came before it. However, it does
