@@ -1,5 +1,11 @@
 # Changelog
 
+## ?? - Rustic Alpha 2
+
+- Bugfixes:
+  - Move check extension higher up in the search routine, to prevent
+    quiescence search while in check.
+
 ## January 24, 2021 - Rustic Alpha 1
 
 This is the initial release.

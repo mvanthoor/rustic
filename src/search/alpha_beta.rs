@@ -53,17 +53,6 @@ impl Search {
             Search::check_termination(refs);
         }
 
-        // We have arrived at the leaf node. Evaluate the position and
-        // return the result.
-        if depth == 0 {
-            return Search::quiescence(alpha, beta, pv, refs);
-        }
-
-        // Stop going deeper if we hit MAX_DEPTH.
-        if refs.search_info.ply >= MAX_DEPTH {
-            return evaluation::evaluate_position(refs.board);
-        }
-
         // Determine if we are in check.
         let is_check = refs.mg.square_attacked(
             refs.board,
@@ -75,6 +64,17 @@ impl Search {
         // out of the check before we go into quiescence search.
         if is_check {
             depth += 1;
+        }
+
+        // We have arrived at the leaf node. Evaluate the position and
+        // return the result.
+        if depth == 0 {
+            return Search::quiescence(alpha, beta, pv, refs);
+        }
+
+        // Stop going deeper if we hit MAX_DEPTH.
+        if refs.search_info.ply >= MAX_DEPTH {
+            return evaluation::evaluate_position(refs.board);
         }
 
         /*=== Actual searching starts here ===*/
