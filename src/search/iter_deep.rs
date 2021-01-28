@@ -33,7 +33,7 @@ impl Search {
         // Working variables
         let mut depth = 1;
         let mut best_move = Move::new(0);
-        let mut temp_pv: Vec<Move> = Vec::new();
+        let mut root_pv: Vec<Move> = Vec::new();
         let mut stop = false;
         let is_game_time = refs.search_params.is_game_time();
 
@@ -67,7 +67,7 @@ impl Search {
             refs.search_info.depth = depth;
 
             // Get the evaluation for this depth.
-            let eval = Search::alpha_beta(depth, -INF, INF, &mut temp_pv, refs);
+            let eval = Search::alpha_beta(depth, -INF, INF, &mut root_pv, refs);
 
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
