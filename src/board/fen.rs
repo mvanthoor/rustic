@@ -193,7 +193,7 @@ fn castling(board: &mut Board, part: &str) -> bool {
 
     // There should be 1 to 4 castling rights. If no player has castling
     // rights, the character is '-'.
-    if length >= 1 && length <= 4 {
+    if (1..=4).contains(&length) {
         // Accepts "-" for no castling rights in addition to leaving out letters.
         for c in part.chars() {
             if CASTLING_RIGHTS.contains(c) {
