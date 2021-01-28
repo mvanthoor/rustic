@@ -1,5 +1,7 @@
 ![Rustic Banner](https://rustic-chess.org/img/rustic-logo-web.jpg)
 
+[https://rustic-chess.org/](https://rustic-chess.org/)
+
 # Rustic Chess Engine
 
 Rustic is a chess engine written from scratch in the Rust programming
