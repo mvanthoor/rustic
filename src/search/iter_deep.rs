@@ -72,7 +72,7 @@ impl Search {
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
-                best_move = refs.search_info.best_move;
+                best_move = root_pv[0];
 
                 // Create search summary for this depth.
                 let elapsed = refs.search_info.timer_elapsed();
@@ -85,7 +85,7 @@ impl Search {
                     mate: 0,
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
-                    pv: refs.search_info.pv.clone(),
+                    pv: root_pv.clone(),
                 };
 
                 // Create information for the engine
