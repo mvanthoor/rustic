@@ -67,9 +67,6 @@ impl Search {
         // the recursion, or until there are no more captures available.
         // Then the function will return after looping the move list.
 
-        // Temporary variables.
-        let mut best_move = Move::new(0);
-
         // Generate only capture moves.
         let mut move_list = MoveList::new();
         let mtc = MoveType::Capture;
@@ -138,16 +135,13 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move = current_move;
+
+                // Update the Principal Variation.
                 pv.clear();
-                pv.push(best_move);
+                pv.push(current_move);
                 pv.append(&mut node_pv);
             }
         }
-
-        // Store the best move and best PV we found.
-        refs.search_info.best_move = best_move;
-        refs.search_info.pv = pv.clone();
 
         // We have traversed the entire move list and found the best score for us,
         // so we return this.

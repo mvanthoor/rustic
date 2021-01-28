@@ -98,6 +98,10 @@ impl SearchParams {
             quiet: false,
         }
     }
+
+    pub fn is_game_time(&self) -> bool {
+        self.search_mode == SearchMode::GameTime
+    }
 }
 
 // The search function will put all findings collected during the running
@@ -107,9 +111,7 @@ pub struct SearchInfo {
     start_time: Option<Instant>,    // Time the search started
     pub depth: u8,                  // Depth currently being searched
     pub seldepth: u8,               // Maximum selective depth reached
-    pub best_move: Move,            // Best move found
     pub nodes: usize,               // Nodes searched
-    pub pv: Vec<Move>,              // Current principal variation
     pub ply: u8,                    // Number of plys from the root
     pub last_stats_sent: u128,      // When last stats update was sent
     pub last_curr_move_sent: u128,  // When last current move was sent
@@ -123,9 +125,7 @@ impl SearchInfo {
             start_time: None,
             depth: 0,
             seldepth: 0,
-            best_move: Move::new(0),
             nodes: 0,
-            pv: Vec::new(),
             ply: 0,
             last_stats_sent: 0,
             last_curr_move_sent: 0,
@@ -144,6 +144,10 @@ impl SearchInfo {
         } else {
             0
         }
+    }
+
+    pub fn interrupted(&self) -> bool {
+        self.terminate != SearchTerminate::Nothing
     }
 }
 

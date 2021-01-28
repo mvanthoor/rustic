@@ -79,9 +79,6 @@ impl Search {
 
         /*=== Actual searching starts here ===*/
 
-        // Temporary variables.
-        let mut best_move = Move::new(0);
-
         // Generate the moves in this position
         let mut legal_moves_found = 0;
         let mut move_list = MoveList::new();
@@ -174,10 +171,10 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move = current_move;
 
+                // Update the Principal Variation.
                 pv.clear();
-                pv.push(best_move);
+                pv.push(current_move);
                 pv.append(&mut node_pv);
             }
         }
@@ -194,10 +191,6 @@ impl Search {
                 return STALEMATE;
             }
         }
-
-        // We store our best move and best PV.
-        refs.search_info.best_move = best_move;
-        refs.search_info.pv = pv.clone();
 
         // We have traversed the entire move list and found the best
         // possible move/eval_score for us at this depth. We can't improve
