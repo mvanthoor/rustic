@@ -98,6 +98,10 @@ impl SearchParams {
             quiet: false,
         }
     }
+
+    pub fn is_game_time(&self) -> bool {
+        self.search_mode == SearchMode::GameTime
+    }
 }
 
 // The search function will put all findings collected during the running
@@ -144,6 +148,10 @@ impl SearchInfo {
         } else {
             0
         }
+    }
+
+    pub fn interrupted(&self) -> bool {
+        self.terminate != SearchTerminate::Nothing
     }
 }
 

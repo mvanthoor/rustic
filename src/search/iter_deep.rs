@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchMode, SearchRefs, SearchResult, SearchTerminate, INF},
+    defs::{SearchMode, SearchRefs, SearchResult, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
 use crate::{defs::MAX_DEPTH, movegen::defs::Move};
@@ -35,7 +35,7 @@ impl Search {
         let mut best_move = Move::new(0);
         let mut temp_pv: Vec<Move> = Vec::new();
         let mut stop = false;
-        let is_game_time = refs.search_params.search_mode == SearchMode::GameTime;
+        let is_game_time = refs.search_params.is_game_time();
 
         // Determine available time in case of GameTime search mode.
         if is_game_time {
@@ -70,8 +70,7 @@ impl Search {
             let eval = Search::alpha_beta(depth, -INF, INF, &mut temp_pv, refs);
 
             // Create summary if search was not interrupted.
-            let interrupted = refs.search_info.terminate != SearchTerminate::Nothing;
-            if !interrupted {
+            if !refs.search_info.interrupted() {
                 // Save the best move until now.
                 best_move = refs.search_info.best_move;
 
@@ -107,7 +106,7 @@ impl Search {
 
             // Stop deepening the search if the current depth was
             // interrupted, or if the time is up.
-            stop = interrupted || time_up;
+            stop = refs.search_info.interrupted() || time_up;
         }
 
         // Search is done. Report best move and reason to terminate.
