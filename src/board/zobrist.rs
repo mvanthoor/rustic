@@ -43,7 +43,7 @@ pub struct ZobristRandoms {
 
 impl ZobristRandoms {
     pub fn new() -> Self {
-        let mut random = SmallRng::from_seed([125; 16]);
+        let mut random = SmallRng::from_seed([125; 32]);
         let mut zobrist_randoms = Self {
             rnd_pieces: [[[EMPTY; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             rnd_castling: [EMPTY; NrOf::CASTLING_PERMISSIONS],
