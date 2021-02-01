@@ -46,10 +46,10 @@ impl Search {
         }
     }
 
-    pub fn pick_move(ml: &mut MoveList, index: u8) {
-        for i in (index + 1)..ml.len() {
-            if ml.get_move(i).score() > ml.get_move(index).score() {
-                ml.swap(i as usize, index as usize);
+    pub fn pick_move(ml: &mut MoveList, start_index: u8) {
+        for i in (start_index + 1)..ml.len() {
+            if ml.get_move(i).score() > ml.get_move(start_index).score() {
+                ml.swap(start_index as usize, i as usize);
             }
         }
     }
