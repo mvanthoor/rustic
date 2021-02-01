@@ -5,6 +5,12 @@
 - Bugfixes:
   - Move check extension higher up in the search routine, to prevent
     quiescence search while in check.
+- Changes:
+  - seldepth: report max ply reached (like Stockfish).
+- Cleanup
+  - Change Root PV handling and remove redundant code.
+  - Update Rand library to 0.8.3.
+  - Miscellaneous small renames and cleanups.
 
 ## January 24, 2021 - Rustic Alpha 1
 
