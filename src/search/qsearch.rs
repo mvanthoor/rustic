@@ -111,7 +111,7 @@ impl Search {
             refs.search_info.ply += 1;
 
             // Update seldepth if we're searching deeper than requested.
-            if refs.search_info.ply > refs.search_info.seldepth {
+            if refs.search_info.ply > refs.search_info.depth {
                 refs.search_info.seldepth = refs.search_info.ply;
             }
 
