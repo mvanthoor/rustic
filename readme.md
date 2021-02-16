@@ -228,6 +228,53 @@ mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-1_64-bit-native.exe
 - You will find the binary in the ./bin/linux/ or ./bin/windows/ folder you
   just created.
 
+# Extra module
+
+There is a module called "Extra", which copmiles two extra capabilities into
+the Rustic executable.
+
+- Command-line option -e: Rustic can run a perft suite containing 172
+  tests, to see if its move generator, make, and unmake are working as
+  intended. This is mainly useful for developers.
+- Command-line option -w: Using this option, Rustic can perform Wizardry:
+  it runs a function that generates magic numbers for use in a magic
+  bitboard engine, that have square A1 = 0, or LSB, and square H8 = 63, or
+  MSB. This is mainly useful if one wants to write their own chess engine,
+  bus has no interest in writing a function to compute the magic numbers.
+  (Though, doing so, will make understanding of magic bitboards much more
+  complete.)
+
+This module can be included by using the --features option of cargo:
+
+```
+cargo build --release --features "extra"
+```
+
+# All command-line options
+
+```
+USAGE:
+    rustic.exe [FLAGS] [OPTIONS]
+
+FLAGS:
+    -e, --epdtest     Run EPD Test Suite
+    -h, --help        Prints help information
+    -k, --kiwipete    Set up KiwiPete position (ignore --fen)
+    -q, --quiet       No intermediate search stats updates
+    -V, --version     Prints version information
+    -w, --wizardry    Generate magic numbers
+
+OPTIONS:
+    -c, --comm <comm>          Select communication protocol to use [default: uci]  [possible values: uci, xboard]
+    -f, --fen <fen>            Set up the given position [default: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1]
+    -p, --perft <perft>        Run perft to the given depth [default: 0]
+    -t, --threads <threads>    Number of CPU-threads to use [default: 1]
+
+```
+
+Please note that the -e (--epdtest) and -w (--wizardry) options are only
+available if the "extra" module is compiled into the engine.
+
 # Credits
 
 There is one credit that doesn't have to do a lot with chess programming,
