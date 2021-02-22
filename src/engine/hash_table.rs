@@ -21,6 +21,82 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+const MEGABYTE: usize = 1024 * 1024;
+const ENTRIES_PER_BUCKET: usize = 4;
+
+// ===== Data ==================================================================================//
+
+pub trait IHashData {
+    fn new() -> Self;
+}
+#[derive(Copy, Clone)]
+pub struct PerftData {
+    leaf_nodes: u64,
+}
+
+impl IHashData for PerftData {
+    fn new() -> Self {
+        Self { leaf_nodes: 0 }
+    }
+}
+
+// ===== Entry ==================================================================================//
+
+#[derive(Copy, Clone)]
+struct Entry<D> {
+    verification: u32,
+    depth: u8,
+    data: D,
+}
+
+impl<D: IHashData> Entry<D> {
+    pub fn new() -> Self {
+        Self {
+            verification: 0,
+            depth: 0,
+            data: D::new(),
+        }
+    }
+}
+
+// ===== Bucket ================================================================================ //
+
+#[derive(Clone)]
+struct Bucket<D> {
+    bucket: [Entry<D>; ENTRIES_PER_BUCKET],
+}
+
+impl<D: IHashData + Copy> Bucket<D> {
+    pub fn new() -> Self {
+        Self {
+            bucket: [Entry::new(); ENTRIES_PER_BUCKET],
+        }
+    }
+}
+
+// ===== Hash table ============================================================================ //
+
 pub trait IHashTable {}
 
-pub struct HashTable {}
+pub struct HashTable<D> {
+    hash_table: Vec<Bucket<D>>,
+    megabytes: usize,
+    total_entries: usize,
+}
+
+impl<D: IHashData + Copy + Clone> HashTable<D> {
+    pub fn new(megabytes: usize) -> Self {
+        let entry_size = std::mem::size_of::<Entry<D>>();
+        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
+        let buckets = MEGABYTE / bucket_size * megabytes;
+        let total_entries = buckets * ENTRIES_PER_BUCKET;
+
+        Self {
+            hash_table: vec![Bucket::<D>::new(); buckets],
+            megabytes,
+            total_entries,
+        }
+    }
+}
+
+impl<D> IHashTable for HashTable<D> {}

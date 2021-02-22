@@ -24,6 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 mod about;
 mod comm_reports;
 pub mod defs;
+mod hash_table;
 mod main_loop;
 mod search_reports;
 mod utils;
@@ -38,6 +39,7 @@ use crate::{
     search::{defs::SearchControl, Search},
 };
 use crossbeam_channel::Receiver;
+use hash_table::{HashTable, IHashTable, PerftData};
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
@@ -54,6 +56,7 @@ pub struct Engine {
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
+    hash_table: Arc<Mutex<dyn IHashTable>>, // Main transposition table.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
@@ -81,6 +84,8 @@ impl Engine {
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
 
+        let hash_table = Arc::new(Mutex::new(HashTable::<PerftData>::new(128)));
+
         // Create the engine itself.
         Self {
             quit: false,
@@ -89,6 +94,7 @@ impl Engine {
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
+            hash_table,
             info_rx: None,
             search: Search::new(),
             tmp_no_xboard: is_xboard,
