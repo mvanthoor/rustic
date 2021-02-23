@@ -27,7 +27,8 @@ use crate::{
     defs::{Bitboard, Piece, Square, EMPTY},
     movegen::{defs::Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
-use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaChaRng;
 
 // The find_magics function can be used by compiling the "wizardry" module
 // into the engine, and then adding the "-w" option on the command line.
@@ -43,7 +44,7 @@ pub fn find_magics(piece: Piece) {
     let is_rook = piece == Pieces::ROOK;
     let mut rook_table: Vec<Bitboard> = vec![EMPTY; ROOK_TABLE_SIZE];
     let mut bishop_table: Vec<Bitboard> = vec![EMPTY; BISHOP_TABLE_SIZE];
-    let mut random = SmallRng::from_entropy();
+    let mut random = ChaChaRng::from_entropy();
     let mut offset = 0;
 
     println!("Finding magics for: {}", PIECE_NAME[piece]);
