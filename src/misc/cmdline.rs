@@ -52,6 +52,11 @@ impl CmdLineArgs {
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: &'static str = "1";
 
+    const HASH_LONG: &'static str = "hash";
+    const HASH_SHORT: &'static str = "h";
+    const HASH_HELP: &'static str = "Hash Table size in MB";
+    const HASH_DEFAULT: &'static str = "32";
+
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
     const QUIET_SHORT: &'static str = "q";
@@ -114,6 +119,14 @@ impl CmdLine {
             .unwrap_or(1)
     }
 
+    pub fn hash(&self) -> usize {
+        self.arguments
+            .value_of(CmdLineArgs::HASH_LONG)
+            .unwrap_or(CmdLineArgs::HASH_DEFAULT)
+            .parse()
+            .unwrap_or(32)
+    }
+
     pub fn has_kiwipete(&self) -> bool {
         self.arguments.is_present(CmdLineArgs::KIWI_LONG)
     }
@@ -169,6 +182,14 @@ impl CmdLine {
                     .help(CmdLineArgs::THREADS_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::THREADS_DEFAULT),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::HASH_LONG)
+                    .short(CmdLineArgs::HASH_SHORT)
+                    .long(CmdLineArgs::HASH_LONG)
+                    .help(CmdLineArgs::HASH_HELP)
+                    .takes_value(true)
+                    .default_value(CmdLineArgs::HASH_DEFAULT),
             )
             .arg(
                 Arg::with_name(CmdLineArgs::KIWI_LONG)

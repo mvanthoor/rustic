@@ -84,12 +84,10 @@ impl Engine {
         // Get engine settings from the command-line
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
+        let hash_size = cmdline.hash();
 
-        let s1 = if cmdline.perft() > 0 { 64 } else { 0 }; // Perft Hash in MB
-        let s2 = if cmdline.perft() == 0 { 256 } else { 0 }; // Search Hash in MB
-
-        let hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(s1)));
-        let hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(s2)));
+        let p_mb = if cmdline.perft() > 0 { hash_size } else { 0 }; // Perft hash size in MB
+        let s_mb = if cmdline.perft() == 0 { hash_size } else { 0 }; // Search hash size in MB
 
         // Create the engine itself.
         Self {
@@ -99,8 +97,8 @@ impl Engine {
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            hash_perft,
-            hash_search,
+            hash_perft: Arc::new(Mutex::new(HashTable::<PerftData>::new(p_mb))),
+            hash_search: Arc::new(Mutex::new(HashTable::<SearchData>::new(s_mb))),
             info_rx: None,
             search: Search::new(),
             tmp_no_xboard: is_xboard,
