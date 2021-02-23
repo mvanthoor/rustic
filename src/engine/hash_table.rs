@@ -31,12 +31,27 @@ pub trait IHashData {
 }
 #[derive(Copy, Clone)]
 pub struct PerftData {
-    leaf_nodes: u64,
+    pub leaf_nodes: u64,
 }
 
 impl IHashData for PerftData {
     fn new() -> Self {
         Self { leaf_nodes: 0 }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct SearchData {
+    pub stuff1: u32,
+    pub stuff2: u32,
+}
+
+impl IHashData for SearchData {
+    fn new() -> Self {
+        Self {
+            stuff1: 0,
+            stuff2: 0,
+        }
     }
 }
 
@@ -76,8 +91,6 @@ impl<D: IHashData + Copy> Bucket<D> {
 
 // ===== Hash table ============================================================================ //
 
-pub trait IHashTable {}
-
 pub struct HashTable<D> {
     hash_table: Vec<Bucket<D>>,
     megabytes: usize,
@@ -98,5 +111,3 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 }
-
-impl<D> IHashTable for HashTable<D> {}

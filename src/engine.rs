@@ -39,7 +39,7 @@ use crate::{
     search::{defs::SearchControl, Search},
 };
 use crossbeam_channel::Receiver;
-use hash_table::{HashTable, IHashTable, PerftData};
+use hash_table::{HashTable, PerftData, SearchData};
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "extra")]
@@ -51,16 +51,17 @@ use crate::{
 // This struct holds the chess engine and its functions, so they are not
 // all seperate entities in the global space.
 pub struct Engine {
-    quit: bool,                             // Flag that will quit the main thread.
-    settings: Settings,                     // Struct holding all the settings.
-    cmdline: CmdLine,                       // Command line interpreter.
-    comm: Box<dyn IComm>,                   // Communications (active).
-    board: Arc<Mutex<Board>>,               // This is the main engine board.
-    hash_table: Arc<Mutex<dyn IHashTable>>, // Main transposition table.
-    mg: Arc<MoveGenerator>,                 // Move Generator.
-    info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
-    search: Search,                         // Search object (active).
-    tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
+    quit: bool,                                     // Flag that will quit the main thread.
+    settings: Settings,                             // Struct holding all the settings.
+    cmdline: CmdLine,                               // Command line interpreter.
+    comm: Box<dyn IComm>,                           // Communications (active).
+    board: Arc<Mutex<Board>>,                       // This is the main engine board.
+    hash_perft: Arc<Mutex<HashTable<PerftData>>>,   // Hash table for running perft.
+    hash_search: Arc<Mutex<HashTable<SearchData>>>, // Hash table for search information.
+    mg: Arc<MoveGenerator>,                         // Move Generator.
+    info_rx: Option<Receiver<Information>>,         // Receiver for incoming information.
+    search: Search,                                 // Search object (active).
+    tmp_no_xboard: bool,                            // Temporary variable to disable xBoard
 }
 
 impl Engine {
@@ -84,7 +85,11 @@ impl Engine {
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
 
-        let hash_table = Arc::new(Mutex::new(HashTable::<PerftData>::new(128)));
+        let s1 = if cmdline.perft() > 0 { 64 } else { 0 }; // Perft Hash in MB
+        let s2 = if cmdline.perft() == 0 { 256 } else { 0 }; // Search Hash in MB
+
+        let hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(s1)));
+        let hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(s2)));
 
         // Create the engine itself.
         Self {
@@ -94,7 +99,8 @@ impl Engine {
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            hash_table,
+            hash_perft,
+            hash_search,
             info_rx: None,
             search: Search::new(),
             tmp_no_xboard: is_xboard,
