@@ -166,6 +166,7 @@ dependencies = [
  "crossbeam-channel",
  "if_chain",
  "rand",
+ "rand_chacha",
 ]
 
 [[package]]

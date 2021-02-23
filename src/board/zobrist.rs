@@ -21,10 +21,9 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
-
 use crate::defs::{NrOf, Piece, Side, Sides, Square, EMPTY};
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaChaRng;
 
 /* Random number for all sides for all pieces on all squares */
 type PieceRandoms = [[[u64; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
@@ -33,6 +32,9 @@ type SideRandoms = [u64; Sides::BOTH];
 type EpRandoms = [u64; NrOf::SQUARES + 1];
 
 pub type ZobristKey = u64;
+
+// 256 bit (8 bits x 32) seed
+const RNG_SEED: [u8; 32] = [125; 32];
 
 pub struct ZobristRandoms {
     rnd_pieces: PieceRandoms,
@@ -43,7 +45,7 @@ pub struct ZobristRandoms {
 
 impl ZobristRandoms {
     pub fn new() -> Self {
-        let mut random = SmallRng::from_seed([125; 32]);
+        let mut random = ChaChaRng::from_seed(RNG_SEED);
         let mut zobrist_randoms = Self {
             rnd_pieces: [[[EMPTY; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             rnd_castling: [EMPTY; NrOf::CASTLING_PERMISSIONS],
