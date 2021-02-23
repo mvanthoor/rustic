@@ -12,9 +12,12 @@
 - Changes:
   - seldepth: report max ply reached, instead of selective depth at last
     completed iteration.
+  - Transition random number generators from SmallRng to ChaChaRng for
+    reproducible behavior between platforms/OS's/architectures/versions.
 - Cleanup
-  - Change Root PV handling and remove redundant code.
+  - Change Root PV handling to be able to remove redundant code.
   - Miscellaneous small renames, refactors, and cleanups.
+  - Add rand_chacha and remove SmallRng number generators.
   - Update Rand library to 0.8.3.
 
 ## January 24, 2021 - Rustic Alpha 1
