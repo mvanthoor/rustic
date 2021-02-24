@@ -51,11 +51,11 @@ impl Engine {
     }
 
     pub fn print_settings(&self, hash_size: usize, threads: usize, protocol: &str) {
-        let h = format!("{}", hash_size);
+        let h = format!("{} MB", hash_size);
         let d = String::from("disabled");
         let hash_str = if hash_size > 0 { h } else { d };
 
-        println!("Hash Table: {} MB", hash_str);
+        println!("Hash Table: {}", hash_str);
         println!("Protocol: {}", protocol);
         println!("Threads: {}", threads);
         #[cfg(debug_assertions)]

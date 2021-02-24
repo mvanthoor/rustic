@@ -86,8 +86,8 @@ impl Engine {
         let quiet = cmdline.has_quiet();
         let hash_size = cmdline.hash();
 
-        let p_mb = if cmdline.perft() > 0 { hash_size } else { 0 }; // Perft hash size in MB
-        let s_mb = if cmdline.perft() == 0 { hash_size } else { 0 }; // Search hash size in MB
+        let p_mb = if cmdline.perft() > 0 { hash_size } else { 0 };
+        let s_mb = if cmdline.perft() == 0 { hash_size } else { 0 };
         let hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(p_mb)));
         let hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(s_mb)));
 
@@ -137,7 +137,13 @@ impl Engine {
         // Run perft if requested.
         if self.cmdline.perft() > 0 {
             action_requested = true;
-            perft::run(self.board.clone(), self.cmdline.perft(), self.mg.clone());
+            perft::run(
+                self.board.clone(),
+                self.cmdline.perft(),
+                Arc::clone(&self.mg),
+                Arc::clone(&self.hash_perft),
+                self.settings.hash_size > 0,
+            );
         }
 
         // === Only available with "extra" features enabled. ===
@@ -153,7 +159,7 @@ impl Engine {
         // Run large EPD test suite if requested.
         if self.cmdline.has_test() {
             action_requested = true;
-            testsuite::run();
+            testsuite::run(Arc::clone(&self.hash_perft), self.settings.hash_size > 0);
         }
         // =====================================================
 
