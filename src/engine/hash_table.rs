@@ -28,30 +28,43 @@ const ENTRIES_PER_BUCKET: usize = 4;
 
 pub trait IHashData {
     fn new() -> Self;
+    fn depth(&self) -> u8;
 }
 #[derive(Copy, Clone)]
 pub struct PerftData {
     pub leaf_nodes: u64,
+    pub depth: u8,
 }
 
 impl IHashData for PerftData {
     fn new() -> Self {
-        Self { leaf_nodes: 0 }
+        Self {
+            leaf_nodes: 0,
+            depth: 0,
+        }
+    }
+
+    fn depth(&self) -> u8 {
+        self.depth
     }
 }
 
 #[derive(Copy, Clone)]
 pub struct SearchData {
     pub stuff1: u32,
-    pub stuff2: u32,
+    pub depth: u8,
 }
 
 impl IHashData for SearchData {
     fn new() -> Self {
         Self {
             stuff1: 0,
-            stuff2: 0,
+            depth: 0,
         }
+    }
+
+    fn depth(&self) -> u8 {
+        self.depth
     }
 }
 
@@ -94,6 +107,7 @@ impl<D: IHashData + Copy> Bucket<D> {
 pub struct HashTable<D> {
     hash_table: Vec<Bucket<D>>,
     megabytes: usize,
+    used_entries: usize,
     total_entries: usize,
 }
 
@@ -101,13 +115,19 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
     pub fn new(megabytes: usize) -> Self {
         let entry_size = std::mem::size_of::<Entry<D>>();
         let bucket_size = entry_size * ENTRIES_PER_BUCKET;
-        let buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = buckets * ENTRIES_PER_BUCKET;
+        let total_buckets = MEGABYTE / bucket_size * megabytes;
+        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
 
         Self {
-            hash_table: vec![Bucket::<D>::new(); buckets],
+            hash_table: vec![Bucket::<D>::new(); total_buckets],
             megabytes,
+            used_entries: 0,
             total_entries,
         }
+    }
+
+    // Sends hash usage in permille.
+    pub fn hash_full(&self) -> u16 {
+        ((self.used_entries * 1000) / self.total_entries) as u16
     }
 }
