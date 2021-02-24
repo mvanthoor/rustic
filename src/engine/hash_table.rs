@@ -21,8 +21,13 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use crate::board::defs::ZobristKey;
+
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
+const HIGH_FOUR_BYTES: usize = 0xFF_FF_FF_FF_00_00_00_00;
+const LOW_FOUR_BYTES: usize = 0x00_00_00_00_FF_FF_FF_FF;
+const SHIFT_TO_LOWER: usize = 32;
 
 // ===== Data ==================================================================================//
 
@@ -73,7 +78,6 @@ impl IHashData for SearchData {
 #[derive(Copy, Clone)]
 struct Entry<D> {
     verification: u32,
-    depth: u8,
     data: D,
 }
 
@@ -81,7 +85,6 @@ impl<D: IHashData> Entry<D> {
     pub fn new() -> Self {
         Self {
             verification: 0,
-            depth: 0,
             data: D::new(),
         }
     }
@@ -100,6 +103,10 @@ impl<D: IHashData + Copy> Bucket<D> {
             bucket: [Entry::new(); ENTRIES_PER_BUCKET],
         }
     }
+
+    pub fn store(&mut self, verification: u32, data: D) {
+        self.bucket[0] = Entry { verification, data }
+    }
 }
 
 // ===== Hash table ============================================================================ //
@@ -108,9 +115,11 @@ pub struct HashTable<D> {
     hash_table: Vec<Bucket<D>>,
     megabytes: usize,
     used_entries: usize,
+    total_buckets: usize,
     total_entries: usize,
 }
 
+// Public functions
 impl<D: IHashData + Copy + Clone> HashTable<D> {
     pub fn new(megabytes: usize) -> Self {
         let entry_size = std::mem::size_of::<Entry<D>>();
@@ -122,12 +131,30 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
             hash_table: vec![Bucket::<D>::new(); total_buckets],
             megabytes,
             used_entries: 0,
+            total_buckets,
             total_entries,
         }
+    }
+
+    pub fn insert(&mut self, zk: ZobristKey, data: D) {
+        let index = self.calculate_index(zk);
+        let verification = self.calculate_verification(zk);
+        self.hash_table[index].store(verification, data);
     }
 
     // Sends hash usage in permille.
     pub fn hash_full(&self) -> u16 {
         ((self.used_entries * 1000) / self.total_entries) as u16
+    }
+}
+
+// Private functions
+impl<D: IHashData + Copy + Clone> HashTable<D> {
+    fn calculate_index(&self, zk: ZobristKey) -> usize {
+        ((zk as usize & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER) % self.total_buckets
+    }
+
+    fn calculate_verification(&self, zk: ZobristKey) -> u32 {
+        ((zk as usize) & LOW_FOUR_BYTES) as u32
     }
 }
