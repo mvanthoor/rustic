@@ -114,6 +114,17 @@ impl<D: IHashData + Copy> Bucket<D> {
 
         self.bucket[idx_lowest_depth] = Entry { verification, data }
     }
+
+    pub fn find_by_vd(&self, verification: u32, depth: u8) -> Option<D> {
+        let mut data: Option<D> = None;
+        for e in self.bucket.iter() {
+            if e.verification == verification && e.data.depth() == depth {
+                data = Some(e.data);
+                break;
+            }
+        }
+        data
+    }
 }
 
 // ===== Hash table ============================================================================ //
@@ -149,6 +160,13 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
             let verification = self.calculate_verification(zobrist_key);
             self.hash_table[index].store(verification, data);
         }
+    }
+
+    pub fn probe_by_vd(&self, zobrist_key: ZobristKey, depth: u8) -> Option<D> {
+        let index = self.calculate_index(zobrist_key);
+        let verification = self.calculate_verification(zobrist_key);
+
+        self.hash_table[index].find_by_vd(verification, depth)
     }
 
     // Sends hash usage in permille.
