@@ -105,7 +105,14 @@ impl<D: IHashData + Copy> Bucket<D> {
     }
 
     pub fn store(&mut self, verification: u32, data: D) {
-        self.bucket[0] = Entry { verification, data }
+        let mut idx_lowest_depth = 0;
+        for entry in 1..ENTRIES_PER_BUCKET {
+            if self.bucket[entry].data.depth() < data.depth() {
+                idx_lowest_depth = entry
+            }
+        }
+
+        self.bucket[idx_lowest_depth] = Entry { verification, data }
     }
 }
 
@@ -136,10 +143,12 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
-    pub fn insert(&mut self, zk: ZobristKey, data: D) {
-        let index = self.calculate_index(zk);
-        let verification = self.calculate_verification(zk);
-        self.hash_table[index].store(verification, data);
+    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
+        if self.megabytes > 0 {
+            let index = self.calculate_index(zobrist_key);
+            let verification = self.calculate_verification(zobrist_key);
+            self.hash_table[index].store(verification, data);
+        }
     }
 
     // Sends hash usage in permille.
@@ -150,11 +159,11 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
 
 // Private functions
 impl<D: IHashData + Copy + Clone> HashTable<D> {
-    fn calculate_index(&self, zk: ZobristKey) -> usize {
-        ((zk as usize & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER) % self.total_buckets
+    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
+        ((zobrist_key as usize & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER) % self.total_buckets
     }
 
-    fn calculate_verification(&self, zk: ZobristKey) -> u32 {
-        ((zk as usize) & LOW_FOUR_BYTES) as u32
+    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
+        ((zobrist_key as usize) & LOW_FOUR_BYTES) as u32
     }
 }

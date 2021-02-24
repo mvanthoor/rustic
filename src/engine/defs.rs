@@ -47,6 +47,7 @@ impl ErrNormal {
 pub struct Settings {
     pub threads: usize,
     pub quiet: bool,
+    pub hash_size: usize,
 }
 
 // This enum provides informatin to the engine, with regard to incoming

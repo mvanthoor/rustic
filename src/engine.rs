@@ -88,17 +88,23 @@ impl Engine {
 
         let p_mb = if cmdline.perft() > 0 { hash_size } else { 0 }; // Perft hash size in MB
         let s_mb = if cmdline.perft() == 0 { hash_size } else { 0 }; // Search hash size in MB
+        let hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(p_mb)));
+        let hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(s_mb)));
 
         // Create the engine itself.
         Self {
             quit: false,
-            settings: Settings { threads, quiet },
+            settings: Settings {
+                threads,
+                quiet,
+                hash_size,
+            },
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            hash_perft: Arc::new(Mutex::new(HashTable::<PerftData>::new(p_mb))),
-            hash_search: Arc::new(Mutex::new(HashTable::<SearchData>::new(s_mb))),
+            hash_perft,
+            hash_search,
             info_rx: None,
             search: Search::new(),
             tmp_no_xboard: is_xboard,
@@ -115,7 +121,11 @@ impl Engine {
 
         self.print_ascii_logo();
         self.print_about();
-        self.print_settings(self.settings.threads, self.comm.get_protocol_name());
+        self.print_settings(
+            self.settings.hash_size,
+            self.settings.threads,
+            self.comm.get_protocol_name(),
+        );
         println!();
 
         // Setup position and abort if this fails.
