@@ -163,10 +163,14 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
     }
 
     pub fn probe_by_vd(&self, zobrist_key: ZobristKey, depth: u8) -> Option<D> {
-        let index = self.calculate_index(zobrist_key);
-        let verification = self.calculate_verification(zobrist_key);
+        if self.megabytes > 0 {
+            let index = self.calculate_index(zobrist_key);
+            let verification = self.calculate_verification(zobrist_key);
 
-        self.hash_table[index].find_by_vd(verification, depth)
+            self.hash_table[index].find_by_vd(verification, depth)
+        } else {
+            None
+        }
     }
 
     // Sends hash usage in permille.
