@@ -86,10 +86,16 @@ impl Engine {
         let quiet = cmdline.has_quiet();
         let hash_size = cmdline.hash();
 
-        let p_mb = if cmdline.perft() > 0 { hash_size } else { 0 };
-        let s_mb = if cmdline.perft() == 0 { hash_size } else { 0 };
-        let hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(p_mb)));
-        let hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(s_mb)));
+        // Initialize correct hash table.
+        let hash_perft: Arc<Mutex<HashTable<PerftData>>>;
+        let hash_search: Arc<Mutex<HashTable<SearchData>>>;
+        if cmdline.perft() > 0 {
+            hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(hash_size)));
+            hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(0)));
+        } else {
+            hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(0)));
+            hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(hash_size)));
+        };
 
         // Create the engine itself.
         Self {
