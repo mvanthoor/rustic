@@ -85,14 +85,14 @@ pub fn run(
         // spec, so divide by 10 to get the usage in percents.)
         if hash_use {
             hash_full = format!(
-                "hash full: {}%",
+                ", hash full: {}%",
                 hash_table.lock().expect(ErrFatal::LOCK).hash_full() as f64 / 10f64
             );
         }
 
         // Print the results.
         println!(
-            "Perft {}: {} ({} ms, {} leaves/sec, {})",
+            "Perft {}: {} ({} ms, {} leaves/sec{})",
             d, leaf_nodes, elapsed, leaves_per_second, hash_full
         );
     }
