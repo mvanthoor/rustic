@@ -29,7 +29,7 @@ const HIGH_FOUR_BYTES: usize = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: usize = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: usize = 32;
 
-// ===== Data ==================================================================================//
+/* ===== Data ========================================================= */
 
 pub trait IHashData {
     fn new() -> Self;
@@ -73,7 +73,7 @@ impl IHashData for SearchData {
     }
 }
 
-// ===== Entry ==================================================================================//
+/* ===== Entry ======================================================== */
 
 #[derive(Copy, Clone)]
 struct Entry<D> {
@@ -90,7 +90,7 @@ impl<D: IHashData> Entry<D> {
     }
 }
 
-// ===== Bucket ================================================================================ //
+/* ===== Bucket ======================================================= */
 
 #[derive(Clone)]
 struct Bucket<D> {
@@ -104,30 +104,41 @@ impl<D: IHashData + Copy> Bucket<D> {
         }
     }
 
-    pub fn store(&mut self, verification: u32, data: D) {
+    // Store a position in the bucket. Replace the position with the stored
+    // lowest depth, as positions with higher depth are more valuable.
+    pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
         let mut idx_lowest_depth = 0;
+
+        // Find the index of the entry with the lowest depth.
         for entry in 1..ENTRIES_PER_BUCKET {
             if self.bucket[entry].data.depth() < data.depth() {
                 idx_lowest_depth = entry
             }
         }
 
+        // If the verifiaction was 0, this entry in the bucket was never
+        // used before. Count the use of this entry.
+        if self.bucket[idx_lowest_depth].verification == 0 {
+            *used_entries += 1;
+        }
+
+        // Store.
         self.bucket[idx_lowest_depth] = Entry { verification, data }
     }
 
+    // Find a position in the bucket, where both the stored verification and
+    // depth match the requested verification and depth.
     pub fn find_by_vd(&self, verification: u32, depth: u8) -> Option<D> {
-        let mut data: Option<D> = None;
         for e in self.bucket.iter() {
             if e.verification == verification && e.data.depth() == depth {
-                data = Some(e.data);
-                break;
+                return Some(e.data);
             }
         }
-        data
+        None
     }
 }
 
-// ===== Hash table ============================================================================ //
+/* ===== Hash table =================================================== */
 
 pub struct HashTable<D> {
     hash_table: Vec<Bucket<D>>,
@@ -154,14 +165,18 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
+    // Insert a position at the calculated index, by storing it in the
+    // index's bucket.
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-            self.hash_table[index].store(verification, data);
+            self.hash_table[index].store(verification, data, &mut self.used_entries);
         }
     }
 
+    // Probe the hash table by both verification and depth. Both have to
+    // match for the position to be the correct one we're looking for.
     pub fn probe_by_vd(&self, zobrist_key: ZobristKey, depth: u8) -> Option<D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
@@ -173,7 +188,7 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
-    // Sends hash usage in permille.
+    // Provides hash usage in permille.
     pub fn hash_full(&self) -> u16 {
         ((self.used_entries * 1000) / self.total_entries) as u16
     }
@@ -181,10 +196,15 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
 
 // Private functions
 impl<D: IHashData + Copy + Clone> HashTable<D> {
+    // Calculate the index (bucket) where the data is going to be stored.
+    // Use half of the Zobrist key for this.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
         ((zobrist_key as usize & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER) % self.total_buckets
     }
 
+    // Many positions will end up at the same index, and thus in the same
+    // bucket. Calculate a verification for the position so it can later be
+    // found in the bucket. Use the other half of the Zobrist key for this.
     fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
         ((zobrist_key as usize) & LOW_FOUR_BYTES) as u32
     }

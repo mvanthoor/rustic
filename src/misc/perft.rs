@@ -47,6 +47,7 @@ pub fn run(
 ) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
+    let mut hash_full = String::from("");
 
     // Create a mutex guard for the board, so it can be safely cloned.
     // Panic if the guard can't be created, because something is wrong with
@@ -80,10 +81,19 @@ pub fn run(
         total_time += elapsed;
         total_nodes += leaf_nodes;
 
+        // Request hash table usage. (This is provided permille as per UCI
+        // spec, so divide by 10 to get the usage in percents.)
+        if hash_use {
+            hash_full = format!(
+                "hash full: {}%",
+                hash_table.lock().expect(ErrFatal::LOCK).hash_full() as f64 / 10f64
+            );
+        }
+
         // Print the results.
         println!(
-            "Perft {}: {} ({} ms, {} leaves/sec)",
-            d, leaf_nodes, elapsed, leaves_per_second
+            "Perft {}: {} ({} ms, {} leaves/sec, {})",
+            d, leaf_nodes, elapsed, leaves_per_second, hash_full
         );
     }
 
@@ -111,6 +121,8 @@ pub fn perft(
         return 1;
     }
 
+    // See if the current position is in the hash table, and if so, get the
+    // number of leaf nodes that were previously calculated for it.
     if hash_use {
         leaf_nodes_tt = if let Some(data) = hash_table
             .lock()
@@ -123,6 +135,8 @@ pub fn perft(
         }
     }
 
+    // If we have gotten a leaf node count from the hash table, immediately
+    // return this. If not, we have to calculate the number of leaf nodes.
     if let Some(ln) = leaf_nodes_tt {
         ln
     } else {
@@ -143,6 +157,8 @@ pub fn perft(
             }
         }
 
+        // We have calculated the number of leaf nodes for this position.
+        // Store this in the hash table for later use.
         if hash_use {
             hash_table.lock().expect(ErrFatal::LOCK).insert(
                 board.game_state.zobrist_key,
