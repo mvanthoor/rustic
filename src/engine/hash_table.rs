@@ -151,10 +151,7 @@ pub struct HashTable<D> {
 // Public functions
 impl<D: IHashData + Copy + Clone> HashTable<D> {
     pub fn new(megabytes: usize) -> Self {
-        let entry_size = std::mem::size_of::<Entry<D>>();
-        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
-        let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
+        let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
 
         Self {
             hash_table: vec![Bucket::<D>::new(); total_buckets],
@@ -163,6 +160,16 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
             total_buckets,
             total_entries,
         }
+    }
+
+    pub fn resize(&mut self, megabytes: usize) {
+        let (total_buckets, total_entries) = HashTable::<D>::calculate_init_values(megabytes);
+
+        self.hash_table = vec![Bucket::<D>::new(); total_buckets];
+        self.megabytes = megabytes;
+        self.used_entries = 0;
+        self.total_buckets = total_buckets;
+        self.total_entries = total_entries;
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -207,5 +214,14 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
     // found in the bucket. Use the other half of the Zobrist key for this.
     fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
         ((zobrist_key as usize) & LOW_FOUR_BYTES) as u32
+    }
+
+    fn calculate_init_values(megabytes: usize) -> (usize, usize) {
+        let entry_size = std::mem::size_of::<Entry<D>>();
+        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
+        let total_buckets = MEGABYTE / bucket_size * megabytes;
+        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
+
+        (total_buckets, total_entries)
     }
 }

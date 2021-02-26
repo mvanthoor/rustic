@@ -162,9 +162,19 @@ impl Engine {
         };
 
         #[cfg(feature = "extra")]
-        // Run large EPD test suite if requested.
+        // Run large EPD test suite if requested. Because the -p (perft)
+        // option is not used in this scenario, the engine initializes the
+        // search hash table instead of the one for perft. The -e option is
+        // not available in a non-extra compilation, so it cannot be
+        // checked there. Just fix the issue by resizing both the perft and
+        // search hash tables appropriately for running the EPD suite.
         if self.cmdline.has_test() {
             action_requested = true;
+            self.hash_perft
+                .lock()
+                .expect(ErrFatal::LOCK)
+                .resize(self.settings.hash_size);
+            self.hash_search.lock().expect(ErrFatal::LOCK).resize(0);
             testsuite::run(Arc::clone(&self.hash_perft), self.settings.hash_size > 0);
         }
         // =====================================================
