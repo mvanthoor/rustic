@@ -34,6 +34,7 @@ const SHIFT_TO_LOWER: usize = 32;
 pub trait IHashData {
     fn new() -> Self;
     fn depth(&self) -> u8;
+    fn position_value(&self) -> u64;
 }
 #[derive(Copy, Clone)]
 pub struct PerftData {
@@ -51,6 +52,10 @@ impl IHashData for PerftData {
 
     fn depth(&self) -> u8 {
         self.depth
+    }
+
+    fn position_value(&self) -> u64 {
+        self.leaf_nodes
     }
 }
 
@@ -70,6 +75,10 @@ impl IHashData for SearchData {
 
     fn depth(&self) -> u8 {
         self.depth
+    }
+
+    fn position_value(&self) -> u64 {
+        0
     }
 }
 
@@ -150,6 +159,9 @@ pub struct HashTable<D> {
 
 // Public functions
 impl<D: IHashData + Copy + Clone> HashTable<D> {
+    // Create a new hash table of the requested size, able to hold the data
+    // of type D, where D has to implement IHashData, and must be clonable
+    // and copyable.
     pub fn new(megabytes: usize) -> Self {
         let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
 
@@ -162,6 +174,10 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
+    // Resizes the hash table by replacing the current hash table with a
+    // new one. (We don't use Vec's resize function, because it clones
+    // elements. This can be problematic if hash table sizes push the
+    // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
         let (total_buckets, total_entries) = HashTable::<D>::calculate_init_values(megabytes);
 
@@ -195,7 +211,8 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
-    // Provides hash usage in permille.
+    // Provides hash usage in permille (1 per 1000, as oppposed to percent,
+    // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         ((self.used_entries * 1000) / self.total_entries) as u16
     }
@@ -216,6 +233,8 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         ((zobrist_key as usize) & LOW_FOUR_BYTES) as u32
     }
 
+    // This function calculates the values for total_buckets and
+    // total_entries. These depend on the requested hash size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
         let entry_size = std::mem::size_of::<Entry<D>>();
         let bucket_size = entry_size * ENTRIES_PER_BUCKET;

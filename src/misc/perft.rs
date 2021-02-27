@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::Board,
-    engine::defs::{ErrFatal, HashTable, PerftData},
+    engine::defs::{ErrFatal, HashTable, IHashData, PerftData},
     misc::print,
     movegen::{
         defs::{MoveList, MoveType},
@@ -129,7 +129,7 @@ pub fn perft(
             .expect(ErrFatal::LOCK)
             .probe_by_vd(board.game_state.zobrist_key, depth)
         {
-            Some(data.leaf_nodes)
+            Some(data.position_value())
         } else {
             None
         }
