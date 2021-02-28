@@ -62,10 +62,10 @@ impl IHashData for PerftData {
 #[derive(Clone)]
 pub struct HashFlags;
 impl HashFlags {
-    const NONE: u8 = 0;
-    const EXACT: u8 = 1;
-    const ALPHA: u8 = 2;
-    const BETA: u8 = 4;
+    pub const NONE: u8 = 0;
+    pub const EXACT: u8 = 1;
+    pub const ALPHA: u8 = 2;
+    pub const BETA: u8 = 4;
 }
 
 #[derive(Copy, Clone)]

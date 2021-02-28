@@ -30,6 +30,7 @@ use super::{
 };
 use crate::{
     defs::MAX_DEPTH,
+    engine::defs::HashFlags,
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
@@ -102,6 +103,9 @@ impl Search {
                 refs.search_info.last_stats_sent = elapsed;
             }
         }
+
+        // Set the initial hash table flag type.
+        let mut hash_flag = HashFlags::ALPHA;
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
