@@ -1,11 +1,14 @@
 use crate::{
     board::Board,
     defs::MAX_DEPTH,
-    engine::defs::Information,
+    engine::defs::{HashTable, Information, SearchData},
     movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::{Receiver, Sender};
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
@@ -221,6 +224,8 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
+    pub hash_table: &'a Arc<Mutex<HashTable<SearchData>>>,
+    pub hash_use: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
