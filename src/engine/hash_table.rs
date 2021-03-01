@@ -54,6 +54,16 @@ impl IHashData for PerftData {
     }
 }
 
+impl PerftData {
+    pub fn get_value(&self, depth: u8) -> Option<u64> {
+        if self.depth == depth {
+            Some(self.leaf_nodes)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub enum HashFlags {
     NONE,

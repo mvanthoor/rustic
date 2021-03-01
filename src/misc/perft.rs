@@ -124,7 +124,15 @@ pub fn perft(
     // See if the current position is in the hash table, and if so, get the
     // number of leaf nodes that were previously calculated for it.
     if hash_use {
-        leaf_nodes_tt = probe_hash_table(hash_table, board.game_state.zobrist_key, depth)
+        leaf_nodes_tt = if let Some(data) = hash_table
+            .lock()
+            .expect(ErrFatal::LOCK)
+            .probe(board.game_state.zobrist_key)
+        {
+            data.get_value(depth)
+        } else {
+            None
+        }
     }
 
     // If we have gotten a leaf node count from the hash table, immediately
@@ -160,22 +168,5 @@ pub fn perft(
 
         // Return the number of leaf nodes for the given position and depth.
         leaf_nodes
-    }
-}
-
-fn probe_hash_table(
-    hash_table: &Mutex<HashTable<PerftData>>,
-    zobrist_key: ZobristKey,
-    depth: u8,
-) -> Option<u64> {
-    // If we have data in the hash table for this position
-    if let Some(data) = hash_table.lock().expect(ErrFatal::LOCK).probe(zobrist_key) {
-        if data.depth() == depth {
-            Some(data.leaf_nodes)
-        } else {
-            None
-        }
-    } else {
-        None
     }
 }
