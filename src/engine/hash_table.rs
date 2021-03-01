@@ -54,19 +54,18 @@ impl IHashData for PerftData {
     }
 }
 
-#[derive(Clone)]
-pub struct HashFlags;
-impl HashFlags {
-    pub const NONE: u8 = 0;
-    pub const EXACT: u8 = 1;
-    pub const ALPHA: u8 = 2;
-    pub const BETA: u8 = 4;
+#[derive(Copy, Clone)]
+pub enum HashFlags {
+    NONE,
+    EXACT,
+    ALPHA,
+    BETA,
 }
 
 #[derive(Copy, Clone)]
 pub struct SearchData {
     pub depth: u8,
-    pub flags: u8,
+    pub flags: HashFlags,
     pub eval: i16,
 }
 
@@ -139,10 +138,10 @@ impl<D: IHashData + Copy> Bucket<D> {
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
-    pub fn find(&self, verification: u32) -> Option<D> {
+    pub fn find(&self, verification: u32) -> Option<&D> {
         for e in self.bucket.iter() {
             if e.verification == verification {
-                return Some(e.data);
+                return Some(&e.data);
             }
         }
         None
@@ -202,7 +201,7 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
 
     // Probe the hash table by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
-    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<D> {
+    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
