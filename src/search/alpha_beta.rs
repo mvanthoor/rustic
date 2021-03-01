@@ -21,13 +21,15 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use std::hash;
+
 use super::{
     defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_DEPTH,
-    engine::defs::HashFlags,
+    engine::defs::{ErrFatal, HashFlags, SearchData},
     evaluation,
     movegen::defs::{Move, MoveList, MoveType},
 };
@@ -40,6 +42,9 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
+        // Position evaluation
+        let mut eval_score: i16 = 0;
+
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
 
@@ -141,7 +146,7 @@ impl Search {
             //causing a draw by repetition or 50-move rule. If it is, we
             //don't have to search anymore: we can just assign DRAW as the
             //eval_score.
-            let eval_score = if !Search::is_draw(refs) {
+            eval_score = if !Search::is_draw(refs) {
                 -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
             } else {
                 DRAW
@@ -155,6 +160,14 @@ impl Search {
             // further down this path would make the situation worse for us
             // and better for our opponent. This is called "fail-high".
             if eval_score >= beta {
+                refs.hash_table.lock().expect(ErrFatal::LOCK).insert(
+                    refs.board.game_state.zobrist_key,
+                    SearchData {
+                        depth,
+                        flags: HashFlags::BETA,
+                        eval: eval_score,
+                    },
+                );
                 return beta;
             }
 
@@ -162,6 +175,9 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
+
+                // This is an exact score
+                hash_flag = HashFlags::EXACT;
 
                 // Update the Principal Variation.
                 pv.clear();
@@ -181,6 +197,15 @@ impl Search {
                 return STALEMATE;
             }
         }
+
+        refs.hash_table.lock().expect(ErrFatal::LOCK).insert(
+            refs.board.game_state.zobrist_key,
+            SearchData {
+                depth,
+                flags: hash_flag,
+                eval: eval_score,
+            },
+        );
 
         // We have traversed the entire move list and found the best
         // possible move/eval_score for us. We can't improve this any
