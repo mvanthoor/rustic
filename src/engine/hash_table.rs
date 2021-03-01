@@ -34,7 +34,6 @@ const SHIFT_TO_LOWER: usize = 32;
 pub trait IHashData {
     fn new() -> Self;
     fn depth(&self) -> u8;
-    fn position_value(&self) -> u64;
 }
 #[derive(Copy, Clone)]
 pub struct PerftData {
@@ -52,10 +51,6 @@ impl IHashData for PerftData {
 
     fn depth(&self) -> u8 {
         self.depth
-    }
-
-    fn position_value(&self) -> u64 {
-        self.leaf_nodes
     }
 }
 
@@ -86,10 +81,6 @@ impl IHashData for SearchData {
 
     fn depth(&self) -> u8 {
         self.depth
-    }
-
-    fn position_value(&self) -> u64 {
-        0
     }
 }
 
@@ -148,9 +139,9 @@ impl<D: IHashData + Copy> Bucket<D> {
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
-    pub fn find_by_vd(&self, verification: u32, depth: u8) -> Option<D> {
+    pub fn find(&self, verification: u32) -> Option<D> {
         for e in self.bucket.iter() {
-            if e.verification == verification && e.data.depth() == depth {
+            if e.verification == verification {
                 return Some(e.data);
             }
         }
@@ -211,12 +202,12 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
 
     // Probe the hash table by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
-    pub fn probe_by_vd(&self, zobrist_key: ZobristKey, depth: u8) -> Option<D> {
+    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
 
-            self.hash_table[index].find_by_vd(verification, depth)
+            self.hash_table[index].find(verification)
         } else {
             None
         }

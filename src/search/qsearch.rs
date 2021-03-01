@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECK_TERMINATION, MIN_TIME_STATS, SEND_STATS},
+    defs::{SearchTerminate, CHECK_TERMINATION, SEND_STATS},
     Search, SearchRefs,
 };
 use crate::{
@@ -81,12 +81,7 @@ impl Search {
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minium MIN_TIME_STATS has elapsed before sending.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
-            let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats_sent;
-            if elapsed >= last_stats + MIN_TIME_STATS {
-                Search::send_stats(refs);
-                refs.search_info.last_stats_sent = elapsed;
-            }
+            Search::send_stats_to_gui(refs);
         }
 
         // Iterate over the capture moves.

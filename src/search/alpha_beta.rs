@@ -22,10 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{
-        SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
-        SEND_STATS, STALEMATE,
-    },
+    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -96,12 +93,7 @@ impl Search {
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
         // statistics to the GUI.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
-            let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats_sent;
-            if elapsed >= last_stats + MIN_TIME_STATS {
-                Search::send_stats(refs);
-                refs.search_info.last_stats_sent = elapsed;
-            }
+            Search::send_stats_to_gui(refs);
         }
 
         // Set the initial hash table flag type.
@@ -137,12 +129,7 @@ impl Search {
 
             // Send currently searched move to GUI.
             if !quiet && is_root {
-                let elapsed = refs.search_info.timer_elapsed();
-                let lcm = refs.search_info.last_curr_move_sent;
-                if elapsed >= lcm + MIN_TIME_CURR_MOVE {
-                    Search::send_current_move(refs, current_move, legal_moves_found);
-                    refs.search_info.last_curr_move_sent = elapsed;
-                }
+                Search::send_move_to_gui(refs, current_move, legal_moves_found);
             }
 
             // Create a node PV for this move.
@@ -187,9 +174,8 @@ impl Search {
         // side to move is either in checkmate or stalemate.
         if legal_moves_found == 0 {
             if is_check {
-                // The return value is minus CHECKMATE (negative), because
-                // if we have no legal moves AND are in check, we have
-                // lost. This is a very negative outcome.
+                // The return value is minus CHECKMATE, because if we have
+                // no legal moves and are in check, it's game over.
                 return -CHECKMATE + (refs.search_info.ply as i16);
             } else {
                 return STALEMATE;
@@ -197,8 +183,8 @@ impl Search {
         }
 
         // We have traversed the entire move list and found the best
-        // possible move/eval_score for us at this depth. We can't improve
-        // this any further, so return the result. This called "fail-low".
+        // possible move/eval_score for us. We can't improve this any
+        // further, so return the result. This called "fail-low".
         alpha
     }
 }
