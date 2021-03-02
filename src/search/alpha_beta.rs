@@ -29,7 +29,7 @@ use crate::{
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, HashFlags, SearchData},
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType},
+    movegen::defs::{HashMove, Move, MoveList, MoveType},
 };
 
 impl Search {
@@ -42,6 +42,8 @@ impl Search {
     ) -> i16 {
         // Position evaluation
         let mut eval_score: i16 = 0;
+
+        let mut best_move: HashMove = HashMove::new(0);
 
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
@@ -164,7 +166,7 @@ impl Search {
                         depth,
                         flags: HashFlags::BETA,
                         eval: eval_score,
-                        best_move: 0,
+                        best_move,
                     },
                 );
                 return beta;
@@ -174,6 +176,7 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
+                best_move = current_move.to_hash_move();
 
                 // This is an exact score
                 hash_flag = HashFlags::EXACT;
@@ -203,7 +206,7 @@ impl Search {
                 depth,
                 flags: hash_flag,
                 eval: eval_score,
-                best_move: 0,
+                best_move,
             },
         );
 

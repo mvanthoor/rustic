@@ -149,7 +149,22 @@ impl Move {
         )
     }
 
-    pub fn as_hash_move(&self) -> u32 {
-        (self.data & MOVE_ONLY) as u32
+    pub fn to_hash_move(&self) -> HashMove {
+        HashMove::new((self.data & MOVE_ONLY) as u32)
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct HashMove {
+    data: u32,
+}
+
+impl HashMove {
+    pub fn new(m: u32) -> Self {
+        Self { data: m }
+    }
+
+    pub fn get_move(&self) -> u32 {
+        self.data
     }
 }

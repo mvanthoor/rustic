@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::board::defs::ZobristKey;
+use crate::{board::defs::ZobristKey, movegen::defs::HashMove};
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
@@ -77,7 +77,7 @@ pub struct SearchData {
     pub depth: u8,
     pub flags: HashFlags,
     pub eval: i16,
-    pub best_move: u32,
+    pub best_move: HashMove,
 }
 
 impl IHashData for SearchData {
@@ -86,7 +86,7 @@ impl IHashData for SearchData {
             depth: 0,
             flags: HashFlags::NONE,
             eval: 0,
-            best_move: 0,
+            best_move: HashMove::new(0),
         }
     }
 
