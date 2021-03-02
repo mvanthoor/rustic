@@ -135,38 +135,37 @@ pub fn perft(
         }
     }
 
-    // If we have gotten a leaf node count from the hash table, immediately
-    // return this. If not, we have to calculate the number of leaf nodes.
-    if let Some(ln) = leaf_nodes_tt {
-        ln
-    } else {
-        mg.generate_moves(board, &mut move_list, MoveType::All);
-
-        // Run perft for each of the moves.
-        for i in 0..move_list.len() {
-            // Get the move to be executed and counted.
-            let m = move_list.get_move(i);
-
-            // If the move is legal...
-            if board.make(m, mg) {
-                // Then count the number of leaf nodes it generates...
-                leaf_nodes += perft(board, depth - 1, mg, hash_table, hash_use);
-
-                // Then unmake the move so the next one can be counted.
-                board.unmake();
-            }
-        }
-
-        // We have calculated the number of leaf nodes for this position.
-        // Store this in the hash table for later use.
-        if hash_use {
-            hash_table.lock().expect(ErrFatal::LOCK).insert(
-                board.game_state.zobrist_key,
-                PerftData { leaf_nodes, depth },
-            )
-        }
-
-        // Return the number of leaf nodes for the given position and depth.
-        leaf_nodes
+    // If we found a leaf node count, return it immediately.
+    if let Some(leaf_nodes) = leaf_nodes_tt {
+        return leaf_nodes;
     }
+
+    mg.generate_moves(board, &mut move_list, MoveType::All);
+
+    // Run perft for each of the moves.
+    for i in 0..move_list.len() {
+        // Get the move to be executed and counted.
+        let m = move_list.get_move(i);
+
+        // If the move is legal...
+        if board.make(m, mg) {
+            // Then count the number of leaf nodes it generates...
+            leaf_nodes += perft(board, depth - 1, mg, hash_table, hash_use);
+
+            // Then unmake the move so the next one can be counted.
+            board.unmake();
+        }
+    }
+
+    // We have calculated the number of leaf nodes for this position.
+    // Store this in the hash table for later use.
+    if hash_use {
+        hash_table.lock().expect(ErrFatal::LOCK).insert(
+            board.game_state.zobrist_key,
+            PerftData { leaf_nodes, depth },
+        )
+    }
+
+    // Return the number of leaf nodes for the given position and depth.
+    leaf_nodes
 }
