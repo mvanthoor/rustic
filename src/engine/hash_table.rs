@@ -225,7 +225,11 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
     // Provides hash usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
-        ((self.used_entries * 1000) / self.total_entries) as u16
+        if self.megabytes > 0 {
+            ((self.used_entries * 1000) / self.total_entries) as u16
+        } else {
+            0
+        }
     }
 }
 
