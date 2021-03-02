@@ -160,14 +160,15 @@ impl SearchInfo {
 // information into UCI/XBoard/Console output and print it to STDOUT.
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
-    pub depth: u8,     // depth reached during search
-    pub seldepth: u8,  // Maximum selective depth reached
-    pub time: u128,    // milliseconds
-    pub cp: i16,       // centipawns score
-    pub mate: u8,      // mate in X moves
-    pub nodes: usize,  // nodes searched
-    pub nps: usize,    // nodes per second
-    pub pv: Vec<Move>, // Principal Variation
+    pub depth: u8,      // depth reached during search
+    pub seldepth: u8,   // Maximum selective depth reached
+    pub time: u128,     // milliseconds
+    pub cp: i16,        // centipawns score
+    pub mate: u8,       // mate in X moves
+    pub nodes: usize,   // nodes searched
+    pub nps: usize,     // nodes per second
+    pub hash_full: u16, // Hash use in permille
+    pub pv: Vec<Move>,  // Principal Variation
 }
 
 impl SearchSummary {
@@ -203,14 +204,20 @@ impl SearchCurrentMove {
 // engine thread to Comm, to be transmitted to the (G)UI.
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchStats {
-    pub time: u128,   // Time spent searching
-    pub nodes: usize, // Number of nodes searched
-    pub nps: usize,   // Speed in nodes per second
+    pub time: u128,     // Time spent searching
+    pub nodes: usize,   // Number of nodes searched
+    pub nps: usize,     // Speed in nodes per second
+    pub hash_full: u16, // Hash full in permille
 }
 
 impl SearchStats {
-    pub fn new(time: u128, nodes: usize, nps: usize) -> Self {
-        Self { time, nodes, nps }
+    pub fn new(time: u128, nodes: usize, nps: usize, hash_full: u16) -> Self {
+        Self {
+            time,
+            nodes,
+            nps,
+            hash_full,
+        }
     }
 }
 

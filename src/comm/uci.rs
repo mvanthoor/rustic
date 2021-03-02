@@ -399,8 +399,8 @@ impl Uci {
         let pv = s.pv_as_string();
 
         let info = format!(
-            "info score {} {} time {} nodes {} nps {} pv {}",
-            score, depth, s.time, s.nodes, s.nps, pv,
+            "info score {} {} time {} nodes {} nps {} hashfull {} pv {}",
+            score, depth, s.time, s.nodes, s.nps, s.hash_full, pv,
         );
 
         println!("{}", info);
@@ -415,7 +415,10 @@ impl Uci {
     }
 
     fn search_stats(s: &SearchStats) {
-        println!("info time {} nodes {} nps {}", s.time, s.nodes, s.nps);
+        println!(
+            "info time {} nodes {} nps {} hashfull {}",
+            s.time, s.nodes, s.nps, s.hash_full
+        );
     }
 
     fn info_string(msg: &str) {

@@ -22,8 +22,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    board::{defs::ZobristKey, Board},
-    engine::defs::{ErrFatal, HashTable, IHashData, PerftData},
+    board::Board,
+    engine::defs::{ErrFatal, HashTable, PerftData},
     misc::print,
     movegen::{
         defs::{MoveList, MoveType},
