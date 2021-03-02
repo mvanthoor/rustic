@@ -21,13 +21,15 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use std::hash::Hash;
+
 use super::{
     defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_DEPTH,
-    engine::defs::{ErrFatal, HashFlags, SearchData},
+    engine::defs::{ErrFatal, HashFlags, IHashData, SearchData},
     evaluation,
     movegen::defs::{HashMove, Move, MoveList, MoveType},
 };
@@ -44,6 +46,8 @@ impl Search {
         let mut eval_score: i16 = 0;
 
         let mut best_move: HashMove = HashMove::new(0);
+
+        let mut tt_move: HashMove = HashMove::new(0);
 
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
@@ -78,6 +82,19 @@ impl Search {
         // Stop going deeper if we hit MAX_DEPTH.
         if refs.search_info.ply >= MAX_DEPTH {
             return evaluation::evaluate_position(refs.board);
+        }
+
+        if refs.hash_use {
+            if let Some(data) = refs
+                .hash_table
+                .lock()
+                .expect(ErrFatal::LOCK)
+                .probe(refs.board.game_state.zobrist_key)
+            {
+                if data.depth() >= depth {
+                    tt_move = data.best_move;
+                }
+            }
         }
 
         /*=== Actual searching starts here ===*/
