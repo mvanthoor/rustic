@@ -62,6 +62,8 @@ use crate::{
     defs::{Piece, Square},
 };
 
+const MOVE_ONLY: usize = 0x00_00_00_00_00_FF_FF_FF;
+
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store
  * move data in a specific place within the u64 integer. This makes sure that, should the
  * format change, the location needs to be changed only within the integer. */
@@ -145,5 +147,9 @@ impl Move {
             SQUARE_NAME[self.to()],
             PIECE_CHAR_SMALL[self.promoted()]
         )
+    }
+
+    pub fn as_hash_move(&self) -> u32 {
+        (self.data & MOVE_ONLY) as u32
     }
 }

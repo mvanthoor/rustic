@@ -164,6 +164,7 @@ impl Search {
                         depth,
                         flags: HashFlags::BETA,
                         eval: eval_score,
+                        best_move: 0,
                     },
                 );
                 return beta;
@@ -202,6 +203,7 @@ impl Search {
                 depth,
                 flags: hash_flag,
                 eval: eval_score,
+                best_move: 0,
             },
         );
 
