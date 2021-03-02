@@ -396,11 +396,18 @@ impl Uci {
             format!("depth {}", s.depth)
         };
 
+        // Only display hash full if not 0
+        let hash_full = if s.hash_full > 0 {
+            format!(" hashfull {} ", s.hash_full)
+        } else {
+            String::from(" ")
+        };
+
         let pv = s.pv_as_string();
 
         let info = format!(
-            "info score {} {} time {} nodes {} nps {} hashfull {} pv {}",
-            score, depth, s.time, s.nodes, s.nps, s.hash_full, pv,
+            "info score {} {} time {} nodes {} nps {}{}pv {}",
+            score, depth, s.time, s.nodes, s.nps, hash_full, pv,
         );
 
         println!("{}", info);
@@ -415,9 +422,15 @@ impl Uci {
     }
 
     fn search_stats(s: &SearchStats) {
+        let hash_full = if s.hash_full > 0 {
+            format!(" hashfull {}", s.hash_full)
+        } else {
+            String::from("")
+        };
+
         println!(
-            "info time {} nodes {} nps {} hashfull {}",
-            s.time, s.nodes, s.nps, s.hash_full
+            "info time {} nodes {} nps {}{}",
+            s.time, s.nodes, s.nps, hash_full
         );
     }
 

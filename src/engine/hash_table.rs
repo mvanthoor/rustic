@@ -222,6 +222,11 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
+    // Clear hash table by replacing it with a new one.
+    pub fn clear(&mut self) {
+        self.resize(self.megabytes);
+    }
+
     // Provides hash usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {

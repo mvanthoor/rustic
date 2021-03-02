@@ -51,12 +51,14 @@ impl Engine {
         match u {
             // Uci commands
             UciReport::Uci => self.comm.send(CommControl::Identify),
-            UciReport::UciNewGame => self
-                .board
-                .lock()
-                .expect(ErrFatal::LOCK)
-                .fen_read(Some(FEN_START_POSITION))
-                .expect(ErrFatal::NEW_GAME),
+            UciReport::UciNewGame => {
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_read(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.hash_search.lock().expect(ErrFatal::LOCK).clear();
+            }
             UciReport::IsReady => self.comm.send(CommControl::Ready),
             UciReport::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
