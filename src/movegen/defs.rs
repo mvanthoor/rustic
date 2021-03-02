@@ -137,7 +137,12 @@ impl Move {
     }
 
     pub fn add_score(&mut self, value: u8) {
-        self.data += (value as usize) << Shift::SORTSCORE;
+        let score = self.sort_score();
+        let old_score = (score as usize) << Shift::SORTSCORE;
+        let new_score = ((score + value) as usize) << Shift::SORTSCORE;
+
+        self.data ^= old_score;
+        self.data ^= new_score;
     }
 
     pub fn as_string(&self) -> String {
@@ -151,6 +156,12 @@ impl Move {
 
     pub fn to_hash_move(&self) -> HashMove {
         HashMove::new((self.data & MOVE_ONLY) as u32)
+    }
+
+    pub fn equal_to_hash_move(&self, hash_move: HashMove) -> bool {
+        let a = hash_move.get_move();
+        let b = (self.data & MOVE_ONLY) as u32;
+        a == b
     }
 }
 

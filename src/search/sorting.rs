@@ -24,7 +24,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Move sorting routines.
 
 use super::Search;
-use crate::{defs::NrOf, movegen::defs::MoveList};
+use crate::{defs::NrOf, movegen::defs::HashMove, movegen::defs::MoveList};
+
+const HASH_MOVE_SORT_VALUE: u8 = 60;
 
 // MVV_VLA[victim][attacker]
 pub const MVV_LVA: [[u8; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
@@ -38,11 +40,19 @@ pub const MVV_LVA: [[u8; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 ];
 
 impl Search {
-    pub fn score_moves(ml: &mut MoveList) {
+    pub fn score_moves(ml: &mut MoveList, hash_move: Option<HashMove>) {
         for i in 0..ml.len() {
+            // MVV-LVA scoring
             let m = ml.get_mut_move(i);
             let value = MVV_LVA[m.captured()][m.piece()];
             m.add_score(value);
+
+            // Hash move scoring
+            if let Some(hm) = hash_move {
+                if m.equal_to_hash_move(hm) {
+                    m.add_score(HASH_MOVE_SORT_VALUE);
+                }
+            }
         }
     }
 

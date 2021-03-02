@@ -21,15 +21,13 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use std::hash::Hash;
-
 use super::{
     defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_DEPTH,
-    engine::defs::{ErrFatal, HashFlags, IHashData, SearchData},
+    engine::defs::{ErrFatal, HashFlags, SearchData},
     evaluation,
     movegen::defs::{HashMove, Move, MoveList, MoveType},
 };
@@ -45,9 +43,9 @@ impl Search {
         // Position evaluation
         let mut eval_score: i16 = 0;
 
-        let mut best_move: HashMove = HashMove::new(0);
+        let mut best_move: Option<HashMove> = None;
 
-        let mut tt_move: HashMove = HashMove::new(0);
+        let mut tt_move: Option<HashMove> = None;
 
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
@@ -91,9 +89,7 @@ impl Search {
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
             {
-                if data.depth() >= depth {
-                    tt_move = data.best_move;
-                }
+                tt_move = data.best_move;
             }
         }
 
@@ -106,7 +102,7 @@ impl Search {
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list);
+        Search::score_moves(&mut move_list, tt_move);
 
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
@@ -193,7 +189,7 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move = current_move.to_hash_move();
+                best_move = Some(current_move.to_hash_move());
 
                 // This is an exact score
                 hash_flag = HashFlags::EXACT;

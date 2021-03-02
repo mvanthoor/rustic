@@ -73,7 +73,7 @@ impl Search {
         refs.mg.generate_moves(refs.board, &mut move_list, mtc);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list);
+        Search::score_moves(&mut move_list, None);
 
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
