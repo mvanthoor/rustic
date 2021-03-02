@@ -77,7 +77,7 @@ pub struct SearchData {
     pub depth: u8,
     pub flags: HashFlags,
     pub eval: i16,
-    pub best_move: Option<HashMove>,
+    pub best_move: HashMove,
 }
 
 impl IHashData for SearchData {
@@ -86,7 +86,7 @@ impl IHashData for SearchData {
             depth: 0,
             flags: HashFlags::NONE,
             eval: 0,
-            best_move: None,
+            best_move: HashMove::new(0),
         }
     }
 

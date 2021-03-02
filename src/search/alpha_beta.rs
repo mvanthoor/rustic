@@ -43,9 +43,9 @@ impl Search {
         // Position evaluation
         let mut eval_score: i16 = 0;
 
-        let mut best_move: Option<HashMove> = None;
+        let mut best_move: HashMove = HashMove::new(0);
 
-        let mut tt_move: Option<HashMove> = None;
+        let mut tt_move: HashMove = HashMove::new(0);
 
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
@@ -189,7 +189,7 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
-                best_move = Some(current_move.to_hash_move());
+                best_move = current_move.to_hash_move();
 
                 // This is an exact score
                 hash_flag = HashFlags::EXACT;

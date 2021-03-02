@@ -159,9 +159,7 @@ impl Move {
     }
 
     pub fn equal_to_hash_move(&self, hash_move: HashMove) -> bool {
-        let a = hash_move.get_move();
-        let b = (self.data & MOVE_ONLY) as u32;
-        a == b
+        ((self.data & MOVE_ONLY) as u32) == hash_move.get_move()
     }
 }
 

@@ -28,7 +28,7 @@ use super::{
 use crate::{
     defs::MAX_DEPTH,
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType},
+    movegen::defs::{HashMove, Move, MoveList, MoveType},
 };
 
 impl Search {
@@ -73,7 +73,7 @@ impl Search {
         refs.mg.generate_moves(refs.board, &mut move_list, mtc);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list, None);
+        Search::score_moves(&mut move_list, HashMove::new(0));
 
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
