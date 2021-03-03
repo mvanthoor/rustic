@@ -40,12 +40,8 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        // Position evaluation
-        let mut eval_score: i16 = 0;
-
+        // Remember the best move to put into the hash table.
         let mut best_move: HashMove = HashMove::new(0);
-
-        let mut tt_move: HashMove = HashMove::new(0);
 
         // If quiet, don't send intermediate stats updates.
         let quiet = refs.search_params.quiet;
@@ -82,15 +78,27 @@ impl Search {
             return evaluation::evaluate_position(refs.board);
         }
 
-        if refs.hash_use {
+        // Hash table probe for value and move
+        let mut tt_value: Option<i16> = None;
+        let mut tt_move: HashMove = HashMove::new(0);
+
+        // Probe the hash table for information.
+        if refs.hash_use && !is_root {
             if let Some(data) = refs
                 .hash_table
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
             {
-                tt_move = data.best_move;
+                let tt_result = data.get_values(depth, alpha, beta);
+                tt_value = tt_result.0;
+                tt_move = tt_result.1;
             }
+        }
+
+        // If we have a value from the TT, then return immediately.
+        if let Some(v) = tt_value {
+            return v;
         }
 
         /*=== Actual searching starts here ===*/
@@ -159,7 +167,7 @@ impl Search {
             //causing a draw by repetition or 50-move rule. If it is, we
             //don't have to search anymore: we can just assign DRAW as the
             //eval_score.
-            eval_score = if !Search::is_draw(refs) {
+            let eval_score = if !Search::is_draw(refs) {
                 -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
             } else {
                 DRAW
@@ -178,7 +186,7 @@ impl Search {
                     SearchData {
                         depth,
                         flags: HashFlags::BETA,
-                        eval: eval_score,
+                        eval: beta,
                         best_move,
                     },
                 );
@@ -218,7 +226,7 @@ impl Search {
             SearchData {
                 depth,
                 flags: hash_flag,
-                eval: eval_score,
+                eval: alpha,
                 best_move,
             },
         );

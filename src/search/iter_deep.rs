@@ -72,7 +72,9 @@ impl Search {
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
-                best_move = root_pv[0];
+                if !root_pv.is_empty() {
+                    best_move = root_pv[0];
+                }
 
                 // Create search summary for this depth.
                 let elapsed = refs.search_info.timer_elapsed();

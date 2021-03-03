@@ -95,6 +95,31 @@ impl IHashData for SearchData {
     }
 }
 
+impl SearchData {
+    pub fn get_values(&self, depth: u8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
+        let mut value: Option<i16> = None;
+        if self.depth >= depth {
+            match self.flags {
+                HashFlags::EXACT => {
+                    value = Some(self.eval);
+                }
+                HashFlags::ALPHA => {
+                    if self.eval <= alpha {
+                        value = Some(alpha);
+                    }
+                }
+                HashFlags::BETA => {
+                    if self.eval >= beta {
+                        value = Some(beta);
+                    }
+                }
+                _ => (),
+            };
+        }
+        (value, self.best_move)
+    }
+}
+
 /* ===== Entry ======================================================== */
 
 #[derive(Copy, Clone)]
