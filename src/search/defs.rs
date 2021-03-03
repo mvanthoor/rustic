@@ -1,7 +1,7 @@
 use crate::{
     board::Board,
     defs::MAX_DEPTH,
-    engine::defs::{HashTable, Information, SearchData},
+    engine::defs::{Information, SearchData, TT},
     movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::{Receiver, Sender};
@@ -167,7 +167,7 @@ pub struct SearchSummary {
     pub mate: u8,       // mate in X moves
     pub nodes: usize,   // nodes searched
     pub nps: usize,     // nodes per second
-    pub hash_full: u16, // Hash use in permille
+    pub hash_full: u16, // TT use in permille
     pub pv: Vec<Move>,  // Principal Variation
 }
 
@@ -207,7 +207,7 @@ pub struct SearchStats {
     pub time: u128,     // Time spent searching
     pub nodes: usize,   // Number of nodes searched
     pub nps: usize,     // Speed in nodes per second
-    pub hash_full: u16, // Hash full in permille
+    pub hash_full: u16, // TT full in permille
 }
 
 impl SearchStats {
@@ -231,8 +231,8 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub hash_table: &'a Arc<Mutex<HashTable<SearchData>>>,
-    pub hash_use: bool,
+    pub tt: &'a Arc<Mutex<TT<SearchData>>>,
+    pub tt_enabled: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,

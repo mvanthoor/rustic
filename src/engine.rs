@@ -24,9 +24,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 mod about;
 mod comm_reports;
 pub mod defs;
-mod hash_table;
 mod main_loop;
 mod search_reports;
+mod transposition;
 mod utils;
 
 use crate::{
@@ -39,8 +39,8 @@ use crate::{
     search::{defs::SearchControl, Search},
 };
 use crossbeam_channel::Receiver;
-use hash_table::{HashTable, PerftData, SearchData};
 use std::sync::{Arc, Mutex};
+use transposition::{PerftData, SearchData, TT};
 
 #[cfg(feature = "extra")]
 use crate::{
@@ -51,17 +51,17 @@ use crate::{
 // This struct holds the chess engine and its functions, so they are not
 // all seperate entities in the global space.
 pub struct Engine {
-    quit: bool,                                     // Flag that will quit the main thread.
-    settings: Settings,                             // Struct holding all the settings.
-    cmdline: CmdLine,                               // Command line interpreter.
-    comm: Box<dyn IComm>,                           // Communications (active).
-    board: Arc<Mutex<Board>>,                       // This is the main engine board.
-    hash_perft: Arc<Mutex<HashTable<PerftData>>>,   // Hash table for running perft.
-    hash_search: Arc<Mutex<HashTable<SearchData>>>, // Hash table for search information.
-    mg: Arc<MoveGenerator>,                         // Move Generator.
-    info_rx: Option<Receiver<Information>>,         // Receiver for incoming information.
-    search: Search,                                 // Search object (active).
-    tmp_no_xboard: bool,                            // Temporary variable to disable xBoard
+    quit: bool,                             // Flag that will quit the main thread.
+    settings: Settings,                     // Struct holding all the settings.
+    cmdline: CmdLine,                       // Command line interpreter.
+    comm: Box<dyn IComm>,                   // Communications (active).
+    board: Arc<Mutex<Board>>,               // This is the main engine board.
+    tt_perft: Arc<Mutex<TT<PerftData>>>,    // TT for running perft.
+    tt_search: Arc<Mutex<TT<SearchData>>>,  // TT for search information.
+    mg: Arc<MoveGenerator>,                 // Move Generator.
+    info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
+    search: Search,                         // Search object (active).
+    tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
 impl Engine {
@@ -84,17 +84,17 @@ impl Engine {
         // Get engine settings from the command-line
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
-        let hash_size = cmdline.hash();
+        let tt_size = cmdline.hash();
 
-        // Initialize correct hash table.
-        let hash_perft: Arc<Mutex<HashTable<PerftData>>>;
-        let hash_search: Arc<Mutex<HashTable<SearchData>>>;
+        // Initialize correct TT.
+        let tt_perft: Arc<Mutex<TT<PerftData>>>;
+        let tt_search: Arc<Mutex<TT<SearchData>>>;
         if cmdline.perft() > 0 {
-            hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(hash_size)));
-            hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(0)));
+            tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
+            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(0)));
         } else {
-            hash_perft = Arc::new(Mutex::new(HashTable::<PerftData>::new(0)));
-            hash_search = Arc::new(Mutex::new(HashTable::<SearchData>::new(hash_size)));
+            tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(0)));
+            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
         };
 
         // Create the engine itself.
@@ -103,14 +103,14 @@ impl Engine {
             settings: Settings {
                 threads,
                 quiet,
-                hash_size,
+                tt_size,
             },
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            hash_perft,
-            hash_search,
+            tt_perft,
+            tt_search,
             info_rx: None,
             search: Search::new(),
             tmp_no_xboard: is_xboard,
@@ -128,7 +128,7 @@ impl Engine {
         self.print_ascii_logo();
         self.print_about();
         self.print_settings(
-            self.settings.hash_size,
+            self.settings.tt_size,
             self.settings.threads,
             self.comm.get_protocol_name(),
         );
@@ -147,8 +147,8 @@ impl Engine {
                 self.board.clone(),
                 self.cmdline.perft(),
                 Arc::clone(&self.mg),
-                Arc::clone(&self.hash_perft),
-                self.settings.hash_size > 0,
+                Arc::clone(&self.tt_perft),
+                self.settings.tt_size > 0,
             );
         }
 
@@ -164,18 +164,18 @@ impl Engine {
         #[cfg(feature = "extra")]
         // Run large EPD test suite if requested. Because the -p (perft)
         // option is not used in this scenario, the engine initializes the
-        // search hash table instead of the one for perft. The -e option is
+        // search TT instead of the one for perft. The -e option is
         // not available in a non-extra compilation, so it cannot be
         // checked there. Just fix the issue by resizing both the perft and
-        // search hash tables appropriately for running the EPD suite.
+        // search TT's appropriately for running the EPD suite.
         if self.cmdline.has_test() {
             action_requested = true;
-            self.hash_perft
+            self.tt_perft
                 .lock()
                 .expect(ErrFatal::LOCK)
-                .resize(self.settings.hash_size);
-            self.hash_search.lock().expect(ErrFatal::LOCK).resize(0);
-            testsuite::run(Arc::clone(&self.hash_perft), self.settings.hash_size > 0);
+                .resize(self.settings.tt_size);
+            self.tt_search.lock().expect(ErrFatal::LOCK).resize(0);
+            testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
         }
         // =====================================================
 

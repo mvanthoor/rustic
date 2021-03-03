@@ -40,7 +40,7 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        // Remember the best move to put into the hash table.
+        // Remember the best move to put into the TT.
         let mut best_move: HashMove = HashMove::new(0);
 
         // If quiet, don't send intermediate stats updates.
@@ -78,14 +78,14 @@ impl Search {
             return evaluation::evaluate_position(refs.board);
         }
 
-        // Hash table probe for value and move
+        // TT probe for value and move
         let mut tt_value: Option<i16> = None;
         let mut tt_move: HashMove = HashMove::new(0);
 
-        // Probe the hash table for information.
-        if refs.hash_use && !is_root {
+        // Probe the TT for information.
+        if refs.tt_enabled && !is_root {
             if let Some(data) = refs
-                .hash_table
+                .tt
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
@@ -122,7 +122,7 @@ impl Search {
             Search::send_stats_to_gui(refs);
         }
 
-        // Set the initial hash table flag type.
+        // Set the initial TT flag type.
         let mut hash_flag = HashFlags::ALPHA;
 
         // Iterate over the moves.
@@ -181,12 +181,12 @@ impl Search {
             // further down this path would make the situation worse for us
             // and better for our opponent. This is called "fail-high".
             if eval_score >= beta {
-                refs.hash_table.lock().expect(ErrFatal::LOCK).insert(
+                refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
                     SearchData {
                         depth,
                         flags: HashFlags::BETA,
-                        eval: beta,
+                        value: beta,
                         best_move,
                     },
                 );
@@ -221,12 +221,12 @@ impl Search {
             }
         }
 
-        refs.hash_table.lock().expect(ErrFatal::LOCK).insert(
+        refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
             SearchData {
                 depth,
                 flags: hash_flag,
-                eval: alpha,
+                value: alpha,
                 best_move,
             },
         );

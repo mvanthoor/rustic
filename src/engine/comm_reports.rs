@@ -57,7 +57,7 @@ impl Engine {
                     .expect(ErrFatal::LOCK)
                     .fen_read(Some(FEN_START_POSITION))
                     .expect(ErrFatal::NEW_GAME);
-                self.hash_search.lock().expect(ErrFatal::LOCK).clear();
+                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
             UciReport::IsReady => self.comm.send(CommControl::Ready),
             UciReport::Position(fen, moves) => {

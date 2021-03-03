@@ -76,7 +76,7 @@ pub enum HashFlags {
 pub struct SearchData {
     pub depth: u8,
     pub flags: HashFlags,
-    pub eval: i16,
+    pub value: i16,
     pub best_move: HashMove,
 }
 
@@ -85,7 +85,7 @@ impl IHashData for SearchData {
         Self {
             depth: 0,
             flags: HashFlags::NONE,
-            eval: 0,
+            value: 0,
             best_move: HashMove::new(0),
         }
     }
@@ -101,15 +101,15 @@ impl SearchData {
         if self.depth >= depth {
             match self.flags {
                 HashFlags::EXACT => {
-                    value = Some(self.eval);
+                    value = Some(self.value);
                 }
                 HashFlags::ALPHA => {
-                    if self.eval <= alpha {
+                    if self.value <= alpha {
                         value = Some(alpha);
                     }
                 }
                 HashFlags::BETA => {
-                    if self.eval >= beta {
+                    if self.value >= beta {
                         value = Some(beta);
                     }
                 }
@@ -185,10 +185,11 @@ impl<D: IHashData + Copy> Bucket<D> {
     }
 }
 
-/* ===== Hash table =================================================== */
+/* ===== TT =================================================== */
 
-pub struct HashTable<D> {
-    hash_table: Vec<Bucket<D>>,
+// Transposition Table
+pub struct TT<D> {
+    tt: Vec<Bucket<D>>,
     megabytes: usize,
     used_entries: usize,
     total_buckets: usize,
@@ -196,15 +197,15 @@ pub struct HashTable<D> {
 }
 
 // Public functions
-impl<D: IHashData + Copy + Clone> HashTable<D> {
-    // Create a new hash table of the requested size, able to hold the data
+impl<D: IHashData + Copy + Clone> TT<D> {
+    // Create a new TT of the requested size, able to hold the data
     // of type D, where D has to implement IHashData, and must be clonable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
         let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
 
         Self {
-            hash_table: vec![Bucket::<D>::new(); total_buckets],
+            tt: vec![Bucket::<D>::new(); total_buckets],
             megabytes,
             used_entries: 0,
             total_buckets,
@@ -212,14 +213,14 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         }
     }
 
-    // Resizes the hash table by replacing the current hash table with a
+    // Resizes the TT by replacing the current TT with a
     // new one. (We don't use Vec's resize function, because it clones
-    // elements. This can be problematic if hash table sizes push the
+    // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = HashTable::<D>::calculate_init_values(megabytes);
+        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
 
-        self.hash_table = vec![Bucket::<D>::new(); total_buckets];
+        self.tt = vec![Bucket::<D>::new(); total_buckets];
         self.megabytes = megabytes;
         self.used_entries = 0;
         self.total_buckets = total_buckets;
@@ -232,29 +233,29 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-            self.hash_table[index].store(verification, data, &mut self.used_entries);
+            self.tt[index].store(verification, data, &mut self.used_entries);
         }
     }
 
-    // Probe the hash table by both verification and depth. Both have to
+    // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
     pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
 
-            self.hash_table[index].find(verification)
+            self.tt[index].find(verification)
         } else {
             None
         }
     }
 
-    // Clear hash table by replacing it with a new one.
+    // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
         self.resize(self.megabytes);
     }
 
-    // Provides hash usage in permille (1 per 1000, as oppposed to percent,
+    // Provides TT usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
@@ -266,7 +267,7 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
 }
 
 // Private functions
-impl<D: IHashData + Copy + Clone> HashTable<D> {
+impl<D: IHashData + Copy + Clone> TT<D> {
     // Calculate the index (bucket) where the data is going to be stored.
     // Use half of the Zobrist key for this.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
@@ -281,7 +282,7 @@ impl<D: IHashData + Copy + Clone> HashTable<D> {
     }
 
     // This function calculates the values for total_buckets and
-    // total_entries. These depend on the requested hash size.
+    // total_entries. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
         let entry_size = std::mem::size_of::<Entry<D>>();
         let bucket_size = entry_size * ENTRIES_PER_BUCKET;

@@ -54,7 +54,7 @@ impl CmdLineArgs {
 
     const HASH_LONG: &'static str = "hash";
     const HASH_SHORT: &'static str = "h";
-    const HASH_HELP: &'static str = "Hash Table size in MB";
+    const HASH_HELP: &'static str = "Transposition Table size in MB";
     const HASH_DEFAULT: &'static str = "32";
 
     // Quiet (no search stats updates except on depth change)

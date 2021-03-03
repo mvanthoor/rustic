@@ -55,7 +55,7 @@ impl Engine {
         let d = String::from("disabled");
         let hash_str = if hash_size > 0 { h } else { d };
 
-        println!("Hash Table: {}", hash_str);
+        println!("Transposition Table: {}", hash_str);
         println!("Protocol: {}", protocol);
         println!("Threads: {}", threads);
         #[cfg(debug_assertions)]

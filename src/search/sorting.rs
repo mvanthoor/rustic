@@ -46,7 +46,7 @@ impl Search {
             let m = ml.get_mut_move(i);
             let mut value = MVV_LVA[m.captured()][m.piece()];
 
-            // Hash move scoring
+            // TT move scoring
             if hm.get_move() != 0 && m.equal_to_hash_move(hm) {
                 value += HASH_MOVE_SORT_VALUE;
             }

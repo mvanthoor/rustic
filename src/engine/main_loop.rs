@@ -42,8 +42,8 @@ impl Engine {
             info_tx,
             Arc::clone(&self.board),
             Arc::clone(&self.mg),
-            Arc::clone(&self.hash_search),
-            self.settings.hash_size > 0,
+            Arc::clone(&self.tt_search),
+            self.settings.tt_size > 0,
         );
 
         // Update the Comm interface screen output (if any).

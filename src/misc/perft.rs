@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::Board,
-    engine::defs::{ErrFatal, HashTable, PerftData},
+    engine::defs::{ErrFatal, PerftData, TT},
     misc::print,
     movegen::{
         defs::{MoveList, MoveType},
@@ -42,8 +42,8 @@ pub fn run(
     board: Arc<Mutex<Board>>,
     depth: u8,
     mg: Arc<MoveGenerator>,
-    hash_table: Arc<Mutex<HashTable<PerftData>>>,
-    hash_use: bool,
+    tt: Arc<Mutex<TT<PerftData>>>,
+    tt_enabled: bool,
 ) {
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
@@ -71,7 +71,7 @@ pub fn run(
         let now = Instant::now();
         let mut leaf_nodes = 0;
 
-        leaf_nodes += perft(&mut local_board, d, &mg, &hash_table, hash_use);
+        leaf_nodes += perft(&mut local_board, d, &mg, &tt, tt_enabled);
 
         // Measure time and speed
         let elapsed = now.elapsed().as_millis();
@@ -81,12 +81,12 @@ pub fn run(
         total_time += elapsed;
         total_nodes += leaf_nodes;
 
-        // Request hash table usage. (This is provided permille as per UCI
+        // Request TT usage. (This is provided permille as per UCI
         // spec, so divide by 10 to get the usage in percents.)
-        if hash_use {
+        if tt_enabled {
             hash_full = format!(
                 ", hash full: {}%",
-                hash_table.lock().expect(ErrFatal::LOCK).hash_full() as f64 / 10f64
+                tt.lock().expect(ErrFatal::LOCK).hash_full() as f64 / 10f64
             );
         }
 
@@ -109,8 +109,8 @@ pub fn perft(
     board: &mut Board,
     depth: u8,
     mg: &MoveGenerator,
-    hash_table: &Mutex<HashTable<PerftData>>,
-    hash_use: bool,
+    tt: &Mutex<TT<PerftData>>,
+    tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;
     let mut leaf_nodes_tt: Option<u64> = None;
@@ -121,10 +121,10 @@ pub fn perft(
         return 1;
     }
 
-    // See if the current position is in the hash table, and if so, get the
+    // See if the current position is in the TT, and if so, get the
     // number of leaf nodes that were previously calculated for it.
-    if hash_use {
-        leaf_nodes_tt = if let Some(data) = hash_table
+    if tt_enabled {
+        leaf_nodes_tt = if let Some(data) = tt
             .lock()
             .expect(ErrFatal::LOCK)
             .probe(board.game_state.zobrist_key)
@@ -150,7 +150,7 @@ pub fn perft(
         // If the move is legal...
         if board.make(m, mg) {
             // Then count the number of leaf nodes it generates...
-            leaf_nodes += perft(board, depth - 1, mg, hash_table, hash_use);
+            leaf_nodes += perft(board, depth - 1, mg, tt, tt_enabled);
 
             // Then unmake the move so the next one can be counted.
             board.unmake();
@@ -158,9 +158,9 @@ pub fn perft(
     }
 
     // We have calculated the number of leaf nodes for this position.
-    // Store this in the hash table for later use.
-    if hash_use {
-        hash_table.lock().expect(ErrFatal::LOCK).insert(
+    // Store this in the TT for later use.
+    if tt_enabled {
+        tt.lock().expect(ErrFatal::LOCK).insert(
             board.game_state.zobrist_key,
             PerftData { leaf_nodes, depth },
         )

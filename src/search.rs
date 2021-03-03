@@ -34,7 +34,7 @@ mod utils;
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, Information},
-    engine::defs::{HashTable, SearchData},
+    engine::defs::{SearchData, TT},
     movegen::MoveGenerator,
 };
 use crossbeam_channel::Sender;
@@ -65,8 +65,8 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
-        hash_table: Arc<Mutex<HashTable<SearchData>>>,
-        hash_use: bool,
+        tt: Arc<Mutex<TT<SearchData>>>,
+        tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
@@ -79,7 +79,7 @@ impl Search {
             // Create thread-local variables.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
-            let arc_hash_table = Arc::clone(&hash_table);
+            let arc_tt = Arc::clone(&tt);
             let mut search_params = SearchParams::new();
 
             let mut quit = false;
@@ -115,8 +115,8 @@ impl Search {
                     let mut search_refs = SearchRefs {
                         board: &mut board,
                         mg: &arc_mg,
-                        hash_table: &arc_hash_table,
-                        hash_use,
+                        tt: &arc_tt,
+                        tt_enabled,
                         search_params: &mut search_params,
                         search_info: &mut search_info,
                         control_rx: &control_rx,
