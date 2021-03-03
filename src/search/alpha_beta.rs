@@ -54,6 +54,11 @@ impl Search {
             Search::check_termination(refs);
         }
 
+        // Early Exit
+        if !is_root && Search::is_draw(refs) {
+            return DRAW;
+        }
+
         // Determine if we are in check.
         let is_check = refs.mg.square_attacked(
             refs.board,
@@ -90,7 +95,7 @@ impl Search {
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
             {
-                let tt_result = data.get_values(depth, alpha, beta);
+                let tt_result = data.get(depth, alpha, beta);
                 tt_value = tt_result.0;
                 tt_move = tt_result.1;
             }
@@ -162,16 +167,8 @@ impl Search {
             let mut node_pv: Vec<Move> = Vec::new();
 
             //We just made a move. We are not yet at one of the leaf nodes,
-            //so we must search deeper. We do this by calling alpha/beta
-            //again to go to the next ply, but ONLY if this move is NOT
-            //causing a draw by repetition or 50-move rule. If it is, we
-            //don't have to search anymore: we can just assign DRAW as the
-            //eval_score.
-            let eval_score = if !Search::is_draw(refs) {
-                -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
-            } else {
-                DRAW
-            };
+            //so we must search deeper.
+            let eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
 
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();
@@ -183,12 +180,7 @@ impl Search {
             if eval_score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
-                    SearchData {
-                        depth,
-                        flags: HashFlags::BETA,
-                        value: beta,
-                        best_move,
-                    },
+                    SearchData::create(depth, HashFlags::BETA, beta, best_move),
                 );
                 return beta;
             }
@@ -223,12 +215,7 @@ impl Search {
 
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData {
-                depth,
-                flags: hash_flag,
-                value: alpha,
-                best_move,
-            },
+            SearchData::create(depth, hash_flag, alpha, best_move),
         );
 
         // We have traversed the entire move list and found the best

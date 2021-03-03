@@ -113,7 +113,6 @@ pub fn perft(
     tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;
-    let mut leaf_nodes_tt: Option<u64> = None;
     let mut move_list: MoveList = MoveList::new();
 
     // Count each visited leaf node.
@@ -123,16 +122,15 @@ pub fn perft(
 
     // See if the current position is in the TT, and if so, get the
     // number of leaf nodes that were previously calculated for it.
+    let mut leaf_nodes_tt: Option<u64> = None;
     if tt_enabled {
-        leaf_nodes_tt = if let Some(data) = tt
+        if let Some(data) = tt
             .lock()
             .expect(ErrFatal::LOCK)
             .probe(board.game_state.zobrist_key)
         {
-            data.get_value(depth)
-        } else {
-            None
-        }
+            leaf_nodes_tt = data.get(depth);
+        };
     }
 
     // If we found a leaf node count, return it immediately.
@@ -162,7 +160,7 @@ pub fn perft(
     if tt_enabled {
         tt.lock().expect(ErrFatal::LOCK).insert(
             board.game_state.zobrist_key,
-            PerftData { leaf_nodes, depth },
+            PerftData::create(depth, leaf_nodes),
         )
     }
 

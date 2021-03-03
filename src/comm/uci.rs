@@ -30,7 +30,9 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     misc::print,
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE},
+    search::defs::{
+        GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE, CHECKMATE_THRESHOLD,
+    },
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -38,8 +40,6 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
-
-const MAX_MATE: i16 = 64;
 
 // Input will be turned into a report, which wil be sent to the engine. The
 // main engine thread will react accordingly.
@@ -369,7 +369,7 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         // If mate found, report this; otherwise report normal score.
-        let score = if (s.cp.abs() < CHECKMATE) && (s.cp.abs() > CHECKMATE - MAX_MATE) {
+        let score = if (s.cp.abs() >= CHECKMATE_THRESHOLD) && (s.cp.abs() < CHECKMATE) {
             // Number of plies to mate.
             let ply = CHECKMATE - s.cp.abs();
 
