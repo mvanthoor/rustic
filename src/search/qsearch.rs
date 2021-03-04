@@ -41,6 +41,12 @@ impl Search {
             Search::check_termination(refs);
         }
 
+        // Abort if we have to terminate. Depth not finished.
+        if refs.search_info.terminate != SearchTerminate::Nothing {
+            return 0;
+        }
+
+        // Immediately evaluate and return on reaching MAX_DEPTH
         if refs.search_info.ply >= MAX_DEPTH {
             return evaluation::evaluate_position(refs.board);
         }
@@ -86,11 +92,6 @@ impl Search {
 
         // Iterate over the capture moves.
         for i in 0..move_list.len() {
-            // Break the loop if a termination condition was met.
-            if refs.search_info.terminate != SearchTerminate::Nothing {
-                break;
-            }
-
             // Pick the next moves with the higest score.
             Search::pick_move(&mut move_list, i);
 

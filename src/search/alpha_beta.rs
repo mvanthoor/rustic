@@ -40,23 +40,29 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        // Remember the best move to put into the TT.
-        let mut best_move: HashMove = HashMove::new(0);
-
-        // If quiet, don't send intermediate stats updates.
-        let quiet = refs.search_params.quiet;
-
-        // If we haven't made any moves yet, we're at the root.
-        let is_root = refs.search_info.ply == 0;
+        let mut best_move: HashMove = HashMove::new(0); // To store best move in TT.
+        let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
+        let is_root = refs.search_info.ply == 0; // At root if no moves were played.
 
         // Check if termination condition is met.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
             Search::check_termination(refs);
         }
 
-        // Early Exit
+        // If time is up, abort. This depth won't be considered in
+        // iterative deepening as it is unfinished.
+        if refs.search_info.terminate != SearchTerminate::Nothing {
+            return 0;
+        }
+
+        // Early Exit because of draw detection.
         if !is_root && Search::is_draw(refs) {
             return DRAW;
+        }
+
+        // Stop going deeper if we hit MAX_DEPTH.
+        if refs.search_info.ply >= MAX_DEPTH {
+            return evaluation::evaluate_position(refs.board);
         }
 
         // Determine if we are in check.
@@ -76,11 +82,6 @@ impl Search {
         // return the result.
         if depth == 0 {
             return Search::quiescence(alpha, beta, pv, refs);
-        }
-
-        // Stop going deeper if we hit MAX_DEPTH.
-        if refs.search_info.ply >= MAX_DEPTH {
-            return evaluation::evaluate_position(refs.board);
         }
 
         // TT probe for value and move
@@ -132,10 +133,6 @@ impl Search {
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
-            if refs.search_info.terminate != SearchTerminate::Nothing {
-                break;
-            }
-
             // This function finds the best move to test according to the
             // move scoring, and puts it at the current index of the move
             // list, so get_move() will get this next.
