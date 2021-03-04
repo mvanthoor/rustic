@@ -33,11 +33,11 @@ const SHIFT_TO_LOWER: usize = 32;
 
 pub trait IHashData {
     fn new() -> Self;
-    fn depth(&self) -> u8;
+    fn depth(&self) -> i8;
 }
 #[derive(Copy, Clone)]
 pub struct PerftData {
-    depth: u8,
+    depth: i8,
     leaf_nodes: u64,
 }
 
@@ -49,17 +49,17 @@ impl IHashData for PerftData {
         }
     }
 
-    fn depth(&self) -> u8 {
+    fn depth(&self) -> i8 {
         self.depth
     }
 }
 
 impl PerftData {
-    pub fn create(depth: u8, leaf_nodes: u64) -> Self {
+    pub fn create(depth: i8, leaf_nodes: u64) -> Self {
         Self { depth, leaf_nodes }
     }
 
-    pub fn get(&self, depth: u8) -> Option<u64> {
+    pub fn get(&self, depth: i8) -> Option<u64> {
         if self.depth == depth {
             Some(self.leaf_nodes)
         } else {
@@ -78,7 +78,7 @@ pub enum HashFlags {
 
 #[derive(Copy, Clone)]
 pub struct SearchData {
-    depth: u8,
+    depth: i8,
     flags: HashFlags,
     value: i16,
     best_move: HashMove,
@@ -94,13 +94,13 @@ impl IHashData for SearchData {
         }
     }
 
-    fn depth(&self) -> u8 {
+    fn depth(&self) -> i8 {
         self.depth
     }
 }
 
 impl SearchData {
-    pub fn create(depth: u8, flags: HashFlags, value: i16, best_move: HashMove) -> Self {
+    pub fn create(depth: i8, flags: HashFlags, value: i16, best_move: HashMove) -> Self {
         Self {
             depth,
             flags,
@@ -109,7 +109,7 @@ impl SearchData {
         }
     }
 
-    pub fn get(&self, depth: u8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
+    pub fn get(&self, depth: i8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
         let mut value: Option<i16> = None;
         if self.depth >= depth {
             match self.flags {

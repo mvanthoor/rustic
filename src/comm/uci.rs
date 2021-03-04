@@ -51,7 +51,7 @@ pub enum UciReport {
     IsReady,
     Position(String, Vec<String>),
     GoInfinite,
-    GoDepth(u8),
+    GoDepth(i8),
     GoMoveTime(u128),
     GoNodes(usize),
     GoGameTime(GameTime),
@@ -308,7 +308,7 @@ impl Uci {
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
-                        let depth = p.parse::<u8>().unwrap_or(1);
+                        let depth = p.parse::<i8>().unwrap_or(1);
                         report = CommReport::Uci(UciReport::GoDepth(depth));
                         break; // break for-loop: nothing more to do.
                     }

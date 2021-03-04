@@ -34,7 +34,7 @@ use crate::{
 
 impl Search {
     pub fn alpha_beta(
-        mut depth: u8,
+        mut depth: i8,
         mut alpha: i16,
         beta: i16,
         pv: &mut Vec<Move>,
@@ -80,7 +80,7 @@ impl Search {
 
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
-        if depth == 0 {
+        if depth <= 0 {
             return Search::quiescence(alpha, beta, pv, refs);
         }
 

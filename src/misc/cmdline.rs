@@ -103,7 +103,7 @@ impl CmdLine {
             .to_string()
     }
 
-    pub fn perft(&self) -> u8 {
+    pub fn perft(&self) -> i8 {
         self.arguments
             .value_of(CmdLineArgs::PERFT_LONG)
             .unwrap_or(CmdLineArgs::PERFT_DEFAULT)

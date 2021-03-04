@@ -40,7 +40,7 @@ use std::{
 // the results of perft(1) up to and including perft(7).
 pub fn run(
     board: Arc<Mutex<Board>>,
-    depth: u8,
+    depth: i8,
     mg: Arc<MoveGenerator>,
     tt: Arc<Mutex<TT<PerftData>>>,
     tt_enabled: bool,
@@ -107,7 +107,7 @@ pub fn run(
 // the "testsuite" module.
 pub fn perft(
     board: &mut Board,
-    depth: u8,
+    depth: i8,
     mg: &MoveGenerator,
     tt: &Mutex<TT<PerftData>>,
     tt_enabled: bool,
