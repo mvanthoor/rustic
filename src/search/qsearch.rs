@@ -33,6 +33,9 @@ use crate::{
 
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
+        // We created a new node which we'll search, so count it.
+        refs.search_info.nodes += 1;
+
         // No intermediate stats updates if quiet.
         let quiet = refs.search_params.quiet;
 
@@ -80,9 +83,6 @@ impl Search {
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list, HashMove::new(0));
-
-        // We created a new node which we'll search, so count it.
-        refs.search_info.nodes += 1;
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minium MIN_TIME_STATS has elapsed before sending.

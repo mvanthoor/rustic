@@ -40,6 +40,9 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
+        // Count this node
+        refs.search_info.nodes += 1;
+
         let mut best_move: HashMove = HashMove::new(0); // To store best move in TT.
         let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
@@ -81,6 +84,8 @@ impl Search {
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
         if depth <= 0 {
+            // Qsearch will count this node, so undo our earlier count.
+            refs.search_info.nodes -= 1;
             return Search::quiescence(alpha, beta, pv, refs);
         }
 
@@ -117,9 +122,6 @@ impl Search {
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list, tt_move);
-
-        // We created a new node which we'll search, so count it.
-        refs.search_info.nodes += 1;
 
         // After SEND_STATS nodes have been searched, check if the
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
