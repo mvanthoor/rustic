@@ -40,9 +40,6 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        // Count this node
-        refs.search_info.nodes += 1;
-
         let mut best_move: HashMove = HashMove::new(0); // To store best move in TT.
         let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
@@ -56,11 +53,6 @@ impl Search {
         // iterative deepening as it is unfinished.
         if refs.search_info.terminate != SearchTerminate::Nothing {
             return 0;
-        }
-
-        // Early Exit because of draw detection.
-        if !is_root && Search::is_draw(refs) {
-            return DRAW;
         }
 
         // Stop going deeper if we hit MAX_DEPTH.
@@ -84,12 +76,13 @@ impl Search {
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
         if depth <= 0 {
-            // Qsearch will count this node, so undo our earlier count.
-            refs.search_info.nodes -= 1;
             return Search::quiescence(alpha, beta, pv, refs);
         }
 
-        // TT probe for value and move
+        // Count this node, as it is not aborted or searched by QSearch.
+        refs.search_info.nodes += 1;
+
+        // Variables to hold TT value and move if any.
         let mut tt_value: Option<i16> = None;
         let mut tt_move: HashMove = HashMove::new(0);
 
@@ -166,8 +159,12 @@ impl Search {
             let mut node_pv: Vec<Move> = Vec::new();
 
             //We just made a move. We are not yet at one of the leaf nodes,
-            //so we must search deeper.
-            let eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+            //so we must search deeper, if the position isn't a draw.
+            let eval_score = if !Search::is_draw(refs) {
+                -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
+            } else {
+                DRAW
+            };
 
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();

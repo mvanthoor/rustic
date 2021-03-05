@@ -62,7 +62,7 @@ impl Search {
 
         // Start the search
         refs.search_info.timer_start();
-        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
+        while (depth <= MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
 
