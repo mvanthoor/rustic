@@ -102,7 +102,9 @@ impl Search {
 
         // If we have a value from the TT, then return immediately.
         if let Some(v) = tt_value {
-            return v;
+            if !is_root {
+                return v;
+            }
         }
 
         /*=== Actual searching starts here ===*/
