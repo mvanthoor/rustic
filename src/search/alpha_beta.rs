@@ -87,7 +87,7 @@ impl Search {
         let mut tt_move: HashMove = HashMove::new(0);
 
         // Probe the TT for information.
-        if refs.tt_enabled && !is_root {
+        if refs.tt_enabled {
             if let Some(data) = refs
                 .tt
                 .lock()
