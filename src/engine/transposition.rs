@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::{board::defs::ZobristKey, movegen::defs::HashMove};
+use crate::{board::defs::ZobristKey, movegen::defs::HashMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
@@ -100,21 +100,41 @@ impl IHashData for SearchData {
 }
 
 impl SearchData {
-    pub fn create(depth: i8, flags: HashFlags, value: i16, best_move: HashMove) -> Self {
+    pub fn create(depth: i8, ply: i8, flags: HashFlags, value: i16, best_move: HashMove) -> Self {
+        let mut x = value;
+
+        if x > CHECKMATE_THRESHOLD {
+            x += ply as i16;
+        }
+
+        if x < CHECKMATE_THRESHOLD {
+            x -= ply as i16;
+        }
+
         Self {
             depth,
             flags,
-            value,
+            value: x,
             best_move,
         }
     }
 
-    pub fn get(&self, depth: i8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
+    pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
         let mut value: Option<i16> = None;
         if self.depth >= depth {
             match self.flags {
                 HashFlags::EXACT => {
-                    value = Some(self.value);
+                    let mut x = self.value;
+
+                    if x > CHECKMATE_THRESHOLD {
+                        x -= ply as i16;
+                    }
+
+                    if x < CHECKMATE_THRESHOLD {
+                        x += ply as i16;
+                    }
+
+                    value = Some(x);
                 }
                 HashFlags::ALPHA => {
                     if self.value <= alpha {

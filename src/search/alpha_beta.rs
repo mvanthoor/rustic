@@ -94,7 +94,7 @@ impl Search {
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
             {
-                let tt_result = data.get(depth, alpha, beta);
+                let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
                 tt_value = tt_result.0;
                 tt_move = tt_result.1;
             }
@@ -178,7 +178,13 @@ impl Search {
             if eval_score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
-                    SearchData::create(depth, HashFlags::BETA, beta, best_move),
+                    SearchData::create(
+                        depth,
+                        refs.search_info.ply,
+                        HashFlags::BETA,
+                        beta,
+                        best_move,
+                    ),
                 );
                 return beta;
             }
@@ -213,7 +219,7 @@ impl Search {
 
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData::create(depth, hash_flag, alpha, best_move),
+            SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );
 
         // We have traversed the entire move list and found the best
