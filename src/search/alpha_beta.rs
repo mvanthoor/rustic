@@ -27,9 +27,9 @@ use super::{
 };
 use crate::{
     defs::MAX_DEPTH,
-    engine::defs::{ErrFatal, HashFlags, SearchData},
+    engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
-    movegen::defs::{HashMove, Move, MoveList, MoveType},
+    movegen::defs::{Move, MoveList, MoveType, TTMove},
 };
 
 impl Search {
@@ -40,7 +40,7 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        let mut best_move: HashMove = HashMove::new(0); // To store best move in TT.
+        let mut best_move: TTMove = TTMove::new(0); // To store best move in TT.
         let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
 
@@ -84,7 +84,7 @@ impl Search {
 
         // Variables to hold TT value and move if any.
         let mut tt_value: Option<i16> = None;
-        let mut tt_move: HashMove = HashMove::new(0);
+        let mut tt_move: TTMove = TTMove::new(0);
 
         // Probe the TT for information.
         if refs.tt_enabled {
@@ -126,7 +126,7 @@ impl Search {
         }
 
         // Set the initial TT flag type.
-        let mut hash_flag = HashFlags::ALPHA;
+        let mut hash_flag = HashFlag::ALPHA;
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
@@ -181,7 +181,7 @@ impl Search {
                     SearchData::create(
                         depth,
                         refs.search_info.ply,
-                        HashFlags::BETA,
+                        HashFlag::BETA,
                         beta,
                         best_move,
                     ),
@@ -196,7 +196,7 @@ impl Search {
                 best_move = current_move.to_hash_move();
 
                 // This is an exact score
-                hash_flag = HashFlags::EXACT;
+                hash_flag = HashFlag::EXACT;
 
                 // Update the Principal Variation.
                 pv.clear();

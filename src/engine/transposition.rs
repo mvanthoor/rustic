@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::{board::defs::ZobristKey, movegen::defs::HashMove, search::defs::CHECKMATE_THRESHOLD};
+use crate::{board::defs::ZobristKey, movegen::defs::TTMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
@@ -69,7 +69,7 @@ impl PerftData {
 }
 
 #[derive(Copy, Clone)]
-pub enum HashFlags {
+pub enum HashFlag {
     NONE,
     EXACT,
     ALPHA,
@@ -79,18 +79,18 @@ pub enum HashFlags {
 #[derive(Copy, Clone)]
 pub struct SearchData {
     depth: i8,
-    flags: HashFlags,
+    flag: HashFlag,
     value: i16,
-    best_move: HashMove,
+    best_move: TTMove,
 }
 
 impl IHashData for SearchData {
     fn new() -> Self {
         Self {
             depth: 0,
-            flags: HashFlags::NONE,
+            flag: HashFlag::NONE,
             value: 0,
-            best_move: HashMove::new(0),
+            best_move: TTMove::new(0),
         }
     }
 
@@ -100,48 +100,62 @@ impl IHashData for SearchData {
 }
 
 impl SearchData {
-    pub fn create(depth: i8, ply: i8, flags: HashFlags, value: i16, best_move: HashMove) -> Self {
-        let mut x = value;
+    pub fn create(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: TTMove) -> Self {
+        // This is the value we're going to save into the TT.
+        let mut v = value;
 
-        if x > CHECKMATE_THRESHOLD {
-            x += ply as i16;
+        // If we're dealing with checkmate, the value must be adjusted, so
+        // they take the number of plies at which they were found into
+        // account, before storing the value into the TT. These ifs can be
+        // rewritten as a comparative match expression. We don't, because
+        // they're slower. (No inlining by the compiler.)
+        if v > CHECKMATE_THRESHOLD {
+            v += ply as i16;
         }
 
-        if x < CHECKMATE_THRESHOLD {
-            x -= ply as i16;
+        if v < CHECKMATE_THRESHOLD {
+            v -= ply as i16;
         }
 
         Self {
             depth,
-            flags,
-            value: x,
+            flag,
+            value: v,
             best_move,
         }
     }
 
-    pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, HashMove) {
+    pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, TTMove) {
+        // We either do, or don't have a value to return from the TT.
         let mut value: Option<i16> = None;
+
         if self.depth >= depth {
-            match self.flags {
-                HashFlags::EXACT => {
-                    let mut x = self.value;
+            match self.flag {
+                HashFlag::EXACT => {
+                    // Get the value from the data. We don't want to change
+                    // the value that is in the TT.
+                    let mut v = self.value;
 
-                    if x > CHECKMATE_THRESHOLD {
-                        x -= ply as i16;
+                    // Adjust for the number of plies from where this data
+                    // is probed, if we're dealing with checkmate. Same as
+                    // above: no comparative match expression.
+                    if v > CHECKMATE_THRESHOLD {
+                        v -= ply as i16;
                     }
 
-                    if x < CHECKMATE_THRESHOLD {
-                        x += ply as i16;
+                    if v < CHECKMATE_THRESHOLD {
+                        v += ply as i16;
                     }
 
-                    value = Some(x);
+                    // This is the value that will be returned.
+                    value = Some(v);
                 }
-                HashFlags::ALPHA => {
+                HashFlag::ALPHA => {
                     if self.value <= alpha {
                         value = Some(alpha);
                     }
                 }
-                HashFlags::BETA => {
+                HashFlag::BETA => {
                     if self.value >= beta {
                         value = Some(beta);
                     }

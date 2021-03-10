@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub use crate::engine::transposition::{HashFlags, IHashData, PerftData, SearchData, TT};
+pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 use crate::{comm::CommReport, search::defs::SearchReport};
 
 // This struct holds messages that are reported on fatal engine errors.
