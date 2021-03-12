@@ -59,3 +59,16 @@ pub enum Information {
     Comm(CommReport),
     Search(SearchReport),
 }
+
+enum UiElement {
+    Spin,
+    Button,
+}
+
+struct EngineOption {
+    name: &'static str,
+    ui_element: UiElement,
+    min: Option<String>,
+    default: Option<String>,
+    max: Option<String>,
+}
