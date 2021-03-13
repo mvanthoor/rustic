@@ -33,7 +33,9 @@ use crate::{
     board::Board,
     comm::{uci::Uci, CommControl, CommType, IComm},
     defs::EngineRunResult,
-    engine::defs::{ErrFatal, Information, Settings},
+    engine::defs::{
+        EngineOption, EngineOptionDefaults, ErrFatal, Information, Settings, UiElement,
+    },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
@@ -53,6 +55,7 @@ use crate::{
 pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
     settings: Settings,                     // Struct holding all the settings.
+    options: Vec<EngineOption>,             // Engine options exported to the GUI
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
@@ -85,6 +88,13 @@ impl Engine {
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
         let tt_size = cmdline.hash();
+        let options = vec![EngineOption::new(
+            "Hash",
+            UiElement::Spin,
+            Some(tt_size.to_string()),
+            Some(EngineOptionDefaults::HASH_MIN.to_string()),
+            Some(EngineOptionDefaults::HASH_MAX.to_string()),
+        )];
 
         // Initialize correct TT.
         let tt_perft: Arc<Mutex<TT<PerftData>>>;
@@ -105,6 +115,7 @@ impl Engine {
                 quiet,
                 tt_size,
             },
+            options,
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),

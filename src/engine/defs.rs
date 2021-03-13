@@ -60,15 +60,40 @@ pub enum Information {
     Search(SearchReport),
 }
 
-enum UiElement {
+pub enum UiElement {
     Spin,
     Button,
 }
 
-struct EngineOption {
+pub struct EngineOption {
     name: &'static str,
     ui_element: UiElement,
-    min: Option<String>,
     default: Option<String>,
+    min: Option<String>,
     max: Option<String>,
+}
+
+impl EngineOption {
+    pub fn new(
+        name: &'static str,
+        ui_element: UiElement,
+        default: Option<String>,
+        min: Option<String>,
+        max: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            ui_element,
+            default,
+            min,
+            max,
+        }
+    }
+}
+
+pub struct EngineOptionDefaults;
+impl EngineOptionDefaults {
+    pub const HASH_DEFAULT: &'static str = "32";
+    pub const HASH_MIN: &'static str = "0";
+    pub const HASH_MAX: &'static str = "32768";
 }

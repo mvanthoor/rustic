@@ -21,7 +21,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::defs::{About, FEN_START_POSITION};
+use crate::{
+    defs::{About, FEN_START_POSITION},
+    engine::defs::EngineOptionDefaults,
+};
 use clap::{App, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
@@ -55,7 +58,7 @@ impl CmdLineArgs {
     const HASH_LONG: &'static str = "hash";
     const HASH_SHORT: &'static str = "h";
     const HASH_HELP: &'static str = "Transposition Table size in MB";
-    const HASH_DEFAULT: &'static str = "32";
+    const HASH_DEFAULT: &'static str = EngineOptionDefaults::HASH_DEFAULT;
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
