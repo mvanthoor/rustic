@@ -26,7 +26,7 @@ pub mod uci;
 
 use crate::{
     board::Board,
-    engine::defs::Information,
+    engine::defs::{EngineOption, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -43,7 +43,12 @@ impl CommType {
 
 // Defines the public functions a Comm module must implement.
 pub trait IComm {
-    fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>);
+    fn init(
+        &mut self,
+        report_tx: Sender<Information>,
+        board: Arc<Mutex<Board>>,
+        options: Arc<Vec<EngineOption>>,
+    );
     fn send(&self, msg: CommControl);
     fn wait_for_shutdown(&mut self);
     fn get_protocol_name(&self) -> &'static str;

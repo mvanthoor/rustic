@@ -27,7 +27,7 @@ use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{ErrFatal, Information},
+    engine::defs::{EngineOption, ErrFatal, Information, UiElement},
     misc::print,
     movegen::defs::Move,
     search::defs::{
@@ -89,10 +89,15 @@ impl Uci {
 
 // Any communication module must implement the trait IComm.
 impl IComm for Uci {
-    fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>) {
+    fn init(
+        &mut self,
+        report_tx: Sender<Information>,
+        board: Arc<Mutex<Board>>,
+        options: Arc<Vec<EngineOption>>,
+    ) {
         // Start threads
         self.report_thread(report_tx);
-        self.control_thread(board);
+        self.control_thread(board, options);
     }
 
     // The creator of the Comm module can use this function to send
@@ -165,7 +170,7 @@ impl Uci {
     }
 
     // The control thread receives commands from the engine thread.
-    fn control_thread(&mut self, board: Arc<Mutex<Board>>) {
+    fn control_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
 
@@ -173,6 +178,7 @@ impl Uci {
         let control_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
+            let t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -182,6 +188,7 @@ impl Uci {
                 match control {
                     CommControl::Identify => {
                         Uci::id();
+                        Uci::options(&t_options);
                         Uci::uciok();
                     }
                     CommControl::Ready => Uci::readyok(),
@@ -357,6 +364,44 @@ impl Uci {
     fn id() {
         println!("id name {} {}", About::ENGINE, About::VERSION);
         println!("id author {}", About::AUTHOR);
+    }
+
+    fn options(options: &Arc<Vec<EngineOption>>) {
+        for o in options.iter() {
+            let name = format!("option name {}", o.name);
+
+            let ui_element = match o.ui_element {
+                UiElement::Spin => String::from("type spin"),
+                UiElement::Button => String::from("type button"),
+            };
+
+            let value_default = if let Some(v) = &o.default {
+                format!("default {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_min = if let Some(v) = &o.min {
+                format!("min {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_max = if let Some(v) = &o.max {
+                format!("min {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let option = format!(
+                "{} {} {} {} {}",
+                name, ui_element, value_default, value_min, value_max
+            )
+            .trim()
+            .to_string();
+
+            println!("{}", option);
+        }
     }
 
     fn uciok() {
