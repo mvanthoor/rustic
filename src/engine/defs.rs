@@ -97,3 +97,9 @@ impl EngineOptionDefaults {
     pub const HASH_MIN: &'static str = "0";
     pub const HASH_MAX: &'static str = "32768";
 }
+
+pub struct EngineOptionNames;
+impl EngineOptionNames {
+    pub const HASH: &'static str = "Hash";
+    pub const CLEAR_HASH: &'static str = "Clear Hash";
+}

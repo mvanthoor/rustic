@@ -34,7 +34,8 @@ use crate::{
     comm::{uci::Uci, CommControl, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{
-        EngineOption, EngineOptionDefaults, ErrFatal, Information, Settings, UiElement,
+        EngineOption, EngineOptionDefaults, EngineOptionNames, ErrFatal, Information, Settings,
+        UiElement,
     },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -84,17 +85,28 @@ impl Engine {
             _ => panic!(ErrFatal::CREATE_COMM),
         };
 
-        // Get engine settings from the command-line
+        // Get engine settings from the command-line.
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
         let tt_size = cmdline.hash();
-        let options = vec![EngineOption::new(
-            "Hash",
-            UiElement::Spin,
-            Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
-            Some(EngineOptionDefaults::HASH_MIN.to_string()),
-            Some(EngineOptionDefaults::HASH_MAX.to_string()),
-        )];
+
+        // List of options that should be announced to the GUI.
+        let options = vec![
+            EngineOption::new(
+                EngineOptionNames::HASH,
+                UiElement::Spin,
+                Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
+                Some(EngineOptionDefaults::HASH_MIN.to_string()),
+                Some(EngineOptionDefaults::HASH_MAX.to_string()),
+            ),
+            EngineOption::new(
+                EngineOptionNames::CLEAR_HASH,
+                UiElement::Button,
+                None,
+                None,
+                None,
+            ),
+        ];
 
         // Initialize correct TT.
         let tt_perft: Arc<Mutex<TT<PerftData>>>;
