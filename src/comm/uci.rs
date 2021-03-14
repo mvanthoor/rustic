@@ -49,6 +49,7 @@ pub enum UciReport {
     Uci,
     UciNewGame,
     IsReady,
+    SetOption(String, String),
     Position(String, Vec<String>),
     GoInfinite,
     GoDepth(i8),
@@ -235,6 +236,7 @@ impl Uci {
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
+            cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
@@ -360,6 +362,42 @@ impl Uci {
 
         report
     } // end parse_go()
+
+    fn parse_setoption(cmd: &str) -> CommReport {
+        println!("parsing setoption...");
+
+        enum Tokens {
+            Nothing,
+            Name,
+            Value,
+        }
+
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let mut token = Tokens::Nothing;
+        let mut name = String::from("");
+        let mut value = String::from("");
+
+        for p in parts {
+            match p {
+                t if t == "setoption" => (),
+                t if t == "name" => token = Tokens::Name,
+                t if t == "value" => token = Tokens::Value,
+                _ => match token {
+                    Tokens::Name => name = format!("{} {}", name, p.to_lowercase()),
+                    Tokens::Value => value = p.to_lowercase(),
+                    Tokens::Nothing => (),
+                },
+            }
+        }
+
+        if name.is_empty() {
+            name = String::from("nothing");
+        } else {
+            name = name.trim().to_string();
+        }
+
+        CommReport::Uci(UciReport::SetOption(name, value))
+    }
 }
 
 // Implements UCI responses to send to the G(UI).

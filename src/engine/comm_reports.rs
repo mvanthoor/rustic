@@ -49,8 +49,8 @@ impl Engine {
         sp.quiet = self.settings.quiet;
 
         match u {
-            // Uci commands
             UciReport::Uci => self.comm.send(CommControl::Identify),
+
             UciReport::UciNewGame => {
                 self.board
                     .lock()
@@ -59,7 +59,13 @@ impl Engine {
                     .expect(ErrFatal::NEW_GAME);
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
+
             UciReport::IsReady => self.comm.send(CommControl::Ready),
+
+            UciReport::SetOption(name, value) => {
+                println!("name:-{}-value:-{}-", name, value);
+            }
+
             UciReport::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
 
