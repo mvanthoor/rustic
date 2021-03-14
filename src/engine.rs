@@ -34,7 +34,7 @@ use crate::{
     comm::{uci::Uci, CommControl, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{
-        EngineOption, EngineOptionDefaults, EngineOptionNames, ErrFatal, Information, Settings,
+        EngineOption, EngineOptionDefaults, EngineOptionName, ErrFatal, Information, Settings,
         UiElement,
     },
     misc::{cmdline::CmdLine, perft},
@@ -93,14 +93,14 @@ impl Engine {
         // List of options that should be announced to the GUI.
         let options = vec![
             EngineOption::new(
-                EngineOptionNames::HASH,
+                EngineOptionName::HASH,
                 UiElement::Spin,
                 Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
                 Some(EngineOptionDefaults::HASH_MIN.to_string()),
                 Some(EngineOptionDefaults::HASH_MAX.to_string()),
             ),
             EngineOption::new(
-                EngineOptionNames::CLEAR_HASH,
+                EngineOptionName::CLEAR_HASH,
                 UiElement::Button,
                 None,
                 None,

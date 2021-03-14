@@ -27,7 +27,7 @@ use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, ErrFatal, Information, UiElement},
+    engine::defs::{EngineOption, EngineOptionName, ErrFatal, Information, UiElement},
     misc::print,
     movegen::defs::Move,
     search::defs::{
@@ -49,7 +49,7 @@ pub enum UciReport {
     Uci,
     UciNewGame,
     IsReady,
-    SetOption(String, String),
+    SetOption(EngineOptionName),
     Position(String, Vec<String>),
     GoInfinite,
     GoDepth(i8),
@@ -372,8 +372,9 @@ impl Uci {
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
         let mut token = Tokens::Nothing;
-        let mut name = String::from("");
-        let mut value = String::from("");
+        let mut name = String::from(""); // Option name provided by the UCI command.
+        let mut value = String::from(""); // Option value provided by the UCI command.
+        let mut eon = EngineOptionName::Nothing; // Engine Option Name to send to the engine.
 
         for p in parts {
             match p {
@@ -381,20 +382,25 @@ impl Uci {
                 t if t == "name" => token = Tokens::Name,
                 t if t == "value" => token = Tokens::Value,
                 _ => match token {
-                    Tokens::Name => name = format!("{} {}", name, p.to_lowercase()),
+                    Tokens::Name => name = format!("{} {}", name, p),
                     Tokens::Value => value = p.to_lowercase(),
                     Tokens::Nothing => (),
                 },
             }
         }
 
-        if name.is_empty() {
-            name = String::from("nothing");
-        } else {
-            name = name.trim().to_string();
+        // Determine which engine option name to send.
+        if !name.is_empty() {
+            name = name.to_lowercase().trim().to_string();
+            match &name[..] {
+                "hash" => eon = EngineOptionName::Hash(value),
+                "clear hash" => eon = EngineOptionName::ClearHash,
+                _ => (),
+            }
         }
 
-        CommReport::Uci(UciReport::SetOption(name, value))
+        // Send the engine option name with value to the engine thread.
+        CommReport::Uci(UciReport::SetOption(eon))
     }
 }
 

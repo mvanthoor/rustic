@@ -92,15 +92,20 @@ impl EngineOption {
     }
 }
 
+#[derive(PartialEq, Clone)]
+pub enum EngineOptionName {
+    Hash(String),
+    ClearHash,
+    Nothing,
+}
+impl EngineOptionName {
+    pub const HASH: &'static str = "Hash";
+    pub const CLEAR_HASH: &'static str = "Clear Hash";
+}
+
 pub struct EngineOptionDefaults;
 impl EngineOptionDefaults {
     pub const HASH_DEFAULT: &'static str = "32";
     pub const HASH_MIN: &'static str = "0";
     pub const HASH_MAX: &'static str = "32768";
-}
-
-pub struct EngineOptionNames;
-impl EngineOptionNames {
-    pub const HASH: &'static str = "Hash";
-    pub const CLEAR_HASH: &'static str = "Clear Hash";
 }

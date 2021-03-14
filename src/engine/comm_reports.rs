@@ -28,6 +28,7 @@ use super::{
 use crate::{
     comm::{uci::UciReport, CommControl, CommReport},
     defs::FEN_START_POSITION,
+    engine::defs::EngineOptionName,
     evaluation::evaluate_position,
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
@@ -62,11 +63,9 @@ impl Engine {
 
             UciReport::IsReady => self.comm.send(CommControl::Ready),
 
-            UciReport::SetOption(name, value) => {
-                let option = &name[..];
-
+            UciReport::SetOption(option) => {
                 match option {
-                    "hash" => {
+                    EngineOptionName::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
@@ -74,8 +73,12 @@ impl Engine {
                             self.comm.send(CommControl::InfoString(msg));
                         }
                     }
-                    "clear hash" => self.tt_search.lock().expect(ErrFatal::LOCK).clear(),
-                    _ => (),
+
+                    EngineOptionName::ClearHash => {
+                        self.tt_search.lock().expect(ErrFatal::LOCK).clear()
+                    }
+
+                    EngineOptionName::Nothing => (),
                 };
             }
 
