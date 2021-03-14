@@ -69,6 +69,9 @@ impl Engine {
                     "hash" => {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                        } else {
+                            let msg = String::from(ErrNormal::NOT_INT);
+                            self.comm.send(CommControl::InfoString(msg));
                         }
                     }
                     "clear hash" => self.tt_search.lock().expect(ErrFatal::LOCK).clear(),

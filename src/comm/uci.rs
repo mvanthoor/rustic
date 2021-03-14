@@ -364,8 +364,6 @@ impl Uci {
     } // end parse_go()
 
     fn parse_setoption(cmd: &str) -> CommReport {
-        println!("parsing setoption...");
-
         enum Tokens {
             Nothing,
             Name,

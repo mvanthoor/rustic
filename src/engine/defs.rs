@@ -42,6 +42,7 @@ impl ErrFatal {
 pub struct ErrNormal;
 impl ErrNormal {
     pub const NOT_LEGAL: &'static str = "This is not a legal move in this position.";
+    pub const NOT_INT: &'static str = "The value given was not an integer.";
     pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
 }
 
