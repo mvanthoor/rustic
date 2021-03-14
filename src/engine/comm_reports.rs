@@ -63,7 +63,17 @@ impl Engine {
             UciReport::IsReady => self.comm.send(CommControl::Ready),
 
             UciReport::SetOption(name, value) => {
-                println!("name:-{}-value:-{}-", name, value);
+                let option = &name[..];
+
+                match option {
+                    "hash" => {
+                        if let Ok(v) = value.parse::<usize>() {
+                            self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                        }
+                    }
+                    "clear hash" => self.tt_search.lock().expect(ErrFatal::LOCK).clear(),
+                    _ => (),
+                };
             }
 
             UciReport::Position(fen, moves) => {
