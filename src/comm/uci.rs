@@ -126,7 +126,7 @@ impl IComm for Uci {
     }
 }
 
-// This block implements the Report and Control threads.
+// Implement the report thr
 impl Uci {
     // The Report thread sends incoming data to the engine thread.
     fn report_thread(&mut self, report_tx: Sender<Information>) {
@@ -168,7 +168,10 @@ impl Uci {
         // Store the handle.
         self.report_handle = Some(report_handle);
     }
+}
 
+// Implement the control thread
+impl Uci {
     // The control thread receives commands from the engine thread.
     fn control_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
@@ -388,7 +391,7 @@ impl Uci {
             };
 
             let value_max = if let Some(v) = &o.max {
-                format!("min {}", (*v).clone())
+                format!("max {}", (*v).clone())
             } else {
                 String::from("")
             };
