@@ -150,11 +150,6 @@ impl Engine {
 
         self.print_ascii_logo();
         self.print_about();
-        self.print_settings(
-            self.settings.tt_size,
-            self.settings.threads,
-            self.comm.get_protocol_name(),
-        );
         println!();
 
         // Setup position and abort if this fails.

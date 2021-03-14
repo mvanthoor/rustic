@@ -48,16 +48,7 @@ impl Engine {
         println!("Author: {}", About::AUTHOR);
         println!("EMail: {}", About::EMAIL);
         println!("Website: {}", About::WEBSITE);
-    }
 
-    pub fn print_settings(&self, hash_size: usize, threads: usize, protocol: &str) {
-        let h = format!("{} MB", hash_size);
-        let d = String::from("disabled");
-        let hash_str = if hash_size > 0 { h } else { d };
-
-        println!("Transposition Table: {}", hash_str);
-        println!("Protocol: {}", protocol);
-        println!("Threads: {}", threads);
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
     }
