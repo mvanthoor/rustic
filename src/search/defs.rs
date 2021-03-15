@@ -7,6 +7,8 @@ use crate::{
 use crossbeam_channel::{Receiver, Sender};
 use std::{sync::Arc, time::Instant};
 
+pub use super::time::OVERHEAD;
+
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const STALEMATE: i16 = 0;
