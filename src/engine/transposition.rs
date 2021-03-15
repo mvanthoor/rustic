@@ -25,9 +25,9 @@ use crate::{board::defs::ZobristKey, movegen::defs::TTMove, search::defs::CHECKM
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
-const HIGH_FOUR_BYTES: usize = 0xFF_FF_FF_FF_00_00_00_00;
-const LOW_FOUR_BYTES: usize = 0x00_00_00_00_FF_FF_FF_FF;
-const SHIFT_TO_LOWER: usize = 32;
+const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
+const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
+const SHIFT_TO_LOWER: u64 = 32;
 
 /* ===== Data ========================================================= */
 
@@ -306,7 +306,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_entries * 1000) / self.total_entries) as u16
+            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -316,16 +316,20 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 // Private functions
 impl<D: IHashData + Copy + Clone> TT<D> {
     // Calculate the index (bucket) where the data is going to be stored.
-    // Use half of the Zobrist key for this.
+    // Use only the upper half of the Zobrist key for this, so the lower
+    // half can be used to calculate a verification.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
-        ((zobrist_key as usize & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER) % self.total_buckets
+        let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
+        let total = self.total_buckets as u64;
+
+        (key % total) as usize
     }
 
     // Many positions will end up at the same index, and thus in the same
     // bucket. Calculate a verification for the position so it can later be
     // found in the bucket. Use the other half of the Zobrist key for this.
     fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
-        ((zobrist_key as usize) & LOW_FOUR_BYTES) as u32
+        (zobrist_key & LOW_FOUR_BYTES) as u32
     }
 
     // This function calculates the values for total_buckets and

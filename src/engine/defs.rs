@@ -107,5 +107,6 @@ pub struct EngineOptionDefaults;
 impl EngineOptionDefaults {
     pub const HASH_DEFAULT: &'static str = "32";
     pub const HASH_MIN: &'static str = "0";
-    pub const HASH_MAX: &'static str = "32768";
+    pub const HASH_MAX_64_BIT: &'static str = "65536";
+    pub const HASH_MAX_32_BIT: &'static str = "2048";
 }

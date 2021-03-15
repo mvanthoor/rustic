@@ -71,6 +71,9 @@ pub struct Engine {
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
+        // Determine if the compiled engine is 32 or 64-bit
+        let is_64_bit = std::mem::size_of::<usize>() == 8;
+
         // Create the command-line object.
         let cmdline = CmdLine::new();
         let mut is_xboard = false;
@@ -89,6 +92,11 @@ impl Engine {
         let threads = cmdline.threads();
         let quiet = cmdline.has_quiet();
         let tt_size = cmdline.hash();
+        let tt_max = if is_64_bit {
+            EngineOptionDefaults::HASH_MAX_64_BIT
+        } else {
+            EngineOptionDefaults::HASH_MAX_32_BIT
+        };
 
         // List of options that should be announced to the GUI.
         let options = vec![
@@ -97,7 +105,7 @@ impl Engine {
                 UiElement::Spin,
                 Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
                 Some(EngineOptionDefaults::HASH_MIN.to_string()),
-                Some(EngineOptionDefaults::HASH_MAX.to_string()),
+                Some(tt_max.to_string()),
             ),
             EngineOption::new(
                 EngineOptionName::CLEAR_HASH,

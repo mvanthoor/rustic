@@ -44,10 +44,12 @@ impl Engine {
 
     // Print information about the engine.
     pub fn print_about(&self) {
-        println!("Engine: {} {}", About::ENGINE, About::VERSION);
-        println!("Author: {}", About::AUTHOR);
-        println!("EMail: {}", About::EMAIL);
-        println!("Website: {}", About::WEBSITE);
+        let bits = std::mem::size_of::<usize>() * 8;
+        println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
+        println!("{:<10} {}-bit", "Type:", bits);
+        println!("{:<10} {}", "Author:", About::AUTHOR);
+        println!("{:<10} {}", "EMail:", About::EMAIL);
+        println!("{:<10} {}", "Website:", About::WEBSITE);
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
