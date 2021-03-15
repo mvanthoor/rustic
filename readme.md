@@ -312,7 +312,7 @@ one or more contributions (in no particular order).
   about the Rust programming language, which were very useful in speeding
   up the early versions of the engine.
 4. H.G. Müller (author of FairyMax, MicroMax, and others): especially for
-  pointing out some improvements with regard to hash table usage, and
+  pointing out some improvements with regard to TT usage, and
   general assistance by patiently answering questions he must have seen
   countless times over the years.
 5. Maksim Korzh (author of Wukong and BBC): for writing a great video series

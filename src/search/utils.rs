@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate,
+        SearchTerminate, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
     },
     Search,
 };
@@ -46,22 +46,37 @@ impl Search {
         nps
     }
 
-    // Send currently searched move to the engine thread.
-    pub fn send_current_move(refs: &mut SearchRefs, current: Move, count: u8) {
-        let scm = SearchCurrentMove::new(current, count);
-        let scm_report = SearchReport::SearchCurrentMove(scm);
-        let information = Information::Search(scm_report);
-        refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+    // Send intermediate statistics to GUI.
+    pub fn send_stats_to_gui(refs: &mut SearchRefs) {
+        let elapsed = refs.search_info.timer_elapsed();
+        let last_stats = refs.search_info.last_stats_sent;
+
+        if elapsed >= last_stats + MIN_TIME_STATS {
+            let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
+            let msecs = refs.search_info.timer_elapsed();
+            let nps = Search::nodes_per_second(refs.search_info.nodes, msecs);
+            let stats = SearchStats::new(msecs, refs.search_info.nodes, nps, hash_full);
+            let stats_report = SearchReport::SearchStats(stats);
+            let information = Information::Search(stats_report);
+
+            refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+            refs.search_info.last_stats_sent = elapsed;
+        }
     }
 
-    // Send updated search statistics to the engine thread.
-    pub fn send_stats(refs: &mut SearchRefs) {
-        let msecs = refs.search_info.timer_elapsed();
-        let nps = Search::nodes_per_second(refs.search_info.nodes, msecs);
-        let stats = SearchStats::new(msecs, refs.search_info.nodes, nps);
-        let stats_report = SearchReport::SearchStats(stats);
-        let information = Information::Search(stats_report);
-        refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+    // Send currently processed move to GUI.
+    pub fn send_move_to_gui(refs: &mut SearchRefs, current_move: Move, count: u8) {
+        let elapsed = refs.search_info.timer_elapsed();
+        let lcm = refs.search_info.last_curr_move_sent;
+
+        if elapsed >= lcm + MIN_TIME_CURR_MOVE {
+            let scm = SearchCurrentMove::new(current_move, count);
+            let scm_report = SearchReport::SearchCurrentMove(scm);
+            let information = Information::Search(scm_report);
+
+            refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+            refs.search_info.last_curr_move_sent = elapsed;
+        }
     }
 
     // This function checks termination conditions and sets the termination

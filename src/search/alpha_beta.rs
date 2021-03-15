@@ -22,35 +22,42 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{
-        SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
-        SEND_STATS, STALEMATE,
-    },
+    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_DEPTH,
+    engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType},
+    movegen::defs::{Move, MoveList, MoveType, TTMove},
 };
 
 impl Search {
     pub fn alpha_beta(
-        mut depth: u8,
+        mut depth: i8,
         mut alpha: i16,
         beta: i16,
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        // If quiet, don't send intermediate stats updates.
-        let quiet = refs.search_params.quiet;
-
-        // If we haven't made any moves yet, we're at the root.
-        let is_root = refs.search_info.ply == 0;
+        let mut best_move: TTMove = TTMove::new(0); // To store best move in TT.
+        let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
+        let is_root = refs.search_info.ply == 0; // At root if no moves were played.
 
         // Check if termination condition is met.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
             Search::check_termination(refs);
+        }
+
+        // If time is up, abort. This depth won't be considered in
+        // iterative deepening as it is unfinished.
+        if refs.search_info.terminate != SearchTerminate::Nothing {
+            return 0;
+        }
+
+        // Stop going deeper if we hit MAX_DEPTH.
+        if refs.search_info.ply >= MAX_DEPTH {
+            return evaluation::evaluate_position(refs.board);
         }
 
         // Determine if we are in check.
@@ -68,13 +75,36 @@ impl Search {
 
         // We have arrived at the leaf node. Evaluate the position and
         // return the result.
-        if depth == 0 {
+        if depth <= 0 {
             return Search::quiescence(alpha, beta, pv, refs);
         }
 
-        // Stop going deeper if we hit MAX_DEPTH.
-        if refs.search_info.ply >= MAX_DEPTH {
-            return evaluation::evaluate_position(refs.board);
+        // Count this node, as it is not aborted or searched by QSearch.
+        refs.search_info.nodes += 1;
+
+        // Variables to hold TT value and move if any.
+        let mut tt_value: Option<i16> = None;
+        let mut tt_move: TTMove = TTMove::new(0);
+
+        // Probe the TT for information.
+        if refs.tt_enabled {
+            if let Some(data) = refs
+                .tt
+                .lock()
+                .expect(ErrFatal::LOCK)
+                .probe(refs.board.game_state.zobrist_key)
+            {
+                let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
+                tt_value = tt_result.0;
+                tt_move = tt_result.1;
+            }
+        }
+
+        // If we have a value from the TT, then return immediately.
+        if let Some(v) = tt_value {
+            if !is_root {
+                return v;
+            }
         }
 
         /*=== Actual searching starts here ===*/
@@ -86,29 +116,20 @@ impl Search {
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list);
-
-        // We created a new node which we'll search, so count it.
-        refs.search_info.nodes += 1;
+        Search::score_moves(&mut move_list, tt_move);
 
         // After SEND_STATS nodes have been searched, check if the
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
         // statistics to the GUI.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
-            let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats_sent;
-            if elapsed >= last_stats + MIN_TIME_STATS {
-                Search::send_stats(refs);
-                refs.search_info.last_stats_sent = elapsed;
-            }
+            Search::send_stats_to_gui(refs);
         }
+
+        // Set the initial TT flag type.
+        let mut hash_flag = HashFlag::ALPHA;
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
-            if refs.search_info.terminate != SearchTerminate::Nothing {
-                break;
-            }
-
             // This function finds the best move to test according to the
             // move scoring, and puts it at the current index of the move
             // list, so get_move() will get this next.
@@ -133,23 +154,14 @@ impl Search {
 
             // Send currently searched move to GUI.
             if !quiet && is_root {
-                let elapsed = refs.search_info.timer_elapsed();
-                let lcm = refs.search_info.last_curr_move_sent;
-                if elapsed >= lcm + MIN_TIME_CURR_MOVE {
-                    Search::send_current_move(refs, current_move, legal_moves_found);
-                    refs.search_info.last_curr_move_sent = elapsed;
-                }
+                Search::send_move_to_gui(refs, current_move, legal_moves_found);
             }
 
             // Create a node PV for this move.
             let mut node_pv: Vec<Move> = Vec::new();
 
             //We just made a move. We are not yet at one of the leaf nodes,
-            //so we must search deeper. We do this by calling alpha/beta
-            //again to go to the next ply, but ONLY if this move is NOT
-            //causing a draw by repetition or 50-move rule. If it is, we
-            //don't have to search anymore: we can just assign DRAW as the
-            //eval_score.
+            //so we must search deeper, if the position isn't a draw.
             let eval_score = if !Search::is_draw(refs) {
                 -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
             } else {
@@ -164,6 +176,16 @@ impl Search {
             // further down this path would make the situation worse for us
             // and better for our opponent. This is called "fail-high".
             if eval_score >= beta {
+                refs.tt.lock().expect(ErrFatal::LOCK).insert(
+                    refs.board.game_state.zobrist_key,
+                    SearchData::create(
+                        depth,
+                        refs.search_info.ply,
+                        HashFlag::BETA,
+                        beta,
+                        best_move,
+                    ),
+                );
                 return beta;
             }
 
@@ -171,6 +193,10 @@ impl Search {
             if eval_score > alpha {
                 // Save our better evaluation score.
                 alpha = eval_score;
+                best_move = current_move.to_hash_move();
+
+                // This is an exact score
+                hash_flag = HashFlag::EXACT;
 
                 // Update the Principal Variation.
                 pv.clear();
@@ -183,18 +209,22 @@ impl Search {
         // side to move is either in checkmate or stalemate.
         if legal_moves_found == 0 {
             if is_check {
-                // The return value is minus CHECKMATE (negative), because
-                // if we have no legal moves AND are in check, we have
-                // lost. This is a very negative outcome.
+                // The return value is minus CHECKMATE, because if we have
+                // no legal moves and are in check, it's game over.
                 return -CHECKMATE + (refs.search_info.ply as i16);
             } else {
                 return STALEMATE;
             }
         }
 
+        refs.tt.lock().expect(ErrFatal::LOCK).insert(
+            refs.board.game_state.zobrist_key,
+            SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
+        );
+
         // We have traversed the entire move list and found the best
-        // possible move/eval_score for us at this depth. We can't improve
-        // this any further, so return the result. This called "fail-low".
+        // possible move/eval_score for us. We can't improve this any
+        // further, so return the result. This called "fail-low".
         alpha
     }
 }

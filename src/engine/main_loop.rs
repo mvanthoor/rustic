@@ -37,9 +37,18 @@ impl Engine {
         self.info_rx = Some(info_rx);
 
         // Initialize Communications and Search modules.
-        self.comm.init(info_tx.clone(), Arc::clone(&self.board));
-        self.search
-            .init(info_tx, Arc::clone(&self.board), Arc::clone(&self.mg));
+        self.comm.init(
+            info_tx.clone(),
+            Arc::clone(&self.board),
+            Arc::clone(&self.options),
+        );
+        self.search.init(
+            info_tx,
+            Arc::clone(&self.board),
+            Arc::clone(&self.mg),
+            Arc::clone(&self.tt_search),
+            self.settings.tt_size > 0,
+        );
 
         // Update the Comm interface screen output (if any).
         self.comm.send(CommControl::Update);

@@ -62,7 +62,7 @@ impl Search {
 
         // Start the search
         refs.search_info.timer_start();
-        while (depth < MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
+        while (depth <= MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
 
@@ -72,11 +72,14 @@ impl Search {
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
-                best_move = root_pv[0];
+                if !root_pv.is_empty() {
+                    best_move = root_pv[0];
+                }
 
                 // Create search summary for this depth.
                 let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
+                let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
                 let summary = SearchSummary {
                     depth,
                     seldepth: refs.search_info.seldepth,
@@ -85,6 +88,7 @@ impl Search {
                     mate: 0,
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
+                    hash_full,
                     pv: root_pv.clone(),
                 };
 

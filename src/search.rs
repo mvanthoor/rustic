@@ -34,6 +34,7 @@ mod utils;
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, Information},
+    engine::defs::{SearchData, TT},
     movegen::MoveGenerator,
 };
 use crossbeam_channel::Sender;
@@ -64,6 +65,8 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
+        tt: Arc<Mutex<TT<SearchData>>>,
+        tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
@@ -73,9 +76,10 @@ impl Search {
 
         // Create the search thread.
         let h = thread::spawn(move || {
-            // Pointer to Board and Move Generator for this thread.
+            // Create thread-local variables.
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
+            let arc_tt = Arc::clone(&tt);
             let mut search_params = SearchParams::new();
 
             let mut quit = false;
@@ -107,14 +111,16 @@ impl Search {
                     // Create a place to put search information
                     let mut search_info = SearchInfo::new();
 
-                    // Create references to all needed information.
+                    // Create references to all needed information and structures.
                     let mut search_refs = SearchRefs {
-                        board: &mut board,                 // Just copied board.
-                        mg: &arc_mg,                       // Move generator within engine.
-                        search_params: &mut search_params, // Search parameters.
-                        search_info: &mut search_info,     // A place to put search results.
-                        control_rx: &control_rx,           // This thread's command receiver.
-                        report_tx: &t_report_tx,           // Report to engine thread.
+                        board: &mut board,
+                        mg: &arc_mg,
+                        tt: &arc_tt,
+                        tt_enabled,
+                        search_params: &mut search_params,
+                        search_info: &mut search_info,
+                        control_rx: &control_rx,
+                        report_tx: &t_report_tx,
                     };
 
                     // Start the search using Iterative Deepening.

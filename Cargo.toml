@@ -1,6 +1,6 @@
 [package]
 name = "rustic"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Marcel Vanthoor"]
 edition = "2018"
 
@@ -18,7 +18,7 @@ crossbeam-channel = "0.5.0"
 extra = []
 
 [profile.dev]
-opt-level = 2
+opt-level = 1
 debug = true
 debug-assertions = true
 overflow-checks = true

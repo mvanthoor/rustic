@@ -1,14 +1,18 @@
 use crate::{
     board::Board,
     defs::MAX_DEPTH,
-    engine::defs::Information,
+    engine::defs::{Information, SearchData, TT},
     movegen::{defs::Move, MoveGenerator},
 };
 use crossbeam_channel::{Receiver, Sender};
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
+pub const CHECKMATE_THRESHOLD: i16 = 23_900;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
 pub const CHECK_TERMINATION: usize = 0x7FF; // 2.047 nodes
@@ -79,7 +83,7 @@ impl GameTime {
 // before the game starts.)
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchParams {
-    pub depth: u8,               // Maximum depth to search to
+    pub depth: i8,               // Maximum depth to search to
     pub move_time: u128,         // Maximum time per move to search
     pub nodes: usize,            // Maximum number of nodes to search
     pub game_time: GameTime,     // Time available for entire game
@@ -109,10 +113,10 @@ impl SearchParams {
 #[derive(PartialEq)]
 pub struct SearchInfo {
     start_time: Option<Instant>,    // Time the search started
-    pub depth: u8,                  // Depth currently being searched
-    pub seldepth: u8,               // Maximum selective depth reached
+    pub depth: i8,                  // Depth currently being searched
+    pub seldepth: i8,               // Maximum selective depth reached
     pub nodes: usize,               // Nodes searched
-    pub ply: u8,                    // Number of plys from the root
+    pub ply: i8,                    // Number of plys from the root
     pub last_stats_sent: u128,      // When last stats update was sent
     pub last_curr_move_sent: u128,  // When last current move was sent
     pub allocated_time: u128,       // Allotted msecs to spend on move
@@ -157,14 +161,15 @@ impl SearchInfo {
 // information into UCI/XBoard/Console output and print it to STDOUT.
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
-    pub depth: u8,     // depth reached during search
-    pub seldepth: u8,  // Maximum selective depth reached
-    pub time: u128,    // milliseconds
-    pub cp: i16,       // centipawns score
-    pub mate: u8,      // mate in X moves
-    pub nodes: usize,  // nodes searched
-    pub nps: usize,    // nodes per second
-    pub pv: Vec<Move>, // Principal Variation
+    pub depth: i8,      // depth reached during search
+    pub seldepth: i8,   // Maximum selective depth reached
+    pub time: u128,     // milliseconds
+    pub cp: i16,        // centipawns score
+    pub mate: u8,       // mate in X moves
+    pub nodes: usize,   // nodes searched
+    pub nps: usize,     // nodes per second
+    pub hash_full: u16, // TT use in permille
+    pub pv: Vec<Move>,  // Principal Variation
 }
 
 impl SearchSummary {
@@ -200,14 +205,20 @@ impl SearchCurrentMove {
 // engine thread to Comm, to be transmitted to the (G)UI.
 #[derive(PartialEq, Copy, Clone)]
 pub struct SearchStats {
-    pub time: u128,   // Time spent searching
-    pub nodes: usize, // Number of nodes searched
-    pub nps: usize,   // Speed in nodes per second
+    pub time: u128,     // Time spent searching
+    pub nodes: usize,   // Number of nodes searched
+    pub nps: usize,     // Speed in nodes per second
+    pub hash_full: u16, // TT full in permille
 }
 
 impl SearchStats {
-    pub fn new(time: u128, nodes: usize, nps: usize) -> Self {
-        Self { time, nodes, nps }
+    pub fn new(time: u128, nodes: usize, nps: usize, hash_full: u16) -> Self {
+        Self {
+            time,
+            nodes,
+            nps,
+            hash_full,
+        }
     }
 }
 
@@ -221,6 +232,8 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
+    pub tt: &'a Arc<Mutex<TT<SearchData>>>,
+    pub tt_enabled: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,

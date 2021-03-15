@@ -22,17 +22,20 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECK_TERMINATION, MIN_TIME_STATS, SEND_STATS},
+    defs::{SearchTerminate, CHECK_TERMINATION, SEND_STATS},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_DEPTH,
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType},
+    movegen::defs::{Move, MoveList, MoveType, TTMove},
 };
 
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
+        // We created a new node which we'll search, so count it.
+        refs.search_info.nodes += 1;
+
         // No intermediate stats updates if quiet.
         let quiet = refs.search_params.quiet;
 
@@ -41,6 +44,12 @@ impl Search {
             Search::check_termination(refs);
         }
 
+        // Abort if we have to terminate. Depth not finished.
+        if refs.search_info.terminate != SearchTerminate::Nothing {
+            return 0;
+        }
+
+        // Immediately evaluate and return on reaching MAX_DEPTH
         if refs.search_info.ply >= MAX_DEPTH {
             return evaluation::evaluate_position(refs.board);
         }
@@ -73,29 +82,16 @@ impl Search {
         refs.mg.generate_moves(refs.board, &mut move_list, mtc);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list);
-
-        // We created a new node which we'll search, so count it.
-        refs.search_info.nodes += 1;
+        Search::score_moves(&mut move_list, TTMove::new(0));
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minium MIN_TIME_STATS has elapsed before sending.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
-            let elapsed = refs.search_info.timer_elapsed();
-            let last_stats = refs.search_info.last_stats_sent;
-            if elapsed >= last_stats + MIN_TIME_STATS {
-                Search::send_stats(refs);
-                refs.search_info.last_stats_sent = elapsed;
-            }
+            Search::send_stats_to_gui(refs);
         }
 
         // Iterate over the capture moves.
         for i in 0..move_list.len() {
-            // Break the loop if a termination condition was met.
-            if refs.search_info.terminate != SearchTerminate::Nothing {
-                break;
-            }
-
             // Pick the next moves with the higest score.
             Search::pick_move(&mut move_list, i);
 

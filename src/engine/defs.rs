@@ -21,7 +21,9 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 use crate::{comm::CommReport, search::defs::SearchReport};
+
 // This struct holds messages that are reported on fatal engine errors.
 // These should never happen; if they do the engine is in an unknown state,
 // and it will panic without trying any recovery whatsoever.
@@ -40,6 +42,7 @@ impl ErrFatal {
 pub struct ErrNormal;
 impl ErrNormal {
     pub const NOT_LEGAL: &'static str = "This is not a legal move in this position.";
+    pub const NOT_INT: &'static str = "The value given was not an integer.";
     pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
 }
 
@@ -47,6 +50,7 @@ impl ErrNormal {
 pub struct Settings {
     pub threads: usize,
     pub quiet: bool,
+    pub tt_size: usize,
 }
 
 // This enum provides informatin to the engine, with regard to incoming
@@ -55,4 +59,53 @@ pub struct Settings {
 pub enum Information {
     Comm(CommReport),
     Search(SearchReport),
+}
+
+pub enum UiElement {
+    Spin,
+    Button,
+}
+
+pub struct EngineOption {
+    pub name: &'static str,
+    pub ui_element: UiElement,
+    pub default: Option<String>,
+    pub min: Option<String>,
+    pub max: Option<String>,
+}
+
+impl EngineOption {
+    pub fn new(
+        name: &'static str,
+        ui_element: UiElement,
+        default: Option<String>,
+        min: Option<String>,
+        max: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            ui_element,
+            default,
+            min,
+            max,
+        }
+    }
+}
+
+#[derive(PartialEq, Clone)]
+pub enum EngineOptionName {
+    Hash(String),
+    ClearHash,
+    Nothing,
+}
+impl EngineOptionName {
+    pub const HASH: &'static str = "Hash";
+    pub const CLEAR_HASH: &'static str = "Clear Hash";
+}
+
+pub struct EngineOptionDefaults;
+impl EngineOptionDefaults {
+    pub const HASH_DEFAULT: &'static str = "32";
+    pub const HASH_MIN: &'static str = "0";
+    pub const HASH_MAX: &'static str = "32768";
 }

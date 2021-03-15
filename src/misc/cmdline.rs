@@ -21,7 +21,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::defs::{About, FEN_START_POSITION};
+use crate::{
+    defs::{About, FEN_START_POSITION},
+    engine::defs::EngineOptionDefaults,
+};
 use clap::{App, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
@@ -51,6 +54,11 @@ impl CmdLineArgs {
     const THREADS_SHORT: &'static str = "t";
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: &'static str = "1";
+
+    const HASH_LONG: &'static str = "hash";
+    const HASH_SHORT: &'static str = "h";
+    const HASH_HELP: &'static str = "Transposition Table size in MB";
+    const HASH_DEFAULT: &'static str = EngineOptionDefaults::HASH_DEFAULT;
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
@@ -98,7 +106,7 @@ impl CmdLine {
             .to_string()
     }
 
-    pub fn perft(&self) -> u8 {
+    pub fn perft(&self) -> i8 {
         self.arguments
             .value_of(CmdLineArgs::PERFT_LONG)
             .unwrap_or(CmdLineArgs::PERFT_DEFAULT)
@@ -112,6 +120,14 @@ impl CmdLine {
             .unwrap_or(CmdLineArgs::THREADS_DEFAULT)
             .parse()
             .unwrap_or(1)
+    }
+
+    pub fn hash(&self) -> usize {
+        self.arguments
+            .value_of(CmdLineArgs::HASH_LONG)
+            .unwrap_or(CmdLineArgs::HASH_DEFAULT)
+            .parse()
+            .unwrap_or(32)
     }
 
     pub fn has_kiwipete(&self) -> bool {
@@ -169,6 +185,14 @@ impl CmdLine {
                     .help(CmdLineArgs::THREADS_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::THREADS_DEFAULT),
+            )
+            .arg(
+                Arg::with_name(CmdLineArgs::HASH_LONG)
+                    .short(CmdLineArgs::HASH_SHORT)
+                    .long(CmdLineArgs::HASH_LONG)
+                    .help(CmdLineArgs::HASH_HELP)
+                    .takes_value(true)
+                    .default_value(CmdLineArgs::HASH_DEFAULT),
             )
             .arg(
                 Arg::with_name(CmdLineArgs::KIWI_LONG)

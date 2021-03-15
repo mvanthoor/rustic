@@ -28,7 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 pub struct About;
 impl About {
     pub const ENGINE: &'static str = "Rustic";
-    pub const VERSION: &'static str = "Alpha 1";
+    pub const VERSION: &'static str = "Alpha 2";
     pub const AUTHOR: &'static str = "Marcel Vanthoor";
     pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
     pub const WEBSITE: &'static str = "https://rustic-chess.org/";
@@ -72,7 +72,7 @@ impl Castling {
 pub const EMPTY: u64 = 0;
 pub const MAX_GAME_MOVES: usize = 2048;
 pub const MAX_LEGAL_MOVES: u8 = 255;
-pub const MAX_DEPTH: u8 = 254;
+pub const MAX_DEPTH: i8 = 125;
 pub const MAX_MOVE_RULE: u8 = 100; // 50/75 move rule
 
 // Define errors

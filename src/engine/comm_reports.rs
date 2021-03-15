@@ -28,6 +28,7 @@ use super::{
 use crate::{
     comm::{uci::UciReport, CommControl, CommReport},
     defs::FEN_START_POSITION,
+    engine::defs::EngineOptionName,
     evaluation::evaluate_position,
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
@@ -49,15 +50,38 @@ impl Engine {
         sp.quiet = self.settings.quiet;
 
         match u {
-            // Uci commands
             UciReport::Uci => self.comm.send(CommControl::Identify),
-            UciReport::UciNewGame => self
-                .board
-                .lock()
-                .expect(ErrFatal::LOCK)
-                .fen_read(Some(FEN_START_POSITION))
-                .expect(ErrFatal::NEW_GAME),
+
+            UciReport::UciNewGame => {
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_read(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+            }
+
             UciReport::IsReady => self.comm.send(CommControl::Ready),
+
+            UciReport::SetOption(option) => {
+                match option {
+                    EngineOptionName::Hash(value) => {
+                        if let Ok(v) = value.parse::<usize>() {
+                            self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                        } else {
+                            let msg = String::from(ErrNormal::NOT_INT);
+                            self.comm.send(CommControl::InfoString(msg));
+                        }
+                    }
+
+                    EngineOptionName::ClearHash => {
+                        self.tt_search.lock().expect(ErrFatal::LOCK).clear()
+                    }
+
+                    EngineOptionName::Nothing => (),
+                };
+            }
+
             UciReport::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
 

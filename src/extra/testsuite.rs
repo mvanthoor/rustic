@@ -23,11 +23,15 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::Board,
+    engine::defs::{PerftData, TT},
     extra::epds::LARGE_TEST_EPDS,
     misc::{perft, print},
     movegen::MoveGenerator,
 };
-use std::time::Instant;
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
@@ -48,7 +52,7 @@ const TEST_RESULTS: [&str; 5] = [
 
 // This private function is the one actually running tests.
 // This can be the entire suite, or a single test.
-pub fn run() {
+pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
     let number_of_tests = LARGE_TEST_EPDS.len();
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
@@ -99,7 +103,7 @@ pub fn run() {
 
                 // This is the actual perft run for this test and depth.
                 let now = Instant::now();
-                let found_ln = perft::perft(&mut board, depth, &move_generator);
+                let found_ln = perft::perft(&mut board, depth, &move_generator, &tt, tt_enabled);
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_ln * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_ln == found_ln;

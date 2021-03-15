@@ -27,10 +27,12 @@ use super::{CommControl, CommReport, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{ErrFatal, Information},
+    engine::defs::{EngineOption, EngineOptionName, ErrFatal, Information, UiElement},
     misc::print,
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE},
+    search::defs::{
+        GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE, CHECKMATE_THRESHOLD,
+    },
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -38,8 +40,6 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
-
-const MAX_MATE: i16 = 64;
 
 // Input will be turned into a report, which wil be sent to the engine. The
 // main engine thread will react accordingly.
@@ -49,9 +49,10 @@ pub enum UciReport {
     Uci,
     UciNewGame,
     IsReady,
+    SetOption(EngineOptionName),
     Position(String, Vec<String>),
     GoInfinite,
-    GoDepth(u8),
+    GoDepth(i8),
     GoMoveTime(u128),
     GoNodes(usize),
     GoGameTime(GameTime),
@@ -89,10 +90,15 @@ impl Uci {
 
 // Any communication module must implement the trait IComm.
 impl IComm for Uci {
-    fn init(&mut self, report_tx: Sender<Information>, board: Arc<Mutex<Board>>) {
+    fn init(
+        &mut self,
+        report_tx: Sender<Information>,
+        board: Arc<Mutex<Board>>,
+        options: Arc<Vec<EngineOption>>,
+    ) {
         // Start threads
         self.report_thread(report_tx);
-        self.control_thread(board);
+        self.control_thread(board, options);
     }
 
     // The creator of the Comm module can use this function to send
@@ -121,7 +127,7 @@ impl IComm for Uci {
     }
 }
 
-// This block implements the Report and Control threads.
+// Implement the report thr
 impl Uci {
     // The Report thread sends incoming data to the engine thread.
     fn report_thread(&mut self, report_tx: Sender<Information>) {
@@ -163,9 +169,12 @@ impl Uci {
         // Store the handle.
         self.report_handle = Some(report_handle);
     }
+}
 
+// Implement the control thread
+impl Uci {
     // The control thread receives commands from the engine thread.
-    fn control_thread(&mut self, board: Arc<Mutex<Board>>) {
+    fn control_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommControl>();
 
@@ -173,6 +182,7 @@ impl Uci {
         let control_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
+            let t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -182,6 +192,7 @@ impl Uci {
                 match control {
                     CommControl::Identify => {
                         Uci::id();
+                        Uci::options(&t_options);
                         Uci::uciok();
                     }
                     CommControl::Ready => Uci::readyok(),
@@ -225,6 +236,7 @@ impl Uci {
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
+            cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
@@ -308,7 +320,7 @@ impl Uci {
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
-                        let depth = p.parse::<u8>().unwrap_or(1);
+                        let depth = p.parse::<i8>().unwrap_or(1);
                         report = CommReport::Uci(UciReport::GoDepth(depth));
                         break; // break for-loop: nothing more to do.
                     }
@@ -350,6 +362,46 @@ impl Uci {
 
         report
     } // end parse_go()
+
+    fn parse_setoption(cmd: &str) -> CommReport {
+        enum Tokens {
+            Nothing,
+            Name,
+            Value,
+        }
+
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let mut token = Tokens::Nothing;
+        let mut name = String::from(""); // Option name provided by the UCI command.
+        let mut value = String::from(""); // Option value provided by the UCI command.
+        let mut eon = EngineOptionName::Nothing; // Engine Option Name to send to the engine.
+
+        for p in parts {
+            match p {
+                t if t == "setoption" => (),
+                t if t == "name" => token = Tokens::Name,
+                t if t == "value" => token = Tokens::Value,
+                _ => match token {
+                    Tokens::Name => name = format!("{} {}", name, p),
+                    Tokens::Value => value = p.to_lowercase(),
+                    Tokens::Nothing => (),
+                },
+            }
+        }
+
+        // Determine which engine option name to send.
+        if !name.is_empty() {
+            name = name.to_lowercase().trim().to_string();
+            match &name[..] {
+                "hash" => eon = EngineOptionName::Hash(value),
+                "clear hash" => eon = EngineOptionName::ClearHash,
+                _ => (),
+            }
+        }
+
+        // Send the engine option name with value to the engine thread.
+        CommReport::Uci(UciReport::SetOption(eon))
+    }
 }
 
 // Implements UCI responses to send to the G(UI).
@@ -357,6 +409,44 @@ impl Uci {
     fn id() {
         println!("id name {} {}", About::ENGINE, About::VERSION);
         println!("id author {}", About::AUTHOR);
+    }
+
+    fn options(options: &Arc<Vec<EngineOption>>) {
+        for o in options.iter() {
+            let name = format!("option name {}", o.name);
+
+            let ui_element = match o.ui_element {
+                UiElement::Spin => String::from("type spin"),
+                UiElement::Button => String::from("type button"),
+            };
+
+            let value_default = if let Some(v) = &o.default {
+                format!("default {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_min = if let Some(v) = &o.min {
+                format!("min {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_max = if let Some(v) = &o.max {
+                format!("max {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let option = format!(
+                "{} {} {} {} {}",
+                name, ui_element, value_default, value_min, value_max
+            )
+            .trim()
+            .to_string();
+
+            println!("{}", option);
+        }
     }
 
     fn uciok() {
@@ -369,7 +459,7 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         // If mate found, report this; otherwise report normal score.
-        let score = if (s.cp.abs() < CHECKMATE) && (s.cp.abs() > CHECKMATE - MAX_MATE) {
+        let score = if (s.cp.abs() >= CHECKMATE_THRESHOLD) && (s.cp.abs() < CHECKMATE) {
             // Number of plies to mate.
             let ply = CHECKMATE - s.cp.abs();
 
@@ -396,11 +486,18 @@ impl Uci {
             format!("depth {}", s.depth)
         };
 
+        // Only display hash full if not 0
+        let hash_full = if s.hash_full > 0 {
+            format!(" hashfull {} ", s.hash_full)
+        } else {
+            String::from(" ")
+        };
+
         let pv = s.pv_as_string();
 
         let info = format!(
-            "info score {} {} time {} nodes {} nps {} pv {}",
-            score, depth, s.time, s.nodes, s.nps, pv,
+            "info score {} {} time {} nodes {} nps {}{}pv {}",
+            score, depth, s.time, s.nodes, s.nps, hash_full, pv,
         );
 
         println!("{}", info);
@@ -415,7 +512,16 @@ impl Uci {
     }
 
     fn search_stats(s: &SearchStats) {
-        println!("info time {} nodes {} nps {}", s.time, s.nodes, s.nps);
+        let hash_full = if s.hash_full > 0 {
+            format!(" hashfull {}", s.hash_full)
+        } else {
+            String::from("")
+        };
+
+        println!(
+            "info time {} nodes {} nps {}{}",
+            s.time, s.nodes, s.nps, hash_full
+        );
     }
 
     fn info_string(msg: &str) {
