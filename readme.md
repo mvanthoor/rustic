@@ -36,21 +36,25 @@ just for testing purposes.)
 
 # Features
 
-At the time of writing (15-11-2020) Rustic does not yet have many features,
-if any at all. The basiscs to be able to play a decent game of chess have
-been implemented. This will be the base version for establishing an initial
-Elo rating, before more features are added. This is done so the Elo-gain of
-each added feature can be determined. The current feature set is:
+At the time of writing (15-03-2020) Rustic does not have many features yet,
+but the basics for playing decent chess have been implemented. Obviously,
+features will be incrementally added, so the approximate strength gain per
+feature can be determined. (See changelog.md for more information.)
+
+The current feature-set for Rustic Alpha 2 is:
 
 - Engine:
   - Bitboard board representation
   - Magic bitboard move generator
+  - Transposition Table
   - UCI-protocol
 - Search
   - Alpha/Beta search
   - Quiescence search
-  - MVV-LVA move ordering
   - Check extension
+- Move ordering
+  - TT Move priority
+  - MVV-LVA
 - Evaluation
   - Material counting
   - Piece-Square Tables
@@ -58,8 +62,6 @@ each added feature can be determined. The current feature set is:
 There are many features that will be added in the future, such as:
 - Finishing the XBoard protocol.
 - Several pruning options in the search
-- Add a transposition table
-- option/setoption in UCI to control engine options
 - Tapered evaluation for middle game/endgame
 - Many more evaluation terms
 - Add Lazy SMP
@@ -151,7 +153,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=core2" && \
 cargo build --release && \
 strip -s ./target/release/rustic && \
-mv ./target/release/rustic ./bin/linux/rustic-alpha-1_64-bit-old
+mv ./target/release/rustic ./bin/linux/rustic-alpha-2_64-bit-old
 	
 64-bit popcnt (Nehalem CPU's and newer):
 
@@ -159,7 +161,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=nehalem" && \
 cargo build --release && \
 strip -s ./target/release/rustic && \
-mv ./target/release/rustic ./bin/linux/rustic-alpha-1_64-bit-popcnt
+mv ./target/release/rustic ./bin/linux/rustic-alpha-2_64-bit-popcnt
 
 64-bit bmi2 (Haswell CPU's and newer):
 
@@ -167,7 +169,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=haswell" && \
 cargo build --release && \
 strip -s ./target/release/rustic && \
-mv ./target/release/rustic ./bin/linux/rustic-alpha-1_64-bit-bmi2
+mv ./target/release/rustic ./bin/linux/rustic-alpha-2_64-bit-bmi2
 
 64-bit native (Compiles for your current CPU):
 
@@ -175,7 +177,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=native" && \
 cargo build --release && \
 strip -s ./target/release/rustic && \
-mv ./target/release/rustic ./bin/linux/rustic-alpha-1_64-bit-native
+mv ./target/release/rustic ./bin/linux/rustic-alpha-2_64-bit-native
 ```
 
 **Windows**
@@ -190,7 +192,7 @@ mkdir -p ./bin/windows
 rm -rf ./target && \
 cargo build --release --target="i686-pc-windows-gnu" && \
 strip -s ./target/i686-pc-windows-gnu/release/rustic.exe && \
-mv ./target/i686-pc-windows-gnu/release/rustic.exe ./bin/windows/rustic-alpha-1_32-bit-generic.exe
+mv ./target/i686-pc-windows-gnu/release/rustic.exe ./bin/windows/rustic-alpha-2_32-bit-generic.exe
 
 64-bit old (Core2 CPU or newer):
 
@@ -198,7 +200,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=core2" && \
 cargo build --release && \
 strip -s ./target/release/rustic.exe && \
-mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-1_64-bit-old.exe
+mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-2_64-bit-old.exe
 	
 64-bit popcnt (Nehalem CPU or newer):
 
@@ -206,7 +208,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=nehalem" && \
 cargo build --release && \
 strip -s ./target/release/rustic.exe && \
-mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-1_64-bit-popcnt.exe
+mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-2_64-bit-popcnt.exe
 
 64-bit bmi2 (Haswell CPU or newer):
 
@@ -214,7 +216,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=haswell" && \
 cargo build --release && \
 strip -s ./target/release/rustic.exe && \
-mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-1_64-bit-bmi2.exe
+mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-2_64-bit-bmi2.exe
 
 64-bit native (Compiles for your current CPU):
 
@@ -222,7 +224,7 @@ rm -rf ./target && \
 export RUSTFLAGS="-C target-cpu=native" && \
 cargo build --release && \
 strip -s ./target/release/rustic.exe && \
-mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-1_64-bit-native.exe
+mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-2_64-bit-native.exe
 ```
 
 - You will find the binary in the ./bin/linux/ or ./bin/windows/ folder you
@@ -257,19 +259,18 @@ USAGE:
     rustic.exe [FLAGS] [OPTIONS]
 
 FLAGS:
-    -e, --epdtest     Run EPD Test Suite
-    -h, --help        Prints help information
+        --help        Prints help information
     -k, --kiwipete    Set up KiwiPete position (ignore --fen)
     -q, --quiet       No intermediate search stats updates
     -V, --version     Prints version information
-    -w, --wizardry    Generate magic numbers
 
 OPTIONS:
     -c, --comm <comm>          Select communication protocol to use [default: uci]  [possible values: uci, xboard]
-    -f, --fen <fen>            Set up the given position [default: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1]
+    -f, --fen <fen>            Set up the given position [default: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
+                               0 1]
+    -h, --hash <hash>          Transposition Table size in MB [default: 32]
     -p, --perft <perft>        Run perft to the given depth [default: 0]
     -t, --threads <threads>    Number of CPU-threads to use [default: 1]
-
 ```
 
 Please note that the -e (--epdtest) and -w (--wizardry) options are only
