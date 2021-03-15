@@ -10,6 +10,8 @@ use std::{
     time::Instant,
 };
 
+pub use super::time::OVERHEAD;
+
 pub const INF: i16 = 25_000;
 pub const CHECKMATE: i16 = 24_000;
 pub const CHECKMATE_THRESHOLD: i16 = 23_900;

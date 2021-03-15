@@ -30,7 +30,7 @@ use crate::{
     defs::FEN_START_POSITION,
     engine::defs::EngineOptionName,
     evaluation::evaluate_position,
-    search::defs::{SearchControl, SearchMode, SearchParams},
+    search::defs::{SearchControl, SearchMode, SearchParams, OVERHEAD},
 };
 
 // This block implements handling of incoming information, which will be in
@@ -114,7 +114,7 @@ impl Engine {
             }
 
             UciReport::GoMoveTime(msecs) => {
-                sp.move_time = *msecs;
+                sp.move_time = *msecs - (OVERHEAD as u128);
                 sp.search_mode = SearchMode::MoveTime;
                 self.search.send(SearchControl::Start(sp));
             }

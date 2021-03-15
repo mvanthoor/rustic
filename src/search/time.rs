@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
-const OVERHEAD: i128 = 50; // msecs
+pub const OVERHEAD: i128 = 50; // msecs
 const GAME_LENGTH: usize = 25; // moves
 const MOVES_BUFFER: usize = 5; //moves
 const CRITICAL_TIME: u128 = 1_000; // msecs
