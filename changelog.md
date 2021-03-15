@@ -1,18 +1,18 @@
 # Changelog
 
-## ?? - Rustic Alpha 2
+## March 15 - Rustic Alpha 2
 
-- Features:
+- New Features:
   - Transposition table for search and perft.
   - Ordering on transposition table move.
-  - -h / --hash added to command line for setting hash size.
-  - Ability to announce and set engine options (uci).
+  - Set TT size through --hash option or UCI parameter.
 - Improvement:
   - Move check extension higher up in the search routine, to prevent
     quiescence search while in check.
 - Changes:
   - seldepth: report max ply reached during the search, instead of
     selective depth at last completed iteration.
+  - Count all nodes visited, instead of only nodes which generated moves.
   - Change random number generator from SmallRng to ChaChaRng for
     reproducible behavior between platforms/OS's/architectures/versions.
 - Cleanup
