@@ -40,10 +40,10 @@ pub const MVV_LVA: [[u8; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 ];
 
 impl Search {
-    pub fn score_moves(ml: &mut MoveList, ttm: TTMove) {
+    pub fn score_moves(ml: &mut MoveList, tt_move: TTMove) {
         for i in 0..ml.len() {
             let m = ml.get_mut_move(i);
-            let is_tt_move = ttm.get_move() != 0 && m.equal_to_hash_move(ttm);
+            let is_tt_move = m.get_move() == tt_move.get_move();
 
             // Sort the hash move as the first in the list.
             let value = if is_tt_move {

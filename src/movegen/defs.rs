@@ -153,8 +153,8 @@ impl Move {
         TTMove::new((self.data & MOVE_ONLY) as u32)
     }
 
-    pub fn equal_to_hash_move(&self, hash_move: TTMove) -> bool {
-        ((self.data & MOVE_ONLY) as u32) == hash_move.get_move()
+    pub fn get_move(&self) -> u32 {
+        (self.data & MOVE_ONLY) as u32
     }
 }
 
