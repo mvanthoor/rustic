@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, SEND_STATS, STALEMATE},
+    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -40,7 +40,6 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        let mut best_move: TTMove = TTMove::new(0); // To store best move in TT.
         let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
 
@@ -125,8 +124,14 @@ impl Search {
             Search::send_stats_to_gui(refs);
         }
 
-        // Set the initial TT flag type.
+        // Set the initial best eval_score (to the worst possible value)
+        let mut best_eval_score = -INF;
+
+        // Set the initial TT flag type. Assume we do not beat Alpha.
         let mut hash_flag = HashFlag::ALPHA;
+
+        // Holds the best move in the move loop, for storing into the TT.
+        let mut best_move: TTMove = TTMove::new(0);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
@@ -172,9 +177,15 @@ impl Search {
             refs.board.unmake();
             refs.search_info.ply -= 1;
 
-            // Beta-cut-off. We return this score, because searching any
-            // further down this path would make the situation worse for us
-            // and better for our opponent. This is called "fail-high".
+            // eval_score is better than the best we found so far, so we
+            // save a new best_move that'll go into the hash table.
+            if eval_score > best_eval_score {
+                best_eval_score = eval_score;
+                best_move = current_move.to_hash_move();
+            }
+
+            // Beta cutoff: this move is so good for our opponent, that we
+            // do not search any further. Insert into TT and return beta.
             if eval_score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
@@ -191,11 +202,10 @@ impl Search {
 
             // We found a better move for us.
             if eval_score > alpha {
-                // Save our better evaluation score.
+                // Save our better evaluation score as alpha.
                 alpha = eval_score;
-                best_move = current_move.to_hash_move();
 
-                // This is an exact score
+                // This is an exact move score.
                 hash_flag = HashFlag::EXACT;
 
                 // Update the Principal Variation.
@@ -217,14 +227,15 @@ impl Search {
             }
         }
 
+        // We save the best move we found for us; with an ALPHA flag if we
+        // didn't improve alpha, or EXACT if we did raise alpha.
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );
 
         // We have traversed the entire move list and found the best
-        // possible move/eval_score for us. We can't improve this any
-        // further, so return the result. This called "fail-low".
+        // possible move/eval_score for us.
         alpha
     }
 }

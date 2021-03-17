@@ -1,6 +1,6 @@
 # Changelog
 
-## March 15, 2021 - Rustic Alpha 2
+## March 17, 2021 - Rustic Alpha 2
 
 - New Features:
   - Transposition table for search and perft.

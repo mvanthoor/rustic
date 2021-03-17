@@ -301,38 +301,40 @@ to improve existing code to work better, faster or cleaner. Thanks to all
 of these people. Below is a list of people who I particularly remember for
 one or more contributions (in no particular order).
 
-1. Richard Allbert (better known as BlueFever Software, author of VICE):
+- Richard Allbert (better known as BlueFever Software, author of VICE):
   his "Programming a Chess Engine in C" (or the Javascript version) series
   are legendary in the chess programming community. Richard may have
   instructed an entirely new generation of chess programmers.
-2. Terje Kirstihagen (author of Weiss): for the friendly Perft speed
+- Terje Kirstihagen (author of Weiss): for the friendly Perft speed
   competition between an early version of Rustic and Weiss, to optimize
   make(), unmake(), and the move generator speed. And for his encouragement
   to keep going, by posting in my "Progress on Rustic" topic.
-3. Fabian von der Warth (author of FabChess): for giving helpful information
+- Fabian von der Warth (author of FabChess): for giving helpful information
   about the Rust programming language, which were very useful in speeding
   up the early versions of the engine.
-4. H.G. Müller (author of FairyMax, MicroMax, and others): especially for
-  pointing out some improvements with regard to TT usage, and
-  general assistance by patiently answering questions he must have seen
-  countless times over the years.
-5. Maksim Korzh (author of Wukong and BBC): for writing a great video series
+- H.G. Müller (author of FairyMax, MicroMax, and others): especially for
+   explaining some improvements with regard to TT usage, and general
+   assistance by patiently answering questions he must have seen countless
+   times over the years.
+- Maksim Korzh (author of Wukong and BBC): for writing a great video series
   in the same vein as the one written by Richard Allbert. While the series
   covers known ground, the perspective can be just from a different enough
   angle to make something 'click'.
-6. Rasmus Althoff (author of CT800): for assisting in optimizing Rustic's
+- Rasmus Althoff (author of CT800): for assisting in optimizing Rustic's
   position repetition detection, and getting rid of some unneeded stuff in
-  the alpha-beta and QSearch functions.
-7. Martin Sedlák (author of Cheng): I remember he answered a few questions I
-  had, but I can't remeber which ones... sorry.
-8. Ronald de Man (author of the Syzygy tablebases, CFish and RustFish): for
+   the alpha-beta and QSearch functions (and for providing many tidbits of
+   useful information).
+- Martin Sedlák (author of Cheng), and Eric Madsen (MadChess): Thanks for
+   the pointers that put me on the right track to find out why TT Move
+   sorting wasn't performing as expected.
+- Ronald de Man (author of the Syzygy tablebases, CFish and RustFish): for
   helping to untangle the mess within my head regarding Principal Variation
   Search.
-9. Taimo (author of Monchester): for pointing out a potential variable underflow
+- Taimo (author of Monchester): for pointing out a potential variable underflow
   problem within the time management, that made Rustic crash in debug-mode.
-10. Sven Schüle (author of Jumbo, KnockOut, Surprise) for pointing out some lines of
+- Sven Schüle (author of Jumbo, KnockOut, Surprise) for pointing out some lines of
   redundant, and thus confusing code in Rustic's search and qsearch functions.
-11. Ed Schröder (author of Rebel and Gideon) and Robert Hyatt (author of Cray
+- Ed Schröder (author of Rebel and Gideon) and Robert Hyatt (author of Cray
   Blitz and Crafty): for still hanging around chess forums, answering
   questions, even after writing chess engines for 40 or 50 years.
 
