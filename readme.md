@@ -70,20 +70,19 @@ These will be listed under "Features" as they are implemented.
 
 # Included binaries, supported platforms
 
-There are several binaries supplied in the Rustic Alpha 1 release. For
-Windows, a generic 32-bit binary is supplied. As most Linux distributions
-have dropped 32-bit support (or are in the process of doing so), only
-64-binaries are included. As long as the Raspberry Pi OS is not yet
-officially 64-bit, only a 32-bit version that runs on the Buster release is
-supplied.
+There are several binaries supplied in each Rustic release. For Windows, a
+generic 32-bit binary is included. I have not spent time looking into
+compiling a 32-bit binary for Linux, as many major distributions have
+dropped 32-bit support, or are in the process of doing so. As long as the
+Raspberry Pi OS is not yet officially 64-bit, only a 32-bit version that
+runs on the Buster release (or newer) is supplied.
 
-The Windows binaries have been tested on Windows 10,
-but will probably also work on Windows 8.x or 7, as long as the correct C++
-Redistributables are installed.
+The Windows binaries have been tested on Windows 10, but will probably also
+work on Windows 8.x or 7.
 
 The Linux binaries have been created on Debian 8 Stable ("Jessie"), and
 tested on Debian 9 and 10 Stable. They should run on any Debian-based
-installateion that has the library versions of Debian 8 stable or newer
+installateion that has the library versions of Debian 8 Stable or newer
 installed. To my regret I don't have the time or the resources to provide
 lots of binaries for other versions of Linux; I only ever use Debian
 Stable. If you wish to run Rustic on a different distribution (if it
@@ -119,15 +118,16 @@ Follow the instructions below if you want to compile the engine yourself.
       are compatible with Windows/Visual Studio's debugger. This will
       require the Microsoft Visual C++ Build Tools, because it uses the
       Microsoft Linker.)
-- If you are running Windows, it is recommended to have
+- If you are running Windows, it is required to have
   [MSYS2](https://www.msys2.org/) installed, because it provides Bash and
   several Linux development tools.
   There are three ways to run MSYS:
     1. MSYS2 MinGW64: for 64-bit compiles
     2. MSYS2 MinGW32: for 32-bit compiles
     3. MSYS2 MSYS: for maintaining MSYS2.
-- Install GCC
-- Install Binutils.
+- In MSYS2:
+  - Install GCC
+  - Install Binutils.
 - Make sure you keep these environments apart. Do not install the 64-bit
   GCC compiler in the 32-bit environment and the other way around. If you
   want to produce both 32-bit and 64-bit binaries, you will have to set up
@@ -146,6 +146,14 @@ Follow the instructions below if you want to compile the engine yourself.
 Create the bin folder:
 
 mkdir -p ./bin/linux
+
+64-bit generic (Should run on any x86_64 / amd64 CPU)
+
+rm -rf ./target && \
+export RUSTFLAGS="-C target-cpu=athlon64" && \
+cargo build --release && \
+strip -s ./target/release/rustic && \
+mv ./target/release/rustic ./bin/linux/rustic-alpha-2_64-bit-generic
 
 64-bit old (Core2 CPU's and newer):
 
@@ -190,9 +198,18 @@ mkdir -p ./bin/windows
 32-bit Generic (Should run on anything since the Pentium II):
 
 rm -rf ./target && \
+export RUSTFLAGS="-C target-cpu=i686" && \
 cargo build --release --target="i686-pc-windows-gnu" && \
 strip -s ./target/i686-pc-windows-gnu/release/rustic.exe && \
 mv ./target/i686-pc-windows-gnu/release/rustic.exe ./bin/windows/rustic-alpha-2_32-bit-generic.exe
+
+64-bit generic (Should run on any x86_64 / amd64 CPU)
+
+rm -rf ./target && \
+export RUSTFLAGS="-C target-cpu=athlon64" && \
+cargo build --release && \
+strip -s ./target/release/rustic.exe && \
+mv ./target/release/rustic.exe ./bin/windows/rustic-alpha-2_64-bit-generic.exe
 
 64-bit old (Core2 CPU or newer):
 
