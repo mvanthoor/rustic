@@ -70,31 +70,27 @@ These will be listed under "Features" as they are implemented.
 
 # Included binaries, supported platforms
 
-There are several binaries supplied in each Rustic release. For Windows, a
-generic 32-bit binary is included. I have not spent time looking into
-compiling a 32-bit binary for Linux, as many major distributions have
-dropped 32-bit support, or are in the process of doing so. As long as the
-Raspberry Pi OS is not yet officially 64-bit, only a 32-bit version that
-runs on the Buster release (or newer) is supplied.
+There are several binaries supplied in each Rustic release, as listed
+below. They are listed in the order of slowest to fastest. Use the fastest
+binary that will run on your system, for maximum playing strength.
 
-The Windows binaries have been tested on Windows 10, but will probably also
-work on Windows 8.x or 7.
+Many Linux distributions are dropping 32-bit support, or have made it a
+non-standard version. Therefore a binary for 32-bit linux is not supplied.
+The binary for Raspberry Pi OS is 32-bit only, because the 64-bit version
+of the operating system is still experimental.
 
-The Linux binaries have been created on Debian 8 Stable ("Jessie"), and
-tested on Debian 9 and 10 Stable. They should run on any Debian-based
-installateion that has the library versions of Debian 8 Stable or newer
-installed. To my regret I don't have the time or the resources to provide
-lots of binaries for other versions of Linux; I only ever use Debian
-Stable. If you wish to run Rustic on a different distribution (if it
-doesn't do so out of the box), then try and compile it yourself using the
-compilation tips below.
+If you wish to run Rustic on a system for which no binary is supplied, you
+can try to compile the engine yourself using the compilation tips below.
+Make sure to install at least Rust version 1.46.
 
 - Windows (tested on Windows 10)
   - 32-bit generic
+  - 64-bit generic
   - 64-bit old
-  - 64-bit popcnt
+  - 64-bit popcnt 
   - 64-bit bmi2
-- Linux (since Debian 8 stable)
+- Linux (since Debian 8 Stable)
+  - 64-bit generic
   - 64-bit old
   - 64-bit popcnt
   - 64-bit bmi2
@@ -350,7 +346,11 @@ one or more contributions (in no particular order).
 - Taimo (author of Monchester): for pointing out a potential variable underflow
   problem within the time management, that made Rustic crash in debug-mode.
 - Sven Schüle (author of Jumbo, KnockOut, Surprise) for pointing out some lines of
-  redundant, and thus confusing code in Rustic's search and qsearch functions.
+  redundant, and thus confusing code in Rustic's search and qsearch
+  functions.
+- Thomas (Lithander, author of MinimalChess): for the engaging discussions
+  regarding (chess) programming, and providing another stable engine with
+  compiles especially for me to test against.
 - Ed Schröder (author of Rebel and Gideon) and Robert Hyatt (author of Cray
   Blitz and Crafty): for still hanging around chess forums, answering
   questions, even after writing chess engines for 40 or 50 years.
