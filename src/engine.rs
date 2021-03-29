@@ -85,7 +85,7 @@ impl Engine {
                 Box::new(Uci::new())
             }
             CommType::UCI => Box::new(Uci::new()),
-            _ => panic!(ErrFatal::CREATE_COMM),
+            _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
 
         // Get engine settings from the command-line.
