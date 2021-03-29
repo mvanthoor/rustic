@@ -1,3 +1,5 @@
+#!/bin/bash
+
 dir="./target"
 
 if [ -d "$dir" ]; then
@@ -5,5 +7,5 @@ if [ -d "$dir" ]; then
   rm -rf ${dir}
 fi
 
-echo "Switching to MSVC-toolchain..."
-rustup default stable-x86_64-pc-windows-msvc
+echo "Switching to GNU-toolchain..."
+rustup default stable-x86_64-pc-windows-gnu
