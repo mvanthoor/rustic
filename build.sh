@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# sET engine name and version.
-ENGINE="rustic"
-VERSION="alpha 2"
+# Set engine name and version.
+ENGINE=$(cat Cargo.toml | grep -i "name" | tr -d "name= \"\n" | tr A-Z a-z)
+VERSION=$(cat Cargo.toml | grep -i "version" | grep -iv "\{" | tr -d "version= \"\n")
+FULL_NAME="$ENGINE alpha $VERSION"
 
 # Set minimum required Rust version.
 RUST_MIN_VERSION="1.46.0"
@@ -15,7 +16,6 @@ BASE_DIR="./bin"
 # Get current operating environment.
 UNAME=$(uname -a | tr A-Z a-z | tr -d "\n")
 RUST_FOUND=$(command -v rustc | tr -d "\n")
-ENG_VERSION=$(echo "$VERSION" | tr ' ' '-')
 
 # These variables will be set below.
 OS=""
@@ -133,7 +133,7 @@ if [ "$ERROR" == "" ]; then
     echo "Compile for all CPU-types"
   fi
   echo "Rust version: $RUST_VERSION"
-  echo "Building: $ENGINE $VERSION"
+  echo "Building: $FULL_NAME"
 else
   echo "Error: $ERROR"
 fi
@@ -157,33 +157,34 @@ function create_build {
 # Start building 32-bit
 if [ "$ERROR" == "" ] && [ "$BIT" == "64-bit" ]; then
   RESULT="./target/release/rustic.exe"
+  FULL_NAME=$(echo "$FULL_NAME" | tr " " "-")
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-generic$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-generic$EXE"
     FLAGS="-C target-cpu=athlon64"
     create_build
   fi
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "old" ]; then
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-old$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-old$EXE"
     FLAGS="-C target-cpu=core2"
     create_build
   fi
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "popcnt" ]; then
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-popcnt$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-popcnt$EXE"
     FLAGS="-C target-cpu=nehalem"
     create_build
   fi
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "bmi2" ]; then
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-bmi2$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-bmi2$EXE"
     FLAGS="-C target-cpu=haswell"
     create_build
   fi
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "native" ]; then
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-native$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-native$EXE"
     FLAGS="-C target-cpu=native"
     create_build
   fi
@@ -193,7 +194,7 @@ fi
 if [ "$ERROR" == "" ] && [ "$BIT" == "32-bit" ]; then
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
     RESULT="./target/i686-pc-windows-gnu/release/rustic.exe"
-    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-generic$EXE"
+    FILENAME="$DIR/$FULL_NAME-$OS-$BIT-generic$EXE"
     FLAGS="-C target-cpu=i686"
     TARGET="--target=i686-pc-windows-gnu"
     create_build
