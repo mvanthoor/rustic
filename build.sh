@@ -13,15 +13,16 @@ BASE_DIR="./bin"
 # ========== NEXT PART SHOULD NOT BE CHANGED ========== #
 
 # Get current operating environment.
-UNAME=$(uname -a | awk '{print tolower($0)}')
+UNAME=$(uname -a | tr A-Z a-z | tr -d "\n")
 RUST_FOUND=$(command -v rustc | tr -d "\n")
-ENGINE_VERSION=$(echo "$VERSION" | tr ' ' '-')
+ENG_VERSION=$(echo "$VERSION" | tr ' ' '-')
 
 # These variables will be set below.
 OS=""
 BIT="64-bit"
 RUST_VERSION=""
 DIR=""
+RESULT=""
 FILENAME=""
 EXE=""
 TYPE=""
@@ -78,9 +79,9 @@ if [ "$ERROR" == "" ]; then
 
   # Directory either exists or we create it.
   if [ -d "$DIR" ]; then
-    echo "Existing directory: $DIR"
+    echo "Existing bin-directory: $DIR"
   else
-    echo "Creating directory: $DIR"
+    echo "Creating bin-directory: $DIR"
     mkdir -p "$DIR"
   fi
 
@@ -90,11 +91,61 @@ if [ "$ERROR" == "" ]; then
   fi
 fi
 
-# If we still don't have any errors, we can start building.
+# Determine which type of executable to build.
+if [ "$ERROR" == "" ]; then
+  T=$(echo "$1" | tr A-Z a-z | tr -d "\n")
+
+  if [ "$BIT" == "32-bit" ]; then
+    echo "Only compiling 'generic' cpu-type for 32-bit."
+    TYPE="generic"
+  fi
+
+  if [ "$BIT" == "64-bit" ]; then
+    case "$T" in
+      "generic")
+        TYPE="generic"
+        ;;
+      "old")
+        TYPE="old"
+        ;;
+      "popcnt")
+        TYPE="popcnt"
+        ;;
+      "bmi2")
+        TYPE="bmi2"
+        ;;
+      "native")
+        TYPE="bmi2"
+        ;;
+    esac
+  fi
+fi
+
+# No errors: print information
 if [ "$ERROR" == "" ]; then
   echo "Build for: $OS $BIT"
+  if [ "$TYPE" != "" ]; then
+    echo "Compile for CPU-type: $TYPE"
+  else
+    TYPE="all"
+    echo "Compile for all CPU-types"
+  fi
   echo "Rust version: $RUST_VERSION"
   echo "Building: $ENGINE $VERSION"
 else
   echo "Error: $ERROR"
+fi
+
+# Start building 32-bit
+if [ "$ERROR" == "" ] && [ "$BIT" == "32-bit" ]; then
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
+    RESULT="./target/i686-pc-windows-gnu/release/rustic.exe"
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-generic$EXE"
+
+    rm -rf ./target
+    export RUSTFLAGS="-C target-cpu=i686"
+    cargo build --release --target="i686-pc-windows-gnu"
+    strip -s "$RESULT"
+    mv "$RESULT" "$FILENAME"
+  fi
 fi
