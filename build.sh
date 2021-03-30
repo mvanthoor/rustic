@@ -26,6 +26,8 @@ RESULT=""
 FILENAME=""
 EXE=""
 TYPE=""
+FLAGS=""
+TARGET=""
 ERROR=""
 
 # Check for which operating system we should build.
@@ -136,16 +138,64 @@ else
   echo "Error: $ERROR"
 fi
 
+# Function used below, after setting the build flags.
+function create_build {
+    rm -rf ./target
+    export RUSTFLAGS="$FLAGS"
+
+    if [ "$TARGET" == "" ]; then
+      cargo build --release
+    else
+      cargo build --release "$TARGET"
+    fi
+
+    strip -s "$RESULT"
+    mv -f "$RESULT" "$FILENAME"
+}
+
+
+# Start building 32-bit
+if [ "$ERROR" == "" ] && [ "$BIT" == "64-bit" ]; then
+  RESULT="./target/release/rustic.exe"
+
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-generic$EXE"
+    FLAGS="-C target-cpu=athlon64"
+    create_build
+  fi
+
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "old" ]; then
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-old$EXE"
+    FLAGS="-C target-cpu=core2"
+    create_build
+  fi
+
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "popcnt" ]; then
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-popcnt$EXE"
+    FLAGS="-C target-cpu=nehalem"
+    create_build
+  fi
+
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "bmi2" ]; then
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-bmi2$EXE"
+    FLAGS="-C target-cpu=haswell"
+    create_build
+  fi
+
+  if [ "$TYPE" == "all" ] || [ "$TYPE" == "native" ]; then
+    FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-native$EXE"
+    FLAGS="-C target-cpu=native"
+    create_build
+  fi
+fi
+
 # Start building 32-bit
 if [ "$ERROR" == "" ] && [ "$BIT" == "32-bit" ]; then
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
     RESULT="./target/i686-pc-windows-gnu/release/rustic.exe"
     FILENAME="$DIR/$ENGINE-$ENG_VERSION-$OS-$BIT-generic$EXE"
-
-    rm -rf ./target
-    export RUSTFLAGS="-C target-cpu=i686"
-    cargo build --release --target="i686-pc-windows-gnu"
-    strip -s "$RESULT"
-    mv "$RESULT" "$FILENAME"
+    FLAGS="-C target-cpu=i686"
+    TARGET="--target=i686-pc-windows-gnu"
+    create_build
   fi
 fi
