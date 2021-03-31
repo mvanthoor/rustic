@@ -1,9 +1,46 @@
 #!/bin/bash
 
+# =========================================================================== #
+# This is Rustic's build script. It was written and tested in the Bash
+# shell on the following operating systems: Windows (MSYS2), MacOS, Linux.
+# Care was taken to stay POSIX-compliant, but running this script in a
+# different shell or on a different operating system than the ones
+# mentioned above, is unsupported.
+#
+# The script checks all the necessary conditions and sets all the
+# parameters for building the engine. Except for the minimum required Rust
+# version, the build script gets all the needed information from the
+# envorinment, or the Cargo.toml file.
+#
+# The script only starts building Rustic if all requirements have been
+# fulfilled. As soon as an unmet requirement is found, the script will
+# report this and terminate.
+#
+# Further comments describing each step can be found below.
+#
+# If Rust is installed correctly but the build script does not work for
+# whatever reason, it should still be possible to compile the engine
+# manually using the following commands:
+#
+# cargo build --release
+#
+# strip -s ./target/release/rustic-alpha
+#
+# The "strip" command is optional; it will strip debug symbols from the
+# binary to make it smaller. Add ".exe", without quotes, at the end of this
+# command if on Windows. (In Windows, this command is only available in a
+# seperately installed BASH shell such as MSYS2.)
+# ========================================================================== #
+
+# Remove this from strings when parsing the TOML-file.
+RM_CHARS="\ \"\=\n"
+RM_NAME="s/name//g"
+RM_VER="s/version//g"
+
 # Set engine name and version.
-ENGINE=$(cat Cargo.toml | grep -i "name" | tr -d "name= \"\n" | tr A-Z a-z)
-VERSION=$(cat Cargo.toml | grep -i "version" | grep -iv "\{" | tr -d "version= \"\n")
-FULL_NAME="$ENGINE alpha $VERSION"
+NAME=$(cat Cargo.toml | grep -i "name" | tr -d "$RM_CHARS" | tr A-Z a-z | sed "$RM_NAME")
+VERSION=$(cat Cargo.toml | grep -i "version" | grep -iv "\{" | tr -d "$RM_CHARS" | sed "$RM_VER")
+FULL_NAME="$NAME $VERSION"
 
 # Set minimum required Rust version.
 RUST_MIN_VERSION="1.46.0"
@@ -156,7 +193,7 @@ function create_build {
 
 # Start building 32-bit
 if [ "$ERROR" == "" ] && [ "$BIT" == "64-bit" ]; then
-  RESULT="./target/release/rustic.exe"
+  RESULT="./target/release/$NAME$EXE"
   FULL_NAME=$(echo "$FULL_NAME" | tr " " "-")
 
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
