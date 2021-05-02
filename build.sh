@@ -88,6 +88,17 @@ if [ "$ERROR" == "" ]; then
       ;;
   esac
 
+  # If we are on Linux, see if it's Raspbian
+  if [ "$OS" == "linux" ]; then
+    RM_NAME="s/pretty_name=//g"
+    WHICH_LINUX=$(cat /etc/\*-release | tr A-Z a-z | grep -i "pretty" | sed "$RM_NAME" | tr -d \")
+    case $WHICH_LINUX in
+      "ras"*)
+        OS="raspberry"
+        ;;
+    esac
+  fi
+
   # We're on an OS we can't automatically build for
   if [ "$OS" == "" ]; then
     ERROR="Cannot determine operating system."
@@ -154,7 +165,7 @@ if [ "$ERROR" == "" ]; then
         TYPE="bmi2"
         ;;
       "native")
-        TYPE="bmi2"
+        TYPE="native"
         ;;
     esac
   fi
@@ -191,7 +202,6 @@ function create_build {
 }
 
 
-# Start building 32-bit
 if [ "$ERROR" == "" ] && [ "$BIT" == "64-bit" ]; then
   RESULT="./target/release/$NAME$EXE"
   FULL_NAME=$(echo "$FULL_NAME" | tr " " "-")
@@ -227,8 +237,8 @@ if [ "$ERROR" == "" ] && [ "$BIT" == "64-bit" ]; then
   fi
 fi
 
-# Start building 32-bit
-if [ "$ERROR" == "" ] && [ "$BIT" == "32-bit" ]; then
+# Start building Windows 32-bit version
+if [ "$ERROR" == "" ] && [ $OS == "windows" ] && [ "$BIT" == "32-bit" ]; then
   if [ "$TYPE" == "all" ] || [ "$TYPE" == "generic" ]; then
     RESULT="./target/i686-pc-windows-gnu/release/rustic.exe"
     FILENAME="$DIR/$FULL_NAME-$OS-$BIT-generic$EXE"
