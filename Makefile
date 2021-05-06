@@ -21,7 +21,31 @@ full_name = $(name) $(ver)
 uname = $(shell uname -a | tr A-Z a-z | tr -d "\n")
 rust_found = $(shell command -v rustc | tr -d "\n")
 
+# Find out the OS we are running on
+os =
+exe =
+bits =
+
+ifeq ($(findstring mingw64,$(uname)),mingw64)
+	os = windows
+	bits = 64-bit
+	exe = .exe
+endif
+ifeq ($(findstring mingw32,$(uname)),mingw32)
+	os = windows
+	bits = 32-bit
+	exe = .exe
+endif
+ifeq ($(findstring darwin,$(uname)),darwin)
+	os = macos
+	bits = 64-bit
+	exe =
+endif
+ifeq ($(findstring linux,$(uname)),linux)
+	os = linux
+	bits = 64-bit
+	exe =
+endif
+
 all:
-	echo $(full_name)
-	echo $(uname)
-	echo $(rust_found)
+	$(info $(os), $(bits), $(exe))
