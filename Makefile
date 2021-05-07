@@ -85,6 +85,14 @@ ifeq ($(error),)
 	$(info Compiling...)
 endif
 
+gnu: clean
+	rustup default stable-x86_64-pc-windows-gnu
+
+msvc: clean
+	rustup default stable-x86_64-pc-windows-msvc
+
 clean:
 	rm -rf ./bin
 	rm -rf ./target
+
+
