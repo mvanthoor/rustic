@@ -70,10 +70,10 @@ impl PerftData {
 
 #[derive(Copy, Clone)]
 pub enum HashFlag {
-    NONE,
-    EXACT,
-    ALPHA,
-    BETA,
+    Nothing,
+    Exact,
+    Alpha,
+    Beta,
 }
 
 #[derive(Copy, Clone)]
@@ -88,7 +88,7 @@ impl IHashData for SearchData {
     fn new() -> Self {
         Self {
             depth: 0,
-            flag: HashFlag::NONE,
+            flag: HashFlag::Nothing,
             value: 0,
             best_move: TTMove::new(0),
         }
@@ -131,7 +131,7 @@ impl SearchData {
 
         if self.depth >= depth {
             match self.flag {
-                HashFlag::EXACT => {
+                HashFlag::Exact => {
                     // Get the value from the data. We don't want to change
                     // the value that is in the TT.
                     let mut v = self.value;
@@ -150,12 +150,12 @@ impl SearchData {
                     // This is the value that will be returned.
                     value = Some(v);
                 }
-                HashFlag::ALPHA => {
+                HashFlag::Alpha => {
                     if self.value <= alpha {
                         value = Some(alpha);
                     }
                 }
-                HashFlag::BETA => {
+                HashFlag::Beta => {
                     if self.value >= beta {
                         value = Some(beta);
                     }
