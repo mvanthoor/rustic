@@ -58,5 +58,33 @@ endif
 output_dir = $(base_dir)/$(os)
 file_name = $(eng_name)-$(eng_ver)-$(os)-$(bits)
 
+# Assume there are no errors.
+error =
+
+# Determine if everything is correct
+ifeq ($(os),)
+	error = Unknown OS: This operating system is not supported.
+endif
+ifeq ($(bits),)
+	error = Unknown architecture: the system must be 32-bit or 64-bit.
+endif
+ifeq ($(rust_ok),no)
+	error = Rust version not supported.
+endif
+ifeq ($(rust_found),)
+	error = Rust not found or not installed.
+endif
+
+# Print the error message if there is one
+ifneq ($(error),)
+$(info $(error))
+endif
+
 all:
-	$(info $(output_dir) $(file_name))
+ifeq ($(error),)
+	$(info Compiling...)
+endif
+
+clean:
+	rm -rf ./bin
+	rm -rf ./target
