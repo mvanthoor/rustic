@@ -1,5 +1,5 @@
 # Set minimum required Rust version.
-rust_min_version = "1.46.0"
+rust_min_version = 1.46.0
 
 # Set base dir for the binaries.
 base_dir = "./bin"
@@ -20,6 +20,14 @@ full_name = $(name) $(ver)
 # Get current operating environment.
 uname = $(shell uname -a | tr A-Z a-z | tr -d "\n")
 rust_found = $(shell command -v rustc | tr -d "\n")
+rust_version = $(shell rustc -Vv | grep -i "release" | tr -d "release: " | tr -d "\n")
+rust_sort = $(sort $(rust_min_version) $(rust_version))
+rust_ok = no
+
+# Check if the minimum Rust version is satisfied
+ifeq ($(word 1, $(rust_sort)),$(rust_min_version))
+	rust_ok = yes
+endif
 
 # Find out the OS we are running on
 os =
@@ -48,4 +56,4 @@ ifeq ($(findstring linux,$(uname)),linux)
 endif
 
 all:
-	$(info $(os), $(bits), $(exe))
+	$(info $(rust_ok))
