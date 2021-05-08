@@ -36,20 +36,26 @@ base_dir = ./bin
 
 # ===== The code below should not be changed. ===== #
 
-# Remove this from strings when parsing the TOML-file.
-rm_chars = "\ \"\=\n"
-rm_name = "s/name//g"
-rm_ver = "s/version//g"
-rm_brace = "\{"
+# Actions needed for handling text parsing
+to_lowercase = tr A-Z a-z
+rm_chars = tr -d "\ \"\=\n"
+rm_name = sed "s/name//g"
+rm_ver = sed "s/version//g"
+rm_brace = grep -iv "\{"
+rm_nl = tr -d "\n"
+rm_release = tr -d "release: "
+grep_name = grep -i "name"
+grep_version = grep -i "version"
+grep_release = grep -i "release"
 
 # Set engine name and version by parsing the TOML file.
-eng_name = $(shell cat Cargo.toml | grep -i "name" | tr -d $(rm_chars) | tr A-Z a-z | sed $(rm_name))
-eng_ver = $(shell cat Cargo.toml | grep -i "version" | grep -iv $(rm_brace) | tr -d $(rm_chars) | sed $(rm_ver))
+eng_name = $(shell cat Cargo.toml | $(grep_name) | $(rm_chars) | $(to_lowercase) | $(rm_name))
+eng_ver = $(shell cat Cargo.toml | $(grep_version) | $(rm_brace) | $(rm_chars) | $(rm_ver))
 
 # Get current operating environment.
-uname = $(shell uname -a | tr A-Z a-z | tr -d "\n")
-rust_found = $(shell command -v rustc | tr -d "\n")
-rust_version = $(shell rustc -Vv | grep -i "release" | tr -d "release: " | tr -d "\n")
+uname = $(shell uname -a | $(to_lowercase) | $(rm_nl))
+rust_found = $(shell command -v rustc | $(rm_nl))
+rust_version = $(shell rustc -Vv | $(grep_release) | $(rm_release) | $(rm_nl))
 rust_sort = $(sort $(rust_min_version) $(rust_version))
 rust_ok = no
 
@@ -107,7 +113,7 @@ endif
 
 # ===== Main targets ===== #
 
-all: create-folder
+all: create-dir
 	$(info Compiling...)
 
 gnu: clean switch-gnu all
