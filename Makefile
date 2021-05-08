@@ -1,3 +1,33 @@
+# =========================================================================== #
+# This is Rustic's Makefile. It was written and tested in the Bash shell on
+# the following operating systems: Windows (MSYS2), MacOS, Linux.
+#
+# The Makefile checks all the necessary conditions and sets all the
+# parameters for building the engine. Except for the minimum required Rust
+# version, the build script gets all the needed information from the
+# envorinment, or the Cargo.toml file.
+#
+# The Makefile only starts building Rustic if all requirements have been
+# fulfilled. As soon as an unmet requirement is found, this will be
+# reported and the engine will not be built.
+#
+# Further comments describing each step can be found below.
+#
+# If Rust is installed correctly but the Makefile does not work for
+# whatever reason, it should still be possible to compile the engine
+# manually using the following commands:
+#
+# cargo build --release
+#
+# strip -s ./target/release/rustic-alpha
+#
+# (On Windows, the name of the executable will be rustic-alpha.exe.) The
+# "strip" command is optional; it will strip debug symbols from the binary
+# to make it smaller. If you also wish to build the engine for your
+# specific CPU, then set the RUSTFLAGS="-C target-cpu=core2" environment
+# variable before running the cargo command.
+# ========================================================================== #
+
 # Set minimum required Rust version.
 rust_min_version = 1.46.0
 
@@ -58,7 +88,7 @@ endif
 output_dir = $(base_dir)/$(os)
 file_name = $(eng_name)-$(eng_ver)-$(os)-$(bits)
 
-# Determine if everything is correct
+# Determine if everything is correct. If not, abort.
 ifeq ($(os),)
 $(error Unknown OS: This operating system is not supported)
 endif
@@ -71,6 +101,8 @@ endif
 ifeq ($(rust_ok),no)
 $(error Rust version not supported)
 endif
+
+# ===== Main targets ===== #
 
 all:
 	$(info Compiling...)
