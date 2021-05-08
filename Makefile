@@ -85,14 +85,18 @@ ifeq ($(error),)
 	$(info Compiling...)
 endif
 
-gnu: clean
-	rustup default stable-x86_64-pc-windows-gnu
+gnu: clean switch-gnu all
 
-msvc: clean
-	rustup default stable-x86_64-pc-windows-msvc
+msvc: clean switch-msvc all
 
 clean:
 	rm -rf ./bin
 	rm -rf ./target
 
+# ===== The targets below are dependencies ===== #
 
+switch-gnu:
+	rustup default stable-x86_64-pc-windows-gnu
+
+switch-msvc:
+	rustup default stable-x86_64-pc-windows-msvc
