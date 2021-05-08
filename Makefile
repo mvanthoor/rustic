@@ -84,8 +84,16 @@ ifeq ($(findstring linux,$(uname)),linux)
 	exe =
 endif
 
-# Set output directory and file name
+# Create the output directory if it doesn't exist
+dir_exists = $(shell ls -l $(base_dir)/ | grep -i $(os) | tr -d "\n")
 output_dir = $(base_dir)/$(os)
+
+ifeq ($(dir_exists),)
+$(info Creating directory: $(output_dir))
+$(shell mkdir -p $(output_dir))
+endif
+
+# Set filename
 file_name = $(eng_name)-$(eng_ver)-$(os)-$(bits)
 
 # Determine if everything is correct. If not, abort.
