@@ -28,6 +28,13 @@
 # variable before running the cargo command.
 # ========================================================================== #
 
+# Normally, a Make target is used to create a file with the target's name.
+# A target that is not expected to create a file with the target's name, is
+# called "PHONY" (not real, fake). In this Makefile, we use all the targets
+# as subroutines, not as a means to create files. Therefore they are all
+# listed as phony.
+.PHONY: all gnu msvc clean switch-gnu switch-msvc create-dir
+
 # Set minimum required Rust version.
 rust_min_version = 1.46.0
 
