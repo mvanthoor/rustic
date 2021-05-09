@@ -73,36 +73,37 @@ endif
 
 # Find out the OS we are running on
 os =
-exe =
+ext =
 bits =
 
 ifeq ($(findstring mingw64,$(uname)),mingw64)
 	os = windows
 	bits = 64-bit
-	exe = .exe
+	ext = .exe
 endif
 ifeq ($(findstring mingw32,$(uname)),mingw32)
 	os = windows
 	bits = 32-bit
-	exe = .exe
+	ext = .exe
 endif
 ifeq ($(findstring darwin,$(uname)),darwin)
 	os = macos
 	bits = 64-bit
-	exe =
+	ext =
 endif
 ifeq ($(findstring linux,$(uname)),linux)
 	os = linux
 	bits = 64-bit
-	exe =
+	ext =
 endif
 
 # Create the output directory if it doesn't exist
 dir_exists = $(shell ls -l $(base_dir)/ | grep -i $(os) | tr -d "\n")
-output_dir = $(base_dir)/$(os)
+out_dir = $(base_dir)/$(os)
 
-# Set filename
-file_name = $(eng_name)-$(eng_ver)-$(os)-$(bits)
+# Set filenames
+out_file = $(eng_name)-$(eng_ver)-$(os)-$(bits)
+rel_file = ./target/release/rustic-alpha
 
 # Determine if everything is correct. If not, abort.
 ifeq ($(os),)
@@ -122,8 +123,8 @@ endif
 
 all: create-dir
 	cargo build --release
-	strip -s ./target/release/rustic-alpha$(exe)
-	mv ./target/release/rustic-alpha$(exe) $(output_dir)/$(file_name)$(exe)
+	strip -s $(rel_file)$(ext)
+	mv $(rel_file)$(ext) $(out_dir)/$(out_file)$(ext)
 
 gnu: clean switch-gnu all
 
@@ -143,6 +144,6 @@ switch-msvc:
 
 create-dir:
 ifeq ($(dir_exists),)
-	$(info Creating directory: $(output_dir))
-	$(shell mkdir -p $(output_dir))
+	$(info Creating directory: $(out_dir))
+	$(shell mkdir -p $(out_dir))
 endif
