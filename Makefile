@@ -121,7 +121,9 @@ endif
 # ===== Main targets ===== #
 
 all: create-dir
-	$(info Compiling...)
+	cargo build --release
+	strip -s ./target/release/rustic-alpha$(exe)
+	mv ./target/release/rustic-alpha$(exe) $(output_dir)/$(file_name)$(exe)
 
 gnu: clean switch-gnu all
 
