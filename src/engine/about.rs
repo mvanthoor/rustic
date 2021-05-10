@@ -46,12 +46,17 @@ impl Engine {
     pub fn print_about(&self, s: &Settings) {
         let bits = std::mem::size_of::<usize>() * 8;
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
-        println!("{:<10} {}", "Aut hor:", About::AUTHOR);
+        println!("{:<10} {}", "Author:", About::AUTHOR);
         println!("{:<10} {}", "EMail:", About::EMAIL);
         println!("{:<10} {}", "Website:", About::WEBSITE);
         println!("{:<10} {}-bit", "Type:", bits);
         println!("{:<10} {} MB", "TT size:", s.tt_size);
-        println!("{:<10} {}", "Threads:", s.threads);
+
+        if s.threads == 1 {
+            println!("{:<10} {}", "Threads:", s.threads)
+        } else {
+            println!("{:<10} {} (unused, always 1)", "Threads:", s.threads)
+        };
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
