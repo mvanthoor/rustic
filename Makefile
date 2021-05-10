@@ -122,9 +122,7 @@ endif
 # ===== Main targets ===== #
 
 all: create-dir
-	cargo build --release
-	strip -s $(rel_file)$(ext)
-	mv $(rel_file)$(ext) $(out_dir)/$(out_file)$(ext)
+	$(call compile)
 
 gnu: clean switch-gnu all
 
@@ -147,3 +145,11 @@ ifeq ($(dir_exists),)
 	$(info Creating directory: $(out_dir))
 	$(shell mkdir -p $(out_dir))
 endif
+
+# ===== Custom functions ===== #
+
+define compile
+cargo build --release
+strip -s $(rel_file)$(ext)
+mv $(rel_file)$(ext) $(out_dir)/$(out_file)$(ext)
+endef
