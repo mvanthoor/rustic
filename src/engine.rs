@@ -157,7 +157,7 @@ impl Engine {
         }
 
         self.print_ascii_logo();
-        self.print_about();
+        self.print_about(&self.settings);
         println!();
 
         // Setup position and abort if this fails.
