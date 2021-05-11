@@ -33,7 +33,7 @@
 # called "PHONY" (not real, fake). In this Makefile, we use all the targets
 # as subroutines, not as a means to create files. Therefore they are all
 # listed as phony.
-.PHONY: all gnu msvc clean switch-gnu switch-msvc create-dir
+.PHONY: all clean rm-bin rm-target switch-gnu switch-msvc create-dir native bmi2 popcnt old ancient
 
 # Set minimum required Rust version.
 rust_min_version = 1.46.0
@@ -121,24 +121,19 @@ endif
 
 # ===== Main targets ===== #
 
-all: create-dir
-	$(call compile)
+cpu_level = 
 
-gnu: clean switch-gnu all
+all: clean native bmi2 popcnt old ancient
 
-msvc: clean switch-msvc all
-
-clean:
-	rm -rf ./bin
-	rm -rf ./target
-
-# ===== The targets below are dependencies ===== #
-
-switch-gnu:
+switch-gnu: clean
 	rustup default stable-x86_64-pc-windows-gnu
 
-switch-msvc:
+switch-msvc: clean
 	rustup default stable-x86_64-pc-windows-msvc
+
+clean: rm-bin rm-target
+	
+# ===== The targets below are dependencies ===== #
 
 create-dir:
 ifeq ($(dir_exists),)
@@ -146,10 +141,41 @@ ifeq ($(dir_exists),)
 	$(shell mkdir -p $(out_dir))
 endif
 
+rm-bin:
+	rm -rf ./bin
+
+rm-target:
+	rm -rf ./target
+
+native: export RUSTFLAGS = -C target-cpu=native
+native: create-dir rm-target
+	$(eval cpu_level = native)
+	$(call compile)
+
+bmi2: export RUSTFLAGS = -C target-cpu=haswell
+bmi2: create-dir rm-target
+	$(eval cpu_level = bmi2)
+	$(call compile)
+
+popcnt: export RUSTFLAGS = -C target-cpu=nehalem
+popcnt: create-dir rm-target
+	$(eval cpu_level = popcnt)
+	$(call compile)
+
+old: export RUSTFLAGS = -C target-cpu=core2
+old: create-dir rm-target
+	$(eval cpu_level = old)
+	$(call compile)
+
+ancient: export RUSTFLAGS = -C target-cpu=athlon64
+ancient: create-dir rm-target
+	$(eval cpu_level = ancient)
+	$(call compile)
+
 # ===== Custom functions ===== #
 
 define compile
 cargo build --release
 strip -s $(rel_file)$(ext)
-mv $(rel_file)$(ext) $(out_dir)/$(out_file)$(ext)
+mv $(rel_file)$(ext) $(out_dir)/$(out_file)-$(cpu_level)$(ext)
 endef
