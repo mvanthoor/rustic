@@ -23,11 +23,15 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Move sorting routines.
 
-use super::{defs::SearchRefs, Search};
+use super::{
+    defs::{SearchRefs, NR_KILLER_MOVES},
+    Search,
+};
 use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
 const TTMOVE_SORT_VALUE: u16 = 60;
 const MVV_LVA_OFFSET: u16 = 65400;
+const KILLER_VALUE: u16 = 10;
 
 // MVV_VLA[victim][attacker]
 pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
@@ -59,15 +63,13 @@ impl Search {
             } else {
                 // Try to sort quiet moves as killer move.
                 let ply = refs.search_info.ply as usize;
-                let k1 = refs.search_info.killer_moves[0][ply];
-                let k2 = refs.search_info.killer_moves[1][ply];
 
-                if m.get_move() == k1.get_move() {
-                    value = 65390;
-                }
-
-                if m.get_move() == k2.get_move() {
-                    value = 65380;
+                for i in 0..NR_KILLER_MOVES {
+                    let killer = refs.search_info.killer_moves[i][ply];
+                    if m.get_move() == killer.get_move() {
+                        value = MVV_LVA_OFFSET - ((i as u16 + 1) * KILLER_VALUE);
+                        break;
+                    }
                 }
             }
 
