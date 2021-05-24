@@ -48,28 +48,23 @@ impl Search {
     pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove, refs: &SearchRefs) {
         for i in 0..ml.len() {
             let m = ml.get_mut_move(i);
-            let is_tt_move = m.get_move() == tt_move.get_move();
-
             let mut value = 0;
 
-            // Sort the hash move as the first in the list.
-            if is_tt_move {
+            // Sort order priority is: TT Move first, then captures, then
+            // quiet moves that are in the list of killer moves.
+            if m.get_move() == tt_move.get_move() {
                 value = MVV_LVA_OFFSET + TTMOVE_SORT_VALUE;
-            };
-
-            // Sort captures using MVV-LVA.
-            if !is_tt_move && m.captured() != Pieces::NONE {
+            } else if m.captured() != Pieces::NONE {
                 value = MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()];
             } else {
-                // Try to sort quiet moves as killer move.
                 let ply = refs.search_info.ply as usize;
-
-                for i in 0..NR_KILLER_MOVES {
+                let mut i = 0;
+                while i < NR_KILLER_MOVES && value == 0 {
                     let killer = refs.search_info.killer_moves[i][ply];
                     if m.get_move() == killer.get_move() {
                         value = MVV_LVA_OFFSET - ((i as u16 + 1) * KILLER_VALUE);
-                        break;
                     }
+                    i += 1;
                 }
             }
 
@@ -77,6 +72,8 @@ impl Search {
         }
     }
 
+    // This function puts the move with the highest sort score at the
+    // "start_index" position, where alpha-beta will pick the next move.
     pub fn pick_move(ml: &mut MoveList, start_index: u8) {
         for i in (start_index + 1)..ml.len() {
             if ml.get_move(i).sort_score() > ml.get_move(start_index).sort_score() {
