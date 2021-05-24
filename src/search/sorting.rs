@@ -27,6 +27,7 @@ use super::Search;
 use crate::{defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
 const TTMOVE_SORT_VALUE: u16 = 60;
+const MVV_LVA_OFFSET: u16 = 65400;
 
 // MVV_VLA[victim][attacker]
 pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
@@ -47,10 +48,10 @@ impl Search {
 
             // Sort the hash move as the first in the list.
             let value = if is_tt_move {
-                TTMOVE_SORT_VALUE
+                MVV_LVA_OFFSET + TTMOVE_SORT_VALUE
             } else {
                 // Sort other moves by MVV-LVA scheme.
-                MVV_LVA[m.captured()][m.piece()]
+                MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()]
             };
 
             m.set_score(value);
