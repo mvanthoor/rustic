@@ -29,7 +29,7 @@ use crate::{
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType, TTMove},
+    movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
 impl Search {
@@ -83,7 +83,7 @@ impl Search {
 
         // Variables to hold TT value and move if any.
         let mut tt_value: Option<i16> = None;
-        let mut tt_move: TTMove = TTMove::new(0);
+        let mut tt_move: ShortMove = ShortMove::new(0);
 
         // Probe the TT for information.
         if refs.tt_enabled {
@@ -131,7 +131,7 @@ impl Search {
         let mut hash_flag = HashFlag::Alpha;
 
         // Holds the best move in the move loop, for storing into the TT.
-        let mut best_move: TTMove = TTMove::new(0);
+        let mut best_move: ShortMove = ShortMove::new(0);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {

@@ -28,7 +28,7 @@ use super::{
 use crate::{
     defs::MAX_DEPTH,
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType, TTMove},
+    movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
 impl Search {
@@ -82,7 +82,7 @@ impl Search {
         refs.mg.generate_moves(refs.board, &mut move_list, mtc);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list, TTMove::new(0));
+        Search::score_moves(&mut move_list, ShortMove::new(0));
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minium MIN_TIME_STATS has elapsed before sending.
