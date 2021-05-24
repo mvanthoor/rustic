@@ -26,6 +26,7 @@ use super::{
     Search, SearchRefs,
 };
 use crate::{
+    board::defs::Pieces,
     defs::MAX_DEPTH,
     engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
@@ -115,7 +116,7 @@ impl Search {
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list, tt_move);
+        Search::score_moves(&mut move_list, tt_move, refs);
 
         // After SEND_STATS nodes have been searched, check if the
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
@@ -197,6 +198,15 @@ impl Search {
                         best_move,
                     ),
                 );
+
+                // Store killer moves.
+                if current_move.captured() == Pieces::NONE {
+                    let ply = refs.search_info.ply as usize;
+
+                    refs.search_info.killer_moves[1][ply] = refs.search_info.killer_moves[0][ply];
+                    refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
+                }
+
                 return beta;
             }
 

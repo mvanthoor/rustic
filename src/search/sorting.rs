@@ -23,8 +23,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Move sorting routines.
 
-use super::Search;
-use crate::{defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
+use super::{defs::SearchRefs, Search};
+use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
 const TTMOVE_SORT_VALUE: u16 = 60;
 const MVV_LVA_OFFSET: u16 = 65400;
@@ -41,18 +41,35 @@ pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 ];
 
 impl Search {
-    pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove) {
+    pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove, refs: &SearchRefs) {
         for i in 0..ml.len() {
             let m = ml.get_mut_move(i);
             let is_tt_move = m.get_move() == tt_move.get_move();
 
+            let mut value = 0;
+
             // Sort the hash move as the first in the list.
-            let value = if is_tt_move {
-                MVV_LVA_OFFSET + TTMOVE_SORT_VALUE
-            } else {
-                // Sort other moves by MVV-LVA scheme.
-                MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()]
+            if is_tt_move {
+                value = MVV_LVA_OFFSET + TTMOVE_SORT_VALUE;
             };
+
+            // Sort captures using MVV-LVA.
+            if !is_tt_move && m.captured() != Pieces::NONE {
+                value = MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()];
+            } else {
+                // Try to sort quiet moves as killer move.
+                let ply = refs.search_info.ply as usize;
+                let k1 = refs.search_info.killer_moves[0][ply];
+                let k2 = refs.search_info.killer_moves[1][ply];
+
+                if m.get_move() == k1.get_move() {
+                    value = 65390;
+                }
+
+                if m.get_move() == k2.get_move() {
+                    value = 65380;
+                }
+            }
 
             m.set_score(value);
         }
