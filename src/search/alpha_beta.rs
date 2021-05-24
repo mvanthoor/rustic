@@ -181,7 +181,7 @@ impl Search {
             // save a new best_move that'll go into the hash table.
             if eval_score > best_eval_score {
                 best_eval_score = eval_score;
-                best_move = current_move.to_hash_move();
+                best_move = current_move.to_short_move();
             }
 
             // Beta cutoff: this move is so good for our opponent, that we
