@@ -199,12 +199,10 @@ impl Search {
                     ),
                 );
 
-                // Store killer moves.
+                // If the move is not a capture but still causes a
+                // beta-cutoff, then store it as a killer move.
                 if current_move.captured() == Pieces::NONE {
-                    let ply = refs.search_info.ply as usize;
-
-                    refs.search_info.killer_moves[1][ply] = refs.search_info.killer_moves[0][ply];
-                    refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
+                    store_killer_move(current_move, refs);
                 }
 
                 return beta;
@@ -248,4 +246,11 @@ impl Search {
         // possible move/eval_score for us.
         alpha
     }
+}
+
+fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
+    let ply = refs.search_info.ply as usize;
+
+    refs.search_info.killer_moves[1][ply] = refs.search_info.killer_moves[0][ply];
+    refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
 }
