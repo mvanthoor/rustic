@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Move sorting routines.
 
 use super::Search;
-use crate::{defs::NrOf, movegen::defs::MoveList, movegen::defs::TTMove};
+use crate::{defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
 const TTMOVE_SORT_VALUE: u16 = 60;
 
@@ -40,7 +40,7 @@ pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 ];
 
 impl Search {
-    pub fn score_moves(ml: &mut MoveList, tt_move: TTMove) {
+    pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove) {
         for i in 0..ml.len() {
             let m = ml.get_mut_move(i);
             let is_tt_move = m.get_move() == tt_move.get_move();

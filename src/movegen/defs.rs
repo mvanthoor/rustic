@@ -155,8 +155,8 @@ impl Move {
         )
     }
 
-    pub fn to_hash_move(&self) -> TTMove {
-        TTMove::new((self.data & MOVE_ONLY) as u32)
+    pub fn to_hash_move(&self) -> ShortMove {
+        ShortMove::new((self.data & MOVE_ONLY) as u32)
     }
 
     pub fn get_move(&self) -> u32 {
@@ -165,11 +165,11 @@ impl Move {
 }
 
 #[derive(Copy, Clone)]
-pub struct TTMove {
+pub struct ShortMove {
     data: u32,
 }
 
-impl TTMove {
+impl ShortMove {
     pub fn new(m: u32) -> Self {
         Self { data: m }
     }
