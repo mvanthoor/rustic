@@ -22,7 +22,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
+    defs::{
+        SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, NR_KILLER_MOVES, SEND_STATS,
+        STALEMATE,
+    },
     Search, SearchRefs,
 };
 use crate::{
@@ -251,6 +254,12 @@ impl Search {
 fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
     let ply = refs.search_info.ply as usize;
 
-    refs.search_info.killer_moves[1][ply] = refs.search_info.killer_moves[0][ply];
+    // Shift existing killer moves to the end of the list.
+    for i in (1..NR_KILLER_MOVES).rev() {
+        let n = i as usize;
+        refs.search_info.killer_moves[n][ply] = refs.search_info.killer_moves[n - 1][ply];
+    }
+
+    // Add the new killer move in the first spot.
     refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
 }
