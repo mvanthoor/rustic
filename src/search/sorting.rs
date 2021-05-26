@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Move sorting routines.
 
 use super::{
-    defs::{SearchRefs, NR_KILLER_MOVES},
+    defs::{SearchRefs, MAX_KILLER_MOVES},
     Search,
 };
 use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
@@ -59,7 +59,7 @@ impl Search {
             } else {
                 let ply = refs.search_info.ply as usize;
                 let mut i = 0;
-                while i < NR_KILLER_MOVES && value == 0 {
+                while i < MAX_KILLER_MOVES && value == 0 {
                     let killer = refs.search_info.killer_moves[i][ply];
                     if m.get_move() == killer.get_move() {
                         value = MVV_LVA_OFFSET - ((i as u16 + 1) * KILLER_VALUE);

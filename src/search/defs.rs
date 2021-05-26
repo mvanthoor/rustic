@@ -24,10 +24,10 @@ pub const CHECK_TERMINATION: usize = 0x7FF; // 2.047 nodes
 pub const SEND_STATS: usize = 0x7FFFF; // 524.287 nodes
 pub const MIN_TIME_STATS: u128 = 2_000; // Minimum time for sending stats
 pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_move
-pub const NR_KILLER_MOVES: usize = 2;
+pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
-pub type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; NR_KILLER_MOVES];
+pub type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
@@ -139,7 +139,7 @@ impl SearchInfo {
             seldepth: 0,
             nodes: 0,
             ply: 0,
-            killer_moves: [[ShortMove::new(0); MAX_DEPTH as usize]; NR_KILLER_MOVES],
+            killer_moves: [[ShortMove::new(0); MAX_DEPTH as usize]; MAX_KILLER_MOVES],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,
