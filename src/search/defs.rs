@@ -24,7 +24,7 @@ pub const CHECK_TERMINATION: usize = 0x7FF; // 2.047 nodes
 pub const SEND_STATS: usize = 0x7FFFF; // 524.287 nodes
 pub const MIN_TIME_STATS: u128 = 2_000; // Minimum time for sending stats
 pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_move
-pub const MAX_KILLER_MOVES: usize = 2;
+pub const MAX_KILLER_MOVES: usize = 3;
 
 pub type SearchResult = (Move, SearchTerminate);
 pub type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
