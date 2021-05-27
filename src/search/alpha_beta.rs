@@ -22,10 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{
-        SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, MAX_KILLER_MOVES, SEND_STATS,
-        STALEMATE,
-    },
+    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -205,7 +202,7 @@ impl Search {
                 // If the move is not a capture but still causes a
                 // beta-cutoff, then store it as a killer move.
                 if current_move.captured() == Pieces::NONE {
-                    store_killer_move(current_move, refs);
+                    Search::store_killer_move(current_move, refs);
                 }
 
                 return beta;
@@ -249,17 +246,4 @@ impl Search {
         // possible move/eval_score for us.
         alpha
     }
-}
-
-fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
-    let ply = refs.search_info.ply as usize;
-
-    // Shift existing killer moves to the end of the list.
-    for i in (1..MAX_KILLER_MOVES).rev() {
-        let n = i as usize;
-        refs.search_info.killer_moves[n][ply] = refs.search_info.killer_moves[n - 1][ply];
-    }
-
-    // Add the new killer move in the first spot.
-    refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
 }

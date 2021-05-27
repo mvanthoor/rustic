@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
+        SearchTerminate, MAX_KILLER_MOVES, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
     },
     Search,
 };
@@ -185,5 +185,31 @@ impl Search {
         // If one of the conditions above is true, we still have enough
         // material for checkmate, so insufficient_material returns false.
         !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b ||  w_bn || b_bn)
+    }
+}
+
+// This function stores a move in the list of killer moves. Normally we
+// store two killer moves per ply. By checking that the move we want to
+// store is not the same as the first killer move in the list, we make sure
+// that both moves are always different. It is possible to store three or
+// more killer moves, but experience shows that checking for ALL of them to
+// be unique costs more time than the extra killer moves could save.
+impl Search {
+    pub fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
+        let ply = refs.search_info.ply as usize;
+        let first_killer = refs.search_info.killer_moves[0][ply];
+
+        // First killer must not be the same as the move being stored.
+        if first_killer.get_move() != current_move.get_move() {
+            // Shift all the moves one index upward...
+            for i in (1..MAX_KILLER_MOVES).rev() {
+                let n = i as usize;
+                let previous = refs.search_info.killer_moves[n - 1][ply];
+                refs.search_info.killer_moves[n][ply] = previous;
+            }
+
+            // and add the new killer move in the first spot.
+            refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
+        }
     }
 }
