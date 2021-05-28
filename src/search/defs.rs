@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::MAX_DEPTH,
+    defs::{NrOf, MAX_DEPTH},
     engine::defs::{Information, SearchData, TT},
     movegen::{
         defs::{Move, ShortMove},
@@ -27,7 +27,8 @@ pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_mov
 pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
-pub type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
+type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
+type HistoryHeuristic = [[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES];
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
@@ -119,16 +120,17 @@ impl SearchParams {
 // search into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
-    start_time: Option<Instant>,    // Time the search started
-    pub depth: i8,                  // Depth currently being searched
-    pub seldepth: i8,               // Maximum selective depth reached
-    pub nodes: usize,               // Nodes searched
-    pub ply: i8,                    // Number of plys from the root
-    pub killer_moves: KillerMoves,  // Killer moves (array; see "type" above)
-    pub last_stats_sent: u128,      // When last stats update was sent
-    pub last_curr_move_sent: u128,  // When last current move was sent
-    pub allocated_time: u128,       // Allotted msecs to spend on move
-    pub terminate: SearchTerminate, // Terminate flag
+    start_time: Option<Instant>,             // Time the search started
+    pub depth: i8,                           // Depth currently being searched
+    pub seldepth: i8,                        // Maximum selective depth reached
+    pub nodes: usize,                        // Nodes searched
+    pub ply: i8,                             // Number of plys from the root
+    pub killer_moves: KillerMoves,           // Killer moves (array; see "type" above)
+    pub history_heuristic: HistoryHeuristic, // History heuristic counter (array)
+    pub last_stats_sent: u128,               // When last stats update was sent
+    pub last_curr_move_sent: u128,           // When last current move was sent
+    pub allocated_time: u128,                // Allotted msecs to spend on move
+    pub terminate: SearchTerminate,          // Terminate flag
 }
 
 impl SearchInfo {
@@ -140,6 +142,7 @@ impl SearchInfo {
             nodes: 0,
             ply: 0,
             killer_moves: [[ShortMove::new(0); MAX_DEPTH as usize]; MAX_KILLER_MOVES],
+            history_heuristic: [[0; NrOf::SQUARES]; NrOf::PIECE_TYPES],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,

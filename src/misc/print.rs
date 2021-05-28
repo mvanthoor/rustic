@@ -205,6 +205,6 @@ pub fn move_data(m: Move, nr: u8) {
         m.en_passant(),
         m.double_step(),
         m.castling(),
-        m.sort_score(),
+        m.get_sort_score(),
     );
 }

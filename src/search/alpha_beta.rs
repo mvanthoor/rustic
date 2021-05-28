@@ -216,6 +216,12 @@ impl Search {
                 // This is an exact move score.
                 hash_flag = HashFlag::Exact;
 
+                // Update the history heuristic if a quiet move is causing
+                // this alpha-cutoff.
+                if current_move.captured() == Pieces::NONE {
+                    Search::update_history_heuristic(current_move, depth, refs);
+                }
+
                 // Update the Principal Variation.
                 pv.clear();
                 pv.push(current_move);

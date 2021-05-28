@@ -50,9 +50,9 @@ Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
 & Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Field:      SORTSCORE   CASTLING    DOUBLESTEP  ENPASSANT
-Bits:       16          1           1           1
+Bits:       32          1           1           1
 Shift:      24 bits     23 bits     22 bits     21 bits
-& Value:    0xFFFF        0x1         0x1 (1)     0x1 (1)
+& Value:    0xFFFFFFFF  0x1         0x1 (1)     0x1 (1)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -138,12 +138,14 @@ impl Move {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
-    pub fn sort_score(self) -> u16 {
-        ((self.data >> Shift::SORTSCORE as u64) & 0xFFFF) as u16
+    pub fn get_sort_score(self) -> u32 {
+        ((self.data >> Shift::SORTSCORE as u64) & 0xFFFFFFFF) as u32
     }
 
-    pub fn set_score(&mut self, value: u16) {
-        self.data |= (value as usize) << Shift::SORTSCORE;
+    pub fn set_sort_score(&mut self, value: u32) {
+        let mask: usize = 0xFFFFFFFF << Shift::SORTSCORE;
+        let v: usize = (value as usize) << Shift::SORTSCORE;
+        self.data = (self.data & !mask) | v;
     }
 
     pub fn as_string(&self) -> String {
