@@ -36,7 +36,13 @@ PROMOTION   :   3        0-7 (piece promoted to)
 ENPASSANT   :   1        0-1
 DOUBLESTEP  :   1        0-1
 CASTLING    :   1        0-1
-SORTSCORE   :   8        0-255
+SORTSCORE   :   16       0-65536
+
+
+---------------------------------- move data -------------------------------------------
+0000000000000000    0        0          0         000       000     000000 000000 000
+SORTSCORE           CASTLING DOUBLESTEP ENPASSANT PROMOTION CAPTURE TO     FROM   PIECE
+----------------------------------------------------------------------------------------
 
 Field:      PROMOTION   CAPTURE     TO          FROM        PIECE
 Bits:       3           3           6           6           3
@@ -44,9 +50,9 @@ Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
 & Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Field:      SORTSCORE   CASTLING    DOUBLESTEP  ENPASSANT
-            8           1           1           1
+Bits:       16          1           1           1
 Shift:      24 bits     23 bits     22 bits     21 bits
-& Value:    0xFF        0x1         0x1 (1)     0x1 (1)
+& Value:    0xFFFF        0x1         0x1 (1)     0x1 (1)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -132,11 +138,11 @@ impl Move {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
-    pub fn sort_score(self) -> u8 {
-        ((self.data >> Shift::SORTSCORE as u64) & 0xFF) as u8
+    pub fn sort_score(self) -> u16 {
+        ((self.data >> Shift::SORTSCORE as u64) & 0xFFFF) as u16
     }
 
-    pub fn set_score(&mut self, value: u8) {
+    pub fn set_score(&mut self, value: u16) {
         self.data |= (value as usize) << Shift::SORTSCORE;
     }
 
@@ -149,7 +155,7 @@ impl Move {
         )
     }
 
-    pub fn to_hash_move(&self) -> ShortMove {
+    pub fn to_short_move(&self) -> ShortMove {
         ShortMove::new((self.data & MOVE_ONLY) as u32)
     }
 
@@ -158,7 +164,7 @@ impl Move {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct ShortMove {
     data: u32,
 }
