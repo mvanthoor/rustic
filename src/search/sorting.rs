@@ -72,7 +72,7 @@ impl Search {
             if value == 0 {
                 let piece = m.piece();
                 let to = m.to();
-                value = refs.search_info.history_heuristic[piece][to];
+                value = refs.search_info.history_heuristic[refs.board.us()][piece][to];
             }
 
             m.set_sort_score(value);

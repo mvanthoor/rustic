@@ -200,9 +200,11 @@ impl Search {
                 );
 
                 // If the move is not a capture but still causes a
-                // beta-cutoff, then store it as a killer move.
+                // beta-cutoff, then store it as a killer move and update
+                // the history heuristics.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
+                    Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;

@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::{NrOf, MAX_DEPTH},
+    defs::{NrOf, Sides, MAX_DEPTH},
     engine::defs::{Information, SearchData, TT},
     movegen::{
         defs::{Move, ShortMove},
@@ -28,7 +28,7 @@ pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
-type HistoryHeuristic = [[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES];
+type HistoryHeuristic = [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
@@ -142,7 +142,7 @@ impl SearchInfo {
             nodes: 0,
             ply: 0,
             killer_moves: [[ShortMove::new(0); MAX_DEPTH as usize]; MAX_KILLER_MOVES],
-            history_heuristic: [[0; NrOf::SQUARES]; NrOf::PIECE_TYPES],
+            history_heuristic: [[[0; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,

@@ -221,6 +221,6 @@ impl Search {
         let piece = m.piece();
         let to = m.to();
         let value = depth as u32 * depth as u32;
-        refs.search_info.history_heuristic[piece][to] += value;
+        refs.search_info.history_heuristic[refs.board.us()][piece][to] += value;
     }
 }
