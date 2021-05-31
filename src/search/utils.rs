@@ -188,13 +188,14 @@ impl Search {
     }
 }
 
-// This function stores a move in the list of killer moves. Normally we
-// store two killer moves per ply. By checking that the move we want to
-// store is not the same as the first killer move in the list, we make sure
-// that both moves are always different. It is possible to store three or
-// more killer moves, but experience shows that checking for ALL of them to
-// be unique costs more time than the extra killer moves could save.
+// Killer moves and history heuristics.
 impl Search {
+    // This function stores a move in the list of killer moves. Normally we
+    // store two killer moves per ply. By checking that the move we want to
+    // store is not the same as the first killer move in the list, we make sure
+    // that both moves are always different. It is possible to store three or
+    // more killer moves, but experience shows that checking for ALL of them to
+    // be unique costs more time than the extra killer moves could save.
     pub fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
         let ply = refs.search_info.ply as usize;
         let first_killer = refs.search_info.killer_moves[0][ply];
@@ -211,5 +212,15 @@ impl Search {
             // and add the new killer move in the first spot.
             refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
         }
+    }
+
+    // This function updates a move's history heuristic. The depth * depth
+    // part makes sure that moves closer to the root (which have a higher
+    // depth value) have more value than moves closer to the leavses.
+    pub fn update_history_heuristic(m: Move, depth: i8, refs: &mut SearchRefs) {
+        let piece = m.piece();
+        let to = m.to();
+        let value = depth as u32 * depth as u32;
+        refs.search_info.history_heuristic[refs.board.us()][piece][to] += value;
     }
 }

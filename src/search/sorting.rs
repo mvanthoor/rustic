@@ -29,9 +29,9 @@ use super::{
 };
 use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
-const TTMOVE_SORT_VALUE: u16 = 60;
-const MVV_LVA_OFFSET: u16 = 65400;
-const KILLER_VALUE: u16 = 10;
+const MVV_LVA_OFFSET: u32 = u32::MAX - 256;
+const TTMOVE_SORT_VALUE: u32 = 60;
+const KILLER_VALUE: u32 = 10;
 
 // MVV_VLA[victim][attacker]
 pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
@@ -48,27 +48,34 @@ impl Search {
     pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove, refs: &SearchRefs) {
         for i in 0..ml.len() {
             let m = ml.get_mut_move(i);
-            let mut value = 0;
+            let mut value: u32 = 0;
 
             // Sort order priority is: TT Move first, then captures, then
             // quiet moves that are in the list of killer moves.
             if m.get_move() == tt_move.get_move() {
                 value = MVV_LVA_OFFSET + TTMOVE_SORT_VALUE;
             } else if m.captured() != Pieces::NONE {
-                value = MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()];
+                value = MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()] as u32;
             } else {
                 let ply = refs.search_info.ply as usize;
                 let mut i = 0;
                 while i < MAX_KILLER_MOVES && value == 0 {
                     let killer = refs.search_info.killer_moves[i][ply];
                     if m.get_move() == killer.get_move() {
-                        value = MVV_LVA_OFFSET - ((i as u16 + 1) * KILLER_VALUE);
+                        value = MVV_LVA_OFFSET - ((i as u32 + 1) * KILLER_VALUE);
                     }
                     i += 1;
                 }
             }
 
-            m.set_score(value);
+            // If still not sorted, try to sort by history heuristic.
+            if value == 0 {
+                let piece = m.piece();
+                let to = m.to();
+                value = refs.search_info.history_heuristic[refs.board.us()][piece][to];
+            }
+
+            m.set_sort_score(value);
         }
     }
 
@@ -76,7 +83,7 @@ impl Search {
     // "start_index" position, where alpha-beta will pick the next move.
     pub fn pick_move(ml: &mut MoveList, start_index: u8) {
         for i in (start_index + 1)..ml.len() {
-            if ml.get_move(i).sort_score() > ml.get_move(start_index).sort_score() {
+            if ml.get_move(i).get_sort_score() > ml.get_move(start_index).get_sort_score() {
                 ml.swap(start_index as usize, i as usize);
             }
         }
