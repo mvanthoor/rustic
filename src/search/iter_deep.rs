@@ -25,7 +25,7 @@ use super::{
     defs::{SearchMode, SearchRefs, SearchResult, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
-use crate::{defs::MAX_DEPTH, movegen::defs::Move};
+use crate::{defs::MAX_PLY, movegen::defs::Move};
 
 // Actual search routines.
 impl Search {
@@ -62,7 +62,7 @@ impl Search {
 
         // Start the search
         refs.search_info.timer_start();
-        while (depth <= MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
+        while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
 

@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::{NrOf, Sides, MAX_DEPTH},
+    defs::{NrOf, Sides, MAX_PLY},
     engine::defs::{Information, SearchData, TT},
     movegen::{
         defs::{Move, ShortMove},
@@ -27,7 +27,7 @@ pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_mov
 pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
-type KillerMoves = [[ShortMove; MAX_DEPTH as usize]; MAX_KILLER_MOVES];
+type KillerMoves = [[ShortMove; MAX_PLY as usize]; MAX_KILLER_MOVES];
 type HistoryHeuristic = [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
 
 #[derive(PartialEq)]
@@ -102,7 +102,7 @@ pub struct SearchParams {
 impl SearchParams {
     pub fn new() -> Self {
         Self {
-            depth: MAX_DEPTH,
+            depth: MAX_PLY,
             move_time: 0,
             nodes: 0,
             game_time: GameTime::new(0, 0, 0, 0, None),
@@ -141,7 +141,7 @@ impl SearchInfo {
             seldepth: 0,
             nodes: 0,
             ply: 0,
-            killer_moves: [[ShortMove::new(0); MAX_DEPTH as usize]; MAX_KILLER_MOVES],
+            killer_moves: [[ShortMove::new(0); MAX_PLY as usize]; MAX_KILLER_MOVES],
             history_heuristic: [[[0; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
