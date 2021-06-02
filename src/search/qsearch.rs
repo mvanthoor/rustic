@@ -26,7 +26,7 @@ use super::{
     Search, SearchRefs,
 };
 use crate::{
-    defs::MAX_DEPTH,
+    defs::MAX_PLY,
     evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
@@ -49,8 +49,8 @@ impl Search {
             return 0;
         }
 
-        // Immediately evaluate and return on reaching MAX_DEPTH
-        if refs.search_info.ply >= MAX_DEPTH {
+        // Immediately evaluate and return on reaching MAX_PLY
+        if refs.search_info.ply >= MAX_PLY {
             return evaluation::evaluate_position(refs.board);
         }
 
