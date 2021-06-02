@@ -55,16 +55,18 @@ impl Search {
             if m.get_move() == tt_move.get_move() {
                 value = MVV_LVA_OFFSET + TTMOVE_SORT_VALUE;
             } else if m.captured() != Pieces::NONE {
+                // Order captures higher than MVV_LVA_OFFSET
                 value = MVV_LVA_OFFSET + MVV_LVA[m.captured()][m.piece()] as u32;
             } else {
                 let ply = refs.search_info.ply as usize;
-                let mut i = 0;
-                while i < MAX_KILLER_MOVES && value == 0 {
-                    let killer = refs.search_info.killer_moves[i][ply];
+                let mut n = 0;
+                while n < MAX_KILLER_MOVES && value == 0 {
+                    let killer = refs.search_info.killer_moves[ply][n];
                     if m.get_move() == killer.get_move() {
+                        // Order killers below MVV_LVA_OFFSET
                         value = MVV_LVA_OFFSET - ((i as u32 + 1) * KILLER_VALUE);
                     }
-                    i += 1;
+                    n += 1;
                 }
             }
 

@@ -28,7 +28,7 @@ pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_mov
 pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
-type KillerMoves = [[ShortMove; MAX_PLY as usize]; MAX_KILLER_MOVES];
+type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 // type HistoryHeuristic = [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
 
 #[derive(PartialEq)]
@@ -142,7 +142,7 @@ impl SearchInfo {
             seldepth: 0,
             nodes: 0,
             ply: 0,
-            killer_moves: [[ShortMove::new(0); MAX_PLY as usize]; MAX_KILLER_MOVES],
+            killer_moves: [[ShortMove::new(0); MAX_KILLER_MOVES]; MAX_PLY as usize],
             // history_heuristic: [[[0; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
