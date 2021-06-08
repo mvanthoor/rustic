@@ -108,7 +108,7 @@ out_dir = $(base_dir)/$(os)
 
 # Set filenames
 out_file = $(eng_name)-$(eng_ver)-$(os)-$(bits)
-rel_file = ./target/release/rustic-alpha
+rel_file = ./target/release/$(eng_name)
 
 # Determine if everything is correct. If not, abort.
 ifeq ($(os),)
