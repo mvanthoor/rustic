@@ -26,9 +26,9 @@ use super::{
     Search, SearchRefs,
 };
 use crate::{
-    defs::MAX_DEPTH,
+    defs::MAX_PLY,
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType, TTMove},
+    movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
 impl Search {
@@ -49,8 +49,8 @@ impl Search {
             return 0;
         }
 
-        // Immediately evaluate and return on reaching MAX_DEPTH
-        if refs.search_info.ply >= MAX_DEPTH {
+        // Immediately evaluate and return on reaching MAX_PLY
+        if refs.search_info.ply >= MAX_PLY {
             return evaluation::evaluate_position(refs.board);
         }
 
@@ -82,7 +82,7 @@ impl Search {
         refs.mg.generate_moves(refs.board, &mut move_list, mtc);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list, TTMove::new(0));
+        Search::score_moves(&mut move_list, ShortMove::new(0), refs);
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minium MIN_TIME_STATS has elapsed before sending.

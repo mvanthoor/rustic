@@ -22,10 +22,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchMode, SearchRefs, SearchResult, INF},
+    defs::{SearchMode, SearchRefs, SearchResult, ASPIRATION_WINDOW, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
-use crate::{defs::MAX_DEPTH, movegen::defs::Move};
+use crate::{defs::MAX_PLY, movegen::defs::Move};
 
 // Actual search routines.
 impl Search {
@@ -60,14 +60,34 @@ impl Search {
             }
         }
 
+        // Set the starting values for alpha and beta, for use with the
+        // aspiration window. We always start with a fully open window.
+        let mut alpha: i16 = -INF;
+        let mut beta: i16 = INF;
+
         // Start the search
         refs.search_info.timer_start();
-        while (depth <= MAX_DEPTH) && (depth <= refs.search_params.depth) && !stop {
+        while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
 
             // Get the evaluation for this depth.
-            let eval = Search::alpha_beta(depth, -INF, INF, &mut root_pv, refs);
+            let eval = Search::alpha_beta(depth, alpha, beta, &mut root_pv, refs);
+
+            // If the evaluation result falls outside the alpha-beta
+            // window, then re-open the window. Then "continue" the loop.
+            // This skips the rest of the loop and starts the search again
+            // at the same depth.
+            if eval <= alpha || eval >= beta {
+                alpha = -INF;
+                beta = INF;
+                continue;
+            }
+
+            // We didn't fall outside the aspiration window, so we make it
+            // smaller to search faster on the next iteration.
+            alpha = eval - ASPIRATION_WINDOW;
+            beta = eval + ASPIRATION_WINDOW;
 
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {

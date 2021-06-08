@@ -26,10 +26,11 @@ use super::{
     Search, SearchRefs,
 };
 use crate::{
-    defs::MAX_DEPTH,
+    board::defs::Pieces,
+    defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
-    movegen::defs::{Move, MoveList, MoveType, TTMove},
+    movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
 impl Search {
@@ -54,8 +55,8 @@ impl Search {
             return 0;
         }
 
-        // Stop going deeper if we hit MAX_DEPTH.
-        if refs.search_info.ply >= MAX_DEPTH {
+        // Stop going deeper if we hit MAX_PLY.
+        if refs.search_info.ply >= MAX_PLY {
             return evaluation::evaluate_position(refs.board);
         }
 
@@ -83,7 +84,7 @@ impl Search {
 
         // Variables to hold TT value and move if any.
         let mut tt_value: Option<i16> = None;
-        let mut tt_move: TTMove = TTMove::new(0);
+        let mut tt_move: ShortMove = ShortMove::new(0);
 
         // Probe the TT for information.
         if refs.tt_enabled {
@@ -115,7 +116,7 @@ impl Search {
             .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Do move scoring, so the best move will be searched first.
-        Search::score_moves(&mut move_list, tt_move);
+        Search::score_moves(&mut move_list, tt_move, refs);
 
         // After SEND_STATS nodes have been searched, check if the
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
@@ -128,10 +129,10 @@ impl Search {
         let mut best_eval_score = -INF;
 
         // Set the initial TT flag type. Assume we do not beat Alpha.
-        let mut hash_flag = HashFlag::ALPHA;
+        let mut hash_flag = HashFlag::Alpha;
 
         // Holds the best move in the move loop, for storing into the TT.
-        let mut best_move: TTMove = TTMove::new(0);
+        let mut best_move: ShortMove = ShortMove::new(0);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
@@ -181,7 +182,7 @@ impl Search {
             // save a new best_move that'll go into the hash table.
             if eval_score > best_eval_score {
                 best_eval_score = eval_score;
-                best_move = current_move.to_hash_move();
+                best_move = current_move.to_short_move();
             }
 
             // Beta cutoff: this move is so good for our opponent, that we
@@ -192,11 +193,20 @@ impl Search {
                     SearchData::create(
                         depth,
                         refs.search_info.ply,
-                        HashFlag::BETA,
+                        HashFlag::Beta,
                         beta,
                         best_move,
                     ),
                 );
+
+                // If the move is not a capture but still causes a
+                // beta-cutoff, then store it as a killer move and update
+                // the history heuristics.
+                if current_move.captured() == Pieces::NONE {
+                    Search::store_killer_move(current_move, refs);
+                    Search::update_history_heuristic(current_move, depth, refs);
+                }
+
                 return beta;
             }
 
@@ -206,7 +216,13 @@ impl Search {
                 alpha = eval_score;
 
                 // This is an exact move score.
-                hash_flag = HashFlag::EXACT;
+                hash_flag = HashFlag::Exact;
+
+                // Update the history heuristic if a quiet move is causing
+                // this alpha-cutoff.
+                if current_move.captured() == Pieces::NONE {
+                    Search::update_history_heuristic(current_move, depth, refs);
+                }
 
                 // Update the Principal Variation.
                 pv.clear();

@@ -36,7 +36,13 @@ PROMOTION   :   3        0-7 (piece promoted to)
 ENPASSANT   :   1        0-1
 DOUBLESTEP  :   1        0-1
 CASTLING    :   1        0-1
-SORTSCORE   :   8        0-255
+SORTSCORE   :   16       0-65536
+
+
+---------------------------------- move data -------------------------------------------
+0000000000000000    0        0          0         000       000     000000 000000 000
+SORTSCORE           CASTLING DOUBLESTEP ENPASSANT PROMOTION CAPTURE TO     FROM   PIECE
+----------------------------------------------------------------------------------------
 
 Field:      PROMOTION   CAPTURE     TO          FROM        PIECE
 Bits:       3           3           6           6           3
@@ -44,9 +50,9 @@ Shift:      18 bits     15 bits     9 bits      3 bits      0 bits
 & Value:    0x7 (7)     0x7 (7)     0x3F (63)   0x3F (63)   0x7 (7)
 
 Field:      SORTSCORE   CASTLING    DOUBLESTEP  ENPASSANT
-            8           1           1           1
+Bits:       32          1           1           1
 Shift:      24 bits     23 bits     22 bits     21 bits
-& Value:    0xFF        0x1         0x1 (1)     0x1 (1)
+& Value:    0xFFFFFFFF  0x1         0x1 (1)     0x1 (1)
 
 Get the TO field from "data" by:
     -- Shift 9 bits Right
@@ -132,12 +138,14 @@ impl Move {
         ((self.data >> Shift::CASTLING as u64) & 0x1) as u8 == 1
     }
 
-    pub fn sort_score(self) -> u8 {
-        ((self.data >> Shift::SORTSCORE as u64) & 0xFF) as u8
+    pub fn get_sort_score(self) -> u32 {
+        ((self.data >> Shift::SORTSCORE as u64) & 0xFFFFFFFF) as u32
     }
 
-    pub fn set_score(&mut self, value: u8) {
-        self.data |= (value as usize) << Shift::SORTSCORE;
+    pub fn set_sort_score(&mut self, value: u32) {
+        let mask: usize = 0xFFFFFFFF << Shift::SORTSCORE;
+        let v: usize = (value as usize) << Shift::SORTSCORE;
+        self.data = (self.data & !mask) | v;
     }
 
     pub fn as_string(&self) -> String {
@@ -149,8 +157,8 @@ impl Move {
         )
     }
 
-    pub fn to_hash_move(&self) -> TTMove {
-        TTMove::new((self.data & MOVE_ONLY) as u32)
+    pub fn to_short_move(&self) -> ShortMove {
+        ShortMove::new((self.data & MOVE_ONLY) as u32)
     }
 
     pub fn get_move(&self) -> u32 {
@@ -158,12 +166,12 @@ impl Move {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct TTMove {
+#[derive(Copy, Clone, PartialEq)]
+pub struct ShortMove {
     data: u32,
 }
 
-impl TTMove {
+impl ShortMove {
     pub fn new(m: u32) -> Self {
         Self { data: m }
     }

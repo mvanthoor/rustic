@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::Engine;
-use crate::defs::About;
+use crate::{defs::About, engine::defs::Settings};
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)
@@ -43,13 +43,20 @@ impl Engine {
     }
 
     // Print information about the engine.
-    pub fn print_about(&self) {
+    pub fn print_about(&self, s: &Settings) {
         let bits = std::mem::size_of::<usize>() * 8;
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
-        println!("{:<10} {}-bit", "Type:", bits);
         println!("{:<10} {}", "Author:", About::AUTHOR);
         println!("{:<10} {}", "EMail:", About::EMAIL);
         println!("{:<10} {}", "Website:", About::WEBSITE);
+        println!("{:<10} {}-bit", "Type:", bits);
+        println!("{:<10} {} MB", "TT size:", s.tt_size);
+
+        if s.threads == 1 {
+            println!("{:<10} {}", "Threads:", s.threads)
+        } else {
+            println!("{:<10} {} (unused, always 1)", "Threads:", s.threads)
+        };
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);

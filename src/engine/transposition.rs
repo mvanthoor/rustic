@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::{board::defs::ZobristKey, movegen::defs::TTMove, search::defs::CHECKMATE_THRESHOLD};
+use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
@@ -70,10 +70,10 @@ impl PerftData {
 
 #[derive(Copy, Clone)]
 pub enum HashFlag {
-    NONE,
-    EXACT,
-    ALPHA,
-    BETA,
+    Nothing,
+    Exact,
+    Alpha,
+    Beta,
 }
 
 #[derive(Copy, Clone)]
@@ -81,16 +81,16 @@ pub struct SearchData {
     depth: i8,
     flag: HashFlag,
     value: i16,
-    best_move: TTMove,
+    best_move: ShortMove,
 }
 
 impl IHashData for SearchData {
     fn new() -> Self {
         Self {
             depth: 0,
-            flag: HashFlag::NONE,
+            flag: HashFlag::Nothing,
             value: 0,
-            best_move: TTMove::new(0),
+            best_move: ShortMove::new(0),
         }
     }
 
@@ -100,7 +100,7 @@ impl IHashData for SearchData {
 }
 
 impl SearchData {
-    pub fn create(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: TTMove) -> Self {
+    pub fn create(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: ShortMove) -> Self {
         // This is the value we're going to save into the TT.
         let mut v = value;
 
@@ -125,13 +125,13 @@ impl SearchData {
         }
     }
 
-    pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, TTMove) {
+    pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, ShortMove) {
         // We either do, or don't have a value to return from the TT.
         let mut value: Option<i16> = None;
 
         if self.depth >= depth {
             match self.flag {
-                HashFlag::EXACT => {
+                HashFlag::Exact => {
                     // Get the value from the data. We don't want to change
                     // the value that is in the TT.
                     let mut v = self.value;
@@ -150,12 +150,12 @@ impl SearchData {
                     // This is the value that will be returned.
                     value = Some(v);
                 }
-                HashFlag::ALPHA => {
+                HashFlag::Alpha => {
                     if self.value <= alpha {
                         value = Some(alpha);
                     }
                 }
-                HashFlag::BETA => {
+                HashFlag::Beta => {
                     if self.value >= beta {
                         value = Some(beta);
                     }

@@ -85,7 +85,7 @@ impl Engine {
                 Box::new(Uci::new())
             }
             CommType::UCI => Box::new(Uci::new()),
-            _ => panic!(ErrFatal::CREATE_COMM),
+            _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
 
         // Get engine settings from the command-line.
@@ -157,7 +157,7 @@ impl Engine {
         }
 
         self.print_ascii_logo();
-        self.print_about();
+        self.print_about(&self.settings);
         println!();
 
         // Setup position and abort if this fails.
