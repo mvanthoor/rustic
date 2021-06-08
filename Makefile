@@ -75,26 +75,31 @@ endif
 os =
 ext =
 bits =
+strip =
 
 ifeq ($(findstring mingw64,$(uname)),mingw64)
 	os = windows
 	bits = 64-bit
 	ext = .exe
+	strip = strip -s
 endif
 ifeq ($(findstring mingw32,$(uname)),mingw32)
 	os = windows
 	bits = 32-bit
 	ext = .exe
+	strip = strip -s
 endif
 ifeq ($(findstring darwin,$(uname)),darwin)
 	os = macos
 	bits = 64-bit
 	ext =
+	strip = strip
 endif
 ifeq ($(findstring linux,$(uname)),linux)
 	os = linux
 	bits = 64-bit
 	ext =
+	strip = strip -s
 endif
 
 # Create the output directory if it doesn't exist
@@ -176,6 +181,6 @@ ancient: create-dir rm-target
 
 define compile
 cargo build --release
-strip -s $(rel_file)$(ext)
+$(strip) $(rel_file)$(ext)
 mv $(rel_file)$(ext) $(out_dir)/$(out_file)-$(cpu_level)$(ext)
 endef
