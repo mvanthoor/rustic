@@ -28,7 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 pub struct About;
 impl About {
     pub const ENGINE: &'static str = "Rustic";
-    pub const VERSION: &'static str = "Alpha 2.6.99";
+    pub const VERSION: &'static str = "Alpha 2.2.100";
     pub const AUTHOR: &'static str = "Marcel Vanthoor";
     pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
     pub const WEBSITE: &'static str = "https://rustic-chess.org/";

@@ -160,7 +160,7 @@ dependencies = [
 
 [[package]]
 name = "rustic"
-version = "2.6.99"
+version = "2.2.100"
 dependencies = [
  "clap",
  "crossbeam-channel",
