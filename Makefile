@@ -48,7 +48,7 @@ to_lowercase = tr A-Z a-z
 rm_chars = tr -d "\ \"\=\n"
 rm_name = sed "s/name//g"
 rm_ver = sed "s/version//g"
-rm_brace = grep -iv "\{"
+rm_features = grep -iv "features ="
 rm_nl = tr -d "\n"
 rm_release = tr -d "release: "
 grep_name = grep -i "name"
@@ -57,7 +57,7 @@ grep_release = grep -i "release"
 
 # Set engine name and version by parsing the TOML file.
 eng_name = $(shell cat Cargo.toml | $(grep_name) | $(rm_chars) | $(to_lowercase) | $(rm_name))
-eng_ver = $(shell cat Cargo.toml | $(grep_version) | $(rm_brace) | $(rm_chars) | $(rm_ver))
+eng_ver = $(shell cat Cargo.toml | $(grep_version) | $(rm_features) | $(rm_chars) | $(rm_ver))
 
 # Get current operating environment.
 uname = $(shell uname -a | $(to_lowercase) | $(rm_nl))
