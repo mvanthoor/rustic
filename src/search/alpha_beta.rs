@@ -43,6 +43,7 @@ impl Search {
     ) -> i16 {
         let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
+        let mut do_pvs = false; // Used for PVS (Principal Variation Search)
 
         // Check if termination condition is met.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
@@ -166,13 +167,27 @@ impl Search {
             // Create a node PV for this move.
             let mut node_pv: Vec<Move> = Vec::new();
 
-            //We just made a move. We are not yet at one of the leaf nodes,
-            //so we must search deeper, if the position isn't a draw.
-            let eval_score = if !Search::is_draw(refs) {
-                -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs)
-            } else {
-                DRAW
-            };
+            // We just made a move. We are not yet at one of the leaf
+            // nodes, so if the position is not a draw, we must search
+            // deeper. Initially, assume the position is a draw.
+            let mut eval_score = DRAW;
+
+            // If it isn't a draw, we must search.
+            if !Search::is_draw(refs) {
+                // Try a PVS if applicable.
+                if do_pvs {
+                    eval_score =
+                        -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);
+
+                    // Check if we failed the PVS.
+                    if (eval_score > alpha) && (eval_score < beta) {
+                        eval_score =
+                            -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    }
+                } else {
+                    eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                }
+            }
 
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();
@@ -204,7 +219,7 @@ impl Search {
                 // the history heuristics.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
-                    Search::update_history_heuristic(current_move, depth, refs);
+                    // Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;
@@ -218,13 +233,8 @@ impl Search {
                 // This is an exact move score.
                 hash_flag = HashFlag::Exact;
 
-                // Update the history heuristic if a quiet move is causing
-                // this alpha-cutoff.
-                if current_move.captured() == Pieces::NONE {
-                    Search::update_history_heuristic(current_move, depth, refs);
-                }
-
                 // Update the Principal Variation.
+                do_pvs = true;
                 pv.clear();
                 pv.push(current_move);
                 pv.append(&mut node_pv);

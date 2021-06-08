@@ -197,30 +197,34 @@ impl Search {
     // more killer moves, but experience shows that checking for ALL of them to
     // be unique costs more time than the extra killer moves could save.
     pub fn store_killer_move(current_move: Move, refs: &mut SearchRefs) {
+        const FIRST: usize = 0;
         let ply = refs.search_info.ply as usize;
-        let first_killer = refs.search_info.killer_moves[0][ply];
+        let first_killer = refs.search_info.killer_moves[ply][FIRST];
 
         // First killer must not be the same as the move being stored.
         if first_killer.get_move() != current_move.get_move() {
             // Shift all the moves one index upward...
             for i in (1..MAX_KILLER_MOVES).rev() {
                 let n = i as usize;
-                let previous = refs.search_info.killer_moves[n - 1][ply];
-                refs.search_info.killer_moves[n][ply] = previous;
+                let previous = refs.search_info.killer_moves[ply][n - 1];
+                refs.search_info.killer_moves[ply][n] = previous;
             }
 
             // and add the new killer move in the first spot.
-            refs.search_info.killer_moves[0][ply] = current_move.to_short_move();
+            refs.search_info.killer_moves[ply][0] = current_move.to_short_move();
         }
     }
 
     // This function updates a move's history heuristic. The depth * depth
     // part makes sure that moves closer to the root (which have a higher
     // depth value) have more value than moves closer to the leavses.
+
+    /*
     pub fn update_history_heuristic(m: Move, depth: i8, refs: &mut SearchRefs) {
         let piece = m.piece();
         let to = m.to();
         let value = depth as u32 * depth as u32;
         refs.search_info.history_heuristic[refs.board.us()][piece][to] += value;
     }
+    */
 }
