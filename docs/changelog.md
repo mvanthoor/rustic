@@ -1,6 +1,18 @@
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Changelog](#changelog)
+  - [Rustic Alpha 3.0.0 (2021, Unknown)](#rustic-alpha-300-2021-unknown)
+  - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
+  - [Rustic Alpha 1.1 (2021, March 15)](#rustic-alpha-11-2021-march-15)
+  - [Rustic Alpha 1 (2021, January 24)](#rustic-alpha-1-2021-january-24)
+
+<!-- /code_chunk_output -->
 # Changelog
 
-## ? ??, 2021 - Rustic Alpha 3.0.0
+## Rustic Alpha 3.0.0 (2021, Unknown)
 
 - New features:
   - Killer Moves
@@ -19,8 +31,9 @@
     typing "make" (or "gmake" in MacOS), the Makefile will build all Rustic
     versions for the platform it's being compiled on.
   - Re-add showing the size of the TT and number of threads in About.
+  - Fairly large update of the book on https://rustic-chess.org/.
 
-## March 17, 2021 - Rustic Alpha 2
+## Rustic Alpha 2 (2021, March 17)
 
 [CCRL Blitz rating: +/- 1815 Elo](https://ccrl.chessdom.com/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Rustic%20Alpha%202%2064-bit#Rustic_Alpha_2_64-bit)
 
@@ -43,16 +56,15 @@
   - Add rand_chacha and remove SmallRng number generators.
   - Update Rand library to 0.8.3.
 
-## March 15, 2021 - Rustic Alpha 1.1
+## Rustic Alpha 1.1 (2021, March 15)
 
 This is a bugfix release. Alpha 1 lost all of its games on time forfeit
-when playing in MoveTime mode (for example, when playing seconds/move). No
-change in rating.
+when playing in MoveTime mode (for example, when playing seconds/move).
 
 Bugfixes:
 - Do not exceed alotted time in MoveTime mode.
 
-## January 24, 2021 - Rustic Alpha 1
+## Rustic Alpha 1 (2021, January 24)
 
 This is the initial release.
 
