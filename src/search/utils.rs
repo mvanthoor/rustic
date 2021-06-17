@@ -214,17 +214,4 @@ impl Search {
             refs.search_info.killer_moves[ply][0] = current_move.to_short_move();
         }
     }
-
-    // This function updates a move's history heuristic. The depth * depth
-    // part makes sure that moves closer to the root (which have a higher
-    // depth value) have more value than moves closer to the leavses.
-
-    /*
-    pub fn update_history_heuristic(m: Move, depth: i8, refs: &mut SearchRefs) {
-        let piece = m.piece();
-        let to = m.to();
-        let value = depth as u32 * depth as u32;
-        refs.search_info.history_heuristic[refs.board.us()][piece][to] += value;
-    }
-    */
 }

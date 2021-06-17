@@ -74,23 +74,6 @@ impl Search {
             // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, alpha, beta, &mut root_pv, refs);
 
-            /*  Aspiration windows disabled.
-                // If the evaluation result falls outside the alpha-beta
-                // window, then re-open the window. Then "continue" the loop.
-                // This skips the rest of the loop and starts the search again
-                // at the same depth.
-                if eval <= alpha || eval >= beta {
-                    alpha = -INF;
-                    beta = INF;
-                    continue;
-                }
-
-                // We didn't fall outside the aspiration window, so we make it
-                // smaller to search faster on the next iteration.
-                alpha = eval - ASPIRATION_WINDOW;
-                beta = eval + ASPIRATION_WINDOW;
-            */
-
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
