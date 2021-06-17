@@ -207,13 +207,14 @@ ancient: create-dir rm-target
 	$(eval cpu_level = ancient)
 	$(call compile)
 
-arm:
+arm: create-dir rm-target
 	$(eval cpu_level = arm)
 	$(call compile)
 
 # ===== Custom functions ===== #
 
 define compile
+$(info Creating: $(out_file)-$(cpu_level)$(ext))
 cargo build --release
 $(strip) $(rel_file)$(ext)
 mv $(rel_file)$(ext) $(out_dir)/$(out_file)-$(cpu_level)$(ext)
