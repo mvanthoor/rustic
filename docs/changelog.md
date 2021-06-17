@@ -12,7 +12,7 @@
 <!-- /code_chunk_output -->
 # Changelog
 
-## Rustic Alpha 3.0.0 (2021, Unknown)
+## Rustic Alpha 3.0.0 (2021, June 18)
 
 - New features:
   - Killer Moves
