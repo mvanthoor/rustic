@@ -47,7 +47,11 @@ impl MoveList {
     // down. (Tests show this slowdown to be around 50%-60%.)
     pub fn new() -> Self {
         Self {
-            list: unsafe { mem::MaybeUninit::uninit().assume_init() },
+            list: unsafe {
+                // FIXME: Look inut MaybeUnit changes for Rustic 4.
+                #[allow(clippy::uninit_assumed_init)]
+                mem::MaybeUninit::uninit().assume_init()
+            },
             count: 0,
         }
     }
