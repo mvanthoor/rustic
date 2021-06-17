@@ -54,6 +54,7 @@ rm_release = tr -d "release: "
 grep_name = grep -i "name"
 grep_version = grep -i "version"
 grep_release = grep -i "release"
+grep_machine = grep -i "machine model"
 
 # Set engine name and version by parsing the TOML file.
 eng_name = $(shell cat Cargo.toml | $(grep_name) | $(rm_chars) | $(to_lowercase) | $(rm_name))
@@ -77,29 +78,50 @@ ext =
 bits =
 strip =
 
+# Windows MSYS2 64-bit
 ifeq ($(findstring mingw64,$(uname)),mingw64)
 	os = windows
 	bits = 64-bit
 	ext = .exe
 	strip = strip -s
 endif
+
+# Windows MSYS2 32-bit
 ifeq ($(findstring mingw32,$(uname)),mingw32)
 	os = windows
 	bits = 32-bit
 	ext = .exe
 	strip = strip -s
 endif
+
+# MacOS Intel 64-bit
 ifeq ($(findstring darwin,$(uname)),darwin)
 	os = macos
 	bits = 64-bit
 	ext =
 	strip = strip
 endif
+
+# Linux
 ifeq ($(findstring linux,$(uname)),linux)
+# Determine if Linux on Raspberry
+model = $(shell dmesg | $(to_lowercase) | $(rm_nl) | $(grep_machine))
+
+# Linux on Raspberry
+ifeq ($(findstring raspberry,$(model)),raspberry)
+	os = raspberry
+	bits = 32-bit
+	ext =
+	strip = strip -s
+endif
+
+# Linux on Intel/AMD
+ifneq ($(findstring raspberry,$(model)),raspberry)
 	os = linux
 	bits = 64-bit
 	ext =
 	strip = strip -s
+endif
 endif
 
 # Create the output directory if it doesn't exist
@@ -128,7 +150,15 @@ endif
 
 cpu_level = 
 
+# Compile multiple versions if not on Raspberry
+ifneq ($(findstring raspberry,$(os)),raspberry)
 all: clean native bmi2 popcnt old ancient
+endif
+
+# Compile one version for Raspberry
+ifeq ($(findstring raspberry,$(os)),raspberry)
+all: clean arm
+endif
 
 switch-gnu: clean
 	rustup default stable-x86_64-pc-windows-gnu
@@ -175,6 +205,10 @@ old: create-dir rm-target
 ancient: export RUSTFLAGS = -C target-cpu=athlon64
 ancient: create-dir rm-target
 	$(eval cpu_level = ancient)
+	$(call compile)
+
+arm:
+	$(eval cpu_level = arm)
 	$(call compile)
 
 # ===== Custom functions ===== #
