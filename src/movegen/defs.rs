@@ -157,7 +157,7 @@ impl Move {
         )
     }
 
-    pub fn to_short_move(&self) -> ShortMove {
+    pub fn to_short_move(self) -> ShortMove {
         ShortMove::new((self.data & MOVE_ONLY) as u32)
     }
 
