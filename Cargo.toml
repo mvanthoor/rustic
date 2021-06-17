@@ -1,6 +1,6 @@
 [package]
 name = "rustic-alpha"
-version = "2.9.100"
+version = "3.0.0"
 authors = ["Marcel Vanthoor"]
 edition = "2018"
 
@@ -11,7 +11,7 @@ rand = { version = "0.8.3", features = ["small_rng"] }
 rand_chacha = "0.3.0"
 if_chain = "1.0.1"
 clap = "2.33.3"
-crossbeam-channel = "0.5.0"
+crossbeam-channel = "0.5.1"
 
 
 [features]
