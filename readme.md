@@ -99,7 +99,7 @@ Rustic's documentation.
   - Install GNU Make
   - The command is "gmake" instead of "make", as MacOS includes its own
     (very old) version of "make".
-- Make sure you install the correct Rust toolchain for your platform, using
+- Make sure you install the correct Rust target for your platform, using
   Rustup:
   - Linux:
     - __stable-x86_64-unknown-linux-gnu__
