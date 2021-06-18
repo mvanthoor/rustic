@@ -181,7 +181,7 @@ endif
 # Compile one version for Windows 32-bit
 ifeq ($(findstring windows,$(os)),windows)
 ifeq ($(findstring 32-bit,$(bits)),32-bit)
-all: clean i686
+all: i686
 endif
 endif
 
