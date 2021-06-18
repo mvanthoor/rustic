@@ -153,28 +153,28 @@ cargo_command =
 # Windows 64-bit
 ifeq ($(findstring windows,$(os)),windows)
 ifeq ($(findstring 64-bit,$(bits)),64-bit)
-all: clean native bmi2 popcnt old ancient
+all: native bmi2 popcnt old ancient
 endif
 endif
 
 # Linux 64-bit
 ifeq ($(findstring linux,$(os)),linux)
 ifeq ($(findstring 64-bit,$(bits)),64-bit)
-all: clean native bmi2 popcnt old ancient
+all: native bmi2 popcnt old ancient
 endif
 endif
 
 # MacOS 64-bit (Intel)
 ifeq ($(findstring macos,$(os)),macos)
 ifeq ($(findstring 64-bit,$(bits)),64-bit)
-all: clean native bmi2 popcnt old ancient
+all: native bmi2 popcnt old ancient
 endif
 endif
 
 # Compile one version for Raspberry
 ifeq ($(findstring raspberry,$(os)),raspberry)
 ifeq ($(findstring 32-bit,$(bits)),32-bit)
-all: clean arm32bit
+all: arm32bit
 endif
 endif
 
