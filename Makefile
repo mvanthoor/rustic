@@ -148,16 +148,43 @@ endif
 
 # ===== Main targets ===== #
 
-cpu_level = 
+cpu_level =
+compiler_target =
+cargo_command =
 
-# Compile multiple versions if not on Raspberry
-ifneq ($(findstring raspberry,$(os)),raspberry)
+# Windows 64-bit
+ifeq ($(findstring windows,$(os)),windows)
+ifeq ($(findstring 64-bit,$(bits)),64-bit)
 all: clean native bmi2 popcnt old ancient
+endif
+endif
+
+# Linux 64-bit
+ifeq ($(findstring linux,$(os)),linux)
+ifeq ($(findstring 64-bit,$(bits)),64-bit)
+all: clean native bmi2 popcnt old ancient
+endif
+endif
+
+# MacOS 64-bit (Intel)
+ifeq ($(findstring macos,$(os)),macos)
+ifeq ($(findstring 64-bit,$(bits)),64-bit)
+all: clean native bmi2 popcnt old ancient
+endif
 endif
 
 # Compile one version for Raspberry
 ifeq ($(findstring raspberry,$(os)),raspberry)
-all: clean arm
+ifeq ($(findstring 32-bit,$(bits)),32-bit)
+all: clean arm32bit
+endif
+endif
+
+# Compile one version for Windows 32-bit
+ifeq ($(findstring windows,$(os)),windows)
+ifeq ($(findstring 32-bit,$(bits)),32-bit)
+all: clean i686
+endif
 endif
 
 switch-gnu: clean
@@ -185,37 +212,51 @@ rm-target:
 native: export RUSTFLAGS = -C target-cpu=native
 native: create-dir rm-target
 	$(eval cpu_level = native)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
 bmi2: export RUSTFLAGS = -C target-cpu=haswell
 bmi2: create-dir rm-target
 	$(eval cpu_level = bmi2)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
 popcnt: export RUSTFLAGS = -C target-cpu=nehalem
 popcnt: create-dir rm-target
 	$(eval cpu_level = popcnt)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
 old: export RUSTFLAGS = -C target-cpu=core2
 old: create-dir rm-target
 	$(eval cpu_level = old)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
 ancient: export RUSTFLAGS = -C target-cpu=athlon64
 ancient: create-dir rm-target
 	$(eval cpu_level = ancient)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
-arm: create-dir rm-target
+arm32bit: create-dir rm-target
 	$(eval cpu_level = arm)
+	$(eval cargo_command = cargo build --release)
+	$(call compile)
+
+i686: export RUSTFLAGS = -C target-cpu=i686
+i686: create-dir rm-target
+	$(eval cpu_level = i686)
+	$(eval compiler_target = i686-pc-windows-gnu)
+	$(eval cargo_command = cargo build --release --target=$(compiler_target))
+	$(eval rel_file = ./target/$(compiler_target)/release/$(eng_name))
 	$(call compile)
 
 # ===== Custom functions ===== #
 
 define compile
 $(info Creating: $(out_file)-$(cpu_level)$(ext))
-cargo build --release
+$(cargo_command)
 $(strip) $(rel_file)$(ext)
 mv $(rel_file)$(ext) $(out_dir)/$(out_file)-$(cpu_level)$(ext)
 endef
