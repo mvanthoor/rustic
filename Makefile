@@ -1,6 +1,7 @@
 # =========================================================================== #
 # This is Rustic's Makefile. It was written and tested in the Bash shell on
-# the following operating systems: Windows (MSYS2), MacOS, Linux.
+# the following operating systems: Windows (MSYS2), MacOS, Linux, Raspberry
+# Pi.
 #
 # The Makefile checks all the necessary conditions and sets all the
 # parameters for building the engine. Except for the minimum required Rust
@@ -21,11 +22,8 @@
 #
 # strip -s ./target/release/rustic-alpha
 #
-# (On Windows, the name of the executable will be rustic-alpha.exe.) The
-# "strip" command is optional; it will strip debug symbols from the binary
-# to make it smaller. If you also wish to build the engine for your
-# specific CPU, then set the RUSTFLAGS="-C target-cpu=core2" environment
-# variable before running the cargo command.
+# If you need more information regarding the build process, take a look
+# into /docs/build.md.
 # ========================================================================== #
 
 # Normally, a Make target is used to create a file with the target's name.
