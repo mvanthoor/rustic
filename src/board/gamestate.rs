@@ -41,8 +41,9 @@ pub struct GameState {
     pub en_passant: Option<u8>,
     pub fullmove_number: u16,
     pub zobrist_key: u64,
-    pub material: [u16; Sides::BOTH],
-    pub psqt: [i16; Sides::BOTH],
+    pub phase_value: i16,
+    pub pst_mg: [i16; Sides::BOTH],
+    pub pst_eg: [i16; Sides::BOTH],
     pub next_move: Move,
 }
 
@@ -55,8 +56,9 @@ impl GameState {
             halfmove_clock: 0,
             fullmove_number: 0,
             zobrist_key: 0,
-            material: [0; Sides::BOTH],
-            psqt: [0; Sides::BOTH],
+            phase_value: 0,
+            pst_mg: [0; Sides::BOTH],
+            pst_eg: [0; Sides::BOTH],
             next_move: Move::new(0),
         }
     }
@@ -75,17 +77,17 @@ impl GameState {
         };
 
         format!(
-            "zk: {:x} ac: {} cperm: {} ep: {} hmc: {} fmn: {} mat: {}/{}, psqt: {}/{} next: {}{}{}",
+            "zk: {:x} ac: {} cperm: {} ep: {} hmc: {} fmn: {}, pst_mg: {}/{}, pst_eg: {}/{} next: {}{}{}",
             self.zobrist_key,
             self.active_color,
             print::castling_as_string(self.castling),
             ep,
             self.halfmove_clock,
             self.fullmove_number,
-            self.material[Sides::WHITE],
-            self.material[Sides::BLACK],
-            self.psqt[Sides::WHITE],
-            self.psqt[Sides::BLACK],
+            self.pst_mg[Sides::WHITE],
+            self.pst_mg[Sides::BLACK],
+            self.pst_eg[Sides::WHITE],
+            self.pst_eg[Sides::BLACK],
             SQUARE_NAME[self.next_move.from()],
             SQUARE_NAME[self.next_move.to()],
             promotion

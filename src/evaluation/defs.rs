@@ -21,5 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub use super::{pst::FLIP, pst::PST_MG, Evaluation};
-pub const PIECE_VALUES: [u16; 6] = [0, 900, 500, 320, 310, 100];
+pub use super::{pst::FLIP, pst::PST_EG, pst::PST_MG, Evaluation};
+pub const PHASE_VALUES: [i16; 6] = [0, 1050, 405, 305, 155, 0];
+pub const PHASE_MIN: i16 = 435;
+pub const PHASE_MAX: i16 = 5255;

@@ -38,7 +38,7 @@ use self::{
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{
-        defs::{FLIP, PIECE_VALUES, PST_MG},
+        defs::{FLIP, PHASE_VALUES, PST_EG, PST_MG},
         Evaluation,
     },
     misc::bits,
@@ -105,11 +105,12 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.material[side] -= PIECE_VALUES[piece];
+        self.game_state.phase_value -= PHASE_VALUES[piece];
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] -= PST_MG[piece][s] as i16;
+        self.game_state.pst_mg[side] -= PST_MG[piece][s];
+        self.game_state.pst_eg[side] -= PST_EG[piece][s];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -121,11 +122,12 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.material[side] += PIECE_VALUES[piece];
+        self.game_state.phase_value += PHASE_VALUES[piece];
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] += PST_MG[piece][s] as i16;
+        self.game_state.pst_mg[side] += PST_MG[piece][s];
+        self.game_state.pst_eg[side] += PST_EG[piece][s];
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
@@ -183,18 +185,23 @@ impl Board {
         self.bb_side[Sides::WHITE] = pieces_per_side_bitboards.0;
         self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
+        // Set initial phase value
+        self.game_state.phase_value = Evaluation::count_phase(&self);
+
         // Initialize the piece list, zobrist key, and material count. These will
         // later be updated incrementally.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
 
-        let material = Evaluation::count_material(&self);
-        self.game_state.material[Sides::WHITE] = material.0;
-        self.game_state.material[Sides::BLACK] = material.1;
+        // Set initial PST_MG values
+        let pst_mg = Evaluation::apply_pst(&self, &PST_MG);
+        self.game_state.pst_mg[Sides::WHITE] = pst_mg.0;
+        self.game_state.pst_mg[Sides::BLACK] = pst_mg.1;
 
-        let psqt = Evaluation::apply_pst(&self);
-        self.game_state.psqt[Sides::WHITE] = psqt.0;
-        self.game_state.psqt[Sides::BLACK] = psqt.1;
+        // Set initial PST_EG values
+        let pst_eg = Evaluation::apply_pst(&self, &PST_EG);
+        self.game_state.pst_eg[Sides::WHITE] = pst_eg.0;
+        self.game_state.pst_eg[Sides::BLACK] = pst_eg.1;
     }
 
     // Gather the pieces for each side into their own bitboard.
