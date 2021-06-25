@@ -21,29 +21,31 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::defs::PIECE_VALUES;
+use super::{defs::PIECE_VALUES, Evaluation};
 use crate::{board::Board, defs::Sides, misc::bits};
 
-pub fn count(board: &Board) -> (u16, u16) {
-    let mut white_material: u16 = 0;
-    let mut black_material: u16 = 0;
-    let bb_w = board.bb_pieces[Sides::WHITE];
-    let bb_b = board.bb_pieces[Sides::BLACK];
+impl Evaluation {
+    pub fn count_material(board: &Board) -> (u16, u16) {
+        let mut white_material: u16 = 0;
+        let mut black_material: u16 = 0;
+        let bb_w = board.bb_pieces[Sides::WHITE];
+        let bb_b = board.bb_pieces[Sides::BLACK];
 
-    for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
-        let mut white_pieces = *w;
-        let mut black_pieces = *b;
+        for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+            let mut white_pieces = *w;
+            let mut black_pieces = *b;
 
-        while white_pieces > 0 {
-            white_material += PIECE_VALUES[piece];
-            bits::next(&mut white_pieces);
+            while white_pieces > 0 {
+                white_material += PIECE_VALUES[piece];
+                bits::next(&mut white_pieces);
+            }
+
+            while black_pieces > 0 {
+                black_material += PIECE_VALUES[piece];
+                bits::next(&mut black_pieces);
+            }
         }
 
-        while black_pieces > 0 {
-            black_material += PIECE_VALUES[piece];
-            bits::next(&mut black_pieces);
-        }
+        (white_material, black_material)
     }
-
-    (white_material, black_material)
 }

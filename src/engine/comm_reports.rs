@@ -29,7 +29,7 @@ use crate::{
     comm::{uci::UciReport, CommControl, CommReport},
     defs::FEN_START_POSITION,
     engine::defs::EngineOptionName,
-    evaluation::evaluate_position,
+    evaluation::Evaluation,
     search::defs::{SearchControl, SearchMode, SearchParams, OVERHEAD},
 };
 
@@ -138,7 +138,7 @@ impl Engine {
             UciReport::Board => self.comm.send(CommControl::PrintBoard),
             UciReport::History => self.comm.send(CommControl::PrintHistory),
             UciReport::Eval => {
-                let e = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
+                let e = Evaluation::evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
                 let msg = format!("Evaluation: {} centipawns", e);
                 self.comm.send(CommControl::InfoString(msg));
             }

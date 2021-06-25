@@ -27,7 +27,7 @@ use super::{
 };
 use crate::{
     defs::MAX_PLY,
-    evaluation,
+    evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
@@ -51,14 +51,14 @@ impl Search {
 
         // Immediately evaluate and return on reaching MAX_PLY
         if refs.search_info.ply >= MAX_PLY {
-            return evaluation::evaluate_position(refs.board);
+            return Evaluation::evaluate_position(refs.board);
         }
 
         // Do a stand-pat here: Check how we're doing, even before we make
         // a move. If the evaluation score is larger than beta, then we're
         // already so bad we don't need to search any further. Just return
         // the beta score.
-        let eval_score = evaluation::evaluate_position(refs.board);
+        let eval_score = Evaluation::evaluate_position(refs.board);
         if eval_score >= beta {
             return beta;
         }

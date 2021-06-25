@@ -38,9 +38,8 @@ use self::{
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{
-        defs::PIECE_VALUES,
-        material,
-        pst::{self, FLIP, PST_MG},
+        defs::{FLIP, PIECE_VALUES, PST_MG},
+        Evaluation,
     },
     misc::bits,
 };
@@ -189,11 +188,11 @@ impl Board {
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
 
-        let material = material::count(&self);
+        let material = Evaluation::count_material(&self);
         self.game_state.material[Sides::WHITE] = material.0;
         self.game_state.material[Sides::BLACK] = material.1;
 
-        let psqt = pst::apply(&self);
+        let psqt = Evaluation::apply_pst(&self);
         self.game_state.psqt[Sides::WHITE] = psqt.0;
         self.game_state.psqt[Sides::BLACK] = psqt.1;
     }

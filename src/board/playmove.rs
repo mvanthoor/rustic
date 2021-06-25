@@ -29,6 +29,7 @@ use super::{
 };
 use crate::{
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
+    evaluation::Evaluation,
     movegen::{defs::Move, MoveGenerator},
 };
 
@@ -260,8 +261,8 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
-    let from_scratch_material = crate::evaluation::material::count(board);
-    let from_scratch_psqt = crate::evaluation::pst::apply(board);
+    let from_scratch_material = Evaluation::count_material(board);
+    let from_scratch_psqt = Evaluation::apply_pst(board);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.

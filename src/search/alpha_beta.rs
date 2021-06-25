@@ -29,7 +29,7 @@ use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData},
-    evaluation,
+    evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
@@ -58,7 +58,7 @@ impl Search {
 
         // Stop going deeper if we hit MAX_PLY.
         if refs.search_info.ply >= MAX_PLY {
-            return evaluation::evaluate_position(refs.board);
+            return Evaluation::evaluate_position(refs.board);
         }
 
         // Determine if we are in check.

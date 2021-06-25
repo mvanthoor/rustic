@@ -25,6 +25,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // PST's are written from White's point of view, as if looking at a chess
 // diagram, with A1 on the lower left corner.
 
+use super::Evaluation;
 use crate::{
     board::Board,
     defs::{NrOf, Sides},
@@ -186,30 +187,31 @@ pub const FLIP: [usize; 64] = [
      0,  1,  2,  3,  4,  5,  6,  7,
 ];
 
-// Apply PST's to position
-pub fn apply(board: &Board) -> (i16, i16) {
-    let mut w_pst: i16 = 0;
-    let mut b_pst: i16 = 0;
-    let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
-    let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
+impl Evaluation {
+    pub fn apply_pst(board: &Board) -> (i16, i16) {
+        let mut w_pst: i16 = 0;
+        let mut b_pst: i16 = 0;
+        let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
+        let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
-    // Iterate through the white and black bitboards (at the same time.)
-    for (piece_type, (w, b)) in bb_white.iter().zip(bb_black.iter()).enumerate() {
-        let mut white_pieces = *w; // White pieces of type "piece_type"
-        let mut black_pieces = *b; // Black pieces of type "piece_type"
+        // Iterate through the white and black bitboards (at the same time.)
+        for (piece_type, (w, b)) in bb_white.iter().zip(bb_black.iter()).enumerate() {
+            let mut white_pieces = *w; // White pieces of type "piece_type"
+            let mut black_pieces = *b; // Black pieces of type "piece_type"
 
-        // Iterate over pieces of the current piece_type for white.
-        while white_pieces > 0 {
-            let square = bits::next(&mut white_pieces);
-            w_pst += PST_MG[piece_type][FLIP[square]] as i16;
+            // Iterate over pieces of the current piece_type for white.
+            while white_pieces > 0 {
+                let square = bits::next(&mut white_pieces);
+                w_pst += PST_MG[piece_type][FLIP[square]] as i16;
+            }
+
+            // Iterate over pieces of the current piece_type for black.
+            while black_pieces > 0 {
+                let square = bits::next(&mut black_pieces);
+                b_pst += PST_MG[piece_type][square] as i16;
+            }
         }
 
-        // Iterate over pieces of the current piece_type for black.
-        while black_pieces > 0 {
-            let square = bits::next(&mut black_pieces);
-            b_pst += PST_MG[piece_type][square] as i16;
-        }
+        (w_pst, b_pst)
     }
-
-    (w_pst, b_pst)
 }
