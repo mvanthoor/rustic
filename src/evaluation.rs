@@ -41,11 +41,11 @@ impl Evaluation {
         let pst_b_eg = board.game_state.pst_eg[Sides::BLACK] as f32;
 
         // Get phase
-        let phase = Evaluation::phase(PHASE_MAX, PHASE_MIN, board.game_state.phase_value);
+        let phase = Evaluation::phase(PHASE_MIN, PHASE_MAX, board.game_state.phase_value);
 
         // Mix the tables by interpolation
-        let pst_w = pst_w_mg + (phase * (pst_w_eg - pst_w_mg));
-        let pst_b = pst_b_mg + (phase * (pst_b_eg - pst_b_mg));
+        let pst_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
+        let pst_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
 
         // Establish base evaluation
         let mut value = (pst_w - pst_b).round() as i16;
