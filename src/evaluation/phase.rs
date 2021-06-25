@@ -21,31 +21,31 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{defs::PIECE_VALUES, Evaluation};
+use super::{defs::PHASE_VALUES, Evaluation};
 use crate::{board::Board, defs::Sides, misc::bits};
 
 impl Evaluation {
-    pub fn count_material(board: &Board) -> (u16, u16) {
-        let mut white_material: u16 = 0;
-        let mut black_material: u16 = 0;
+    pub fn count_phase(board: &Board) -> i16 {
+        let mut phase_w: i16 = 0;
+        let mut phase_b: i16 = 0;
         let bb_w = board.bb_pieces[Sides::WHITE];
         let bb_b = board.bb_pieces[Sides::BLACK];
 
-        for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
+        for (piece_type, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
             let mut white_pieces = *w;
             let mut black_pieces = *b;
 
             while white_pieces > 0 {
-                white_material += PIECE_VALUES[piece];
+                phase_w += PHASE_VALUES[piece_type];
                 bits::next(&mut white_pieces);
             }
 
             while black_pieces > 0 {
-                black_material += PIECE_VALUES[piece];
+                phase_b += PHASE_VALUES[piece_type];
                 bits::next(&mut black_pieces);
             }
         }
 
-        (white_material, black_material)
+        phase_w + phase_b
     }
 }

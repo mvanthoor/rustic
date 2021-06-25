@@ -29,7 +29,10 @@ use super::{
 };
 use crate::{
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::Evaluation,
+    evaluation::{
+        defs::{PST_EG, PST_MG},
+        Evaluation,
+    },
     movegen::{defs::Move, MoveGenerator},
 };
 
@@ -261,8 +264,9 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
-    let from_scratch_material = Evaluation::count_material(board);
-    let from_scratch_psqt = Evaluation::apply_pst(board);
+    let from_scratch_phase_value = Evaluation::count_phase(board);
+    let from_scratch_pst_mg = Evaluation::apply_pst(board, &PST_MG);
+    let from_scratch_pst_eg = Evaluation::apply_pst(board, &PST_EG);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
@@ -271,23 +275,28 @@ fn check_incrementals(board: &Board) -> bool {
         result = false;
     };
 
-    if result && from_scratch_material.0 != board.game_state.material[Sides::WHITE] {
-        println!("Check Incrementals: Error in material count for white.");
+    if result && from_scratch_phase_value != board.game_state.phase_value {
+        println!("Check Incrementals: Error in phase value.");
         result = false;
     };
 
-    if result && from_scratch_material.1 != board.game_state.material[Sides::BLACK] {
-        println!("Check Incrementals: Error in material count for black.");
+    if result && from_scratch_pst_mg.0 != board.game_state.pst_mg[Sides::WHITE] {
+        println!("Check Incrementals: Error in PST_MG for white.");
         result = false;
     };
 
-    if result && from_scratch_psqt.0 != board.game_state.psqt[Sides::WHITE] {
-        println!("Check Incrementals: Error in PSQT for white.");
+    if result && from_scratch_pst_mg.1 != board.game_state.pst_mg[Sides::BLACK] {
+        println!("Check Incrementals: Error in PST_MG for black.");
         result = false;
     };
 
-    if result && from_scratch_psqt.1 != board.game_state.psqt[Sides::BLACK] {
-        println!("Check Incrementals: Error in PSQT for black.");
+    if result && from_scratch_pst_eg.0 != board.game_state.pst_eg[Sides::WHITE] {
+        println!("Check Incrementals: Error in PST_EG for white.");
+        result = false;
+    };
+
+    if result && from_scratch_pst_eg.1 != board.game_state.pst_eg[Sides::BLACK] {
+        println!("Check Incrementals: Error in PST_EG for black.");
         result = false;
     };
 

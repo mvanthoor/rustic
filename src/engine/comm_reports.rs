@@ -138,8 +138,10 @@ impl Engine {
             UciReport::Board => self.comm.send(CommControl::PrintBoard),
             UciReport::History => self.comm.send(CommControl::PrintHistory),
             UciReport::Eval => {
-                let e = Evaluation::evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                let msg = format!("Evaluation: {} centipawns", e);
+                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let eval = Evaluation::evaluate_position(&mtx_board);
+                let p_v = mtx_board.game_state.phase_value;
+                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
                 self.comm.send(CommControl::InfoString(msg));
             }
             UciReport::Help => self.comm.send(CommControl::PrintHelp),

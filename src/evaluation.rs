@@ -22,42 +22,42 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 pub mod defs;
-mod material;
+mod phase;
 mod pst;
 
-use super::evaluation::defs::PIECE_VALUES;
-use crate::{
-    board::{defs::Pieces, Board},
-    defs::Sides,
-};
-use pst::KING_EDGE;
+use crate::{board::Board, defs::Sides};
+
+use self::defs::{PHASE_MAX, PHASE_MIN};
 
 pub struct Evaluation;
 impl Evaluation {
     pub fn evaluate_position(board: &Board) -> i16 {
-        const PAWN_VALUE: i16 = PIECE_VALUES[Pieces::PAWN] as i16;
-
         let side = board.game_state.active_color as usize;
-        let w_material = board.game_state.material[Sides::WHITE] as i16;
-        let b_material = board.game_state.material[Sides::BLACK] as i16;
 
-        // Base evaluation, by counting material.
-        let mut value = w_material - b_material;
+        // Get PST values
+        let pst_w_mg = board.game_state.pst_mg[Sides::WHITE] as f32;
+        let pst_b_mg = board.game_state.pst_mg[Sides::BLACK] as f32;
+        let pst_w_eg = board.game_state.pst_eg[Sides::WHITE] as f32;
+        let pst_b_eg = board.game_state.pst_eg[Sides::BLACK] as f32;
 
-        // Add PSQT values
-        value += board.game_state.psqt[Sides::WHITE] - board.game_state.psqt[Sides::BLACK];
+        // Get phase
+        let phase = Evaluation::phase(PHASE_MAX, PHASE_MIN, board.game_state.phase_value);
 
-        // If one of the sides is down to a bare king, apply the KING_EDGE PSQT
-        // to drive that king to the edge and mate it.
-        if w_material < PAWN_VALUE || b_material < PAWN_VALUE {
-            let w_king_edge = KING_EDGE[board.king_square(Sides::WHITE)] as i16;
-            let b_king_edge = KING_EDGE[board.king_square(Sides::BLACK)] as i16;
-            value += w_king_edge - b_king_edge;
-        }
+        // Mix the tables by interpolation
+        let pst_w = pst_w_mg + (phase * (pst_w_eg - pst_w_mg));
+        let pst_b = pst_b_mg + (phase * (pst_b_eg - pst_b_mg));
+
+        // Establish base evaluation
+        let mut value = (pst_w - pst_b).round() as i16;
 
         // Flip point of view if black is evaluating.
         value = if side == Sides::BLACK { -value } else { value };
 
         value
+    }
+
+    pub fn phase(edge0: i16, edge1: i16, value: i16) -> f32 {
+        let clamp = (value - edge0) as f32 / (edge1 - edge0) as f32;
+        f32::min(1.0, f32::max(0.0, clamp))
     }
 }
