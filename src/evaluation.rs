@@ -23,14 +23,14 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod defs;
 pub mod material;
-pub mod psqt;
+pub mod pst;
 
 use super::evaluation::defs::PIECE_VALUES;
 use crate::{
     board::{defs::Pieces, Board},
     defs::Sides,
 };
-use psqt::KING_EDGE;
+use pst::KING_EDGE;
 
 pub fn evaluate_position(board: &Board) -> i16 {
     const PAWN_VALUE: i16 = PIECE_VALUES[Pieces::PAWN] as i16;

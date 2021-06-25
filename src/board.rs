@@ -40,7 +40,7 @@ use crate::{
     evaluation::{
         defs::PIECE_VALUES,
         material,
-        psqt::{self, FLIP, PSQT_MG},
+        pst::{self, FLIP, PST_MG},
     },
     misc::bits,
 };
@@ -110,7 +110,7 @@ impl Board {
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] -= PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] -= PST_MG[piece][s] as i16;
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -126,7 +126,7 @@ impl Board {
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] += PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] += PST_MG[piece][s] as i16;
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
@@ -193,7 +193,7 @@ impl Board {
         self.game_state.material[Sides::WHITE] = material.0;
         self.game_state.material[Sides::BLACK] = material.1;
 
-        let psqt = psqt::apply(&self);
+        let psqt = pst::apply(&self);
         self.game_state.psqt[Sides::WHITE] = psqt.0;
         self.game_state.psqt[Sides::BLACK] = psqt.1;
     }
