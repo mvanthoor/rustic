@@ -269,8 +269,8 @@ impl Evaluation {
     // Apply the PST's to the current position. These are the initial
     // values. The engine will update them incrementally during play.
     pub fn pst_apply(board: &Board, pst_collection: &PstCollection) -> (i16, i16) {
-        let mut w_pst: i16 = 0;
-        let mut b_pst: i16 = 0;
+        let mut pst_w: i16 = 0;
+        let mut pst_b: i16 = 0;
         let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
         let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
@@ -282,17 +282,17 @@ impl Evaluation {
             // Iterate over pieces of the current piece_type for white.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                w_pst += pst_collection[piece_type][FLIP[square]] as i16;
+                pst_w += pst_collection[piece_type][FLIP[square]] as i16;
             }
 
             // Iterate over pieces of the current piece_type for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                b_pst += pst_collection[piece_type][square] as i16;
+                pst_b += pst_collection[piece_type][square] as i16;
             }
         }
 
-        (w_pst, b_pst)
+        (pst_w, pst_b)
     }
 
     // Interpolate PST values between midgame and endgame tables. This
@@ -311,10 +311,10 @@ impl Evaluation {
         let phase = Evaluation::determine_phase(PHASE_MIN, PHASE_MAX, v);
 
         // Mix the tables by taking parts of both mg and eg.
-        let pst_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
-        let pst_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
+        let score_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
+        let score_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
 
         // Return final PST score.
-        (pst_w - pst_b).round() as i16
+        (score_w - score_b).round() as i16
     }
 }
