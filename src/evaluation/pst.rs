@@ -25,7 +25,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // PST's are written from White's point of view, as if looking at a chess
 // diagram, with A1 on the lower left corner.
 
-use super::Evaluation;
+use super::{
+    defs::{PHASE_MAX, PHASE_MIN},
+    Evaluation,
+};
 use crate::{
     board::Board,
     defs::{NrOf, Sides},
@@ -263,7 +266,9 @@ pub const FLIP: [usize; 64] = [
 ];
 
 impl Evaluation {
-    pub fn apply_pst(board: &Board, pst_collection: &PstCollection) -> (i16, i16) {
+    // Apply the PST's to the current position. These are the initial
+    // values. The engine will update them incrementally during play.
+    pub fn pst_apply(board: &Board, pst_collection: &PstCollection) -> (i16, i16) {
         let mut w_pst: i16 = 0;
         let mut b_pst: i16 = 0;
         let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
@@ -288,5 +293,28 @@ impl Evaluation {
         }
 
         (w_pst, b_pst)
+    }
+
+    // Interpolate PST values between midgame and endgame tables. This
+    // makes the engine much stronger, because it can now take into account
+    // that piece values and locations are different in the opening/midgame
+    // and endgame.
+    pub fn pst_score(board: &Board) -> i16 {
+        // Get current PST values. These are kept incrementally during play.
+        let pst_w_mg = board.game_state.pst_mg[Sides::WHITE] as f32;
+        let pst_b_mg = board.game_state.pst_mg[Sides::BLACK] as f32;
+        let pst_w_eg = board.game_state.pst_eg[Sides::WHITE] as f32;
+        let pst_b_eg = board.game_state.pst_eg[Sides::BLACK] as f32;
+
+        // Get the game phase, from 1 (opening/midgame) to 0 (endgame)
+        let v = board.game_state.phase_value;
+        let phase = Evaluation::determine_phase(PHASE_MIN, PHASE_MAX, v);
+
+        // Mix the tables by taking parts of both mg and eg.
+        let pst_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
+        let pst_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
+
+        // Return final PST score.
+        (pst_w - pst_b).round() as i16
     }
 }

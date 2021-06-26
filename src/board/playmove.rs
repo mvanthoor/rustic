@@ -265,8 +265,8 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_phase_value = Evaluation::count_phase(board);
-    let from_scratch_pst_mg = Evaluation::apply_pst(board, &PST_MG);
-    let from_scratch_pst_eg = Evaluation::apply_pst(board, &PST_EG);
+    let from_scratch_pst_mg = Evaluation::pst_apply(board, &PST_MG);
+    let from_scratch_pst_eg = Evaluation::pst_apply(board, &PST_EG);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.

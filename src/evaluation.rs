@@ -27,47 +27,18 @@ mod pst;
 
 use crate::{board::Board, defs::Sides};
 
-use self::defs::{PHASE_MAX, PHASE_MIN};
-
 pub struct Evaluation;
 impl Evaluation {
     pub fn evaluate_position(board: &Board) -> i16 {
+        // Determine the side which is evaluating.
         let side = board.game_state.active_color as usize;
 
-        // Establish base evaluation
+        // Establish base evaluation value by PST score.
         let mut value = Evaluation::pst_score(board);
 
         // Flip point of view if black is evaluating.
         value = if side == Sides::BLACK { -value } else { value };
 
         value
-    }
-
-    // Interpolate PST values between midgame and endgame tables.
-    fn pst_score(board: &Board) -> i16 {
-        // Get current PST values. These are kept incrementally during play.
-        let pst_w_mg = board.game_state.pst_mg[Sides::WHITE] as f32;
-        let pst_b_mg = board.game_state.pst_mg[Sides::BLACK] as f32;
-        let pst_w_eg = board.game_state.pst_eg[Sides::WHITE] as f32;
-        let pst_b_eg = board.game_state.pst_eg[Sides::BLACK] as f32;
-
-        // Get the game phase, from 1 (opening/midgame) to 0 (endgame)
-        let phase = Evaluation::phase(PHASE_MIN, PHASE_MAX, board.game_state.phase_value);
-
-        // Mix the tables by taking parts of both mg and eg.
-        let pst_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
-        let pst_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
-
-        // Return final PST score.
-        (pst_w - pst_b).round() as i16
-    }
-
-    // Get the game phase by using the Linstep method.
-    fn phase(edge0: i16, edge1: i16, value: i16) -> f32 {
-        // Interpolate from edge0 to edge1.
-        let result = (value - edge0) as f32 / (edge1 - edge0) as f32;
-
-        // Clamp the result: don't exceed 1.0 or drop below 0.0.
-        f32::min(1.0, f32::max(0.0, result))
     }
 }

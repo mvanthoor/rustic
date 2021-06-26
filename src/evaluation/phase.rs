@@ -25,6 +25,9 @@ use super::{defs::PHASE_VALUES, Evaluation};
 use crate::{board::Board, defs::Sides, misc::bits};
 
 impl Evaluation {
+    // Counts all the phase values for white and black and returns the
+    // total result. This is the initial game phase. The engine will update
+    // it incrementally during play as pieces are traded.
     pub fn count_phase(board: &Board) -> i16 {
         let mut phase_w: i16 = 0;
         let mut phase_b: i16 = 0;
@@ -47,5 +50,14 @@ impl Evaluation {
         }
 
         phase_w + phase_b
+    }
+
+    // Get the game phase by using the Linstep method.
+    pub fn determine_phase(edge0: i16, edge1: i16, value: i16) -> f32 {
+        // Interpolate from edge0 to edge1.
+        let result = (value - edge0) as f32 / (edge1 - edge0) as f32;
+
+        // Clamp the result: don't exceed 1.0 or drop below 0.0.
+        f32::min(1.0, f32::max(0.0, result))
     }
 }
