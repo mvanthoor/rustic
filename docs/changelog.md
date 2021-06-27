@@ -12,6 +12,16 @@
 <!-- /code_chunk_output -->
 # Changelog
 
+## Rustic 4.0.0 (2021, ?? ??)
+
+- New features:
+  - Tapered evaluation
+- Improvements:
+  - Hash Clear function: properly clear TT, instead of recreating it.
+- Changes
+  - Refactored code in Evaluation. Better privacy and namespacing.
+  - Renamed some variables here and there for consistency.
+
 ## Rustic Alpha 3.0.0 (2021, June 18)
 
 - New features:
