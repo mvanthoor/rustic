@@ -64,7 +64,7 @@ impl Search {
                     let killer = refs.search_info.killer_moves[ply][n];
                     if m.get_move() == killer.get_move() {
                         // Order killers below MVV_LVA_OFFSET
-                        value = MVV_LVA_OFFSET - ((i as u32 + 1) * KILLER_VALUE);
+                        value = MVV_LVA_OFFSET - ((n as u32 + 1) * KILLER_VALUE);
                     }
                     n += 1;
                 }
