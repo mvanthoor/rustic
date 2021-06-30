@@ -53,7 +53,7 @@ pub struct Settings {
     pub tt_size: usize,
 }
 
-// This enum provides informatin to the engine, with regard to incoming
+// This enum provides information to the engine, with regard to incoming
 // messages and search results.
 #[derive(PartialEq)]
 pub enum Information {

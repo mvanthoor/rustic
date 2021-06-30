@@ -234,7 +234,7 @@ impl SearchStats {
 }
 
 // The search process needs references to a lot of data, such as a copy of
-// the current board to make moves on, the move generator, search paramters
+// the current board to make moves on, the move generator, search parameters
 // (depth, time available, etc...), SearchInfo to put the results. It also
 // needs references to the control receiver and report sender so it can
 // receive commands from the engine and send reports back. These references

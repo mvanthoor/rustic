@@ -85,14 +85,14 @@ impl Search {
         Search::score_moves(&mut move_list, ShortMove::new(0), refs);
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
-        // the minium MIN_TIME_STATS has elapsed before sending.
+        // the minimum MIN_TIME_STATS has elapsed before sending.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);
         }
 
         // Iterate over the capture moves.
         for i in 0..move_list.len() {
-            // Pick the next moves with the higest score.
+            // Pick the next moves with the highest score.
             Search::pick_move(&mut move_list, i);
 
             let current_move = move_list.get_move(i);

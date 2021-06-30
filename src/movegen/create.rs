@@ -53,7 +53,7 @@ impl MoveGenerator {
     // bishop_mask() works a bit differently compared to rook_mask(),
     // but in the end it does the same thing: create a mask for a sliding piece.
     // First, a bitboard containing all the edges (if the piece is not on the edge).
-    // Starting at the given square, the function generates four rays, one for eeach
+    // Starting at the given square, the function generates four rays, one for each
     // diagonal direction, on an empty board. As a final result, the four rays are
     // combined, to generate all bishop moves from that square, on an empty board.
     // Then the edges are clipped off, as they are not needed in the mask.
@@ -83,7 +83,7 @@ impl MoveGenerator {
     }
 
     // This function takes a square, and all the blocker boards belonging to that
-    // squre. Then it'll iterate through those blocker boards, and generate the
+    // square. Then it'll iterate through those blocker boards, and generate the
     // attack board belonging to that blocker board. The 'length' parameter is the
     // length of the given array of blocker boards.
     pub fn rook_attack_boards(square: Square, blockers: &[Bitboard]) -> AttackBoards {
@@ -146,7 +146,7 @@ impl MoveGenerator {
     // NE, SE, SW.) The function starts at the given square, in a given direction,
     // and then it keeps iterating in that direction until it either hits a piece,
     // or the edge of the board. Therefore, in each call, only one of the eight
-    // blocks of this function wille be executed.
+    // blocks of this function will be executed.
     pub fn bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
         let mut file = Board::square_on_file_rank(square).0 as usize;
         let mut rank = Board::square_on_file_rank(square).1 as usize;

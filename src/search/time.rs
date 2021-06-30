@@ -66,7 +66,7 @@ impl Search {
             // Just send the calculated slice.
             time_slice as u128
         } else if (base_time + increment) > (OVERHEAD / 5) {
-            // Don't substract GUI lag protection (overhead) if this leads
+            // Don't subtract GUI lag protection (overhead) if this leads
             // to a negative time allocation.
             (base_time + increment) as u128
         } else {

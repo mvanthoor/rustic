@@ -161,7 +161,7 @@ impl Board {
         }
 
         // When running in debug mode, check the incrementally updated
-        // values such as Zobrist key and meterial count.
+        // values such as Zobrist key and material count.
         debug_assert!(check_incrementals(&self));
 
         // Report if the move was legal or not.

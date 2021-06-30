@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * The magics as used by Rustic can be found just below. If you want to see the function used to
- * gerate them, look for the "find_magics()" function. This function can be found in the module
+ * generate them, look for the "find_magics()" function. This function can be found in the module
  * extra::wizardry. It's not even compiled into the engine when not called; it's there for
  * didactic purposes, and to be used/called if the magics in this file ever get corrupted.
 */
