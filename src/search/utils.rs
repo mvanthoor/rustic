@@ -157,7 +157,7 @@ impl Search {
     }
 }
 
-// This is in its own block so rustfmt::skip can be applied. Otherwhise
+// This is in its own block so rustfmt::skip can be applied. Otherwise
 // the layout of this function becomes very messy.
 #[rustfmt::skip]
 impl Search {

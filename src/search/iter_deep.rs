@@ -102,7 +102,7 @@ impl Search {
                 let information = Information::Search(report);
                 refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
 
-                // Search one ply deepr.
+                // Search one ply deeper.
                 depth += 1;
             }
 

@@ -105,7 +105,7 @@ impl MoveGenerator {
         }
     }
 
-    // Return slider attacsk for Rook, Bishop and Queen using the magic numbers.
+    // Return slider attack for Rook, Bishop and Queen using the magic numbers.
     pub fn get_slider_attacks(
         &self,
         piece: Piece,
@@ -305,7 +305,7 @@ impl MoveGenerator {
         let promotion_rank = Board::promotion_rank(us);
         let is_pawn = piece == Pieces::PAWN;
 
-        // As long as there are still to-squres in bb_to, this piece has moves to add.
+        // As long as there are still to-squares in bb_to, this piece has moves to add.
         while bb_to > 0 {
             // More shorthand variables
             let to_square = bits::next(&mut bb_to);
@@ -350,7 +350,7 @@ impl MoveGenerator {
         let attackers = board.bb_pieces[attacker];
 
         // Use the super-piece method: get the moves for each piece,
-        // starting from the given square. This provides the sqaures where
+        // starting from the given square. This provides the squares where
         // a piece has to be, to be able to reach the given square.
         let occupancy = board.occupancy();
         let bb_king = self.get_non_slider_attacks(Pieces::KING, square);

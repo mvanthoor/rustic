@@ -210,7 +210,7 @@ impl<D: IHashData + Copy> Bucket<D> {
             }
         }
 
-        // If the verifiaction was 0, this entry in the bucket was never
+        // If the verification was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
         if self.bucket[idx_lowest_depth].verification == 0 {
             *used_entries += 1;
@@ -246,7 +246,7 @@ pub struct TT<D> {
 // Public functions
 impl<D: IHashData + Copy + Clone> TT<D> {
     // Create a new TT of the requested size, able to hold the data
-    // of type D, where D has to implement IHashData, and must be clonable
+    // of type D, where D has to implement IHashData, and must be cloneable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
         let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
@@ -305,7 +305,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         self.used_entries = 0;
     }
 
-    // Provides TT usage in permille (1 per 1000, as oppposed to percent,
+    // Provides TT usage in permille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {

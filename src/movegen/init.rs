@@ -33,7 +33,7 @@ use crate::{
 impl MoveGenerator {
     /**
      * Generate all the possible king moves for each square.
-     * Exampe: Generate a bitboard for the square the king is on.
+     * Example: Generate a bitboard for the square the king is on.
      * Generate a move to Up-Left, if the king is not on the A file, and not on the last rank.
      * Generate a move to Up, if the king is not on the last rank.
      * ... and so on. All the moves are combined in the bb_move bitboard.
@@ -94,7 +94,7 @@ impl MoveGenerator {
         }
     }
 
-    /** This is the main part of the module: it indexes all of the atack boards
+    /** This is the main part of the module: it indexes all of the attack boards
      * using the magic numbers from the "magics" module. This builds an attack database
      * for sliding pieces, for each square and each combination of blocker boards. A
      * blocker is a piece that is "in the way", causing the slider to not be able to
@@ -109,7 +109,7 @@ impl MoveGenerator {
      * Get the piece mask for that square (where it can move on an empty board)
      * Calculate the number of permutations that this mask is going to generate.
      * Calculate the end offset of this square in the attack table.
-     * Generate all the blocker borads for this piece on this square.
+     * Generate all the blocker boards for this piece on this square.
      * Generate all the attacker boards for this piece on this square.
      * Create e new magic.
      * Fill the new magic with the calculated information, but pick the magic number
@@ -117,17 +117,17 @@ impl MoveGenerator {
      * "find_magics()" in that module. (That function is very similar to this one.)
      * We're still on the same square...
      * Now start iterating through the permutations of the blocker boards.
-     * Calculte the magic index in the attack table, and then put the *ATTACK* board there.
+     * Calculate the magic index in the attack table, and then put the *ATTACK* board there.
      * (Every blocker board has only one attack board.)
      * Obviously use either the rook or the bishop attack table.
      * There is also some code to check if the index is within the expected offset,
      * and that the slot found in the attack table is actually empty. If one of these is not true,
      * then there is something wrong with the pre-generated magic numbers.
-     * If everything is OK (the program has not paniced), insert the magic into either the rook
+     * If everything is OK (the program has not panicked), insert the magic into either the rook
      * or bishop magics table. Then go to the next permutation.
      * After the permutations and square loops are done, do a final check. This is a perfect hash
      * (every spot in the table is filled, with no collisions), so we expect the number of handled
-     * permutations to be exaclty the same as the table's length. If not, there's something wrong.
+     * permutations to be exactly the same as the table's length. If not, there's something wrong.
      *
      * Now, it's possible to build a blocker board for any slider
      * on any board (slider_mask & board_occupancy), and then use this blocker board and the magic

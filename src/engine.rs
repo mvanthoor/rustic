@@ -52,7 +52,7 @@ use crate::{
 };
 
 // This struct holds the chess engine and its functions, so they are not
-// all seperate entities in the global space.
+// all separate entities in the global space.
 pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
     settings: Settings,                     // Struct holding all the settings.

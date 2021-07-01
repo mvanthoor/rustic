@@ -165,7 +165,7 @@ impl Board {
     }
 }
 
-// Private board functions (for initializating on startup)
+// Private board functions (for initialization on startup)
 impl Board {
     // Resets/wipes the board. Used by the FEN reader function.
     fn reset(&mut self) {

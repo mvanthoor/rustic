@@ -246,10 +246,10 @@ pub const PST_EG: PstCollection = [KING_EG, QUEEN_EG, ROOK_EG, BISHOP_EG, KNIGHT
 
 // One can also see that, if the SAME PST from WHITE's point of view is to
 // be used for BLACK, it can be indexed by the square number, without any
-// converstion. (Super-impose the square numbers on top of the PST with
+// conversation. (Super-impose the square numbers on top of the PST with
 // BLACK square names.)
 
-// This results in the following converstion table, from aquare number
+// This results in the following conversation table, from Square number
 // to PST element, needed for WHITE only::
 
 #[allow(dead_code)]
