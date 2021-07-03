@@ -201,31 +201,32 @@ impl<D: IHashData + Copy> Bucket<D> {
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        let mut idx_lowest_depth = 0;
+        let mut low = 0;
 
-        // Find the index of the entry with the lowest depth.
-        for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
-                idx_lowest_depth = entry
+        // Run through the bucket and find the index of the entry having
+        // the lowest depth so it can be replaced.
+        for i in 0..ENTRIES_PER_BUCKET {
+            if self.bucket[i].data.depth() < self.bucket[low].data.depth() {
+                low = i
             }
         }
 
-        // If the verification was 0, this entry in the bucket was never
-        // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
+        // If the verification in the entry is 0, then it was never used
+        // before. Count the use of this entry.
+        if self.bucket[low].verification == 0 {
             *used_entries += 1;
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+        self.bucket[low] = Entry { verification, data }
     }
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
     pub fn find(&self, verification: u32) -> Option<&D> {
-        for e in self.bucket.iter() {
-            if e.verification == verification {
-                return Some(&e.data);
+        for entry in self.bucket.iter() {
+            if entry.verification == verification {
+                return Some(&(entry.data));
             }
         }
         None
