@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
-const ENTRIES_PER_BUCKET: usize = 4;
+const ENTRIES_PER_BUCKET: usize = 2;
 const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;
@@ -208,15 +208,9 @@ impl<D: IHashData + Copy> Bucket<D> {
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        let mut low = 0;
-
-        // Run through the bucket and find the index of the entry having
-        // the lowest depth so it can be replaced.
-        for i in 0..ENTRIES_PER_BUCKET {
-            if self.bucket[i].data.depth() < self.bucket[low].data.depth() {
-                low = i
-            }
-        }
+        // Pick the bucket having the lowest depth.
+        let first = self.bucket[0].data.depth() < self.bucket[1].data.depth();
+        let low = if first { 0 } else { 1 };
 
         // If the verification in the entry is 0, then it was never used
         // before. Count the use of this entry.
