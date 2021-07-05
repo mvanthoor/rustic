@@ -35,6 +35,9 @@ pub trait IHashData {
     fn new() -> Self;
     fn depth(&self) -> i8;
 }
+
+// The PerftData struct holds the information the engine needs while using
+// the transposition table during a Perft run.
 #[derive(Copy, Clone)]
 pub struct PerftData {
     depth: i8,
@@ -68,6 +71,9 @@ impl PerftData {
     }
 }
 
+// The HashFlag enum is used to indicate if a value in a hash entry is
+// EXACT (PV-move), Alpha (upper bound, alpha never raised or equalled), or
+// Beta (lower bound, bèta was equal or exceeded)
 #[derive(Copy, Clone)]
 pub enum HashFlag {
     Nothing,
@@ -76,6 +82,8 @@ pub enum HashFlag {
     Beta,
 }
 
+// The SearchData struct holds all the data the engine needs when using the
+// transposition table during a normal search.
 #[derive(Copy, Clone)]
 pub struct SearchData {
     depth: i8,
@@ -104,11 +112,10 @@ impl SearchData {
         // This is the value we're going to save into the TT.
         let mut v = value;
 
-        // If we're dealing with checkmate, the value must be adjusted, so
+        // If we're dealing with checkmate, the value must be adjusted so
         // they take the number of plies at which they were found into
-        // account, before storing the value into the TT. These ifs can be
-        // rewritten as a comparative match expression. We don't, because
-        // they're slower. (No inlining by the compiler.)
+        // account. (These if's can be combined in a match expression, but
+        // this is slower because the compiler doesn't inline them.)
         if v > CHECKMATE_THRESHOLD {
             v += ply as i16;
         }
