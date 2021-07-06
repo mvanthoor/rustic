@@ -24,9 +24,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
-pub const OVERHEAD: i128 = 50; // msecs
+pub const OVERHEAD: f64 = 20.0; // msecs
 const GAME_LENGTH: usize = 25; // moves
 const MOVES_BUFFER: usize = 5; //moves
+const MAX_USAGE: f64 = 0.8; // percentage
 
 impl Search {
     // Determine if allocated search time has been used up.
@@ -39,25 +40,13 @@ impl Search {
     pub fn calculate_time_slice(refs: &SearchRefs) -> u128 {
         // Calculate the time slice step by step.
         let gt = &refs.search_params.game_time;
-        let mtg = Search::moves_to_go(refs);
+        let mtg = Search::moves_to_go(refs) as f64;
         let white = refs.board.us() == Sides::WHITE;
-        let clock = if white { gt.wtime } else { gt.btime };
-        let increment = if white { gt.winc } else { gt.binc } as i128;
-        let base_time = ((clock as f64) / (mtg as f64)).round() as i128;
-        let time_slice = base_time + increment - OVERHEAD;
+        let clock = if white { gt.wtime } else { gt.btime } as f64;
+        let increment = if white { gt.winc } else { gt.binc } as f64;
+        let base_time = ((clock - OVERHEAD) * MAX_USAGE / mtg).round();
 
-        // Make sure we're never sending less than 0 msecs of available time.
-        if time_slice > 0 {
-            // Just send the calculated slice.
-            time_slice as u128
-        } else if (base_time + increment) > (OVERHEAD / 5) {
-            // Don't subtract GUI lag protection (overhead) if this leads
-            // to a negative time allocation.
-            (base_time + increment) as u128
-        } else {
-            // We actually don't have any time.
-            0
-        }
+        (base_time + increment) as u128
     }
 
     // Here we try to come up with some sort of sensible value for "moves
