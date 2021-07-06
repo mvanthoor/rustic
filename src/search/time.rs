@@ -25,8 +25,7 @@ use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
 pub const OVERHEAD: f64 = 20.0; // msecs
-const GAME_LENGTH: usize = 25; // moves
-const MOVES_BUFFER: usize = 5; //moves
+const GAME_LENGTH: usize = 30; // moves
 const MAX_USAGE: f64 = 0.8; // percentage
 
 impl Search {
@@ -45,8 +44,10 @@ impl Search {
         let clock = if white { gt.wtime } else { gt.btime } as f64;
         let increment = if white { gt.winc } else { gt.binc } as f64;
         let base_time = ((clock - OVERHEAD) * MAX_USAGE / mtg).round();
+        let mut time_slice = base_time + increment;
+        time_slice = if time_slice <= 0.0 { 1.0 } else { time_slice };
 
-        (base_time + increment) as u128
+        time_slice as u128
     }
 
     // Here we try to come up with some sort of sensible value for "moves
@@ -56,12 +57,7 @@ impl Search {
         if let Some(x) = refs.search_params.game_time.moves_to_go {
             x
         } else {
-            // Guess moves to go if not supplied.
-            let white = refs.board.us() == Sides::WHITE;
-            let ply = refs.board.history.len();
-            let moves_made = if white { ply / 2 } else { (ply - 1) / 2 };
-
-            GAME_LENGTH - (moves_made % GAME_LENGTH) + MOVES_BUFFER
+            GAME_LENGTH
         }
     }
 }
