@@ -27,26 +27,11 @@ use crate::defs::Sides;
 pub const OVERHEAD: i128 = 50; // msecs
 const GAME_LENGTH: usize = 25; // moves
 const MOVES_BUFFER: usize = 5; //moves
-const CRITICAL_TIME: u128 = 1_000; // msecs
-const OK_TIME: u128 = CRITICAL_TIME * 5; // msecs
 
 impl Search {
     // Determine if allocated search time has been used up.
     pub fn out_of_time(refs: &mut SearchRefs) -> bool {
-        let elapsed = refs.search_info.timer_elapsed();
-        let allocated = refs.search_info.allocated_time;
-
-        // Calculate a factor with which it is allowed to overshoot the
-        // allocated search time. The more time the engine has, the larger
-        // the overshoot-factor can be.
-        let overshoot_factor = match allocated {
-            x if x > OK_TIME => 2.0,                       // Allow large overshoot.
-            x if x > CRITICAL_TIME && x <= OK_TIME => 1.5, // Low on time. Reduce overshoot.
-            x if x <= CRITICAL_TIME => 1.0,                // Critical time. Don't overshoot.
-            _ => 1.0,                                      // This case shouldn't happen.
-        };
-
-        elapsed >= (overshoot_factor * allocated as f64).round() as u128
+        refs.search_info.timer_elapsed() > refs.search_info.allocated_time
     }
 
     // Calculates the time the engine allocates for searching a single
