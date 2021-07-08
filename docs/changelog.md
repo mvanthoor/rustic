@@ -17,10 +17,16 @@
 - New features:
   - Tapered evaluation
 - Improvements:
-  - Hash Clear function: properly clear TT, instead of recreating it.
-- Changes
+  - Hash Clear function: properly clear TT instead of recreating it.
+  - Fixed inaccuracy in ordering killers.
+  - Slightly optimize TT bucket usage. (+15 Elo)
+  - Time management simplified. (+35 Elo)
+- Changes:
   - Refactored code in Evaluation. Better privacy and namespacing.
   - Renamed some variables here and there for consistency.
+- Misc:
+  - Updated "rand" crate to 0.8.4.
+  - Updated "rand_chacha" crate to 0.3.1.
 
 ## Rustic Alpha 3.0.0 (2021, June 18)
 
@@ -60,7 +66,7 @@
   - Count all nodes visited, instead of only nodes which generated moves.
   - Change random number generator from SmallRng to ChaChaRng for
     reproducible behavior between platforms/OS's/architectures/versions.
-- Cleanup
+- Cleanup:
   - Change Root PV handling to remove redundant code.
   - Miscellaneous small renames, refactors, and cleanups.
   - Add rand_chacha and remove SmallRng number generators.

@@ -24,9 +24,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{defs::SearchRefs, Search};
 use crate::defs::Sides;
 
-pub const OVERHEAD: f64 = 20.0; // msecs
+pub const SAFEGUARD: f64 = 100.0; // msecs
 const GAME_LENGTH: usize = 30; // moves
 const MAX_USAGE: f64 = 0.8; // percentage
+const NO_TIME: f64 = 0.0;
 
 impl Search {
     // Determine if allocated search time has been used up.
@@ -37,15 +38,19 @@ impl Search {
     // Calculates the time the engine allocates for searching a single
     // move. This depends on the number of moves still to go in the game.
     pub fn calculate_time_slice(refs: &SearchRefs) -> u128 {
-        // Calculate the time slice step by step.
         let gt = &refs.search_params.game_time;
         let mtg = Search::moves_to_go(refs) as f64;
         let white = refs.board.us() == Sides::WHITE;
         let clock = if white { gt.wtime } else { gt.btime } as f64;
         let increment = if white { gt.winc } else { gt.binc } as f64;
-        let base_time = ((clock - OVERHEAD) * MAX_USAGE / mtg).round();
-        let mut time_slice = base_time + increment;
-        time_slice = if time_slice <= 0.0 { 1.0 } else { time_slice };
+        let base_time = (clock - SAFEGUARD) * MAX_USAGE / mtg;
+        let time_slice = if base_time > 0.0 {
+            base_time + increment
+        } else if increment > 0.0 {
+            increment * MAX_USAGE
+        } else {
+            NO_TIME
+        };
 
         time_slice as u128
     }

@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchRefs, SearchResult, INF},
+    defs::{SearchMode, SearchRefs, SearchResult, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
 use crate::{defs::MAX_PLY, movegen::defs::Move};
@@ -38,7 +38,18 @@ impl Search {
 
         // Determine available time in case of GameTime search mode.
         if is_game_time {
-            refs.search_info.allocated_time = Search::calculate_time_slice(refs);
+            let time_slice = Search::calculate_time_slice(refs);
+
+            // We have some time to spend.
+            if time_slice > 0 {
+                refs.search_info.allocated_time = time_slice;
+            } else {
+                // Base time is under time-out safeguard, and we have no
+                // increment. We do a last-ditch effort by calculating a
+                // move at one ply deep.
+                refs.search_params.search_mode = SearchMode::Depth;
+                refs.search_params.depth = 1;
+            }
         }
 
         // Set the starting values for alpha and beta, for use with the
