@@ -13,7 +13,7 @@ use std::{
     time::Instant,
 };
 
-pub use super::time::OVERHEAD;
+pub use super::time::SAFEGUARD;
 
 pub const INF: i16 = 25_000;
 // pub const ASPIRATION_WINDOW: i16 = 50;
