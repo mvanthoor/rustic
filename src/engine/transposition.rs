@@ -265,13 +265,15 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+        if self.megabytes > 0 {
+            let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
-        self.megabytes = megabytes;
-        self.used_entries = 0;
-        self.total_buckets = total_buckets;
-        self.total_entries = total_entries;
+            self.tt = vec![Bucket::<D>::new(); total_buckets];
+            self.megabytes = megabytes;
+            self.used_entries = 0;
+            self.total_buckets = total_buckets;
+            self.total_entries = total_entries;
+        }
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -299,17 +301,19 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        for bucket in self.tt.iter_mut() {
-            *bucket = Bucket::new();
+        if self.megabytes > 0 {
+            for bucket in self.tt.iter_mut() {
+                *bucket = Bucket::new();
+            }
+            self.used_entries = 0;
         }
-        self.used_entries = 0;
     }
 
     // Provides TT usage in permille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+            ((self.used_entries as f64 / self.total_entries as f64) * 1000.0).round() as u16
         } else {
             0
         }
