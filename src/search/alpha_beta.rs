@@ -119,27 +119,19 @@ impl Search {
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list, tt_move, refs);
 
-        // After SEND_STATS nodes have been searched, check if the
-        // MIN_TIME_STATS has been exceeded; if so, sne dthe current
-        // statistics to the GUI.
+        // If not quiet, periodically send stats to the GUI.
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);
         }
 
-        // Set the initial best eval_score (to the worst possible value)
+        // Workign variables for finding the best eval and move.
         let mut best_eval_score = -INF;
-
-        // Set the initial TT flag type. Assume we do not beat Alpha.
         let mut hash_flag = HashFlag::Alpha;
-
-        // Holds the best move in the move loop, for storing into the TT.
         let mut best_move: ShortMove = ShortMove::new(0);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
-            // This function finds the best move to test according to the
-            // move scoring, and puts it at the current index of the move
-            // list, so get_move() will get this next.
+            // Pick the highest oredered move first.
             Search::pick_move(&mut move_list, i);
 
             let current_move = move_list.get_move(i);
@@ -215,11 +207,9 @@ impl Search {
                 );
 
                 // If the move is not a capture but still causes a
-                // beta-cutoff, then store it as a killer move and update
-                // the history heuristics.
+                // beta-cutoff, then store it as a killer move.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
-                    // Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;
