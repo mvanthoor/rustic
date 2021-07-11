@@ -176,7 +176,6 @@ pub struct SearchSummary {
     pub seldepth: i8,   // Maximum selective depth reached
     pub time: u128,     // milliseconds
     pub cp: i16,        // centipawns score
-    pub mate: u8,       // mate in X moves
     pub nodes: usize,   // nodes searched
     pub nps: usize,     // nodes per second
     pub hash_full: u16, // TT use in permille

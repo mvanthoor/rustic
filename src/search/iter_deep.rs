@@ -78,16 +78,14 @@ impl Search {
                 // Create search summary for this depth.
                 let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
-                let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
                 let summary = SearchSummary {
                     depth,
                     seldepth: refs.search_info.seldepth,
                     time: elapsed,
                     cp: eval,
-                    mate: 0,
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
-                    hash_full,
+                    hash_full: refs.tt.lock().expect(ErrFatal::LOCK).hash_full(),
                     pv: root_pv.clone(),
                 };
 
