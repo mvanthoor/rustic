@@ -211,7 +211,7 @@ impl<D: IHashData + Copy> Bucket<D> {
                 if entry.data.depth() < data.depth() {
                     index = Some(i);
                 } else {
-                    // Don't replace if equal or lower.
+                    // Don't replace if equal or higher.
                     index = None;
                 }
                 // We found the position, so we're done, regardless if
