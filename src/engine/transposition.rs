@@ -227,10 +227,10 @@ impl<D: IHashData + Copy> Bucket<D> {
             }
         } else {
             // Position not found. Overwrite entry with lowest depth.
-            self.bucket[low] = Entry { verification, data };
             if self.bucket[low].verification == 0 {
                 *used_entries += 1;
             }
+            self.bucket[low] = Entry { verification, data };
         }
     }
 
