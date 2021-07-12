@@ -201,23 +201,43 @@ impl<D: IHashData + Copy> Bucket<D> {
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        let mut idx_lowest_depth = 0;
+        let mut index: Option<usize> = None;
 
-        // Find the index of the entry with the lowest depth.
-        for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
-                idx_lowest_depth = entry
+        // Run through the entries in the bucket.
+        for (i, entry) in self.bucket.iter().enumerate() {
+            // If we find the position...
+            if entry.verification == verification {
+                // If stored depth is lower than incoming, replace it.
+                if entry.data.depth() < data.depth() {
+                    index = Some(i);
+                } else {
+                    // Don't replace if equal or lower.
+                    index = None;
+                }
+                // We found the position, so we're done, regardless if
+                // we're storing a new version or not.
+                break;
+            } else if let Some(i) = index {
+                // Not the same position; compare entry against the one
+                // currently having the lowest depth
+                if entry.data.depth() < self.bucket[i].data.depth() {
+                    // We have a new lowest depth entry.
+                    index = Some(i);
+                }
             }
         }
 
-        // If the verification was 0, this entry in the bucket was never
-        // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
-            *used_entries += 1;
-        }
+        // If we have an index to store in
+        if let Some(i) = index {
+            // If the verification was 0, this entry in the bucket was never
+            // used before. Count the use of this entry.
+            if self.bucket[i].verification == 0 {
+                *used_entries += 1;
+            }
 
-        // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+            // Store.
+            self.bucket[i] = Entry { verification, data }
+        }
     }
 
     // Find a position in the bucket, where both the stored verification and
