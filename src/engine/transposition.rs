@@ -201,23 +201,37 @@ impl<D: IHashData + Copy> Bucket<D> {
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        let mut idx_lowest_depth = 0;
+        let mut low = 0;
+        let mut found: Option<usize> = None;
 
         // Find the index of the entry with the lowest depth.
-        for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
-                idx_lowest_depth = entry
+        for (i, entry) in self.bucket.iter().enumerate() {
+            // We found the position.
+            if entry.verification == verification {
+                found = Some(i);
+                // So we can stop looking.
+                break;
+            }
+
+            // We may have a new entry with lowest depth.
+            if entry.data.depth() < self.bucket[low].data.depth() {
+                low = i;
             }
         }
 
-        // If the verification was 0, this entry in the bucket was never
-        // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
-            *used_entries += 1;
+        // If the incoming position was found...
+        if let Some(f) = found {
+            // Then replace it if incoming depth is greater.
+            if data.depth() > self.bucket[f].data.depth() {
+                self.bucket[f] = Entry { verification, data };
+            }
+        } else {
+            // Position not found. Overwrite entry with lowest depth.
+            self.bucket[low] = Entry { verification, data };
+            if self.bucket[low].verification == 0 {
+                *used_entries += 1;
+            }
         }
-
-        // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
     }
 
     // Find a position in the bucket, where both the stored verification and
