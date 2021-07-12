@@ -218,12 +218,12 @@ impl<D: IHashData + Copy> Bucket<D> {
                 // we're storing a new version or not.
                 break;
             } else if let Some(i) = index {
-                // Not the same position; compare entry against the one
-                // currently having the lowest depth
                 if entry.data.depth() < self.bucket[i].data.depth() {
                     // We have a new lowest depth entry.
                     index = Some(i);
                 }
+            } else {
+                index = Some(i);
             }
         }
 
