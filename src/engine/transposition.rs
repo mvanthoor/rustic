@@ -208,18 +208,37 @@ impl<D: IHashData + Copy> Bucket<D> {
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        // Pick the bucket having the lowest depth.
-        let first = self.bucket[0].data.depth() < self.bucket[1].data.depth();
-        let low = if first { 0 } else { 1 };
+        let mut low = 0;
+        let mut found: Option<usize> = None;
 
-        // If the verification in the entry is 0, then it was never used
-        // before. Count the use of this entry.
-        if self.bucket[low].verification == 0 {
-            *used_entries += 1;
+        // Find the index of the entry with the lowest depth.
+        for (i, entry) in self.bucket.iter().enumerate() {
+            // We found the position.
+            if entry.verification == verification {
+                found = Some(i);
+                // So we can stop looking.
+                break;
+            }
+
+            // We may have a new entry with lowest depth.
+            if entry.data.depth() < self.bucket[low].data.depth() {
+                low = i;
+            }
         }
 
-        // Store.
-        self.bucket[low] = Entry { verification, data }
+        // If the incoming position was found...
+        if let Some(f) = found {
+            // Then replace it if incoming depth is greater.
+            if data.depth() > self.bucket[f].data.depth() {
+                self.bucket[f] = Entry { verification, data };
+            }
+        } else {
+            // Position not found. Overwrite entry with lowest depth.
+            if self.bucket[low].verification == 0 {
+                *used_entries += 1;
+            }
+            self.bucket[low] = Entry { verification, data };
+        }
     }
 
     // Find a position in the bucket, where both the stored verification and
@@ -267,13 +286,15 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+        if self.megabytes > 0 {
+            let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
-        self.megabytes = megabytes;
-        self.used_entries = 0;
-        self.total_buckets = total_buckets;
-        self.total_entries = total_entries;
+            self.tt = vec![Bucket::<D>::new(); total_buckets];
+            self.megabytes = megabytes;
+            self.used_entries = 0;
+            self.total_buckets = total_buckets;
+            self.total_entries = total_entries;
+        }
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -313,7 +334,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+            ((self.used_entries as f64 / self.total_entries as f64) * 1000.0).round() as u16
         } else {
             0
         }

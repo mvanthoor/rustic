@@ -4,7 +4,8 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
-  - [Rustic Alpha 3.0.0 (2021, Unknown)](#rustic-alpha-300-2021-unknown)
+  - [Rustic 4.0.0 (2021, ?? ??)](#rustic-400-2021)
+  - [Rustic Alpha 3.0.0 (2021, June 18)](#rustic-alpha-300-2021-june-18)
   - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
   - [Rustic Alpha 1.1 (2021, March 15)](#rustic-alpha-11-2021-march-15)
   - [Rustic Alpha 1 (2021, January 24)](#rustic-alpha-1-2021-january-24)
@@ -14,11 +15,17 @@
 
 ## Rustic 4.0.0 (2021, ?? ??)
 
+The Elo differences given below are obtained in 10s+0.1s self-play matches
+between this version, and the previous Alpha 3.0.0.
+
 - New features:
-  - Tapered evaluation
+  - Tapered evaluation (at least **+230 Elo**)
 - Improvements:
+  - Better time usage. (**+26 Elo**)
   - Hash Clear function: properly clear TT, instead of recreating it.
 - Changes
+  - Update "rand" crate to 0.8.4.
+  - Update "rand_chacha" crate to 0.3.1.
   - Refactored code in Evaluation. Better privacy and namespacing.
   - Renamed some variables here and there for consistency.
 

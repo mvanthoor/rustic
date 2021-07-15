@@ -13,7 +13,7 @@ use std::{
     time::Instant,
 };
 
-pub use super::time::OVERHEAD;
+pub use super::time::SAFEGUARD;
 
 pub const INF: i16 = 25_000;
 // pub const ASPIRATION_WINDOW: i16 = 50;
@@ -176,7 +176,6 @@ pub struct SearchSummary {
     pub seldepth: i8,   // Maximum selective depth reached
     pub time: u128,     // milliseconds
     pub cp: i16,        // centipawns score
-    pub mate: u8,       // mate in X moves
     pub nodes: usize,   // nodes searched
     pub nps: usize,     // nodes per second
     pub hash_full: u16, // TT use in permille
