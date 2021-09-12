@@ -161,8 +161,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustic-alpha"
-version = "3.1.112"
+name = "rustic-alpha_time"
+version = "3.6.100"
 dependencies = [
  "clap",
  "crossbeam-channel",
