@@ -186,7 +186,7 @@ impl Board {
         self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
         // Set initial phase value
-        self.game_state.phase_value = Evaluation::count_phase(&self);
+        self.game_state.phase_value = Evaluation::count_phase(self);
 
         // Initialize the piece list, zobrist key, and material count. These will
         // later be updated incrementally.
@@ -194,12 +194,12 @@ impl Board {
         self.game_state.zobrist_key = self.init_zobrist_key();
 
         // Set initial PST_MG values
-        let pst_mg = Evaluation::pst_apply(&self, &PST_MG);
+        let pst_mg = Evaluation::pst_apply(self, &PST_MG);
         self.game_state.pst_mg[Sides::WHITE] = pst_mg.0;
         self.game_state.pst_mg[Sides::BLACK] = pst_mg.1;
 
         // Set initial PST_EG values
-        let pst_eg = Evaluation::pst_apply(&self, &PST_EG);
+        let pst_eg = Evaluation::pst_apply(self, &PST_EG);
         self.game_state.pst_eg[Sides::WHITE] = pst_eg.0;
         self.game_state.pst_eg[Sides::BLACK] = pst_eg.1;
     }

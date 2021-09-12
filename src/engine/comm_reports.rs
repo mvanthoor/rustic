@@ -139,7 +139,7 @@ impl Engine {
             UciReport::History => self.comm.send(CommControl::PrintHistory),
             UciReport::Eval => {
                 let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
-                let eval = Evaluation::evaluate_position(&mtx_board);
+                let eval = Evaluation::evaluate_position(mtx_board);
                 let p_v = mtx_board.game_state.phase_value;
                 let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
                 self.comm.send(CommControl::InfoString(msg));
