@@ -297,7 +297,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
-    // Clear TT by replacing it with a new one.
+    // Clear TT by replacing entries with empty ones.
     pub fn clear(&mut self) {
         for entry in self.tt.iter_mut() {
             *entry = Entry::new();
