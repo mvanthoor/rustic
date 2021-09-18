@@ -239,8 +239,8 @@ pub struct TT<D> {
     tt: Vec<Entry<D>>,
     megabytes: usize,
     used_buckets: usize,
-    total_buckets: usize,
     total_entries: usize,
+    total_buckets: usize,
 }
 
 // Public functions
@@ -249,14 +249,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // of type D, where D has to implement IHashData, and must be cloneable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
-        let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
+        let (total_entries, total_buckets) = Self::calculate_init_values(megabytes);
 
         Self {
-            tt: vec![Entry::<D>::new(); total_buckets],
+            tt: vec![Entry::<D>::new(); total_entries],
             megabytes,
             used_buckets: 0,
-            total_buckets,
             total_entries,
+            total_buckets,
         }
     }
 
@@ -265,13 +265,13 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+        let (total_entries, total_buckets) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Entry::<D>::new(); total_buckets];
+        self.tt = vec![Entry::<D>::new(); total_entries];
         self.megabytes = megabytes;
         self.used_buckets = 0;
-        self.total_buckets = total_buckets;
         self.total_entries = total_entries;
+        self.total_buckets = total_buckets;
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -309,7 +309,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_buckets as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+            ((self.used_buckets as f64 / self.total_buckets as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -323,7 +323,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // half can be used to calculate a verification.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
         let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
-        let total = self.total_buckets as u64;
+        let total = self.total_entries as u64;
 
         (key % total) as usize
     }
@@ -335,14 +335,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         (zobrist_key & LOW_FOUR_BYTES) as u32
     }
 
-    // This function calculates the values for total_buckets and
-    // total_entries. These depend on the requested TT size.
+    // This function calculates the values for total_entries and
+    // total_buckets. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
         let entry_size = std::mem::size_of::<Bucket<D>>();
         let bucket_size = entry_size * NR_OF_BUCKETS;
-        let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * NR_OF_BUCKETS;
+        let total_entries = MEGABYTE / bucket_size * megabytes;
+        let total_buckets = total_entries * NR_OF_BUCKETS;
 
-        (total_buckets, total_entries)
+        (total_entries, total_buckets)
     }
 }
