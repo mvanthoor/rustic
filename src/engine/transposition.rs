@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
-const ENTRIES_PER_BUCKET: usize = 4;
+const NR_OF_BUCKETS: usize = 4;
 const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;
@@ -188,13 +188,13 @@ impl<D: IHashData> Bucket<D> {
 
 #[derive(Clone)]
 struct Entry<D> {
-    bucket: [Bucket<D>; ENTRIES_PER_BUCKET],
+    bucket: [Bucket<D>; NR_OF_BUCKETS],
 }
 
 impl<D: IHashData + Copy> Entry<D> {
     pub fn new() -> Self {
         Self {
-            bucket: [Bucket::new(); ENTRIES_PER_BUCKET],
+            bucket: [Bucket::new(); NR_OF_BUCKETS],
         }
     }
 
@@ -204,7 +204,7 @@ impl<D: IHashData + Copy> Entry<D> {
         let mut idx_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
-        for entry in 1..ENTRIES_PER_BUCKET {
+        for entry in 1..NR_OF_BUCKETS {
             if self.bucket[entry].data.depth() < data.depth() {
                 idx_lowest_depth = entry
             }
@@ -339,9 +339,9 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // total_entries. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
         let entry_size = std::mem::size_of::<Bucket<D>>();
-        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
+        let bucket_size = entry_size * NR_OF_BUCKETS;
         let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
+        let total_entries = total_buckets * NR_OF_BUCKETS;
 
         (total_buckets, total_entries)
     }
