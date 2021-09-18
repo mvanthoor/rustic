@@ -223,9 +223,9 @@ impl<D: IHashData + Copy> Entry<D> {
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
     pub fn find(&self, verification: u32) -> Option<&D> {
-        for e in self.entry.iter() {
-            if e.verification == verification {
-                return Some(&e.data);
+        for bucket in self.entry.iter() {
+            if bucket.verification == verification {
+                return Some(&bucket.data);
             }
         }
         None
