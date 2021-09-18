@@ -167,15 +167,15 @@ impl SearchData {
     }
 }
 
-/* ===== Entry ======================================================== */
+/* ===== Bucket ======================================================== */
 
 #[derive(Copy, Clone)]
-struct Entry<D> {
+struct Bucket<D> {
     verification: u32,
     data: D,
 }
 
-impl<D: IHashData> Entry<D> {
+impl<D: IHashData> Bucket<D> {
     pub fn new() -> Self {
         Self {
             verification: 0,
@@ -184,17 +184,17 @@ impl<D: IHashData> Entry<D> {
     }
 }
 
-/* ===== Bucket ======================================================= */
+/* ===== Entry ======================================================= */
 
 #[derive(Clone)]
-struct Bucket<D> {
-    bucket: [Entry<D>; ENTRIES_PER_BUCKET],
+struct Entry<D> {
+    bucket: [Bucket<D>; ENTRIES_PER_BUCKET],
 }
 
-impl<D: IHashData + Copy> Bucket<D> {
+impl<D: IHashData + Copy> Entry<D> {
     pub fn new() -> Self {
         Self {
-            bucket: [Entry::new(); ENTRIES_PER_BUCKET],
+            bucket: [Bucket::new(); ENTRIES_PER_BUCKET],
         }
     }
 
@@ -217,7 +217,7 @@ impl<D: IHashData + Copy> Bucket<D> {
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+        self.bucket[idx_lowest_depth] = Bucket { verification, data }
     }
 
     // Find a position in the bucket, where both the stored verification and
@@ -236,7 +236,7 @@ impl<D: IHashData + Copy> Bucket<D> {
 
 // Transposition Table
 pub struct TT<D> {
-    tt: Vec<Bucket<D>>,
+    tt: Vec<Entry<D>>,
     megabytes: usize,
     used_entries: usize,
     total_buckets: usize,
@@ -252,7 +252,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
 
         Self {
-            tt: vec![Bucket::<D>::new(); total_buckets],
+            tt: vec![Entry::<D>::new(); total_buckets],
             megabytes,
             used_entries: 0,
             total_buckets,
@@ -267,7 +267,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     pub fn resize(&mut self, megabytes: usize) {
         let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
+        self.tt = vec![Entry::<D>::new(); total_buckets];
         self.megabytes = megabytes;
         self.used_entries = 0;
         self.total_buckets = total_buckets;
@@ -300,7 +300,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
         for bucket in self.tt.iter_mut() {
-            *bucket = Bucket::new();
+            *bucket = Entry::new();
         }
         self.used_entries = 0;
     }
@@ -338,7 +338,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // This function calculates the values for total_buckets and
     // total_entries. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
-        let entry_size = std::mem::size_of::<Entry<D>>();
+        let entry_size = std::mem::size_of::<Bucket<D>>();
         let bucket_size = entry_size * ENTRIES_PER_BUCKET;
         let total_buckets = MEGABYTE / bucket_size * megabytes;
         let total_entries = total_buckets * ENTRIES_PER_BUCKET;
