@@ -200,7 +200,7 @@ impl<D: IHashData + Copy> Entry<D> {
 
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
+    pub fn store(&mut self, verification: u32, data: D, used_buckets: &mut usize) {
         let mut idx_low = 0;
 
         // Find the index of the entry with the lowest depth.
@@ -213,7 +213,7 @@ impl<D: IHashData + Copy> Entry<D> {
         // If the verification was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
         if self.entry[idx_low].verification == 0 {
-            *used_entries += 1;
+            *used_buckets += 1;
         }
 
         // Store.
@@ -238,7 +238,7 @@ impl<D: IHashData + Copy> Entry<D> {
 pub struct TT<D> {
     tt: Vec<Entry<D>>,
     megabytes: usize,
-    used_entries: usize,
+    used_buckets: usize,
     total_buckets: usize,
     total_entries: usize,
 }
@@ -254,7 +254,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         Self {
             tt: vec![Entry::<D>::new(); total_buckets],
             megabytes,
-            used_entries: 0,
+            used_buckets: 0,
             total_buckets,
             total_entries,
         }
@@ -269,7 +269,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
         self.tt = vec![Entry::<D>::new(); total_buckets];
         self.megabytes = megabytes;
-        self.used_entries = 0;
+        self.used_buckets = 0;
         self.total_buckets = total_buckets;
         self.total_entries = total_entries;
     }
@@ -280,7 +280,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_entries);
+            self.tt[index].store(verification, data, &mut self.used_buckets);
         }
     }
 
@@ -302,14 +302,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         for bucket in self.tt.iter_mut() {
             *bucket = Entry::new();
         }
-        self.used_entries = 0;
+        self.used_buckets = 0;
     }
 
     // Provides TT usage in permille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+            ((self.used_buckets as f64 / self.total_entries as f64) * 1000f64).floor() as u16
         } else {
             0
         }
