@@ -338,9 +338,9 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // This function calculates the values for total_entries and
     // total_buckets. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
-        let entry_size = std::mem::size_of::<Bucket<D>>();
-        let bucket_size = entry_size * NR_OF_BUCKETS;
-        let total_entries = MEGABYTE / bucket_size * megabytes;
+        let bucket_size = std::mem::size_of::<Bucket<D>>();
+        let entry_size = bucket_size * NR_OF_BUCKETS;
+        let total_entries = MEGABYTE / entry_size * megabytes;
         let total_buckets = total_entries * NR_OF_BUCKETS;
 
         (total_entries, total_buckets)
