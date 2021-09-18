@@ -299,8 +299,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        for bucket in self.tt.iter_mut() {
-            *bucket = Entry::new();
+        for entry in self.tt.iter_mut() {
+            *entry = Entry::new();
         }
         self.used_buckets = 0;
     }
@@ -323,9 +323,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // half can be used to calculate a verification.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
         let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
-        let total = self.total_entries as u64;
 
-        (key % total) as usize
+        (key % (self.total_entries as u64)) as usize
     }
 
     // Many positions will end up at the same index, and thus in the same
