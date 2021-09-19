@@ -60,11 +60,7 @@ impl Search {
     // Here we try to come up with some sort of sensible value for "moves
     // to go", if this value is not supplied.
     fn moves_to_go(refs: &SearchRefs) -> usize {
-        // If moves to go was supplied, then use this.
-        if let Some(x) = refs.search_params.game_time.moves_to_go {
-            x
-        } else {
-            GAME_LENGTH
-        }
+        // Default to GAME_LENGTH moves if movestogo was not provided
+        refs.search_params.game_time.moves_to_go.unwrap_or(GAME_LENGTH)
     }
 }
