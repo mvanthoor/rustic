@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
-const ENTRIES_PER_BUCKET: usize = 4;
+const NR_OF_BUCKETS: usize = 4;
 const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;
@@ -167,15 +167,15 @@ impl SearchData {
     }
 }
 
-/* ===== Entry ======================================================== */
+/* ===== Bucket ======================================================== */
 
 #[derive(Copy, Clone)]
-struct Entry<D> {
+struct Bucket<D> {
     verification: u32,
     data: D,
 }
 
-impl<D: IHashData> Entry<D> {
+impl<D: IHashData> Bucket<D> {
     pub fn new() -> Self {
         Self {
             verification: 0,
@@ -184,48 +184,48 @@ impl<D: IHashData> Entry<D> {
     }
 }
 
-/* ===== Bucket ======================================================= */
+/* ===== Entry ======================================================= */
 
 #[derive(Clone)]
-struct Bucket<D> {
-    bucket: [Entry<D>; ENTRIES_PER_BUCKET],
+struct Entry<D> {
+    entry: [Bucket<D>; NR_OF_BUCKETS],
 }
 
-impl<D: IHashData + Copy> Bucket<D> {
+impl<D: IHashData + Copy> Entry<D> {
     pub fn new() -> Self {
         Self {
-            bucket: [Entry::new(); ENTRIES_PER_BUCKET],
+            entry: [Bucket::new(); NR_OF_BUCKETS],
         }
     }
 
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
-        let mut idx_lowest_depth = 0;
+    pub fn store(&mut self, verification: u32, data: D, used_buckets: &mut usize) {
+        let mut idx_low = 0;
 
         // Find the index of the entry with the lowest depth.
-        for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
-                idx_lowest_depth = entry
+        for i in 1..NR_OF_BUCKETS {
+            if self.entry[i].data.depth() < data.depth() {
+                idx_low = i
             }
         }
 
         // If the verification was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
-            *used_entries += 1;
+        if self.entry[idx_low].verification == 0 {
+            *used_buckets += 1;
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+        self.entry[idx_low] = Bucket { verification, data }
     }
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
     pub fn find(&self, verification: u32) -> Option<&D> {
-        for e in self.bucket.iter() {
-            if e.verification == verification {
-                return Some(&e.data);
+        for bucket in self.entry.iter() {
+            if bucket.verification == verification {
+                return Some(&bucket.data);
             }
         }
         None
@@ -236,11 +236,11 @@ impl<D: IHashData + Copy> Bucket<D> {
 
 // Transposition Table
 pub struct TT<D> {
-    tt: Vec<Bucket<D>>,
+    tt: Vec<Entry<D>>,
     megabytes: usize,
-    used_entries: usize,
-    total_buckets: usize,
+    used_buckets: usize,
     total_entries: usize,
+    total_buckets: usize,
 }
 
 // Public functions
@@ -249,14 +249,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // of type D, where D has to implement IHashData, and must be cloneable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
-        let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
+        let (total_entries, total_buckets) = Self::calculate_init_values(megabytes);
 
         Self {
-            tt: vec![Bucket::<D>::new(); total_buckets],
+            tt: vec![Entry::<D>::new(); total_entries],
             megabytes,
-            used_entries: 0,
-            total_buckets,
+            used_buckets: 0,
             total_entries,
+            total_buckets,
         }
     }
 
@@ -265,13 +265,13 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+        let (total_entries, total_buckets) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
+        self.tt = vec![Entry::<D>::new(); total_entries];
         self.megabytes = megabytes;
-        self.used_entries = 0;
-        self.total_buckets = total_buckets;
+        self.used_buckets = 0;
         self.total_entries = total_entries;
+        self.total_buckets = total_buckets;
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -280,7 +280,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         if self.megabytes > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_entries);
+            self.tt[index].store(verification, data, &mut self.used_buckets);
         }
     }
 
@@ -297,19 +297,19 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
-    // Clear TT by replacing it with a new one.
+    // Clear TT by replacing entries with empty ones.
     pub fn clear(&mut self) {
-        for bucket in self.tt.iter_mut() {
-            *bucket = Bucket::new();
+        for entry in self.tt.iter_mut() {
+            *entry = Entry::new();
         }
-        self.used_entries = 0;
+        self.used_buckets = 0;
     }
 
     // Provides TT usage in permille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+            ((self.used_buckets as f64 / self.total_buckets as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -323,9 +323,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // half can be used to calculate a verification.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
         let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
-        let total = self.total_buckets as u64;
 
-        (key % total) as usize
+        (key % (self.total_entries as u64)) as usize
     }
 
     // Many positions will end up at the same index, and thus in the same
@@ -335,14 +334,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         (zobrist_key & LOW_FOUR_BYTES) as u32
     }
 
-    // This function calculates the values for total_buckets and
-    // total_entries. These depend on the requested TT size.
+    // This function calculates the values for total_entries and
+    // total_buckets. These depend on the requested TT size.
     fn calculate_init_values(megabytes: usize) -> (usize, usize) {
-        let entry_size = std::mem::size_of::<Entry<D>>();
-        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
-        let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
+        let bucket_size = std::mem::size_of::<Bucket<D>>();
+        let entry_size = bucket_size * NR_OF_BUCKETS;
+        let total_entries = MEGABYTE / entry_size * megabytes;
+        let total_buckets = total_entries * NR_OF_BUCKETS;
 
-        (total_buckets, total_entries)
+        (total_entries, total_buckets)
     }
 }
