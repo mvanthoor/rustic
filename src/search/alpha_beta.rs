@@ -191,15 +191,16 @@ impl Search {
             refs.board.unmake();
             refs.search_info.ply -= 1;
 
-            // score is better than the best we found so far, so we
-            // save a new best_move that'll go into the hash table.
+            // If we improved our best score, we save it, and the current
+            // move that goes along with it.
             if score > best_score {
                 best_score = score;
                 best_move = current_move.to_short_move();
             }
 
-            // Beta cutoff: this move is so good for our opponent, that we
-            // do not search any further. Insert into TT and return beta.
+            // The current move is a beta cutoff: this move is so good for
+            // our opponent, that we do not search any further. Insert into
+            // TT and return beta.
             if score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
@@ -207,17 +208,16 @@ impl Search {
                         depth,
                         refs.search_info.ply,
                         HashFlag::Beta,
-                        beta,
-                        best_move,
+                        score,
+                        current_move.to_short_move(),
                     ),
                 );
 
-                // If the move is not a capture but still causes a
-                // beta-cutoff, then store it as a killer move and update
-                // the history heuristics.
+                // If the current move (is the same as best_move at this
+                // point) is not a capture but still causes a beta-cutoff,
+                // then store it as a killer move.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
-                    // Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;
@@ -251,15 +251,23 @@ impl Search {
             }
         }
 
-        // We save the best move we found for us; with an ALPHA flag if we
-        // didn't improve alpha, or EXACT if we did raise alpha.
+        // We save the best move and best score we found for us. We save it
+        // with an ALPHA flag if we didn't improve alpha ("all moves are
+        // bad"), or an EXACT flag if we did improve alpha. In that case,
+        // it is a PV-move.
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
+            SearchData::create(
+                depth,
+                refs.search_info.ply,
+                hash_flag,
+                best_score,
+                best_move,
+            ),
         );
 
         // We have traversed the entire move list and found the best
         // possible move/score for us.
-        alpha
+        best_score
     }
 }
