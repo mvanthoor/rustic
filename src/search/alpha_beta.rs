@@ -126,8 +126,8 @@ impl Search {
             Search::send_stats_to_gui(refs);
         }
 
-        // Set the initial best eval_score (to the worst possible value)
-        let mut best_eval_score = -INF;
+        // Set the initial best score (to the worst possible value)
+        let mut best_score = -INF;
 
         // Set the initial TT flag type. Assume we do not beat Alpha.
         let mut hash_flag = HashFlag::Alpha;
@@ -170,22 +170,20 @@ impl Search {
             // We just made a move. We are not yet at one of the leaf
             // nodes, so if the position is not a draw, we must search
             // deeper. Initially, assume the position is a draw.
-            let mut eval_score = DRAW;
+            let mut score = DRAW;
 
             // If it isn't a draw, we must search.
             if !Search::is_draw(refs) {
                 // Try a PVS if applicable.
                 if do_pvs {
-                    eval_score =
-                        -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);
+                    score = -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);
 
                     // Check if we failed the PVS.
-                    if (eval_score > alpha) && (eval_score < beta) {
-                        eval_score =
-                            -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    if (score > alpha) && (score < beta) {
+                        score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
                     }
                 } else {
-                    eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
                 }
             }
 
@@ -193,42 +191,42 @@ impl Search {
             refs.board.unmake();
             refs.search_info.ply -= 1;
 
-            // eval_score is better than the best we found so far, so we
-            // save a new best_move that'll go into the hash table.
-            if eval_score > best_eval_score {
-                best_eval_score = eval_score;
+            // If we improved our best score, we save it, and the current
+            // move that goes along with it.
+            if score > best_score {
+                best_score = score;
                 best_move = current_move.to_short_move();
             }
 
-            // Beta cutoff: this move is so good for our opponent, that we
-            // do not search any further. Insert into TT and return beta.
-            if eval_score >= beta {
+            // The current move is a beta cutoff: this move is so good for
+            // our opponent, that we do not search any further. Insert into
+            // TT and return beta.
+            if score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
                     SearchData::create(
                         depth,
                         refs.search_info.ply,
                         HashFlag::Beta,
-                        beta,
-                        best_move,
+                        score,
+                        current_move.to_short_move(),
                     ),
                 );
 
-                // If the move is not a capture but still causes a
-                // beta-cutoff, then store it as a killer move and update
-                // the history heuristics.
+                // If the current move (is the same as best_move at this
+                // point) is not a capture but still causes a beta-cutoff,
+                // then store it as a killer move.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
-                    // Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;
             }
 
             // We found a better move for us.
-            if eval_score > alpha {
+            if score > alpha {
                 // Save our better evaluation score as alpha.
-                alpha = eval_score;
+                alpha = score;
 
                 // This is an exact move score.
                 hash_flag = HashFlag::Exact;
@@ -253,15 +251,23 @@ impl Search {
             }
         }
 
-        // We save the best move we found for us; with an ALPHA flag if we
-        // didn't improve alpha, or EXACT if we did raise alpha.
+        // We save the best move and best score we found for us. We save it
+        // with an ALPHA flag if we didn't improve alpha ("all moves are
+        // bad"), or an EXACT flag if we did improve alpha. In that case,
+        // it is a PV-move.
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
+            SearchData::create(
+                depth,
+                refs.search_info.ply,
+                hash_flag,
+                best_score,
+                best_move,
+            ),
         );
 
         // We have traversed the entire move list and found the best
-        // possible move/eval_score for us.
-        alpha
+        // possible move/score for us.
+        best_score
     }
 }
