@@ -88,22 +88,22 @@ impl Search {
         let mut tt_move: ShortMove = ShortMove::new(0);
 
         // Probe the TT for information.
-        if refs.tt_enabled {
-            if let Some(data) = refs
-                .tt
-                .lock()
-                .expect(ErrFatal::LOCK)
-                .probe(refs.board.game_state.zobrist_key)
-            {
-                let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
-                tt_value = tt_result.0;
-                tt_move = tt_result.1;
-            }
+        if let Some(data) = refs
+            .tt
+            .lock()
+            .expect(ErrFatal::LOCK)
+            .probe(refs.board.game_state.zobrist_key)
+        {
+            let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
+            tt_value = tt_result.0;
+            tt_move = tt_result.1;
         }
 
-        // If we have a value from the TT, then return immediately.
-        if let Some(v) = tt_value {
-            if !is_root {
+        // If we have a value from the TT then return immediately. Don't do
+        // a hash cut when in the root position, because we may end up
+        // without actually having a move to play.
+        if !is_root {
+            if let Some(v) = tt_value {
                 return v;
             }
         }

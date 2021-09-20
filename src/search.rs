@@ -66,7 +66,6 @@ impl Search {
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
         tt: Arc<Mutex<TT<SearchData>>>,
-        tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
@@ -116,7 +115,6 @@ impl Search {
                         board: &mut board,
                         mg: &arc_mg,
                         tt: &arc_tt,
-                        tt_enabled,
                         search_params: &mut search_params,
                         search_info: &mut search_info,
                         control_rx: &control_rx,
