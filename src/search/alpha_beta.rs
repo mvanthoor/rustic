@@ -132,8 +132,8 @@ impl Search {
         // Set the initial TT flag type. Assume we do not beat Alpha.
         let mut hash_flag = HashFlag::Alpha;
 
-        // Holds the best move in the move loop, for storing into the TT.
-        let mut best_move: ShortMove = ShortMove::new(0);
+        // Holds the best move in the move loop for storing into the TT.
+        let mut best_move = Move::new(0);
 
         // Iterate over the moves.
         for i in 0..move_list.len() {
@@ -145,7 +145,7 @@ impl Search {
             let current_move = move_list.get_move(i);
             let is_legal = refs.board.make(current_move, refs.mg);
 
-            // If not legal, skip the move and the rest of the function.
+            // If not legal, skip the move.
             if !is_legal {
                 continue;
             }
@@ -195,40 +195,34 @@ impl Search {
             // move that goes along with it.
             if score > best_score {
                 best_score = score;
-                best_move = current_move.to_short_move();
+                best_move = current_move;
             }
 
-            // The current move is a beta cutoff: this move is so good for
-            // our opponent, that we do not search any further. Insert into
-            // TT and return beta.
+            // A move that is so strong for our opponent that we want to
+            // avoid it at all cost, is called a beta cutoff. We don't
+            // search along that path and abort ("cut") the search.
             if score >= beta {
-                refs.tt.lock().expect(ErrFatal::LOCK).insert(
-                    refs.board.game_state.zobrist_key,
-                    SearchData::create(
-                        depth,
-                        refs.search_info.ply,
-                        HashFlag::Beta,
-                        score,
-                        current_move.to_short_move(),
-                    ),
-                );
+                // This is a beta cutoff.
+                hash_flag = HashFlag::Beta;
 
-                // If the current move (is the same as best_move at this
-                // point) is not a capture but still causes a beta-cutoff,
-                // then store it as a killer move.
+                // If the current move is not a capture but still causes a
+                // beta-cutoff, then store it as a killer.
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
                 }
 
-                return beta;
+                // Perform the cutoff. Break the mvoe loop.
+                break;
             }
 
-            // We found a better move for us.
+            // We found a better move for us: the score is higher than
+            // Alpha, but NOT equal or higher than beta.
             if score > alpha {
-                // Save our better evaluation score as alpha.
+                // Save our better evaluation score as the new alpha.
                 alpha = score;
 
-                // This is an exact move score.
+                // This is an exact move score. It's a PV move, with a
+                // score between alpha and beta.
                 hash_flag = HashFlag::Exact;
 
                 // Update the Principal Variation.
@@ -251,10 +245,7 @@ impl Search {
             }
         }
 
-        // We save the best move and best score we found for us. We save it
-        // with an ALPHA flag if we didn't improve alpha ("all moves are
-        // bad"), or an EXACT flag if we did improve alpha. In that case,
-        // it is a PV-move.
+        // We save the best score and move (if any) in the TT.
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
             SearchData::create(
@@ -262,7 +253,7 @@ impl Search {
                 refs.search_info.ply,
                 hash_flag,
                 best_score,
-                best_move,
+                best_move.to_short_move(),
             ),
         );
 
