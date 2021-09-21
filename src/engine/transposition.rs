@@ -104,11 +104,10 @@ impl SearchData {
         // This is the value we're going to save into the TT.
         let mut v = value;
 
-        // If we're dealing with checkmate, the value must be adjusted, so
-        // they take the number of plies at which they were found into
-        // account, before storing the value into the TT. These ifs can be
-        // rewritten as a comparative match expression. We don't, because
-        // they're slower. (No inlining by the compiler.)
+        // We must take the number of plies on which a checkmate was found
+        // into account, or the TT information will not be correct. (We can
+        // rewrite these ifs as a comparative match, but testing shows that
+        // this is slower.)
         if v > CHECKMATE_THRESHOLD {
             v += ply as i16;
         }
@@ -136,9 +135,10 @@ impl SearchData {
                     // the value that is in the TT.
                     let mut v = self.value;
 
-                    // Adjust for the number of plies from where this data
-                    // is probed, if we're dealing with checkmate. Same as
-                    // above: no comparative match expression.
+                    // Again, take the number of plies on which the mate
+                    // was found into account before returning the data to
+                    // the search. Obviously this does the opposite of the
+                    // Store function.
                     if v > CHECKMATE_THRESHOLD {
                         v -= ply as i16;
                     }
@@ -205,7 +205,7 @@ impl<D: IHashData + Copy> Entry<D> {
 
         // Find the index of the entry with the lowest depth.
         for i in 1..NR_OF_BUCKETS {
-            if self.entry[i].data.depth() < data.depth() {
+            if self.entry[i].data.depth() < self.entry[idx_low].data.depth() {
                 idx_low = i
             }
         }
@@ -216,7 +216,7 @@ impl<D: IHashData + Copy> Entry<D> {
             *used_buckets += 1;
         }
 
-        // Store.
+        // Store. (Always replace.)
         self.entry[idx_low] = Bucket { verification, data }
     }
 
