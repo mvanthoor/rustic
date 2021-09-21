@@ -211,7 +211,7 @@ impl Search {
                     Search::store_killer_move(current_move, refs);
                 }
 
-                // Perform the cutoff. Break the mvoe loop.
+                // Perform the cutoff. Break the move loop.
                 break;
             }
 

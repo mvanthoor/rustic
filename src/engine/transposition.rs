@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 
 const MEGABYTE: usize = 1024 * 1024;
-const NR_OF_BUCKETS: usize = 4;
+const NR_OF_BUCKETS: usize = 3;
 const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;

@@ -4,7 +4,8 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
-  - [Rustic Alpha 3.0.0 (2021, Unknown)](#rustic-alpha-300-2021-unknown)
+  - [Rustic 4.0.0 (2021, TBA)](#rustic-400-2021-tba)
+  - [Rustic Alpha 3.0.0 (2021, June 18)](#rustic-alpha-300-2021-june-18)
   - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
   - [Rustic Alpha 1.1 (2021, March 15)](#rustic-alpha-11-2021-march-15)
   - [Rustic Alpha 1 (2021, January 24)](#rustic-alpha-1-2021-january-24)
@@ -12,17 +13,30 @@
 <!-- /code_chunk_output -->
 # Changelog
 
-## Rustic 4.0.0 (2021, ?? ??)
+## Rustic 4.0.0 (2021, TBA)
 
 - New features:
-  - Tapered evaluation
+  - Tapered and tuned evaluation.
 - Improvements:
-  - Hash Clear function: properly clear TT, instead of recreating it.
-- Changes
-  - Refactored code in Evaluation. Better privacy and namespacing.
-  - Renamed some variables here and there for consistency.
+  - TT Clear function: properly clear TT, instead of recreating it.
+  - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
+  - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
+  - Simplify time management (+30 Elo in self-play).
+- Misc:
+  - Refactor: Switch alpha/beta from a strange mix of fail-hard and
+    fail-soft to fully fail-soft. No Elo improvement, but the code is
+    cleaner and more readable.
+  - Refactor: Better privacy and namespacing for several modules.
+  - Cleanup: Made "Entry" the TT index, containing "Buckets" instead of
+    the other way around, to be more in line with other engines.
+  - Cleanup: Renamed some variables here and there for consistency.
+  - Update "rand" crate to 0.8.4.
+  - Update "rand_chacha" crate to 0.3.1.
+  - Update "if_chain" crate to 1.0.2.
 
 ## Rustic Alpha 3.0.0 (2021, June 18)
+
+[CCRL Blitz rating: +/- 1867 Elo](https://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Rustic%20Alpha%203.0.0%2064-bit#Rustic_Alpha_3_0_0_64-bit)
 
 - New features:
   - Killer Moves

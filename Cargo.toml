@@ -1,15 +1,15 @@
 [package]
 name = "rustic-alpha"
-version = "3.11.100"
+version = "3.12.100"
 authors = ["Marcel Vanthoor"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = { version = "0.8.3", features = ["small_rng"] }
-rand_chacha = "0.3.0"
-if_chain = "1.0.1"
+rand = { version = "0.8.4", features = ["small_rng"] }
+rand_chacha = "0.3.1"
+if_chain = "1.0.2"
 clap = "2.33.3"
 crossbeam-channel = "0.5.1"
 
