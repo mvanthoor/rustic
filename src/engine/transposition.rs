@@ -140,30 +140,38 @@ impl SearchData {
         let mut value: Option<i16> = None;
 
         if self.depth >= depth {
-            if self.flag == HashFlag::Exact {
-                // Get the value from the data. We don't want to change
-                // the value that is in the TT.
-                let mut v = self.value;
+            match self.flag {
+                HashFlag::Exact => {
+                    // Get the value from the data. We don't want to change
+                    // the value that is in the TT.
+                    let mut v = self.value;
 
-                // Opposite of storing a mate score in the TT...
-                if v > CHECKMATE_THRESHOLD {
-                    v -= ply as i16;
+                    // Opposite of storing a mate score in the TT...
+                    if v > CHECKMATE_THRESHOLD {
+                        v -= ply as i16;
+                    }
+
+                    if v < -CHECKMATE_THRESHOLD {
+                        v += ply as i16;
+                    }
+
+                    // This is the value that will be returned.
+                    value = Some(v);
                 }
 
-                if v < -CHECKMATE_THRESHOLD {
-                    v += ply as i16;
+                HashFlag::Alpha => {
+                    if self.value <= alpha {
+                        value = Some(alpha);
+                    }
                 }
 
-                // This is the value that will be returned.
-                value = Some(v);
-            }
+                HashFlag::Beta => {
+                    if self.value >= beta {
+                        value = Some(beta);
+                    }
+                }
 
-            if self.flag == HashFlag::Alpha && self.value <= alpha {
-                value = Some(alpha);
-            }
-
-            if self.flag == HashFlag::Beta && self.value >= beta {
-                value = Some(beta);
+                HashFlag::Nothing => (),
             }
         }
         (value, self.best_move)
