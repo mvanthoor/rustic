@@ -112,7 +112,7 @@ impl SearchData {
             v += ply as i16;
         }
 
-        if v < CHECKMATE_THRESHOLD {
+        if v < -CHECKMATE_THRESHOLD {
             v -= ply as i16;
         }
 
@@ -143,7 +143,7 @@ impl SearchData {
                         v -= ply as i16;
                     }
 
-                    if v < CHECKMATE_THRESHOLD {
+                    if v < -CHECKMATE_THRESHOLD {
                         v += ply as i16;
                     }
 
