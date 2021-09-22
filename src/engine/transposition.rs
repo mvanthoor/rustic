@@ -68,7 +68,7 @@ impl PerftData {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum HashFlag {
     Nothing,
     Exact,
@@ -104,10 +104,21 @@ impl SearchData {
         // This is the value we're going to save into the TT.
         let mut v = value;
 
-        // We must take the number of plies on which a checkmate was found
-        // into account, or the TT information will not be correct. (We can
-        // rewrite these ifs as a comparative match, but testing shows that
-        // this is slower.)
+        // If the score we are handling is a checkmate score, we need to do
+        // a little extra work. This is because we store checkmates in the
+        // table using their distance from the node they're found in, not
+        // their distance from the root. So if we found a checkmate-in-8 in
+        // a node that was 5 plies from the root, we need to store the
+        // score as a checkmate-in-3. Then, if we read the checkmate-in-3
+        // from the table in a node that's 4 plies from the root, we need
+        // to return the score as checkmate-in-7. (Comment taken from the
+        // engine Blunder, by Christian Dean. It explained this better than
+        // my comment did.)
+
+        // We do not use a match, statement with comparison or guards,
+        // because two if-statements are faster. In the TT, this speed
+        // difference is significant.
+
         if v > CHECKMATE_THRESHOLD {
             v += ply as i16;
         }
@@ -129,39 +140,31 @@ impl SearchData {
         let mut value: Option<i16> = None;
 
         if self.depth >= depth {
-            match self.flag {
-                HashFlag::Exact => {
-                    // Get the value from the data. We don't want to change
-                    // the value that is in the TT.
-                    let mut v = self.value;
+            if self.flag == HashFlag::Exact {
+                // Get the value from the data. We don't want to change
+                // the value that is in the TT.
+                let mut v = self.value;
 
-                    // Again, take the number of plies on which the mate
-                    // was found into account before returning the data to
-                    // the search. Obviously this does the opposite of the
-                    // Store function.
-                    if v > CHECKMATE_THRESHOLD {
-                        v -= ply as i16;
-                    }
+                // Opposite of storing a mate score in the TT...
+                if v > CHECKMATE_THRESHOLD {
+                    v -= ply as i16;
+                }
 
-                    if v < -CHECKMATE_THRESHOLD {
-                        v += ply as i16;
-                    }
+                if v < -CHECKMATE_THRESHOLD {
+                    v += ply as i16;
+                }
 
-                    // This is the value that will be returned.
-                    value = Some(v);
-                }
-                HashFlag::Alpha => {
-                    if self.value <= alpha {
-                        value = Some(alpha);
-                    }
-                }
-                HashFlag::Beta => {
-                    if self.value >= beta {
-                        value = Some(beta);
-                    }
-                }
-                _ => (),
-            };
+                // This is the value that will be returned.
+                value = Some(v);
+            }
+
+            if self.flag == HashFlag::Alpha && self.value <= alpha {
+                value = Some(alpha);
+            }
+
+            if self.flag == HashFlag::Beta && self.value >= beta {
+                value = Some(beta);
+            }
         }
         (value, self.best_move)
     }

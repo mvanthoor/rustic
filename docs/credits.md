@@ -35,20 +35,20 @@ one or more contributions (in no particular order).
   about the Rust programming language, which were very useful in speeding
   up the early versions of the engine.
 - H.G. Müller (author of FairyMax, MicroMax, and others): especially for
-   explaining some improvements with regard to TT usage, and general
-   assistance by patiently answering questions he must have seen countless
-   times over the years.
+  explaining some improvements with regard to TT usage, and general
+  assistance by patiently answering questions he must have seen countless
+  times over the years.
 - Maksim Korzh (author of Wukong and BBC): for writing a great video series
   in the same vein as the one written by Richard Allbert. While the series
   covers known ground, the perspective can be just from a different enough
   angle to make something 'click'.
 - Rasmus Althoff (author of CT800): for assisting in optimizing Rustic's
   position repetition detection, and getting rid of some unneeded stuff in
-   the alpha-beta and QSearch functions (and for providing many tidbits of
-   useful information).
+  the alpha-beta and QSearch functions (and for providing many tidbits of
+  useful information).
 - Martin Sedlák (author of Cheng), and Eric Madsen (MadChess): Thanks for
-   the pointers that put me on the right track to find out why TT Move
-   sorting wasn't performing as expected.
+  the pointers that put me on the right track to find out why TT Move
+  sorting wasn't performing as expected.
 - Ronald de Man (author of the Syzygy tablebases, CFish and RustFish): for
   helping to untangle the mess within my head regarding Principal Variation
   Search.
@@ -60,6 +60,10 @@ one or more contributions (in no particular order).
 - Thomas (Lithander, author of MinimalChess): for the engaging discussions
   regarding (chess) programming, and providing another stable engine with
   compiles especially for me to test against.
+- Christian Dean (author of Blunder): I nicked some comments in the TT from
+  his engine as their explanation was better than mine. While comparing
+  code and comments, I also discovered an inaccuracy in my TT. Fixing this
+  gained 15-20 Elo.
 - Ed Schröder (author of Rebel and Gideon) and Robert Hyatt (author of Cray
   Blitz and Crafty): for still hanging around chess forums, answering
   questions, even after writing chess engines for 40 or 50 years.

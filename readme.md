@@ -179,9 +179,9 @@ Rustic. They are listed below, in no particular order.
 > My girlfriend (for providing lots of support in more ways than she'd ever
 > be able to realize), Richard Allbert, Terje Kirstihagen, Fabian von der
 > Warth, H.G. Müller, Maksim Korzh, Rasmus Althoff, Martin Sedlák, Ronald
-> de Man, Taimo, Sven Schüle, Thomas Jahn, Ed Schröder and Robert
-> Hyatt (for still hanging around the chess programming community after 40
-> or 50 years).
+> de Man, Taimo, Sven Schüle, Thomas Jahn, Christian Dean, and last but not
+> least, Ed Schröder and Robert Hyatt (for still hanging around the chess
+> programming community after 40 or 50 years).
 
 All of these people (except my girlfiriend) can be found on the
 [Talkchess.com](http://talkchess.com/forum3/index.php) forum.
