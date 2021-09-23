@@ -80,7 +80,7 @@ impl Search {
         let mut best_index = start_index;
 
         for i in (start_index + 1)..ml.len() {
-            if ml.get_move(i).get_sort_score() > ml.get_move(start_index).get_sort_score() {
+            if ml.get_move(i).get_sort_score() > ml.get_move(best_index).get_sort_score() {
                 best_index = i;
             }
         }
