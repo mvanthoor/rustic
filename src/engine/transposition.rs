@@ -35,6 +35,7 @@ pub trait IHashData {
     fn new() -> Self;
     fn depth(&self) -> i8;
 }
+
 #[derive(Copy, Clone)]
 pub struct PerftData {
     depth: i8,
@@ -101,7 +102,7 @@ impl IHashData for SearchData {
 
 impl SearchData {
     pub fn create(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: ShortMove) -> Self {
-        // This is the value we're going to save into the TT.
+        // "v" is the value we're going to save into the TT.
         let mut v = value;
 
         // If the score we are handling is a checkmate score, we need to do
@@ -136,44 +137,31 @@ impl SearchData {
     }
 
     pub fn get(&self, depth: i8, ply: i8, alpha: i16, beta: i16) -> (Option<i16>, ShortMove) {
-        // We either do, or don't have a value to return from the TT.
+        // We either do, or don't have a score to return from the TT.
         let mut value: Option<i16> = None;
 
         if self.depth >= depth {
-            match self.flag {
-                HashFlag::Exact => {
-                    // Get the value from the data. We don't want to change
-                    // the value that is in the TT.
-                    let mut v = self.value;
+            // Get the original value from the TT entry.
+            let mut v = self.value;
 
-                    // Opposite of storing a mate score in the TT...
-                    if v > CHECKMATE_THRESHOLD {
-                        v -= ply as i16;
-                    }
+            // Ajustment if retrieveing a mate score...
+            if v > CHECKMATE_THRESHOLD {
+                v -= ply as i16;
+            }
 
-                    if v < -CHECKMATE_THRESHOLD {
-                        v += ply as i16;
-                    }
+            if v < -CHECKMATE_THRESHOLD {
+                v += ply as i16;
+            }
 
-                    // This is the value that will be returned.
-                    value = Some(v);
-                }
-
-                HashFlag::Alpha => {
-                    if self.value <= alpha {
-                        value = Some(alpha);
-                    }
-                }
-
-                HashFlag::Beta => {
-                    if self.value >= beta {
-                        value = Some(beta);
-                    }
-                }
-
-                HashFlag::Nothing => (),
+            // Now we determine what value to return.
+            value = match self.flag {
+                HashFlag::Exact => Some(v),
+                HashFlag::Alpha if (v <= alpha) => Some(alpha),
+                HashFlag::Beta if (v >= beta) => Some(beta),
+                _ => None,
             }
         }
+
         (value, self.best_move)
     }
 }
