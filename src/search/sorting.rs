@@ -70,15 +70,6 @@ impl Search {
                 }
             }
 
-            /*
-                // If still not sorted, try to sort by history heuristic.
-                if value == 0 {
-                    let piece = m.piece();
-                    let to = m.to();
-                    value = refs.search_info.history_heuristic[refs.board.us()][piece][to];
-                }
-            */
-
             m.set_sort_score(value);
         }
     }
@@ -86,10 +77,14 @@ impl Search {
     // This function puts the move with the highest sort score at the
     // "start_index" position, where alpha-beta will pick the next move.
     pub fn pick_move(ml: &mut MoveList, start_index: u8) {
+        let mut best_index = start_index;
+
         for i in (start_index + 1)..ml.len() {
-            if ml.get_move(i).get_sort_score() > ml.get_move(start_index).get_sort_score() {
-                ml.swap(start_index as usize, i as usize);
+            if ml.get_move(i).get_sort_score() > ml.get_move(best_index).get_sort_score() {
+                best_index = i;
             }
         }
+
+        ml.swap(start_index as usize, best_index as usize);
     }
 }

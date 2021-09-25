@@ -48,7 +48,7 @@ impl MoveList {
     pub fn new() -> Self {
         Self {
             list: unsafe {
-                // FIXME: Look inut MaybeUnit changes for Rustic 4.
+                // FIXME: Look into MaybeUnit changes.
                 #[allow(clippy::uninit_assumed_init)]
                 mem::MaybeUninit::uninit().assume_init()
             },

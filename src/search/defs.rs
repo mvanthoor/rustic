@@ -29,7 +29,6 @@ pub const MAX_KILLER_MOVES: usize = 2;
 
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
-// type HistoryHeuristic = [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH];
 
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
