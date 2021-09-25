@@ -20,8 +20,10 @@
 - Improvements:
   - TT Clear function: properly clear TT, instead of recreating it.
   - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
+  - Fix inaccuracy in TT mate handling (+20 Elo).
   - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
-  - Simplify time management (+30 Elo in self-play).
+  - Simplify time management (+30 Elo).
+  - pick_move() speed improvement (+3 Elo).
 - Misc:
   - Refactor: Switch alpha/beta from a strange mix of fail-hard and
     fail-soft to fully fail-soft. No Elo improvement, but the code is
