@@ -45,7 +45,6 @@ use std::{
 // main engine thread will react accordingly.
 #[derive(PartialEq, Clone)]
 pub enum UciReport {
-    // Uci commands
     Uci,
     UciNewGame,
     IsReady,
@@ -59,7 +58,7 @@ pub enum UciReport {
     Stop,
     Quit,
 
-    // Custom commands
+    // Custom
     Board,
     History,
     Eval,
@@ -235,10 +234,12 @@ impl Uci {
             cmd if cmd == "ucinewgame" => CommReport::Uci(UciReport::UciNewGame),
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
-            cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
+            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => {
+                CommReport::Uci(UciReport::Quit)
+            }
 
             // Custom commands
             cmd if cmd == "board" => CommReport::Uci(UciReport::Board),

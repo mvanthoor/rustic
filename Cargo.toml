@@ -1,6 +1,6 @@
 [package]
 name = "rustic-alpha"
-version = "3.15.100"
+version = "3.16.100"
 authors = ["Marcel Vanthoor"]
 edition = "2018"
 
