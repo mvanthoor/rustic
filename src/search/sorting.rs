@@ -47,7 +47,7 @@ pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 impl Search {
     pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove, refs: &SearchRefs) {
         for i in 0..ml.len() {
-            let m = ml.get_mut_move(i);
+            let m = ml.get_mut_ref_move(i);
             let mut value: u32 = 0;
 
             // Sort order priority is: TT Move first, then captures, then
@@ -76,15 +76,15 @@ impl Search {
 
     // This function puts the move with the highest sort score at the
     // "start_index" position, where alpha-beta will pick the next move.
-    pub fn pick_move(ml: &mut MoveList, start_index: u8) {
-        let mut best_index = start_index;
+    pub fn pick_move(ml: &mut MoveList, current_index: u8) {
+        let mut best_index = current_index;
 
-        for i in (start_index + 1)..ml.len() {
+        for i in (current_index + 1)..ml.len() {
             if ml.get_move(i).get_sort_score() > ml.get_move(best_index).get_sort_score() {
                 best_index = i;
             }
         }
 
-        ml.swap(start_index as usize, best_index as usize);
+        ml.swap(current_index as usize, best_index as usize);
     }
 }
