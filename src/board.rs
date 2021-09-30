@@ -38,7 +38,7 @@ use self::{
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
     evaluation::{
-        defs::{FLIP, PHASE_VALUES, PST_EG, PST_MG},
+        defs::{PHASE_VALUES, PST_EG, PST_MG},
         Evaluation,
     },
     misc::bits,
@@ -107,8 +107,7 @@ impl Board {
         // =============================================================
         self.game_state.phase_value -= PHASE_VALUES[piece];
 
-        let flip = side == Sides::WHITE;
-        let s = if flip { FLIP[square] } else { square };
+        let s = Board::flip(side, square);
         self.game_state.pst_mg[side] -= PST_MG[piece][s];
         self.game_state.pst_eg[side] -= PST_EG[piece][s];
     }
@@ -124,8 +123,7 @@ impl Board {
         // =============================================================
         self.game_state.phase_value += PHASE_VALUES[piece];
 
-        let flip = side == Sides::WHITE;
-        let s = if flip { FLIP[square] } else { square };
+        let s = Board::flip(side, square);
         self.game_state.pst_mg[side] += PST_MG[piece][s];
         self.game_state.pst_eg[side] += PST_EG[piece][s];
     }

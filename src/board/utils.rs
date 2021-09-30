@@ -25,6 +25,7 @@ use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
+    evaluation::defs::FLIP,
 };
 
 impl Board {
@@ -42,7 +43,7 @@ impl Board {
         (start..=end).contains(&square)
     }
 
-    pub fn fourth_rank(side: Side) -> usize {
+    pub const fn fourth_rank(side: Side) -> usize {
         if side == Sides::WHITE {
             Ranks::R4
         } else {
@@ -50,11 +51,30 @@ impl Board {
         }
     }
 
-    pub fn promotion_rank(side: Side) -> usize {
+    pub const fn promotion_rank(side: Side) -> usize {
         if side == Sides::WHITE {
             Ranks::R8
         } else {
             Ranks::R1
+        }
+    }
+
+    pub const fn pawn_direction(side: Side) -> i8 {
+        const UP: i8 = 8;
+        const DOWN: i8 = -8;
+
+        if side == Sides::WHITE {
+            UP
+        } else {
+            DOWN
+        }
+    }
+
+    pub const fn flip(side: Side, square: Square) -> usize {
+        if side == Sides::WHITE {
+            FLIP[square]
+        } else {
+            square
         }
     }
 }

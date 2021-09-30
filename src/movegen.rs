@@ -174,15 +174,12 @@ impl MoveGenerator {
     }
 
     pub fn pawns(&self, board: &Board, list: &mut MoveList, mt: MoveType) {
-        const UP: i8 = 8;
-        const DOWN: i8 = -8;
-
         // Create shorthand variables.
         let us = board.us();
         let bb_opponent_pieces = board.bb_side[board.opponent()];
         let bb_empty = !board.occupancy();
         let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
-        let direction = if us == Sides::WHITE { UP } else { DOWN };
+        let direction = Board::pawn_direction(us);
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
 
