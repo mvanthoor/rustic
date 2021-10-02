@@ -36,12 +36,7 @@ use crate::{
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_reports(&mut self, comm_report: &CommReceived) {
-        self.comm_reports_uci(comm_report);
-    }
-
-    // Handles "Uci" Comm reports sent by the UCI-module.
-    fn comm_reports_uci(&mut self, u: &CommReceived) {
+    pub fn comm_reports(&mut self, u: &CommReceived) {
         // Setup default variables.
         let mut sp = SearchParams::new();
         sp.quiet = self.settings.quiet;
