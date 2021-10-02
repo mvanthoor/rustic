@@ -54,8 +54,10 @@ pub trait IComm {
 }
 
 #[derive(PartialEq)]
+// This is a list of outputs the engine can generate, often in reaction to
+// one of the CommReceived inputs. (An exception is "Quit": this doesn't
+// generate an output. It terminates the comm module.)
 pub enum CommOutput {
-    Quit,                              // Quit the Comm module.
     Identify,                          // Transmit identification of the engine.
     Ready,                             // Transmit that the engine is ready.
     SearchSummary(SearchSummary),      // Transmit search information.
@@ -68,6 +70,9 @@ pub enum CommOutput {
     PrintBoard,
     PrintHistory,
     PrintHelp,
+
+    // Exception: does not generate any output.
+    Quit, // Quit the Comm module.
 }
 
 // This is the list of commands the engine understands. Information coming
