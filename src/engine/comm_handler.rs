@@ -28,7 +28,7 @@ use super::{
 use crate::{
     comm::{CommOutput, CommReceived},
     defs::FEN_START_POSITION,
-    engine::defs::EngineOptionName,
+    engine::defs::EngineSetOption,
     evaluation::Evaluation,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
@@ -36,12 +36,12 @@ use crate::{
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_reports(&mut self, u: &CommReceived) {
+    pub fn comm_handler(&mut self, received: &CommReceived) {
         // Setup default variables.
         let mut sp = SearchParams::new();
         sp.quiet = self.settings.quiet;
 
-        match u {
+        match received {
             CommReceived::Identification => self.comm.send(CommOutput::Identify),
 
             CommReceived::NewGame => {
@@ -57,7 +57,7 @@ impl Engine {
 
             CommReceived::SetOption(option) => {
                 match option {
-                    EngineOptionName::Hash(value) => {
+                    EngineSetOption::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
@@ -66,11 +66,11 @@ impl Engine {
                         }
                     }
 
-                    EngineOptionName::ClearHash => {
+                    EngineSetOption::ClearHash => {
                         self.tt_search.lock().expect(ErrFatal::LOCK).clear()
                     }
 
-                    EngineOptionName::Nothing => (),
+                    EngineSetOption::Nothing => (),
                 };
             }
 

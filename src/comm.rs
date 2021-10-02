@@ -26,7 +26,7 @@ pub mod uci;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineOptionName, Information},
+    engine::defs::{EngineOption, EngineSetOption, Information},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -83,7 +83,7 @@ pub enum CommReceived {
     Identification,
     NewGame,
     IsReady,
-    SetOption(EngineOptionName),
+    SetOption(EngineSetOption),
     Position(String, Vec<String>),
     GoInfinite,
     GoDepth(i8),

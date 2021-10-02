@@ -53,8 +53,8 @@ impl Engine {
             let information = &self.info_rx();
 
             match information {
-                Information::Comm(cr) => self.comm_reports(cr),
-                Information::Search(sr) => self.search_reports(sr),
+                Information::Comm(received) => self.comm_handler(received),
+                Information::Search(report) => self.search_reports(report),
             }
         }
 

@@ -93,12 +93,12 @@ impl EngineOption {
 }
 
 #[derive(PartialEq, Clone)]
-pub enum EngineOptionName {
+pub enum EngineSetOption {
     Hash(String),
     ClearHash,
     Nothing,
 }
-impl EngineOptionName {
+impl EngineSetOption {
     pub const HASH: &'static str = "Hash";
     pub const CLEAR_HASH: &'static str = "Clear Hash";
 }

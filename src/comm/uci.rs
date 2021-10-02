@@ -27,7 +27,7 @@ use super::{CommOutput, CommReceived, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, EngineOptionName, ErrFatal, Information, UiElement},
+    engine::defs::{EngineOption, EngineSetOption, ErrFatal, Information, UiElement},
     misc::print,
     movegen::defs::Move,
     search::defs::{
@@ -43,9 +43,9 @@ use std::{
 
 // This struct is used to instantiate the Comm Console module.
 pub struct Uci {
-    control_handle: Option<JoinHandle<()>>,
-    report_handle: Option<JoinHandle<()>>,
-    control_tx: Option<Sender<CommOutput>>,
+    receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
+    output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
+    output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
 }
 
 // Public functions
@@ -53,9 +53,9 @@ impl Uci {
     // Create a new console.
     pub fn new() -> Self {
         Self {
-            control_handle: None,
-            report_handle: None,
-            control_tx: None,
+            receiving_handle: None,
+            output_handle: None,
+            output_tx: None,
         }
     }
 }
@@ -64,19 +64,20 @@ impl Uci {
 impl IComm for Uci {
     fn init(
         &mut self,
-        report_tx: Sender<Information>,
+        receiving_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<EngineOption>>,
     ) {
         // Start threads
-        self.report_thread(report_tx);
-        self.control_thread(board, options);
+        self.receiving_thread(receiving_tx);
+        self.output_thread(board, options);
     }
 
-    // The creator of the Comm module can use this function to send
-    // messages or commands into the Control thread.
+    // The engine thread (which is the creator of the Comm module) can use
+    // this function to send out of the engine onto the console, or towards
+    // a user interface.
     fn send(&self, msg: CommOutput) {
-        if let Some(tx) = &self.control_tx {
+        if let Some(tx) = &self.output_tx {
             tx.send(msg).expect(ErrFatal::CHANNEL);
         }
     }
@@ -84,11 +85,11 @@ impl IComm for Uci {
     // After the engine sends 'quit' to the control thread, it will call
     // wait_for_shutdown() and then wait here until shutdown is completed.
     fn wait_for_shutdown(&mut self) {
-        if let Some(h) = self.report_handle.take() {
+        if let Some(h) = self.receiving_handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
 
-        if let Some(h) = self.control_handle.take() {
+        if let Some(h) = self.output_handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
     }
@@ -99,16 +100,18 @@ impl IComm for Uci {
     }
 }
 
-// Implement the report thr
+// Implement the receiving thread
 impl Uci {
-    // The Report thread sends incoming data to the engine thread.
-    fn report_thread(&mut self, report_tx: Sender<Information>) {
+    // The receiving thread receives incoming commands from the console or
+    // GUI, which is turns into a "CommReceived" object. It sends this
+    // object to the engine thread so the engine can decide what to do.
+    fn receiving_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
-        let mut t_incoming_data = String::from("");
-        let t_report_tx = report_tx; // Report sender
+        let mut t_incoming_data = String::from(""); // Buffer for incoming data.
+        let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
 
         // Actual thread creation.
-        let report_handle = thread::spawn(move || {
+        let receiving_handle = thread::spawn(move || {
             let mut quit = false;
 
             // Keep running as long as 'quit' is not detected.
@@ -118,16 +121,16 @@ impl Uci {
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
-                // Create a report from the incoming data.
-                let new_report = Uci::create_report(&t_incoming_data);
+                // Create the CommReceived object.
+                let comm_received = Uci::create_comm_received(&t_incoming_data);
 
                 // Send it to the engine thread.
-                t_report_tx
-                    .send(Information::Comm(new_report.clone()))
+                t_receiving_tx
+                    .send(Information::Comm(comm_received.clone()))
                     .expect(ErrFatal::HANDLE);
 
-                // Terminate the reporting thread if "Quit" was detected.
-                quit = new_report == CommReceived::Quit;
+                // Terminate the receiving thread if "Quit" was detected.
+                quit = comm_received == CommReceived::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -135,36 +138,36 @@ impl Uci {
         });
 
         // Store the handle.
-        self.report_handle = Some(report_handle);
+        self.receiving_handle = Some(receiving_handle);
     }
 }
 
-// Implement the control thread
+// Implement the output thread
 impl Uci {
     // The control thread receives commands from the engine thread.
-    fn control_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
+    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
-        let (control_tx, control_rx) = crossbeam_channel::unbounded::<CommOutput>();
+        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
 
-        // Create the control thread.
-        let control_handle = thread::spawn(move || {
+        // Create the output thread.
+        let output_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
             let t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
-                let control = control_rx.recv().expect(ErrFatal::CHANNEL);
+                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
 
                 // Perform command as sent by the engine thread.
-                match control {
+                match output {
                     CommOutput::Identify => {
                         Uci::id();
                         Uci::options(&t_options);
                         Uci::uciok();
                     }
                     CommOutput::Ready => Uci::readyok(),
-                    CommOutput::Quit => quit = true,
+                    CommOutput::Quit => quit = true, // terminates the output thread.
                     CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
@@ -180,8 +183,8 @@ impl Uci {
         });
 
         // Store handle and control sender.
-        self.control_handle = Some(control_handle);
-        self.control_tx = Some(control_tx);
+        self.output_handle = Some(output_handle);
+        self.output_tx = Some(output_tx);
     }
 }
 
@@ -189,7 +192,7 @@ impl Uci {
 impl Uci {
     // This function turns the incoming data into CommReceiveds which the
     // engine is able to understand and react to.
-    fn create_report(input: &str) -> CommReceived {
+    fn create_comm_received(input: &str) -> CommReceived {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
@@ -266,13 +269,13 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut report = CommReceived::Unknown;
+        let mut comm_received = CommReceived::Unknown;
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
         for p in parts {
             match p {
-                t if t == "go" => report = CommReceived::GoInfinite,
+                t if t == "go" => comm_received = CommReceived::GoInfinite,
                 t if t == "infinite" => break, // Already Infinite; nothing more to do.
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
@@ -286,17 +289,17 @@ impl Uci {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
                         let depth = p.parse::<i8>().unwrap_or(1);
-                        report = CommReceived::GoDepth(depth);
+                        comm_received = CommReceived::GoDepth(depth);
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::MoveTime => {
                         let milliseconds = p.parse::<u128>().unwrap_or(1000);
-                        report = CommReceived::GoMoveTime(milliseconds);
+                        comm_received = CommReceived::GoMoveTime(milliseconds);
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::Nodes => {
                         let nodes = p.parse::<usize>().unwrap_or(1);
-                        report = CommReceived::GoNodes(nodes);
+                        comm_received = CommReceived::GoNodes(nodes);
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
@@ -317,15 +320,15 @@ impl Uci {
         // If we are still in the default "go infinite" mode, we must
         // switch to GameTime mode if at least one parameter of "go wtime
         // btime winc binc" was set to something else but 0.
-        let is_default_mode = report == CommReceived::GoInfinite;
+        let is_default_mode = comm_received == CommReceived::GoInfinite;
         let has_time = game_time.wtime > 0 || game_time.btime > 0;
         let has_inc = game_time.winc > 0 || game_time.binc > 0;
         let is_game_time = has_time || has_inc;
         if is_default_mode && is_game_time {
-            report = CommReceived::GoGameTime(game_time);
+            comm_received = CommReceived::GoGameTime(game_time);
         }
 
-        report
+        comm_received
     } // end parse_go()
 
     fn parse_setoption(cmd: &str) -> CommReceived {
@@ -339,7 +342,7 @@ impl Uci {
         let mut token = Tokens::Nothing;
         let mut name = String::from(""); // Option name provided by the UCI command.
         let mut value = String::from(""); // Option value provided by the UCI command.
-        let mut eon = EngineOptionName::Nothing; // Engine Option Name to send to the engine.
+        let mut eon = EngineSetOption::Nothing; // Engine Option Name to send to the engine.
 
         for p in parts {
             match p {
@@ -358,8 +361,8 @@ impl Uci {
         if !name.is_empty() {
             name = name.to_lowercase().trim().to_string();
             match &name[..] {
-                "hash" => eon = EngineOptionName::Hash(value),
-                "clear hash" => eon = EngineOptionName::ClearHash,
+                "hash" => eon = EngineSetOption::Hash(value),
+                "clear hash" => eon = EngineSetOption::ClearHash,
                 _ => (),
             }
         }
@@ -377,40 +380,40 @@ impl Uci {
     }
 
     fn options(options: &Arc<Vec<EngineOption>>) {
-        for o in options.iter() {
-            let name = format!("option name {}", o.name);
+        for option in options.iter() {
+            let name = format!("option name {}", option.name);
 
-            let ui_element = match o.ui_element {
+            let ui_element = match option.ui_element {
                 UiElement::Spin => String::from("type spin"),
                 UiElement::Button => String::from("type button"),
             };
 
-            let value_default = if let Some(v) = &o.default {
+            let value_default = if let Some(v) = &option.default {
                 format!("default {}", (*v).clone())
             } else {
                 String::from("")
             };
 
-            let value_min = if let Some(v) = &o.min {
+            let value_min = if let Some(v) = &option.min {
                 format!("min {}", (*v).clone())
             } else {
                 String::from("")
             };
 
-            let value_max = if let Some(v) = &o.max {
+            let value_max = if let Some(v) = &option.max {
                 format!("max {}", (*v).clone())
             } else {
                 String::from("")
             };
 
-            let option = format!(
+            let uci_option = format!(
                 "{} {} {} {} {}",
                 name, ui_element, value_default, value_min, value_max
             )
             .trim()
             .to_string();
 
-            println!("{}", option);
+            println!("{}", uci_option);
         }
     }
 
