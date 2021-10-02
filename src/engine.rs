@@ -31,7 +31,7 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{uci::Uci, CommControl, CommType, IComm},
+    comm::{uci::Uci, CommOutput, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{
         EngineOption, EngineOptionDefaults, EngineOptionName, ErrFatal, Information, Settings,
@@ -221,7 +221,7 @@ impl Engine {
     // This function quits Commm, Search, and then the engine thread itself.
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
-        self.comm.send(CommControl::Quit);
+        self.comm.send(CommOutput::Quit);
         self.quit = true;
     }
 }
