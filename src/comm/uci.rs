@@ -121,17 +121,13 @@ impl Uci {
                 // Create a report from the incoming data.
                 let new_report = Uci::create_report(&t_incoming_data);
 
-                // Check if the created report is valid, so it is something
-                // the engine will understand.
-                if new_report.is_valid() {
-                    // Send it to the engine thread.
-                    t_report_tx
-                        .send(Information::Comm(new_report.clone()))
-                        .expect(ErrFatal::HANDLE);
+                // Send it to the engine thread.
+                t_report_tx
+                    .send(Information::Comm(new_report.clone()))
+                    .expect(ErrFatal::HANDLE);
 
-                    // Terminate the reporting thread if "Quit" was detected.
-                    quit = new_report == CommReceived::Quit;
-                }
+                // Terminate the reporting thread if "Quit" was detected.
+                quit = new_report == CommReceived::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");

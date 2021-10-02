@@ -97,9 +97,3 @@ pub enum CommReceived {
     // Empty or unknown command.
     Unknown,
 }
-
-impl CommReceived {
-    pub fn is_valid(&self) -> bool {
-        true
-    }
-}
