@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 mod about;
-mod comm_reports;
+mod comm_handler;
 pub mod defs;
 mod main_loop;
 mod search_reports;
@@ -31,10 +31,10 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{uci::Uci, CommControl, CommType, IComm},
+    comm::{uci::Uci, CommOutput, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{
-        EngineOption, EngineOptionDefaults, EngineOptionName, ErrFatal, Information, Settings,
+        EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,
         UiElement,
     },
     misc::{cmdline::CmdLine, perft},
@@ -101,14 +101,14 @@ impl Engine {
         // List of options that should be announced to the GUI.
         let options = vec![
             EngineOption::new(
-                EngineOptionName::HASH,
+                EngineSetOption::HASH,
                 UiElement::Spin,
                 Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
                 Some(EngineOptionDefaults::HASH_MIN.to_string()),
                 Some(tt_max.to_string()),
             ),
             EngineOption::new(
-                EngineOptionName::CLEAR_HASH,
+                EngineSetOption::CLEAR_HASH,
                 UiElement::Button,
                 None,
                 None,
@@ -221,7 +221,7 @@ impl Engine {
     // This function quits Commm, Search, and then the engine thread itself.
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
-        self.comm.send(CommControl::Quit);
+        self.comm.send(CommOutput::Quit);
         self.quit = true;
     }
 }

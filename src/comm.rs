@@ -26,13 +26,12 @@ pub mod uci;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, Information},
+    engine::defs::{EngineOption, EngineSetOption, Information},
     movegen::defs::Move,
-    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
-use uci::UciReport;
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;
@@ -49,16 +48,16 @@ pub trait IComm {
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<EngineOption>>,
     );
-    fn send(&self, msg: CommControl);
+    fn send(&self, msg: CommOutput);
     fn wait_for_shutdown(&mut self);
     fn get_protocol_name(&self) -> &'static str;
 }
 
 #[derive(PartialEq)]
-pub enum CommControl {
-    // Reactions of engine to incoming commands.
-    Update,                            // Request Comm module to update its state.
-    Quit,                              // Quit the Comm module.
+// This is a list of outputs the engine can generate, often in reaction to
+// one of the CommReceived inputs. (An exception is "Quit": this doesn't
+// generate an output. It terminates the comm module.)
+pub enum CommOutput {
     Identify,                          // Transmit identification of the engine.
     Ready,                             // Transmit that the engine is ready.
     SearchSummary(SearchSummary),      // Transmit search information.
@@ -71,17 +70,35 @@ pub enum CommControl {
     PrintBoard,
     PrintHistory,
     PrintHelp,
+
+    // Exception: does not generate any output.
+    Quit, // Quit the Comm module.
 }
 
-// These are the commands a Comm module can create and send back to the
-// engine in the main thread.
+// This is the list of commands the engine understands. Information coming
+// in through the Comm module is turned into one of these commands which
+// will then be sent to the engine thread.
 #[derive(PartialEq, Clone)]
-pub enum CommReport {
-    Uci(UciReport),
-}
+pub enum CommReceived {
+    Identification,
+    NewGame,
+    IsReady,
+    SetOption(EngineSetOption),
+    Position(String, Vec<String>),
+    GoInfinite,
+    GoDepth(i8),
+    GoMoveTime(u128),
+    GoNodes(usize),
+    GoGameTime(GameTime),
+    Stop,
+    Quit,
 
-impl CommReport {
-    pub fn is_valid(&self) -> bool {
-        true
-    }
+    // Custom
+    Board,
+    History,
+    Eval,
+    Help,
+
+    // Empty or unknown command.
+    Unknown,
 }
