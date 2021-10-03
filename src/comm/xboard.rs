@@ -26,6 +26,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{CommInput, CommOutput, CommType, IComm, XBoardInput};
 use crate::{
     board::Board,
+    comm::XBoardOutput,
     engine::defs::{EngineOption, ErrFatal, Information},
     misc::print,
 };
@@ -156,7 +157,7 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Pong(v) => println!("pong {}", v),
+                    CommOutput::XBoard(XBoardOutput::Pong(v)) => println!("pong {}", v),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.

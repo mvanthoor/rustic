@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{CommInput, CommOutput, CommType, IComm, UciInput};
+use super::{CommInput, CommOutput, CommType, IComm, UciInput, UciOutput};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
@@ -161,12 +161,12 @@ impl Uci {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Identify => {
+                    CommOutput::Uci(UciOutput::Identify) => {
                         Uci::id();
                         Uci::options(&t_options);
                         Uci::uciok();
                     }
-                    CommOutput::Ready => Uci::readyok(),
+                    CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
                     CommOutput::Quit => quit = true, // terminates the output thread.
                     CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
@@ -174,12 +174,13 @@ impl Uci {
                     CommOutput::InfoString(msg) => Uci::info_string(&msg),
                     CommOutput::BestMove(bm) => Uci::best_move(&bm),
 
-                    CommOutput::Pong(_value) => (),
-
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Uci::print_board(&t_board),
                     CommOutput::PrintHistory => Uci::print_history(&t_board),
                     CommOutput::PrintHelp => Uci::print_help(),
+
+                    // Ignore everything else
+                    _ => (),
                 }
             }
         });

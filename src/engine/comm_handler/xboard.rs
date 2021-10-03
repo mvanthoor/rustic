@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOutput, XBoardInput},
+    comm::{CommOutput, XBoardInput, XBoardOutput},
     engine::{defs::ErrFatal, Engine},
     evaluation::Evaluation,
 };
@@ -31,7 +31,9 @@ impl Engine {
     pub fn xboard_handler(&mut self, command: &XBoardInput) {
         match command {
             XBoardInput::Quit => self.quit(),
-            XBoardInput::Ping(value) => self.comm.send(CommOutput::Pong(*value)),
+            XBoardInput::Ping(value) => self
+                .comm
+                .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
 
             // Custom commands
             XBoardInput::Board => self.comm.send(CommOutput::PrintBoard),

@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOutput, UciInput},
+    comm::{CommOutput, UciInput, UciOutput},
     defs::FEN_START_POSITION,
     engine::{
         defs::{EngineSetOption, ErrFatal, ErrNormal},
@@ -39,7 +39,7 @@ impl Engine {
         sp.quiet = self.settings.quiet;
 
         match command {
-            UciInput::Identification => self.comm.send(CommOutput::Identify),
+            UciInput::Identification => self.comm.send(CommOutput::Uci(UciOutput::Identify)),
 
             UciInput::NewGame => {
                 self.board
@@ -50,7 +50,7 @@ impl Engine {
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
-            UciInput::IsReady => self.comm.send(CommOutput::Ready),
+            UciInput::IsReady => self.comm.send(CommOutput::Uci(UciOutput::Ready)),
 
             UciInput::SetOption(option) => {
                 match option {
