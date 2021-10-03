@@ -156,7 +156,8 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Quit => quit = true, // terminates the output thread.
+                    CommOutput::Pong(v) => println!("pong {}", v),
+                    CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => XBoard::print_board(&t_board),

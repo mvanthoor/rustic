@@ -21,18 +21,33 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-mod uci;
-mod xboard;
+use crate::{
+    comm::{CommOutput, XBoardInput},
+    engine::{defs::ErrFatal, Engine},
+    evaluation::Evaluation,
+};
 
-use crate::{comm::CommInput, engine::Engine};
-
-// This block implements handling of incoming information, which will be in
-// the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_handler(&mut self, input: &CommInput) {
-        match input {
-            CommInput::Uci(command) => self.uci_handler(command),
-            CommInput::XBoard(command) => self.xboard_handler(command),
+    pub fn xboard_handler(&mut self, command: &XBoardInput) {
+        match command {
+            XBoardInput::Quit => self.quit(),
+            XBoardInput::Ping(value) => self.comm.send(CommOutput::Pong(*value)),
+
+            // Custom commands
+            XBoardInput::Board => self.comm.send(CommOutput::PrintBoard),
+
+            XBoardInput::History => self.comm.send(CommOutput::PrintHistory),
+
+            XBoardInput::Eval => {
+                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let eval = Evaluation::evaluate_position(mtx_board);
+                let p_v = mtx_board.game_state.phase_value;
+                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
+                self.comm.send(CommOutput::InfoString(msg));
+            }
+
+            XBoardInput::Help => self.comm.send(CommOutput::PrintHelp),
+            XBoardInput::Unknown => (),
         }
     }
 }
