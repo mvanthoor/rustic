@@ -23,10 +23,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication module.
 
-use super::{CommInput, CommOutput, CommType, IComm, XBoardInput};
+use super::{CommInput, CommOutput, CommType, IComm, XBoardInput, XBoardOutput};
 use crate::{
     board::Board,
-    comm::XBoardOutput,
     engine::defs::{EngineOption, ErrFatal, Information},
     misc::print,
 };
