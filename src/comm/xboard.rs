@@ -26,13 +26,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{CommOutput, CommReceived, CommType, IComm};
 use crate::{
     board::Board,
-    defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, EngineSetOption, ErrFatal, Information, UiElement},
+    engine::defs::{EngineOption, ErrFatal, Information},
     misc::print,
-    movegen::defs::Move,
-    search::defs::{
-        GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE, CHECKMATE_THRESHOLD,
-    },
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -153,7 +148,7 @@ impl XBoard {
         let output_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
-            // let t_options = Arc::clone(&options);
+            let t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -161,18 +156,6 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    // CommOutput::Identify => {
-                    //     XBoard::id();
-                    //     XBoard::options(&t_options);
-                    //     XBoard::uciok();
-                    // }
-                    // CommOutput::Ready => XBoard::readyok(),
-                    // CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
-                    // CommOutput::SearchCurrMove(current) => XBoard::search_currmove(&current),
-                    // CommOutput::SearchStats(stats) => XBoard::search_stats(&stats),
-                    // CommOutput::InfoString(msg) => XBoard::info_string(&msg),
-                    // CommOutput::BestMove(bm) => XBoard::best_move(&bm),
-                    //
                     CommOutput::Pong(v) => println!("pong {}", v),
                     CommOutput::Quit => quit = true, // terminates the output thread.
 
@@ -203,13 +186,6 @@ impl XBoard {
 
         // Convert to &str for matching the command.
         match i {
-            // UCI commands
-            // cmd if cmd == "uci" => CommReceived::Identification,
-            // cmd if cmd == "ucinewgame" => CommReceived::NewGame,
-            // cmd if cmd == "isready" => CommReceived::IsReady,
-            // cmd if cmd == "stop" => CommReceived::Stop,
-            // cmd if cmd.starts_with("setoption") => XBoard::parse_setoption(&cmd),
-            // cmd if cmd.starts_with("position") => XBoard::parse_position(&cmd),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommReceived::Quit,
 
@@ -234,216 +210,10 @@ impl XBoard {
             _ => CommReceived::Unknown,
         }
     }
-
-    /** ======================================================== **/
-    /** UCI Parsing functions to be replaced by XBoard versions. **/
-    /** ======================================================== **/
-
-    fn parse_position(cmd: &str) -> CommReceived {
-        enum Tokens {
-            Nothing,
-            Fen,
-            Moves,
-        }
-
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut fen = String::from("");
-        let mut moves: Vec<String> = Vec::new();
-        let mut skip_fen = false;
-        let mut token = Tokens::Nothing;
-
-        for p in parts {
-            match p {
-                t if t == "position" => (), // Skip. We know we're parsing "position".
-                t if t == "startpos" => skip_fen = true, // "fen" is now invalidated.
-                t if t == "fen" && !skip_fen => token = Tokens::Fen,
-                t if t == "moves" => token = Tokens::Moves,
-                _ => match token {
-                    Tokens::Nothing => (),
-                    Tokens::Fen => {
-                        fen.push_str(&p[..]);
-                        fen.push(' ');
-                    }
-                    Tokens::Moves => moves.push(p),
-                },
-            }
-        }
-        // No FEN part in the command. Use the start position.
-        if fen.is_empty() {
-            fen = String::from(FEN_START_POSITION)
-        }
-        CommReceived::Position(fen.trim().to_string(), moves)
-    }
-
-    fn parse_setoption(cmd: &str) -> CommReceived {
-        enum Tokens {
-            Nothing,
-            Name,
-            Value,
-        }
-
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut token = Tokens::Nothing;
-        let mut name = String::from(""); // Option name provided by the UCI command.
-        let mut value = String::from(""); // Option value provided by the UCI command.
-        let mut eon = EngineSetOption::Nothing; // Engine Option Name to send to the engine.
-
-        for p in parts {
-            match p {
-                t if t == "setoption" => (),
-                t if t == "name" => token = Tokens::Name,
-                t if t == "value" => token = Tokens::Value,
-                _ => match token {
-                    Tokens::Name => name = format!("{} {}", name, p),
-                    Tokens::Value => value = p.to_lowercase(),
-                    Tokens::Nothing => (),
-                },
-            }
-        }
-
-        // Determine which engine option name to send.
-        if !name.is_empty() {
-            name = name.to_lowercase().trim().to_string();
-            match &name[..] {
-                "hash" => eon = EngineSetOption::Hash(value),
-                "clear hash" => eon = EngineSetOption::ClearHash,
-                _ => (),
-            }
-        }
-
-        // Send the engine option name with value to the engine thread.
-        CommReceived::SetOption(eon)
-    }
 }
 
 // Implements UCI responses to send to the G(UI).
-impl XBoard {
-    fn id() {
-        println!("id name {} {}", About::ENGINE, About::VERSION);
-        println!("id author {}", About::AUTHOR);
-    }
-
-    fn options(options: &Arc<Vec<EngineOption>>) {
-        for option in options.iter() {
-            let name = format!("option name {}", option.name);
-
-            let ui_element = match option.ui_element {
-                UiElement::Spin => String::from("type spin"),
-                UiElement::Button => String::from("type button"),
-            };
-
-            let value_default = if let Some(v) = &option.default {
-                format!("default {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let value_min = if let Some(v) = &option.min {
-                format!("min {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let value_max = if let Some(v) = &option.max {
-                format!("max {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let uci_option = format!(
-                "{} {} {} {} {}",
-                name, ui_element, value_default, value_min, value_max
-            )
-            .trim()
-            .to_string();
-
-            println!("{}", uci_option);
-        }
-    }
-
-    fn uciok() {
-        println!("uciok");
-    }
-
-    fn readyok() {
-        println!("readyok");
-    }
-
-    fn search_summary(s: &SearchSummary) {
-        // If mate found, report this; otherwise report normal score.
-        let score = if (s.cp.abs() >= CHECKMATE_THRESHOLD) && (s.cp.abs() < CHECKMATE) {
-            // Number of plies to mate.
-            let ply = CHECKMATE - s.cp.abs();
-
-            // Check if the number of ply's is odd
-            let is_odd = ply % 2 == 1;
-
-            // Calculate number of moves to mate
-            let moves = if is_odd { (ply + 1) / 2 } else { ply / 2 };
-
-            // If the engine is being mated itself, flip the score.
-            let flip = if s.cp < 0 { -1 } else { 1 };
-
-            // Report the mate
-            format!("mate {}", moves * flip)
-        } else {
-            // Report the normal score if there's no mate detected.
-            format!("cp {}", s.cp)
-        };
-
-        // Report depth and seldepth (if available).
-        let depth = if s.seldepth > 0 {
-            format!("depth {} seldepth {}", s.depth, s.seldepth)
-        } else {
-            format!("depth {}", s.depth)
-        };
-
-        // Only display hash full if not 0
-        let hash_full = if s.hash_full > 0 {
-            format!(" hashfull {} ", s.hash_full)
-        } else {
-            String::from(" ")
-        };
-
-        let pv = s.pv_as_string();
-
-        let info = format!(
-            "info score {} {} time {} nodes {} nps {}{}pv {}",
-            score, depth, s.time, s.nodes, s.nps, hash_full, pv,
-        );
-
-        println!("{}", info);
-    }
-
-    fn search_currmove(c: &SearchCurrentMove) {
-        println!(
-            "info currmove {} currmovenumber {}",
-            c.curr_move.as_string(),
-            c.curr_move_number
-        );
-    }
-
-    fn search_stats(s: &SearchStats) {
-        let hash_full = if s.hash_full > 0 {
-            format!(" hashfull {}", s.hash_full)
-        } else {
-            String::from("")
-        };
-
-        println!(
-            "info time {} nodes {} nps {}{}",
-            s.time, s.nodes, s.nps, hash_full
-        );
-    }
-
-    fn info_string(msg: &str) {
-        println!("info string {}", msg);
-    }
-
-    fn best_move(m: &Move) {
-        println!("bestmove {}", m.as_string());
-    }
-}
+impl XBoard {}
 
 // implements handling of custom commands. These are mostly used when using
 // the UCI protocol directly in a terminal window.
