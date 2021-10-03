@@ -156,7 +156,6 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Pong(v) => println!("pong {}", v),
                     CommOutput::Quit => quit = true, // terminates the output thread.
 
                     // Custom prints for use in the console.
@@ -206,7 +205,6 @@ impl XBoard {
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_lowercase()).collect();
 
         match &parts[KEY][..] {
-            "ping" => CommReceived::Ping(parts[VALUE].parse::<u8>().unwrap_or(0)),
             _ => CommReceived::Unknown,
         }
     }

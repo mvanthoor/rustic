@@ -66,8 +66,6 @@ pub enum CommOutput {
     InfoString(String),                // Transmit general information.
     BestMove(Move),                    // Transmit the engine's best move.
 
-    Pong(u8),
-
     // Output to screen when running in a terminal window.
     PrintBoard,
     PrintHistory,
@@ -94,8 +92,6 @@ pub enum CommReceived {
     GoGameTime(GameTime),
     Stop,
     Quit,
-
-    Ping(u8),
 
     // Custom
     Board,
