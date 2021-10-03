@@ -24,7 +24,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 mod uci;
 mod xboard;
 
-use crate::{comm::CommInput, engine::Engine};
+use crate::{
+    comm::{CommInput, CommOutput},
+    engine::{defs::ErrFatal, Engine},
+    evaluation::Evaluation,
+};
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -33,6 +37,19 @@ impl Engine {
         match input {
             CommInput::Uci(command) => self.uci_handler(command),
             CommInput::XBoard(command) => self.xboard_handler(command),
+
+            CommInput::Quit => self.quit(),
+            CommInput::Board => self.comm.send(CommOutput::PrintBoard),
+            CommInput::History => self.comm.send(CommOutput::PrintHistory),
+            CommInput::Eval => {
+                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let eval = Evaluation::evaluate_position(mtx_board);
+                let p_v = mtx_board.game_state.phase_value;
+                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
+                self.comm.send(CommOutput::InfoString(msg));
+            }
+            CommInput::Help => self.comm.send(CommOutput::PrintHelp),
+            CommInput::Unknown => (),
         }
     }
 }

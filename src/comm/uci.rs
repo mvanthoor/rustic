@@ -130,7 +130,7 @@ impl Uci {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommInput::Uci(UciInput::Quit);
+                quit = comm_received == CommInput::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -209,18 +209,16 @@ impl Uci {
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
-            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => {
-                CommInput::Uci(UciInput::Quit)
-            }
+            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands
-            cmd if cmd == "board" => CommInput::Uci(UciInput::Board),
-            cmd if cmd == "history" => CommInput::Uci(UciInput::History),
-            cmd if cmd == "eval" => CommInput::Uci(UciInput::Eval),
-            cmd if cmd == "help" => CommInput::Uci(UciInput::Help),
+            cmd if cmd == "board" => CommInput::Board,
+            cmd if cmd == "history" => CommInput::History,
+            cmd if cmd == "eval" => CommInput::Eval,
+            cmd if cmd == "help" => CommInput::Help,
 
             // Everything else is ignored.
-            _ => CommInput::Uci(UciInput::Unknown),
+            _ => CommInput::Unknown,
         }
     }
 
@@ -275,7 +273,7 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommInput::Uci(UciInput::Unknown);
+        let mut comm_received = CommInput::Unknown;
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 

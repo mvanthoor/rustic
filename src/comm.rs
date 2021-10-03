@@ -98,33 +98,25 @@ pub enum UciInput {
     GoNodes(usize),
     GoGameTime(GameTime),
     Stop,
-    Quit,
-
-    // Custom
-    Board,
-    History,
-    Eval,
-    Help,
-
-    // Empty or unknown command.
-    Unknown,
 }
 
 #[derive(PartialEq, Clone)]
 pub enum XBoardInput {
     Ping(u8),
-    Quit,
-
-    // Custom commands
-    Board,
-    History,
-    Eval,
-    Help,
-    Unknown,
 }
 
 #[derive(PartialEq, Clone)]
 pub enum CommInput {
     Uci(UciInput),
     XBoard(XBoardInput),
+
+    // Common incoming commands
+    Quit,
+    Unknown,
+
+    // Custom
+    Board,
+    History,
+    Eval,
+    Help,
 }

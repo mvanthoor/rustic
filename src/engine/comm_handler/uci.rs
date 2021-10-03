@@ -28,7 +28,6 @@ use crate::{
         defs::{EngineSetOption, ErrFatal, ErrNormal},
         Engine,
     },
-    evaluation::Evaluation,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
 
@@ -121,24 +120,6 @@ impl Engine {
             }
 
             UciInput::Stop => self.search.send(SearchControl::Stop),
-
-            UciInput::Quit => self.quit(),
-
-            // Custom commands
-            UciInput::Board => self.comm.send(CommOutput::PrintBoard),
-
-            UciInput::History => self.comm.send(CommOutput::PrintHistory),
-
-            UciInput::Eval => {
-                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
-                let eval = Evaluation::evaluate_position(mtx_board);
-                let p_v = mtx_board.game_state.phase_value;
-                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
-                self.comm.send(CommOutput::InfoString(msg));
-            }
-
-            UciInput::Help => self.comm.send(CommOutput::PrintHelp),
-            UciInput::Unknown => (),
         }
     }
 }

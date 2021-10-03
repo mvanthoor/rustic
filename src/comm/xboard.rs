@@ -126,7 +126,7 @@ impl XBoard {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommInput::XBoard(XBoardInput::Quit);
+                quit = comm_received == CommInput::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -188,18 +188,16 @@ impl XBoard {
         // Convert to &str for matching the command.
         match i {
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => {
-                CommInput::XBoard(XBoardInput::Quit)
-            }
+            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands
-            cmd if cmd == "board" => CommInput::XBoard(XBoardInput::Board),
-            cmd if cmd == "history" => CommInput::XBoard(XBoardInput::History),
-            cmd if cmd == "eval" => CommInput::XBoard(XBoardInput::Eval),
-            cmd if cmd == "help" => CommInput::XBoard(XBoardInput::Help),
+            cmd if cmd == "board" => CommInput::Board,
+            cmd if cmd == "history" => CommInput::History,
+            cmd if cmd == "eval" => CommInput::Eval,
+            cmd if cmd == "help" => CommInput::Help,
 
             // Everything else is ignored.
-            _ => CommInput::XBoard(XBoardInput::Unknown),
+            _ => CommInput::Unknown,
         }
     }
 
@@ -214,7 +212,7 @@ impl XBoard {
                 CommInput::XBoard(XBoardInput::Ping(value))
             }
 
-            _ => CommInput::XBoard(XBoardInput::Unknown),
+            _ => CommInput::Unknown,
         }
     }
 }
