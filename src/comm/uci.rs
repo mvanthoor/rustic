@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{CommOutput, CommReceived, CommType, IComm};
+use super::{CommInput, CommOutput, CommType, IComm, UciInput};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
@@ -103,7 +103,7 @@ impl IComm for Uci {
 // Implement the receiving thread
 impl Uci {
     // The receiving thread receives incoming commands from the console or
-    // GUI, which is turns into a "CommReceived" object. It sends this
+    // GUI, which is turns into a "CommInput" object. It sends this
     // object to the engine thread so the engine can decide what to do.
     fn receiving_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
@@ -121,7 +121,7 @@ impl Uci {
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
-                // Create the CommReceived object.
+                // Create the CommInput object.
                 let comm_received = Uci::create_comm_received(&t_incoming_data);
 
                 // Send it to the engine thread.
@@ -130,7 +130,7 @@ impl Uci {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommReceived::Quit;
+                quit = comm_received == CommInput::Uci(UciInput::Quit);
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -174,13 +174,12 @@ impl Uci {
                     CommOutput::InfoString(msg) => Uci::info_string(&msg),
                     CommOutput::BestMove(bm) => Uci::best_move(&bm),
 
+                    CommOutput::Pong(_value) => (),
+
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Uci::print_board(&t_board),
                     CommOutput::PrintHistory => Uci::print_history(&t_board),
                     CommOutput::PrintHelp => Uci::print_help(),
-
-                    // Ignore all others
-                    _ => (),
                 }
             }
         });
@@ -193,36 +192,38 @@ impl Uci {
 
 // Private functions for this module.
 impl Uci {
-    // This function turns the incoming data into CommReceiveds which the
+    // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
-    fn create_comm_received(input: &str) -> CommReceived {
+    fn create_comm_received(input: &str) -> CommInput {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
         match i {
             // UCI commands
-            cmd if cmd == "uci" => CommReceived::Identification,
-            cmd if cmd == "ucinewgame" => CommReceived::NewGame,
-            cmd if cmd == "isready" => CommReceived::IsReady,
-            cmd if cmd == "stop" => CommReceived::Stop,
+            cmd if cmd == "uci" => CommInput::Uci(UciInput::Identification),
+            cmd if cmd == "ucinewgame" => CommInput::Uci(UciInput::NewGame),
+            cmd if cmd == "isready" => CommInput::Uci(UciInput::IsReady),
+            cmd if cmd == "stop" => CommInput::Uci(UciInput::Stop),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
-            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommReceived::Quit,
+            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => {
+                CommInput::Uci(UciInput::Quit)
+            }
 
             // Custom commands
-            cmd if cmd == "board" => CommReceived::Board,
-            cmd if cmd == "history" => CommReceived::History,
-            cmd if cmd == "eval" => CommReceived::Eval,
-            cmd if cmd == "help" => CommReceived::Help,
+            cmd if cmd == "board" => CommInput::Uci(UciInput::Board),
+            cmd if cmd == "history" => CommInput::Uci(UciInput::History),
+            cmd if cmd == "eval" => CommInput::Uci(UciInput::Eval),
+            cmd if cmd == "help" => CommInput::Uci(UciInput::Help),
 
             // Everything else is ignored.
-            _ => CommReceived::Unknown,
+            _ => CommInput::Uci(UciInput::Unknown),
         }
     }
 
-    fn parse_position(cmd: &str) -> CommReceived {
+    fn parse_position(cmd: &str) -> CommInput {
         enum Tokens {
             Nothing,
             Fen,
@@ -255,10 +256,11 @@ impl Uci {
         if fen.is_empty() {
             fen = String::from(FEN_START_POSITION)
         }
-        CommReceived::Position(fen.trim().to_string(), moves)
+
+        CommInput::Uci(UciInput::Position(fen.trim().to_string(), moves))
     }
 
-    fn parse_go(cmd: &str) -> CommReceived {
+    fn parse_go(cmd: &str) -> CommInput {
         enum Tokens {
             Nothing,
             Depth,
@@ -272,13 +274,13 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommReceived::Unknown;
+        let mut comm_received = CommInput::Uci(UciInput::Unknown);
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
         for p in parts {
             match p {
-                t if t == "go" => comm_received = CommReceived::GoInfinite,
+                t if t == "go" => comm_received = CommInput::Uci(UciInput::GoInfinite),
                 t if t == "infinite" => break, // Already Infinite; nothing more to do.
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
@@ -292,17 +294,17 @@ impl Uci {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
                         let depth = p.parse::<i8>().unwrap_or(1);
-                        comm_received = CommReceived::GoDepth(depth);
+                        comm_received = CommInput::Uci(UciInput::GoDepth(depth));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::MoveTime => {
                         let milliseconds = p.parse::<u128>().unwrap_or(1000);
-                        comm_received = CommReceived::GoMoveTime(milliseconds);
+                        comm_received = CommInput::Uci(UciInput::GoMoveTime(milliseconds));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::Nodes => {
                         let nodes = p.parse::<usize>().unwrap_or(1);
-                        comm_received = CommReceived::GoNodes(nodes);
+                        comm_received = CommInput::Uci(UciInput::GoNodes(nodes));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
@@ -323,18 +325,18 @@ impl Uci {
         // If we are still in the default "go infinite" mode, we must
         // switch to GameTime mode if at least one parameter of "go wtime
         // btime winc binc" was set to something else but 0.
-        let is_default_mode = comm_received == CommReceived::GoInfinite;
+        let is_default_mode = comm_received == CommInput::Uci(UciInput::GoInfinite);
         let has_time = game_time.wtime > 0 || game_time.btime > 0;
         let has_inc = game_time.winc > 0 || game_time.binc > 0;
         let is_game_time = has_time || has_inc;
         if is_default_mode && is_game_time {
-            comm_received = CommReceived::GoGameTime(game_time);
+            comm_received = CommInput::Uci(UciInput::GoGameTime(game_time));
         }
 
         comm_received
     } // end parse_go()
 
-    fn parse_setoption(cmd: &str) -> CommReceived {
+    fn parse_setoption(cmd: &str) -> CommInput {
         enum Tokens {
             Nothing,
             Name,
@@ -371,7 +373,7 @@ impl Uci {
         }
 
         // Send the engine option name with value to the engine thread.
-        CommReceived::SetOption(eon)
+        CommInput::Uci(UciInput::SetOption(eon))
     }
 }
 

@@ -26,7 +26,7 @@ use super::{
     Engine,
 };
 use crate::{
-    comm::{CommOutput, CommReceived},
+    comm::{CommInput, CommOutput, UciInput, XBoardInput},
     defs::FEN_START_POSITION,
     engine::defs::EngineSetOption,
     evaluation::Evaluation,
@@ -36,15 +36,22 @@ use crate::{
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_handler(&mut self, received: &CommReceived) {
+    pub fn comm_handler(&mut self, input: &CommInput) {
+        match input {
+            CommInput::Uci(command) => self.uci_handler(command),
+            CommInput::XBoard(command) => self.xboard_handler(command),
+        }
+    }
+
+    fn uci_handler(&mut self, command: &UciInput) {
         // Setup default variables.
         let mut sp = SearchParams::new();
         sp.quiet = self.settings.quiet;
 
-        match received {
-            CommReceived::Identification => self.comm.send(CommOutput::Identify),
+        match command {
+            UciInput::Identification => self.comm.send(CommOutput::Identify),
 
-            CommReceived::NewGame => {
+            UciInput::NewGame => {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
@@ -53,9 +60,9 @@ impl Engine {
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
-            CommReceived::IsReady => self.comm.send(CommOutput::Ready),
+            UciInput::IsReady => self.comm.send(CommOutput::Ready),
 
-            CommReceived::SetOption(option) => {
+            UciInput::SetOption(option) => {
                 match option {
                     EngineSetOption::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
@@ -74,7 +81,7 @@ impl Engine {
                 };
             }
 
-            CommReceived::Position(fen, moves) => {
+            UciInput::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
 
                 if fen_result.is_ok() {
@@ -94,50 +101,77 @@ impl Engine {
                 }
             }
 
-            CommReceived::GoInfinite => {
+            UciInput::GoInfinite => {
                 sp.search_mode = SearchMode::Infinite;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            CommReceived::GoDepth(depth) => {
+            UciInput::GoDepth(depth) => {
                 sp.depth = *depth;
                 sp.search_mode = SearchMode::Depth;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            CommReceived::GoMoveTime(msecs) => {
+            UciInput::GoMoveTime(msecs) => {
                 sp.move_time = *msecs - (SAFEGUARD as u128);
                 sp.search_mode = SearchMode::MoveTime;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            CommReceived::GoNodes(nodes) => {
+            UciInput::GoNodes(nodes) => {
                 sp.nodes = *nodes;
                 sp.search_mode = SearchMode::Nodes;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            CommReceived::GoGameTime(gt) => {
+            UciInput::GoGameTime(gt) => {
                 sp.game_time = *gt;
                 sp.search_mode = SearchMode::GameTime;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            CommReceived::Stop => self.search.send(SearchControl::Stop),
-            CommReceived::Quit => self.quit(),
+            UciInput::Stop => self.search.send(SearchControl::Stop),
+
+            UciInput::Quit => self.quit(),
 
             // Custom commands
-            CommReceived::Board => self.comm.send(CommOutput::PrintBoard),
-            CommReceived::History => self.comm.send(CommOutput::PrintHistory),
-            CommReceived::Eval => {
+            UciInput::Board => self.comm.send(CommOutput::PrintBoard),
+
+            UciInput::History => self.comm.send(CommOutput::PrintHistory),
+
+            UciInput::Eval => {
                 let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
                 let eval = Evaluation::evaluate_position(mtx_board);
                 let p_v = mtx_board.game_state.phase_value;
                 let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
                 self.comm.send(CommOutput::InfoString(msg));
             }
-            CommReceived::Help => self.comm.send(CommOutput::PrintHelp),
-            CommReceived::Unknown => (),
+
+            UciInput::Help => self.comm.send(CommOutput::PrintHelp),
+            UciInput::Unknown => (),
+        }
+    }
+
+    fn xboard_handler(&mut self, command: &XBoardInput) {
+        match command {
+            XBoardInput::Quit => self.quit(),
+            XBoardInput::Ping(value) => self.comm.send(CommOutput::Pong(*value)),
+
+            // Custom commands
+            XBoardInput::Board => self.comm.send(CommOutput::PrintBoard),
+
+            XBoardInput::History => self.comm.send(CommOutput::PrintHistory),
+
+            XBoardInput::Eval => {
+                let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
+                let eval = Evaluation::evaluate_position(mtx_board);
+                let p_v = mtx_board.game_state.phase_value;
+                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
+                self.comm.send(CommOutput::InfoString(msg));
+            }
+
+            XBoardInput::Help => self.comm.send(CommOutput::PrintHelp),
+            XBoardInput::Unknown => (),
         }
     }
 }

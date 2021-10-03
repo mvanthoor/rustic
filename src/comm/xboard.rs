@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication module.
 
-use super::{CommOutput, CommReceived, CommType, IComm};
+use super::{CommInput, CommOutput, CommType, IComm, XBoardInput};
 use crate::{
     board::Board,
     engine::defs::{EngineOption, ErrFatal, Information},
@@ -98,7 +98,7 @@ impl IComm for XBoard {
 // Implement the receiving thread
 impl XBoard {
     // The receiving thread receives incoming commands from the console or
-    // GUI, which is turns into a "CommReceived" object. It sends this
+    // GUI, which is turns into a "CommInput" object. It sends this
     // object to the engine thread so the engine can decide what to do.
     fn receiving_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
@@ -116,7 +116,7 @@ impl XBoard {
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
-                // Create the CommReceived object.
+                // Create the CommInput object.
                 let comm_received = XBoard::create_comm_received(&t_incoming_data);
 
                 // Send it to the engine thread.
@@ -125,7 +125,7 @@ impl XBoard {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommReceived::Quit;
+                quit = comm_received == CommInput::XBoard(XBoardInput::Quit);
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -177,35 +177,42 @@ impl XBoard {
 
 // Private functions for this module.
 impl XBoard {
-    // This function turns the incoming data into CommReceiveds which the
+    // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
-    fn create_comm_received(input: &str) -> CommReceived {
+    fn create_comm_received(input: &str) -> CommInput {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
         match i {
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommReceived::Quit,
+            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => {
+                CommInput::XBoard(XBoardInput::Quit)
+            }
 
             // Custom commands
-            cmd if cmd == "board" => CommReceived::Board,
-            cmd if cmd == "history" => CommReceived::History,
-            cmd if cmd == "eval" => CommReceived::Eval,
-            cmd if cmd == "help" => CommReceived::Help,
+            cmd if cmd == "board" => CommInput::XBoard(XBoardInput::Board),
+            cmd if cmd == "history" => CommInput::XBoard(XBoardInput::History),
+            cmd if cmd == "eval" => CommInput::XBoard(XBoardInput::Eval),
+            cmd if cmd == "help" => CommInput::XBoard(XBoardInput::Help),
 
             // Everything else is ignored.
-            _ => CommReceived::Unknown,
+            _ => CommInput::XBoard(XBoardInput::Unknown),
         }
     }
 
-    fn parse_key_value_pair(cmd: &str) -> CommReceived {
+    fn parse_key_value_pair(cmd: &str) -> CommInput {
         const KEY: usize = 0;
         const VALUE: usize = 1;
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_lowercase()).collect();
 
         match &parts[KEY][..] {
-            _ => CommReceived::Unknown,
+            "ping" => {
+                let value = parts[VALUE].parse::<u8>().unwrap_or(0);
+                CommInput::XBoard(XBoardInput::Ping(value))
+            }
+
+            _ => CommInput::XBoard(XBoardInput::Unknown),
         }
     }
 }

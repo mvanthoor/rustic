@@ -55,7 +55,7 @@ pub trait IComm {
 
 #[derive(PartialEq)]
 // This is a list of outputs the engine can generate, often in reaction to
-// one of the CommReceived inputs. (An exception is "Quit": this doesn't
+// one of the CommInput inputs. (An exception is "Quit": this doesn't
 // generate an output. It terminates the comm module.)
 pub enum CommOutput {
     Identify,                          // Transmit identification of the engine.
@@ -65,6 +65,8 @@ pub enum CommOutput {
     SearchStats(SearchStats),          // Transmit search Statistics.
     InfoString(String),                // Transmit general information.
     BestMove(Move),                    // Transmit the engine's best move.
+
+    Pong(u8),
 
     // Output to screen when running in a terminal window.
     PrintBoard,
@@ -79,7 +81,7 @@ pub enum CommOutput {
 // in through the Comm module is turned into one of these commands which
 // will then be sent to the engine thread.
 #[derive(PartialEq, Clone)]
-pub enum CommReceived {
+pub enum UciInput {
     Identification,
     NewGame,
     IsReady,
@@ -101,4 +103,23 @@ pub enum CommReceived {
 
     // Empty or unknown command.
     Unknown,
+}
+
+#[derive(PartialEq, Clone)]
+pub enum XBoardInput {
+    Ping(u8),
+    Quit,
+
+    // Custom commands
+    Board,
+    History,
+    Eval,
+    Help,
+    Unknown,
+}
+
+#[derive(PartialEq, Clone)]
+pub enum CommInput {
+    Uci(UciInput),
+    XBoard(XBoardInput),
 }

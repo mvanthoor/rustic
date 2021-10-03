@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
-use crate::{comm::CommReceived, search::defs::SearchReport};
+use crate::{comm::CommInput, search::defs::SearchReport};
 
 // This struct holds messages that are reported on fatal engine errors.
 // These should never happen; if they do the engine is in an unknown state,
@@ -57,7 +57,7 @@ pub struct Settings {
 // messages and search results.
 #[derive(PartialEq)]
 pub enum Information {
-    Comm(CommReceived),
+    Comm(CommInput),
     Search(SearchReport),
 }
 
