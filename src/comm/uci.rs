@@ -142,56 +142,7 @@ impl Uci {
     }
 }
 
-// Implement the output thread
-impl Uci {
-    // The control thread receives commands from the engine thread.
-    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
-        // Create an incoming channel for the control thread.
-        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
-
-        // Create the output thread.
-        let output_handle = thread::spawn(move || {
-            let mut quit = false;
-            let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
-
-            // Keep running as long as Quit is not received.
-            while !quit {
-                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
-
-                // Perform command as sent by the engine thread.
-                match output {
-                    CommOutput::Uci(UciOutput::Identify) => {
-                        Uci::id();
-                        Uci::options(&t_options);
-                        Uci::uciok();
-                    }
-                    CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
-                    CommOutput::Quit => quit = true, // terminates the output thread.
-                    CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
-                    CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
-                    CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOutput::InfoString(msg) => Uci::info_string(&msg),
-                    CommOutput::BestMove(bm) => Uci::best_move(&bm),
-
-                    // Custom prints for use in the console.
-                    CommOutput::PrintBoard => Uci::print_board(&t_board),
-                    CommOutput::PrintHistory => Uci::print_history(&t_board),
-                    CommOutput::PrintHelp => Uci::print_help(),
-
-                    // Ignore everything else
-                    _ => (),
-                }
-            }
-        });
-
-        // Store handle and control sender.
-        self.output_handle = Some(output_handle);
-        self.output_tx = Some(output_tx);
-    }
-}
-
-// Private functions for this module.
+// Implement receiving/parsing functions
 impl Uci {
     // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
@@ -376,7 +327,56 @@ impl Uci {
     }
 }
 
-// Implements UCI responses to send to the G(UI).
+// Implement the output thread
+impl Uci {
+    // The control thread receives commands from the engine thread.
+    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
+        // Create an incoming channel for the control thread.
+        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
+
+        // Create the output thread.
+        let output_handle = thread::spawn(move || {
+            let mut quit = false;
+            let t_board = Arc::clone(&board);
+            let t_options = Arc::clone(&options);
+
+            // Keep running as long as Quit is not received.
+            while !quit {
+                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
+
+                // Perform command as sent by the engine thread.
+                match output {
+                    CommOutput::Uci(UciOutput::Identify) => {
+                        Uci::id();
+                        Uci::options(&t_options);
+                        Uci::uciok();
+                    }
+                    CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
+                    CommOutput::Quit => quit = true, // terminates the output thread.
+                    CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
+                    CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
+                    CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
+                    CommOutput::InfoString(msg) => Uci::info_string(&msg),
+                    CommOutput::BestMove(bm) => Uci::best_move(&bm),
+
+                    // Custom prints for use in the console.
+                    CommOutput::PrintBoard => Uci::print_board(&t_board),
+                    CommOutput::PrintHistory => Uci::print_history(&t_board),
+                    CommOutput::PrintHelp => Uci::print_help(),
+
+                    // Ignore everything else
+                    _ => (),
+                }
+            }
+        });
+
+        // Store handle and control sender.
+        self.output_handle = Some(output_handle);
+        self.output_tx = Some(output_tx);
+    }
+}
+
+// Implement output functions
 impl Uci {
     fn id() {
         println!("id name {} {}", About::ENGINE, About::VERSION);
