@@ -138,46 +138,7 @@ impl XBoard {
     }
 }
 
-// Implement the output thread
-impl XBoard {
-    // The control thread receives commands from the engine thread.
-    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
-        // Create an incoming channel for the control thread.
-        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
-
-        // Create the output thread.
-        let output_handle = thread::spawn(move || {
-            let mut quit = false;
-            let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
-
-            // Keep running as long as Quit is not received.
-            while !quit {
-                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
-
-                // Perform command as sent by the engine thread.
-                match output {
-                    CommOutput::XBoard(XBoardOutput::Pong(v)) => println!("pong {}", v),
-                    CommOutput::Quit => quit = true,
-
-                    // Custom prints for use in the console.
-                    CommOutput::PrintBoard => XBoard::print_board(&t_board),
-                    CommOutput::PrintHistory => XBoard::print_history(&t_board),
-                    CommOutput::PrintHelp => XBoard::print_help(),
-
-                    // Ignore everything else
-                    _ => (),
-                }
-            }
-        });
-
-        // Store handle and control sender.
-        self.output_handle = Some(output_handle);
-        self.output_tx = Some(output_tx);
-    }
-}
-
-// Private functions for this module.
+// Implement receiving/parsing functions
 impl XBoard {
     // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
@@ -217,7 +178,46 @@ impl XBoard {
     }
 }
 
-// Implements UCI responses to send to the G(UI).
+// Implement the output thread
+impl XBoard {
+    // The control thread receives commands from the engine thread.
+    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
+        // Create an incoming channel for the control thread.
+        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
+
+        // Create the output thread.
+        let output_handle = thread::spawn(move || {
+            let mut quit = false;
+            let t_board = Arc::clone(&board);
+            let t_options = Arc::clone(&options);
+
+            // Keep running as long as Quit is not received.
+            while !quit {
+                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
+
+                // Perform command as sent by the engine thread.
+                match output {
+                    CommOutput::XBoard(XBoardOutput::Pong(v)) => println!("pong {}", v),
+                    CommOutput::Quit => quit = true,
+
+                    // Custom prints for use in the console.
+                    CommOutput::PrintBoard => XBoard::print_board(&t_board),
+                    CommOutput::PrintHistory => XBoard::print_history(&t_board),
+                    CommOutput::PrintHelp => XBoard::print_help(),
+
+                    // Ignore everything else
+                    _ => (),
+                }
+            }
+        });
+
+        // Store handle and control sender.
+        self.output_handle = Some(output_handle);
+        self.output_tx = Some(output_tx);
+    }
+}
+
+// Implement sending/response functions
 impl XBoard {}
 
 // implements handling of custom commands. These are mostly used when using
