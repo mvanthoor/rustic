@@ -31,7 +31,7 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{uci::Uci, CommOutput, CommType, IComm},
+    comm::{uci::Uci, xboard::XBoard, CommOutput, CommType, IComm},
     defs::EngineRunResult,
     engine::defs::{
         EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,
@@ -65,7 +65,6 @@ pub struct Engine {
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
-    tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
 impl Engine {
@@ -76,14 +75,10 @@ impl Engine {
 
         // Create the command-line object.
         let cmdline = CmdLine::new();
-        let mut is_xboard = false;
 
         // Create the communication interface
         let comm: Box<dyn IComm> = match &cmdline.comm()[..] {
-            CommType::XBOARD => {
-                is_xboard = true;
-                Box::new(Uci::new())
-            }
+            CommType::XBOARD => Box::new(XBoard::new()),
             CommType::UCI => Box::new(Uci::new()),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
@@ -144,21 +139,18 @@ impl Engine {
             tt_search,
             info_rx: None,
             search: Search::new(),
-            tmp_no_xboard: is_xboard,
         }
     }
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // This is temporary. Quit the engine immediately if anyone tries
-        // to start it in XBoard mode, as this is not implemented yet.
-        if self.tmp_no_xboard {
-            return Err(7);
+        if self.comm.get_protocol_name() == CommType::UCI {
+            self.print_ascii_logo();
+            self.print_about(&self.settings);
+            println!();
+        } else {
+            self.print_xboard_greeting();
         }
-
-        self.print_ascii_logo();
-        self.print_about(&self.settings);
-        println!();
 
         // Setup position and abort if this fails.
         self.setup_position()?;

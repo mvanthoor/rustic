@@ -61,4 +61,17 @@ impl Engine {
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
     }
+
+    pub fn print_xboard_greeting(&self) {
+        println!(
+            "{} {} | {} <{}> | xboard",
+            About::ENGINE,
+            About::VERSION,
+            About::AUTHOR,
+            About::EMAIL
+        );
+
+        #[cfg(debug_assertions)]
+        println!("{}", NOTICE_DEBUG_MODE);
+    }
 }
