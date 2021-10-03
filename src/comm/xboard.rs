@@ -153,7 +153,7 @@ impl XBoard {
         let output_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
+            // let t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -161,23 +161,26 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Identify => {
-                        XBoard::id();
-                        XBoard::options(&t_options);
-                        XBoard::uciok();
-                    }
-                    CommOutput::Ready => XBoard::readyok(),
+                    // CommOutput::Identify => {
+                    //     XBoard::id();
+                    //     XBoard::options(&t_options);
+                    //     XBoard::uciok();
+                    // }
+                    // CommOutput::Ready => XBoard::readyok(),
+                    // CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
+                    // CommOutput::SearchCurrMove(current) => XBoard::search_currmove(&current),
+                    // CommOutput::SearchStats(stats) => XBoard::search_stats(&stats),
+                    // CommOutput::InfoString(msg) => XBoard::info_string(&msg),
+                    // CommOutput::BestMove(bm) => XBoard::best_move(&bm),
                     CommOutput::Quit => quit = true, // terminates the output thread.
-                    CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
-                    CommOutput::SearchCurrMove(current) => XBoard::search_currmove(&current),
-                    CommOutput::SearchStats(stats) => XBoard::search_stats(&stats),
-                    CommOutput::InfoString(msg) => XBoard::info_string(&msg),
-                    CommOutput::BestMove(bm) => XBoard::best_move(&bm),
 
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => XBoard::print_board(&t_board),
                     CommOutput::PrintHistory => XBoard::print_history(&t_board),
                     CommOutput::PrintHelp => XBoard::print_help(),
+
+                    // Ignore everything else
+                    _ => (),
                 }
             }
         });
@@ -199,13 +202,13 @@ impl XBoard {
         // Convert to &str for matching the command.
         match i {
             // UCI commands
-            cmd if cmd == "uci" => CommReceived::Identification,
-            cmd if cmd == "ucinewgame" => CommReceived::NewGame,
-            cmd if cmd == "isready" => CommReceived::IsReady,
-            cmd if cmd == "stop" => CommReceived::Stop,
-            cmd if cmd.starts_with("setoption") => XBoard::parse_setoption(&cmd),
-            cmd if cmd.starts_with("position") => XBoard::parse_position(&cmd),
-            cmd if cmd.starts_with("go") => XBoard::parse_go(&cmd),
+            // cmd if cmd == "uci" => CommReceived::Identification,
+            // cmd if cmd == "ucinewgame" => CommReceived::NewGame,
+            // cmd if cmd == "isready" => CommReceived::IsReady,
+            // cmd if cmd == "stop" => CommReceived::Stop,
+            // cmd if cmd.starts_with("setoption") => XBoard::parse_setoption(&cmd),
+            // cmd if cmd.starts_with("position") => XBoard::parse_position(&cmd),
+            // cmd if cmd.starts_with("go") => XBoard::parse_go(&cmd),
             cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommReceived::Quit,
 
             // Custom commands
@@ -218,6 +221,10 @@ impl XBoard {
             _ => CommReceived::Unknown,
         }
     }
+
+    /** ======================================================== **/
+    /** UCI Parsing functions to be replaced by XBoard versions. **/
+    /** ======================================================== **/
 
     fn parse_position(cmd: &str) -> CommReceived {
         enum Tokens {
