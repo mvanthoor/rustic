@@ -23,11 +23,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication module.
 
-use super::{CommInput, CommOutput, CommType, IComm, XBoardInput, XBoardOutput};
+use super::{shared::Shared, CommInput, CommOutput, CommType, IComm, XBoardInput, XBoardOutput};
 use crate::{
     board::Board,
     engine::defs::{EngineOption, ErrFatal, Information},
-    misc::print,
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -200,10 +199,10 @@ impl XBoard {
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
-                    CommOutput::PrintBoard => XBoard::print_board(&t_board),
-                    CommOutput::PrintHistory => XBoard::print_history(&t_board),
-                    CommOutput::PrintEval(eval, phase) => XBoard::print_eval(eval, phase),
-                    CommOutput::PrintHelp => XBoard::print_help(),
+                    CommOutput::PrintBoard => Shared::print_board(&t_board),
+                    CommOutput::PrintHistory => Shared::print_history(&t_board),
+                    CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOutput::PrintHelp => Shared::print_help(CommType::XBOARD),
 
                     // Ignore everything else
                     _ => (),
@@ -219,46 +218,3 @@ impl XBoard {
 
 // Implement sending/response functions
 impl XBoard {}
-
-// implements handling of custom commands. These are mostly used when using
-// the UCI protocol directly in a terminal window.
-impl XBoard {
-    fn print_board(board: &Arc<Mutex<Board>>) {
-        print::position(&board.lock().expect(ErrFatal::LOCK), None);
-    }
-
-    fn print_history(board: &Arc<Mutex<Board>>) {
-        let mtx_board = board.lock().expect(ErrFatal::LOCK);
-        let length = mtx_board.history.len();
-
-        if length == 0 {
-            println!("No history available.");
-        }
-
-        for i in 0..length {
-            let h = mtx_board.history.get_ref(i);
-            println!("{:<3}| ply: {} {}", i, i + 1, h.as_string());
-        }
-
-        std::mem::drop(mtx_board);
-    }
-
-    fn print_eval(eval: i16, phase: i16) {
-        println!("Evaluation: {}, Phase: {}", eval, phase);
-    }
-
-    fn print_help() {
-        println!("The engine is in XBoard communication mode. It supports some custom");
-        println!("non-UCI commands to make use through a terminal window easier.");
-        println!("These commands can also be very useful for debugging purposes.");
-        println!();
-        println!("Custom commands");
-        println!("================================================================");
-        println!("help      :   This help information.");
-        println!("board     :   Print the current board state.");
-        println!("history   :   Print a list of past board states.");
-        println!("eval      :   Print evaluation for side to move.");
-        println!("exit      :   Quit/Exit the engine.");
-        println!();
-    }
-}

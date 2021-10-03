@@ -23,12 +23,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{CommInput, CommOutput, CommType, IComm, UciInput, UciOutput};
+use super::{shared::Shared, CommInput, CommOutput, CommType, IComm, UciInput, UciOutput};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
     engine::defs::{EngineOption, EngineSetOption, ErrFatal, Information, UiElement},
-    misc::print,
     movegen::defs::Move,
     search::defs::{
         GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE, CHECKMATE_THRESHOLD,
@@ -360,10 +359,10 @@ impl Uci {
                     CommOutput::BestMove(bm) => Uci::best_move(&bm),
 
                     // Custom prints for use in the console.
-                    CommOutput::PrintBoard => Uci::print_board(&t_board),
-                    CommOutput::PrintHistory => Uci::print_history(&t_board),
-                    CommOutput::PrintEval(eval, phase) => Uci::print_eval(eval, phase),
-                    CommOutput::PrintHelp => Uci::print_help(),
+                    CommOutput::PrintBoard => Shared::print_board(&t_board),
+                    CommOutput::PrintHistory => Shared::print_history(&t_board),
+                    CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOutput::PrintHelp => Shared::print_help(CommType::UCI),
 
                     // Ignore everything else
                     _ => (),
@@ -503,48 +502,5 @@ impl Uci {
 
     fn best_move(m: &Move) {
         println!("bestmove {}", m.as_string());
-    }
-}
-
-// implements handling of custom commands. These are mostly used when using
-// the UCI protocol directly in a terminal window.
-impl Uci {
-    fn print_board(board: &Arc<Mutex<Board>>) {
-        print::position(&board.lock().expect(ErrFatal::LOCK), None);
-    }
-
-    fn print_history(board: &Arc<Mutex<Board>>) {
-        let mtx_board = board.lock().expect(ErrFatal::LOCK);
-        let length = mtx_board.history.len();
-
-        if length == 0 {
-            println!("No history available.");
-        }
-
-        for i in 0..length {
-            let h = mtx_board.history.get_ref(i);
-            println!("{:<3}| ply: {} {}", i, i + 1, h.as_string());
-        }
-
-        std::mem::drop(mtx_board);
-    }
-
-    fn print_eval(eval: i16, phase: i16) {
-        println!("Evaluation: {}, Phase: {}", eval, phase);
-    }
-
-    fn print_help() {
-        println!("The engine is in UCI communication mode. It supports some custom");
-        println!("non-UCI commands to make use through a terminal window easier.");
-        println!("These commands can also be very useful for debugging purposes.");
-        println!();
-        println!("Custom commands");
-        println!("================================================================");
-        println!("help      :   This help information.");
-        println!("board     :   Print the current board state.");
-        println!("history   :   Print a list of past board states.");
-        println!("eval      :   Print evaluation for side to move.");
-        println!("exit      :   Quit/Exit the engine.");
-        println!();
     }
 }
