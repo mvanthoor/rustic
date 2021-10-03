@@ -202,6 +202,7 @@ impl XBoard {
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => XBoard::print_board(&t_board),
                     CommOutput::PrintHistory => XBoard::print_history(&t_board),
+                    CommOutput::PrintEval(eval, phase) => XBoard::print_eval(eval, phase),
                     CommOutput::PrintHelp => XBoard::print_help(),
 
                     // Ignore everything else
@@ -240,6 +241,10 @@ impl XBoard {
         }
 
         std::mem::drop(mtx_board);
+    }
+
+    fn print_eval(eval: i16, phase: i16) {
+        println!("Evaluation: {}, Phase: {}", eval, phase);
     }
 
     fn print_help() {

@@ -44,9 +44,8 @@ impl Engine {
             CommInput::Eval => {
                 let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
                 let eval = Evaluation::evaluate_position(mtx_board);
-                let p_v = mtx_board.game_state.phase_value;
-                let msg = format!("Evaluation: {} centipawns, phase value: {}", eval, p_v);
-                self.comm.send(CommOutput::InfoString(msg));
+                let phase = mtx_board.game_state.phase_value;
+                self.comm.send(CommOutput::PrintEval(eval, phase));
             }
             CommInput::Help => self.comm.send(CommOutput::PrintHelp),
             CommInput::Unknown => (),

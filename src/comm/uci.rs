@@ -362,6 +362,7 @@ impl Uci {
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Uci::print_board(&t_board),
                     CommOutput::PrintHistory => Uci::print_history(&t_board),
+                    CommOutput::PrintEval(eval, phase) => Uci::print_eval(eval, phase),
                     CommOutput::PrintHelp => Uci::print_help(),
 
                     // Ignore everything else
@@ -526,6 +527,10 @@ impl Uci {
         }
 
         std::mem::drop(mtx_board);
+    }
+
+    fn print_eval(eval: i16, phase: i16) {
+        println!("Evaluation: {}, Phase: {}", eval, phase);
     }
 
     fn print_help() {

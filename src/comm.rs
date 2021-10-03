@@ -80,6 +80,7 @@ pub enum CommOutput {
     PrintBoard,
     PrintHistory,
     PrintHelp,
+    PrintEval(i16, i16),
 }
 
 // This is the list of commands the engine understands. Information coming
