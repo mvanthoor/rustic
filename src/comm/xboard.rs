@@ -172,6 +172,8 @@ impl XBoard {
                     // CommOutput::SearchStats(stats) => XBoard::search_stats(&stats),
                     // CommOutput::InfoString(msg) => XBoard::info_string(&msg),
                     // CommOutput::BestMove(bm) => XBoard::best_move(&bm),
+                    //
+                    CommOutput::Pong(v) => println!("pong {}", v),
                     CommOutput::Quit => quit = true, // terminates the output thread.
 
                     // Custom prints for use in the console.
@@ -208,7 +210,7 @@ impl XBoard {
             // cmd if cmd == "stop" => CommReceived::Stop,
             // cmd if cmd.starts_with("setoption") => XBoard::parse_setoption(&cmd),
             // cmd if cmd.starts_with("position") => XBoard::parse_position(&cmd),
-            // cmd if cmd.starts_with("go") => XBoard::parse_go(&cmd),
+            cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommReceived::Quit,
 
             // Custom commands
@@ -218,6 +220,17 @@ impl XBoard {
             cmd if cmd == "help" => CommReceived::Help,
 
             // Everything else is ignored.
+            _ => CommReceived::Unknown,
+        }
+    }
+
+    fn parse_key_value_pair(cmd: &str) -> CommReceived {
+        const KEY: usize = 0;
+        const VALUE: usize = 1;
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_lowercase()).collect();
+
+        match &parts[KEY][..] {
+            "ping" => CommReceived::Ping(parts[VALUE].parse::<u8>().unwrap_or(0)),
             _ => CommReceived::Unknown,
         }
     }
@@ -261,82 +274,6 @@ impl XBoard {
         }
         CommReceived::Position(fen.trim().to_string(), moves)
     }
-
-    fn parse_go(cmd: &str) -> CommReceived {
-        enum Tokens {
-            Nothing,
-            Depth,
-            Nodes,
-            MoveTime,
-            WTime,
-            BTime,
-            WInc,
-            BInc,
-            MovesToGo,
-        }
-
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommReceived::Unknown;
-        let mut token = Tokens::Nothing;
-        let mut game_time = GameTime::new(0, 0, 0, 0, None);
-
-        for p in parts {
-            match p {
-                t if t == "go" => comm_received = CommReceived::GoInfinite,
-                t if t == "infinite" => break, // Already Infinite; nothing more to do.
-                t if t == "depth" => token = Tokens::Depth,
-                t if t == "movetime" => token = Tokens::MoveTime,
-                t if t == "nodes" => token = Tokens::Nodes,
-                t if t == "wtime" => token = Tokens::WTime,
-                t if t == "btime" => token = Tokens::BTime,
-                t if t == "winc" => token = Tokens::WInc,
-                t if t == "binc" => token = Tokens::BInc,
-                t if t == "movestogo" => token = Tokens::MovesToGo,
-                _ => match token {
-                    Tokens::Nothing => (),
-                    Tokens::Depth => {
-                        let depth = p.parse::<i8>().unwrap_or(1);
-                        comm_received = CommReceived::GoDepth(depth);
-                        break; // break for-loop: nothing more to do.
-                    }
-                    Tokens::MoveTime => {
-                        let milliseconds = p.parse::<u128>().unwrap_or(1000);
-                        comm_received = CommReceived::GoMoveTime(milliseconds);
-                        break; // break for-loop: nothing more to do.
-                    }
-                    Tokens::Nodes => {
-                        let nodes = p.parse::<usize>().unwrap_or(1);
-                        comm_received = CommReceived::GoNodes(nodes);
-                        break; // break for-loop: nothing more to do.
-                    }
-                    Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
-                    Tokens::BTime => game_time.btime = p.parse::<u128>().unwrap_or(0),
-                    Tokens::WInc => game_time.winc = p.parse::<u128>().unwrap_or(0),
-                    Tokens::BInc => game_time.binc = p.parse::<u128>().unwrap_or(0),
-                    Tokens::MovesToGo => {
-                        game_time.moves_to_go = if let Ok(x) = p.parse::<usize>() {
-                            Some(x)
-                        } else {
-                            None
-                        }
-                    }
-                }, // end match token
-            } // end match p
-        } // end for
-
-        // If we are still in the default "go infinite" mode, we must
-        // switch to GameTime mode if at least one parameter of "go wtime
-        // btime winc binc" was set to something else but 0.
-        let is_default_mode = comm_received == CommReceived::GoInfinite;
-        let has_time = game_time.wtime > 0 || game_time.btime > 0;
-        let has_inc = game_time.winc > 0 || game_time.binc > 0;
-        let is_game_time = has_time || has_inc;
-        if is_default_mode && is_game_time {
-            comm_received = CommReceived::GoGameTime(game_time);
-        }
-
-        comm_received
-    } // end parse_go()
 
     fn parse_setoption(cmd: &str) -> CommReceived {
         enum Tokens {

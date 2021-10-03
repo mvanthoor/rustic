@@ -178,6 +178,9 @@ impl Uci {
                     CommOutput::PrintBoard => Uci::print_board(&t_board),
                     CommOutput::PrintHistory => Uci::print_history(&t_board),
                     CommOutput::PrintHelp => Uci::print_help(),
+
+                    // Ignore all others
+                    _ => (),
                 }
             }
         });

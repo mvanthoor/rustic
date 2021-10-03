@@ -126,6 +126,8 @@ impl Engine {
             CommReceived::Stop => self.search.send(SearchControl::Stop),
             CommReceived::Quit => self.quit(),
 
+            CommReceived::Ping(value) => self.comm.send(CommOutput::Pong(*value)),
+
             // Custom commands
             CommReceived::Board => self.comm.send(CommOutput::PrintBoard),
             CommReceived::History => self.comm.send(CommOutput::PrintHistory),
