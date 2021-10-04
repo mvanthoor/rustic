@@ -142,7 +142,7 @@ impl XBoard {
     // engine is able to understand and react to.
     fn create_comm_received(input: &str) -> CommInput {
         // Trim CR/LF so only the usable characters remain.
-        let i = input.trim_end().to_string();
+        let i = input.trim_end().to_lowercase();
 
         // Convert to &str for matching the command.
         match i {
@@ -165,7 +165,7 @@ impl XBoard {
     fn parse_key_value_pair(cmd: &str) -> CommInput {
         const KEY: usize = 0;
         const VALUE: usize = 1;
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_lowercase()).collect();
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
 
         match &parts[KEY][..] {
             "ping" => {
