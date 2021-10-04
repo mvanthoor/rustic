@@ -159,7 +159,7 @@ impl Uci {
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
-            cmd if cmd == "quit" || cmd == "exit" || cmd.is_empty() => CommInput::Quit,
+            cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands
             cmd if cmd == "board" => CommInput::Board,

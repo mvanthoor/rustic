@@ -65,7 +65,6 @@ impl Shared {
         println!("board     :   Print the current board state.");
         println!("history   :   Print a list of past board states.");
         println!("eval      :   Print evaluation for side to move.");
-        println!("exit      :   Quit/Exit the engine.");
         println!();
     }
 }
