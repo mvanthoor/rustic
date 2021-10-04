@@ -167,7 +167,7 @@ impl XBoard {
 
         match &parts[KEY][..] {
             "ping" => {
-                let value = parts[VALUE].parse::<u8>().unwrap_or(0);
+                let value = parts[VALUE].parse::<i8>().unwrap_or(0);
                 CommInput::XBoard(XBoardInput::Ping(value))
             }
 
@@ -195,7 +195,7 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::XBoard(XBoardOutput::Pong(v)) => println!("pong {}", v),
+                    CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -217,4 +217,8 @@ impl XBoard {
 }
 
 // Implement sending/response functions
-impl XBoard {}
+impl XBoard {
+    fn pong(value: i8) {
+        println!("pong {}", value)
+    }
+}

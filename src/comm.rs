@@ -63,7 +63,7 @@ pub enum UciOutput {
 }
 
 pub enum XBoardOutput {
-    Pong(u8),
+    Pong(i8),
 }
 
 pub enum CommOutput {
@@ -104,7 +104,7 @@ pub enum UciInput {
 
 #[derive(PartialEq, Clone)]
 pub enum XBoardInput {
-    Ping(u8),
+    Ping(i8),
 }
 
 #[derive(PartialEq, Clone)]
