@@ -351,11 +351,11 @@ impl Uci {
                         Uci::uciok();
                     }
                     CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
+                    CommOutput::Uci(UciOutput::InfoString(msg)) => Uci::info_string(&msg),
                     CommOutput::Quit => quit = true, // terminates the output thread.
                     CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOutput::InfoString(msg) => Uci::info_string(&msg),
                     CommOutput::BestMove(bm) => Uci::best_move(&bm),
 
                     // Custom prints for use in the console.

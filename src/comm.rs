@@ -57,8 +57,9 @@ pub trait IComm {
 #[derive(PartialEq)]
 
 pub enum UciOutput {
-    Identify, // Transmit identification of the engine.
-    Ready,    // Transmit that the engine is ready.
+    Identify,           // Transmit identification of the engine.
+    Ready,              // Transmit that the engine is ready.
+    InfoString(String), // Transmit general information.
 }
 
 pub enum XBoardOutput {
@@ -74,7 +75,6 @@ pub enum CommOutput {
     SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.
-    InfoString(String),                // Transmit general information.
     Quit,                              // Terminates the output thread.
 
     // Output to screen when running in a terminal window.
