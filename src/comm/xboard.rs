@@ -147,6 +147,8 @@ impl XBoard {
         // Convert to &str for matching the command.
         match i {
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
+            cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
             cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands

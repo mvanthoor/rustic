@@ -105,6 +105,8 @@ pub enum UciInput {
 #[derive(PartialEq, Clone)]
 pub enum XBoardInput {
     Ping(i8),
+    Analyze,
+    Exit,
 }
 
 #[derive(PartialEq, Clone)]

@@ -24,14 +24,24 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
     engine::Engine,
+    search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
 impl Engine {
     pub fn xboard_handler(&mut self, command: &XBoardInput) {
+        let mut sp = SearchParams::new();
+
         match command {
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
+
+            XBoardInput::Analyze => {
+                sp.search_mode = SearchMode::Infinite;
+                self.search.send(SearchControl::Start(sp));
+            }
+
+            XBoardInput::Exit => self.search.send(SearchControl::Stop),
         }
     }
 }
