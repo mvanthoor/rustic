@@ -34,6 +34,8 @@ use crate::{
 impl Search {
     pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
         // We created a new node which we'll search, so count it.
+        // (Alpha/beta compensates by subtracting 1 node just before
+        // entering qsearch, to prevent counting the first note twice.)
         refs.search_info.nodes += 1;
 
         // No intermediate stats updates if quiet.

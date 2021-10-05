@@ -45,6 +45,9 @@ impl Search {
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
         let mut do_pvs = false; // Used for PVS (Principal Variation Search)
 
+        // We created another node, so count it.
+        refs.search_info.nodes += 1;
+
         // Check if termination condition is met.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
             Search::check_termination(refs);
@@ -75,13 +78,15 @@ impl Search {
         }
 
         // We have arrived at the leaf node. Evaluate the position and
-        // return the result.
+        // return the result. QSearch counts the nodes it hits, just like
+        // alpha/beta. When first entering QSearch, we are still in _this_
+        // node, which was already counted at the top of alpha/beta. To
+        // prevent counting double nodes, we have to subtract 1 just before
+        // entering QSearch.
         if depth <= 0 {
+            refs.search_info.nodes -= 1;
             return Search::quiescence(alpha, beta, pv, refs);
         }
-
-        // Count this node, as it is not aborted or searched by QSearch.
-        refs.search_info.nodes += 1;
 
         // Variables to hold TT value and move if any.
         let mut tt_value: Option<i16> = None;
