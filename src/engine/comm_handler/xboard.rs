@@ -23,18 +23,29 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
-    engine::Engine,
+    engine::{defs::ErrFatal, Engine},
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
 impl Engine {
     pub fn xboard_handler(&mut self, command: &XBoardInput) {
+        const PROTOCOL_VERSION: u8 = 2;
         let mut sp = SearchParams::new();
 
         match command {
+            XBoardInput::XBoard => self.comm.send(CommOutput::XBoard(XBoardOutput::NewLine)),
+            XBoardInput::ProtoVer(n) => {
+                if *n == PROTOCOL_VERSION {
+                    self.comm
+                        .send(CommOutput::XBoard(XBoardOutput::SendFeatures));
+                }
+            }
+
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
+
+            XBoardInput::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 
             XBoardInput::Analyze => {
                 sp.search_mode = SearchMode::Infinite;

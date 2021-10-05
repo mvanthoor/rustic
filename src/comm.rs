@@ -63,6 +63,8 @@ pub enum UciOutput {
 }
 
 pub enum XBoardOutput {
+    NewLine,
+    SendFeatures,
     Pong(i8),
 }
 
@@ -104,7 +106,10 @@ pub enum UciInput {
 
 #[derive(PartialEq, Clone)]
 pub enum XBoardInput {
+    XBoard,
+    ProtoVer(u8),
     Ping(i8),
+    Memory(usize),
     Analyze,
     Exit,
 }

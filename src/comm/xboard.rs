@@ -26,6 +26,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{shared::Shared, CommInput, CommOutput, CommType, IComm, XBoardInput, XBoardOutput};
 use crate::{
     board::Board,
+    defs::About,
     engine::defs::{EngineOption, ErrFatal, Information},
 };
 use crossbeam_channel::{self, Sender};
@@ -34,6 +35,15 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
+
+const FEATURES: [&str; 6] = [
+    "ping=1",
+    "memory=1",
+    "setboard=1",
+    "debug=1",
+    "sigint=0",
+    "sigterm=0",
+];
 
 // This struct is used to instantiate the Comm Console module.
 pub struct XBoard {
@@ -146,7 +156,10 @@ impl XBoard {
 
         // Convert to &str for matching the command.
         match i {
+            cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
             cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
             cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
@@ -167,13 +180,27 @@ impl XBoard {
         const VALUE: usize = 1;
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
 
-        match &parts[KEY][..] {
-            "ping" => {
-                let value = parts[VALUE].parse::<i8>().unwrap_or(0);
-                CommInput::XBoard(XBoardInput::Ping(value))
-            }
+        // Key-value pair has to have two parts. Ignore anything else after
+        // the second part.
+        if parts.len() >= 2 {
+            match &parts[KEY][..] {
+                "ping" => {
+                    let value = parts[VALUE].parse::<i8>().unwrap_or(0);
+                    CommInput::XBoard(XBoardInput::Ping(value))
+                }
+                "protover" => {
+                    let value = parts[VALUE].parse::<u8>().unwrap_or(0);
+                    CommInput::XBoard(XBoardInput::ProtoVer(value))
+                }
+                "memory" => {
+                    let value = parts[VALUE].parse::<usize>().unwrap_or(0);
+                    CommInput::XBoard(XBoardInput::Memory(value))
+                }
 
-            _ => CommInput::Unknown,
+                _ => CommInput::Unknown,
+            }
+        } else {
+            CommInput::Unknown
         }
     }
 }
@@ -197,6 +224,8 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
+                    CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
+                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::send_features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::Quit => quit = true,
 
@@ -220,6 +249,21 @@ impl XBoard {
 
 // Implement sending/response functions
 impl XBoard {
+    fn new_line() {
+        println!("\n");
+    }
+
+    fn send_features() {
+        println!("feature done=0");
+        println!("feature myname=\"{} {}\"", About::ENGINE, About::VERSION);
+
+        for f in FEATURES {
+            println!("feature {}", f);
+        }
+
+        println!("feature done=1");
+    }
+
     fn pong(value: i8) {
         println!("pong {}", value)
     }
