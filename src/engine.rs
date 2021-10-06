@@ -31,7 +31,7 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{uci::Uci, xboard::XBoard, CommOutput, CommType, IComm},
+    comm::{CommOutput, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
     engine::defs::{
         EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,

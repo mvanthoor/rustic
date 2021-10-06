@@ -22,17 +22,20 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 mod shared;
-pub mod uci;
-pub mod xboard;
+mod uci;
+mod xboard;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineSetOption, Information},
+    engine::defs::{EngineOption, Information},
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
+
+pub use uci::{Uci, UciInput, UciOutput};
+pub use xboard::{XBoard, XBoardInput, XBoardOutput};
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;
@@ -54,66 +57,6 @@ pub trait IComm {
     fn get_protocol_name(&self) -> &'static str;
 }
 
-#[derive(PartialEq)]
-
-pub enum UciOutput {
-    Identify,           // Transmit identification of the engine.
-    Ready,              // Transmit that the engine is ready.
-    InfoString(String), // Transmit general information.
-}
-
-pub enum XBoardOutput {
-    NewLine,
-    SendFeatures,
-    Pong(i8),
-}
-
-pub enum CommOutput {
-    Uci(UciOutput),
-    XBoard(XBoardOutput),
-
-    // Common output for all protocols
-    BestMove(Move),                    // Transmit the engine's best move.
-    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
-    SearchSummary(SearchSummary),      // Transmit search information.
-    SearchStats(SearchStats),          // Transmit search Statistics.
-    Quit,                              // Terminates the output thread.
-
-    // Output to screen when running in a terminal window.
-    PrintBoard,
-    PrintHistory,
-    PrintHelp,
-    PrintEval(i16, i16),
-}
-
-// This is the list of commands the engine understands. Information coming
-// in through the Comm module is turned into one of these commands which
-// will then be sent to the engine thread.
-#[derive(PartialEq, Clone)]
-pub enum UciInput {
-    Identification,
-    NewGame,
-    IsReady,
-    SetOption(EngineSetOption),
-    Position(String, Vec<String>),
-    GoInfinite,
-    GoDepth(i8),
-    GoMoveTime(u128),
-    GoNodes(usize),
-    GoGameTime(GameTime),
-    Stop,
-}
-
-#[derive(PartialEq, Clone)]
-pub enum XBoardInput {
-    XBoard,
-    ProtoVer(u8),
-    Ping(i8),
-    Memory(usize),
-    Analyze,
-    Exit,
-}
-
 #[derive(PartialEq, Clone)]
 pub enum CommInput {
     Uci(UciInput),
@@ -128,4 +71,23 @@ pub enum CommInput {
     History,
     Eval,
     Help,
+}
+
+pub enum CommOutput {
+    Uci(UciOutput),
+    XBoard(XBoardOutput),
+
+    // Common output for all protocols
+    BestMove(Move),                    // Transmit the engine's best move.
+    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
+    SearchSummary(SearchSummary),      // Transmit search information.
+    SearchStats(SearchStats),          // Transmit search Statistics.
+    Message(String),                   // Transmits a message to the GUI
+    Quit,                              // Terminates the output thread.
+
+    // Output to screen when running in a terminal window.
+    PrintBoard,
+    PrintHistory,
+    PrintHelp,
+    PrintEval(i16, i16),
 }

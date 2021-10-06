@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{shared::Shared, CommInput, CommOutput, CommType, IComm, UciInput, UciOutput};
+use super::{shared::Shared, CommInput, CommOutput, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
@@ -39,6 +39,28 @@ use std::{
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
+
+#[derive(PartialEq, Clone)]
+pub enum UciInput {
+    Identification,
+    NewGame,
+    IsReady,
+    SetOption(EngineSetOption),
+    Position(String, Vec<String>),
+    GoInfinite,
+    GoDepth(i8),
+    GoMoveTime(u128),
+    GoNodes(usize),
+    GoGameTime(GameTime),
+    Stop,
+}
+
+#[derive(PartialEq)]
+pub enum UciOutput {
+    Identify,           // Transmit identification of the engine.
+    Ready,              // Transmit that the engine is ready.
+    InfoString(String), // Transmit general information.
+}
 
 // This struct is used to instantiate the Comm Console module.
 pub struct Uci {

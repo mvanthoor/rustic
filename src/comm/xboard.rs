@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication module.
 
-use super::{shared::Shared, CommInput, CommOutput, CommType, IComm, XBoardInput, XBoardOutput};
+use super::{shared::Shared, CommInput, CommOutput, CommType, IComm};
 use crate::{
     board::Board,
     defs::About,
@@ -50,6 +50,23 @@ pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
     output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
+}
+
+#[derive(PartialEq, Clone)]
+pub enum XBoardInput {
+    XBoard,
+    ProtoVer(u8),
+    SetBoard(String),
+    Ping(i8),
+    Memory(usize),
+    Analyze,
+    Exit,
+}
+
+pub enum XBoardOutput {
+    NewLine,
+    SendFeatures,
+    Pong(i8),
 }
 
 // Public functions
@@ -159,6 +176,7 @@ impl XBoard {
             cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
             cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
@@ -203,6 +221,11 @@ impl XBoard {
             CommInput::Unknown
         }
     }
+
+    fn parse_setboard(cmd: &str) -> CommInput {
+        let fen = cmd.replace("setboard", "").trim().to_string();
+        CommInput::XBoard(XBoardInput::SetBoard(fen))
+    }
 }
 
 // Implement the output thread
@@ -227,6 +250,7 @@ impl XBoard {
                     CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
                     CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::send_features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
+                    CommOutput::Message(msg) => XBoard::send_message(msg),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -266,5 +290,9 @@ impl XBoard {
 
     fn pong(value: i8) {
         println!("pong {}", value)
+    }
+
+    fn send_message(msg: String) {
+        println!("{}", msg);
     }
 }
