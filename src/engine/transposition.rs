@@ -271,18 +271,20 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
-    // Resizes the TT by replacing the current TT with a
-    // new one. (We don't use Vec's resize function, because it clones
-    // elements. This can be problematic if TT sizes push the
-    // computer's memory limits.)
+    // Resize the TT if the incoming size is different from the current
+    // one; otherwise just clear the TT.
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_entries, total_buckets) = TT::<D>::calculate_init_values(megabytes);
+        if self.megabytes != megabytes {
+            let (total_entries, total_buckets) = TT::<D>::calculate_init_values(megabytes);
 
-        self.tt = vec![Entry::<D>::new(); total_entries];
-        self.megabytes = megabytes;
-        self.used_buckets = 0;
-        self.total_entries = total_entries;
-        self.total_buckets = total_buckets;
+            self.tt = vec![Entry::<D>::new(); total_entries];
+            self.megabytes = megabytes;
+            self.used_buckets = 0;
+            self.total_entries = total_entries;
+            self.total_buckets = total_buckets;
+        } else {
+            self.clear();
+        }
     }
 
     // Insert a position at the calculated index, by storing it in the
