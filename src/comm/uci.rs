@@ -42,8 +42,8 @@ use std::{
 
 #[derive(PartialEq, Clone)]
 pub enum UciInput {
-    Identification,
-    NewGame,
+    Uci,
+    UciNewGame,
     IsReady,
     SetOption(EngineSetOption),
     Position(String, Vec<String>),
@@ -57,7 +57,7 @@ pub enum UciInput {
 
 #[derive(PartialEq)]
 pub enum UciOutput {
-    Identify,           // Transmit identification of the engine.
+    Identify,           // Transmit Uci of the engine.
     Ready,              // Transmit that the engine is ready.
     InfoString(String), // Transmit general information.
 }
@@ -174,8 +174,8 @@ impl Uci {
         // Convert to &str for matching the command.
         match i {
             // UCI commands
-            cmd if cmd == "uci" => CommInput::Uci(UciInput::Identification),
-            cmd if cmd == "ucinewgame" => CommInput::Uci(UciInput::NewGame),
+            cmd if cmd == "uci" => CommInput::Uci(UciInput::Uci),
+            cmd if cmd == "uciUciNewGame" => CommInput::Uci(UciInput::UciNewGame),
             cmd if cmd == "isready" => CommInput::Uci(UciInput::IsReady),
             cmd if cmd == "stop" => CommInput::Uci(UciInput::Stop),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),

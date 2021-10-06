@@ -38,9 +38,9 @@ impl Engine {
         sp.quiet = self.settings.quiet;
 
         match command {
-            UciInput::Identification => self.comm.send(CommOutput::Uci(UciOutput::Identify)),
+            UciInput::Uci => self.comm.send(CommOutput::Uci(UciOutput::Identify)),
 
-            UciInput::NewGame => {
+            UciInput::UciNewGame => {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
