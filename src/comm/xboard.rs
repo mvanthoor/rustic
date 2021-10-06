@@ -56,6 +56,7 @@ pub struct XBoard {
 pub enum XBoardInput {
     XBoard,
     ProtoVer(u8),
+    New,
     SetBoard(String),
     UserMove(String),
     Ping(i8),
@@ -176,6 +177,7 @@ impl XBoard {
         // Convert to &str for matching the command.
         match i {
             cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
+            cmd if cmd == "new" => CommInput::XBoard(XBoardInput::New),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),

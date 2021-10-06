@@ -23,6 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
+    defs::FEN_START_POSITION,
     engine::{defs::ErrFatal, Engine},
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
@@ -34,11 +35,21 @@ impl Engine {
 
         match command {
             XBoardInput::XBoard => self.comm.send(CommOutput::XBoard(XBoardOutput::NewLine)),
+
             XBoardInput::ProtoVer(n) => {
                 if *n == PROTOCOL_VERSION {
                     self.comm
                         .send(CommOutput::XBoard(XBoardOutput::SendFeatures));
                 }
+            }
+
+            XBoardInput::New => {
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_read(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
             XBoardInput::SetBoard(fen) => {
