@@ -49,6 +49,14 @@ impl Engine {
                 }
             }
 
+            XBoardInput::UserMove(m) => {
+                let ok = self.execute_move(m.clone());
+                if !ok {
+                    let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));
+                    self.comm.send(illegal_move);
+                }
+            }
+
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),

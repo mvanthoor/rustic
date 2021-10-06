@@ -57,6 +57,7 @@ pub enum XBoardInput {
     XBoard,
     ProtoVer(u8),
     SetBoard(String),
+    UserMove(String),
     Ping(i8),
     Memory(usize),
     Analyze,
@@ -66,6 +67,7 @@ pub enum XBoardInput {
 pub enum XBoardOutput {
     NewLine,
     SendFeatures,
+    IllegalMove(String),
     Pong(i8),
 }
 
@@ -177,6 +179,7 @@ impl XBoard {
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
+            cmd if cmd.starts_with("usermove") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
             cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
@@ -188,8 +191,8 @@ impl XBoard {
             cmd if cmd == "eval" => CommInput::Eval,
             cmd if cmd == "help" => CommInput::Help,
 
-            // Everything else is ignored.
-            _ => CommInput::Unknown,
+            // Assume anything else is a move, such as e2e4.
+            _ => CommInput::XBoard(XBoardInput::UserMove(i)),
         }
     }
 
@@ -213,6 +216,10 @@ impl XBoard {
                 "memory" => {
                     let value = parts[VALUE].parse::<usize>().unwrap_or(0);
                     CommInput::XBoard(XBoardInput::Memory(value))
+                }
+                "usermove" => {
+                    let value = parts[VALUE].to_lowercase();
+                    CommInput::XBoard(XBoardInput::UserMove(value))
                 }
 
                 _ => CommInput::Unknown,
@@ -250,6 +257,7 @@ impl XBoard {
                     CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
                     CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::send_features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
+                    CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::Message(msg) => XBoard::send_message(msg),
                     CommOutput::Quit => quit = true,
 
@@ -294,5 +302,9 @@ impl XBoard {
 
     fn send_message(msg: String) {
         println!("{}", msg);
+    }
+
+    fn illegal_move(m: String) {
+        println!("Illegal move: {}", m);
     }
 }
