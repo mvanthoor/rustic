@@ -59,6 +59,7 @@ pub enum XBoardInput {
     New,
     SetBoard(String),
     UserMove(String),
+    Go,
     Ping(i8),
     Memory(usize),
     Analyze,
@@ -178,6 +179,7 @@ impl XBoard {
         match i {
             cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
             cmd if cmd == "new" => CommInput::XBoard(XBoardInput::New),
+            cmd if cmd == "go" => CommInput::XBoard(XBoardInput::Go),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),

@@ -68,6 +68,11 @@ impl Engine {
                 }
             }
 
+            XBoardInput::Go => {
+                sp.search_mode = SearchMode::Infinite;
+                self.search.send(SearchControl::Start(sp));
+            }
+
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
