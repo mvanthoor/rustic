@@ -73,6 +73,8 @@ impl Engine {
                 self.search.send(SearchControl::Start(sp));
             }
 
+            XBoardInput::MoveNow => self.search.send(SearchControl::Stop),
+
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),

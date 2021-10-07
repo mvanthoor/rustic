@@ -28,6 +28,8 @@ use crate::{
     board::Board,
     defs::About,
     engine::defs::{EngineOption, ErrFatal, Information},
+    movegen::defs::Move,
+    search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -36,11 +38,13 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-const FEATURES: [&str; 6] = [
+const BASIC_FEATURES: [&str; 8] = [
     "ping=1",
     "memory=1",
     "setboard=1",
     "debug=1",
+    "usermove=1",
+    "draw=0",
     "sigint=0",
     "sigterm=0",
 ];
@@ -60,6 +64,7 @@ pub enum XBoardInput {
     SetBoard(String),
     UserMove(String),
     Go,
+    MoveNow,
     Ping(i8),
     Memory(usize),
     Analyze,
@@ -180,6 +185,7 @@ impl XBoard {
             cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
             cmd if cmd == "new" => CommInput::XBoard(XBoardInput::New),
             cmd if cmd == "go" => CommInput::XBoard(XBoardInput::Go),
+            cmd if cmd == "?" => CommInput::XBoard(XBoardInput::MoveNow),
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
@@ -195,8 +201,8 @@ impl XBoard {
             cmd if cmd == "eval" => CommInput::Eval,
             cmd if cmd == "help" => CommInput::Help,
 
-            // Assume anything else is a move, such as e2e4.
-            _ => CommInput::XBoard(XBoardInput::UserMove(i)),
+            // Ignore anything else.
+            _ => CommInput::Unknown,
         }
     }
 
@@ -250,7 +256,9 @@ impl XBoard {
         let output_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
+
+            // Engine options are not used by XBoard at this point.
+            let _t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -259,10 +267,12 @@ impl XBoard {
                 // Perform command as sent by the engine thread.
                 match output {
                     CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
-                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::send_features(),
+                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
-                    CommOutput::Message(msg) => XBoard::send_message(msg),
+                    CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
+                    CommOutput::Message(msg) => XBoard::message(msg),
+                    CommOutput::BestMove(m) => XBoard::best_move(m),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -289,11 +299,11 @@ impl XBoard {
         println!("\n");
     }
 
-    fn send_features() {
+    fn features() {
         println!("feature done=0");
         println!("feature myname=\"{} {}\"", About::ENGINE, About::VERSION);
 
-        for f in FEATURES {
+        for f in BASIC_FEATURES {
             println!("feature {}", f);
         }
 
@@ -304,8 +314,23 @@ impl XBoard {
         println!("pong {}", value)
     }
 
-    fn send_message(msg: String) {
+    fn message(msg: String) {
         println!("{}", msg);
+    }
+
+    fn best_move(m: Move) {
+        println!("move {}", m.as_string());
+    }
+
+    fn search_summary(s: &SearchSummary) {
+        println!(
+            "{} {} {} {} {}",
+            s.depth,
+            s.cp,
+            (s.time as f64 / 10.0).round(),
+            s.nodes,
+            s.pv_as_string()
+        );
     }
 
     fn illegal_move(m: String) {
