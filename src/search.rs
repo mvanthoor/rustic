@@ -123,12 +123,15 @@ impl Search {
                     // Start the search using Iterative Deepening.
                     let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
 
-                    // Inform the engine that the search has finished.
-                    let information = Information::Search(SearchReport::Finished(best_move));
-                    t_report_tx.send(information).expect(ErrFatal::CHANNEL);
-
+                    // Only send a best move to the engine when the search
+                    // was stopped. Don't send on exit or quit.
                     match terminate {
-                        SearchTerminate::Stop | SearchTerminate::Exit => halt = true,
+                        SearchTerminate::Stop => {
+                            let i = Information::Search(SearchReport::Finished(best_move));
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                            halt = true;
+                        }
+                        SearchTerminate::Exit => halt = true,
                         SearchTerminate::Quit => quit = true,
                         SearchTerminate::Nothing => (),
                     }
