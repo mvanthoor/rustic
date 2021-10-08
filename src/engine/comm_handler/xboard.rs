@@ -86,7 +86,7 @@ impl Engine {
                 self.search.send(SearchControl::Start(sp));
             }
 
-            XBoardInput::Exit => self.search.send(SearchControl::Stop),
+            XBoardInput::Exit => self.search.send(SearchControl::Exit),
         }
     }
 }

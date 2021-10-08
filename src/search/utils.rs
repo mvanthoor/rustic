@@ -86,6 +86,7 @@ impl Search {
         let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
             SearchControl::Stop => refs.search_info.terminate = SearchTerminate::Stop,
+            SearchControl::Exit => refs.search_info.terminate = SearchTerminate::Exit,
             SearchControl::Quit => refs.search_info.terminate = SearchTerminate::Quit,
             SearchControl::Start(_) | SearchControl::Nothing => (),
         };

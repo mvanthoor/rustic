@@ -96,7 +96,7 @@ impl Search {
                         halt = false; // This will start the search.
                     }
                     SearchControl::Quit => quit = true,
-                    SearchControl::Nothing | SearchControl::Stop => (),
+                    SearchControl::Stop | SearchControl::Exit | SearchControl::Nothing => (),
                 }
 
                 // Search isn't halted and not going to quit.
@@ -128,9 +128,9 @@ impl Search {
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);
 
                     match terminate {
-                        SearchTerminate::Stop => halt = true, // stops the search
-                        SearchTerminate::Quit => quit = true, // quits the thread
-                        SearchTerminate::Nothing => (),       // Keep running
+                        SearchTerminate::Stop | SearchTerminate::Exit => halt = true,
+                        SearchTerminate::Quit => quit = true,
+                        SearchTerminate::Nothing => (),
                     }
                 }
             }
