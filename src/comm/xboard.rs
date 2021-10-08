@@ -38,6 +38,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+const PROTOCOL_NAME: &str = "XBoard";
 const BASIC_FEATURES: [&str; 8] = [
     "ping=1",
     "memory=1",
@@ -125,9 +126,12 @@ impl IComm for XBoard {
         }
     }
 
-    // This function just returns the name of the communication protocol.
-    fn get_protocol_name(&self) -> &'static str {
-        CommType::XBOARD
+    fn info(&self) -> CommType {
+        CommType {
+            protocol: String::from(PROTOCOL_NAME),
+            stateful: true,
+            fancy_about: false,
+        }
     }
 }
 
@@ -281,7 +285,7 @@ impl XBoard {
                     CommOutput::PrintBoard => Shared::print_board(&t_board),
                     CommOutput::PrintHistory => Shared::print_history(&t_board),
                     CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
-                    CommOutput::PrintHelp => Shared::print_help(CommType::XBOARD),
+                    CommOutput::PrintHelp => Shared::print_help(PROTOCOL_NAME),
 
                     // Ignore everything else
                     _ => (),

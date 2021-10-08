@@ -38,10 +38,27 @@ pub use uci::{Uci, UciInput, UciOutput};
 pub use xboard::{XBoard, XBoardInput, XBoardOutput};
 
 // These are the types of communication the engine is capable of.
-pub struct CommType;
+pub struct CommType {
+    protocol: String,
+    stateful: bool,
+    fancy_about: bool,
+}
+
 impl CommType {
-    pub const XBOARD: &'static str = "xboard";
     pub const UCI: &'static str = "uci";
+    pub const XBOARD: &'static str = "xboard";
+
+    pub fn protocol(&self) -> String {
+        self.protocol.clone()
+    }
+
+    pub fn stateful(&self) -> bool {
+        self.stateful
+    }
+
+    pub fn fancy_about(&self) -> bool {
+        self.fancy_about
+    }
 }
 
 // Defines the public functions a Comm module must implement.
@@ -54,7 +71,7 @@ pub trait IComm {
     );
     fn send(&self, msg: CommOutput);
     fn wait_for_shutdown(&mut self);
-    fn get_protocol_name(&self) -> &'static str;
+    fn info(&self) -> CommType;
 }
 
 #[derive(PartialEq, Clone)]

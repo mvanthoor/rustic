@@ -43,7 +43,7 @@ impl Engine {
     }
 
     // Print information about the engine.
-    pub fn print_about(&self, s: &Settings) {
+    pub fn print_fancy_about(&self, s: &Settings, protocol: String) {
         let bits = std::mem::size_of::<usize>() * 8;
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
         println!("{:<10} {}", "Author:", About::AUTHOR);
@@ -51,6 +51,7 @@ impl Engine {
         println!("{:<10} {}", "Website:", About::WEBSITE);
         println!("{:<10} {}-bit", "Type:", bits);
         println!("{:<10} {} MB", "TT size:", s.tt_size);
+        println!("{:<10} {}", "Protocol:", protocol);
 
         if s.threads == 1 {
             println!("{:<10} {}", "Threads:", s.threads)
@@ -62,13 +63,14 @@ impl Engine {
         println!("{}", NOTICE_DEBUG_MODE);
     }
 
-    pub fn print_xboard_greeting(&self) {
+    pub fn print_simple_about(&self, protocol: String) {
         println!(
-            "{} {} | {} <{}> | xboard",
+            "{} {} | {} <{}> | {}",
             About::ENGINE,
             About::VERSION,
             About::AUTHOR,
-            About::EMAIL
+            About::EMAIL,
+            protocol
         );
 
         #[cfg(debug_assertions)]

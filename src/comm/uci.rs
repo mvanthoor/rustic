@@ -40,6 +40,8 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+const PROTOCOL_NAME: &str = "UCI";
+
 #[derive(PartialEq, Clone)]
 pub enum UciInput {
     Uci,
@@ -115,9 +117,12 @@ impl IComm for Uci {
         }
     }
 
-    // This function just returns the name of the communication protocol.
-    fn get_protocol_name(&self) -> &'static str {
-        CommType::UCI
+    fn info(&self) -> CommType {
+        CommType {
+            protocol: String::from("UCI"),
+            stateful: false,
+            fancy_about: true,
+        }
     }
 }
 
@@ -384,7 +389,7 @@ impl Uci {
                     CommOutput::PrintBoard => Shared::print_board(&t_board),
                     CommOutput::PrintHistory => Shared::print_history(&t_board),
                     CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
-                    CommOutput::PrintHelp => Shared::print_help(CommType::UCI),
+                    CommOutput::PrintHelp => Shared::print_help(PROTOCOL_NAME),
 
                     // Ignore everything else
                     _ => (),
