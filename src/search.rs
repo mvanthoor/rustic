@@ -95,9 +95,8 @@ impl Search {
                         search_params = sp;
                         halt = false; // This will start the search.
                     }
-                    SearchControl::Stop => halt = true,
                     SearchControl::Quit => quit = true,
-                    SearchControl::Nothing => (),
+                    SearchControl::Nothing | SearchControl::Stop => (),
                 }
 
                 // Search isn't halted and not going to quit.
@@ -128,17 +127,10 @@ impl Search {
                     let information = Information::Search(SearchReport::Finished(best_move));
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);
 
-                    // If the search was finished due to a Stop or Quit
-                    // command then either halt or quit the search.
                     match terminate {
-                        SearchTerminate::Stop => {
-                            halt = true;
-                        }
-                        SearchTerminate::Quit => {
-                            halt = true;
-                            quit = true;
-                        }
-                        SearchTerminate::Nothing => (),
+                        SearchTerminate::Stop => halt = true, // stops the search
+                        SearchTerminate::Quit => quit = true, // quits the thread
+                        SearchTerminate::Nothing => (),       // Keep running
                     }
                 }
             }
