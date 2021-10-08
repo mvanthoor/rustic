@@ -24,7 +24,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
     defs::FEN_START_POSITION,
-    engine::{defs::ErrFatal, Engine},
+    engine::{
+        defs::{EngineStatus, ErrFatal},
+        Engine,
+    },
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
@@ -69,11 +72,19 @@ impl Engine {
             }
 
             XBoardInput::Go => {
-                sp.search_mode = SearchMode::Infinite;
+                // Temporarily hardcoded.
+                sp.depth = 12;
+                sp.search_mode = SearchMode::Depth;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            XBoardInput::MoveNow => self.search.send(SearchControl::Stop),
+            // Stops searching and provides the best move so far. This
+            // command is ignored when not searching.
+            XBoardInput::MoveNow => {
+                if self.status == EngineStatus::Searching {
+                    self.search.send(SearchControl::Stop)
+                }
+            }
 
             XBoardInput::Ping(value) => self
                 .comm
@@ -86,7 +97,13 @@ impl Engine {
                 self.search.send(SearchControl::Start(sp));
             }
 
-            XBoardInput::Exit => self.search.send(SearchControl::Exit),
+            // Exits the search/analyze mode without producing a move. This
+            // command is ignored when not analyzing.
+            XBoardInput::Exit => {
+                if self.status == EngineStatus::Analyzing {
+                    self.search.send(SearchControl::Exit)
+                }
+            }
         }
     }
 }
