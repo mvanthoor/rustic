@@ -47,6 +47,8 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use self::defs::SearchMode;
+
 pub struct Search {
     handle: Option<JoinHandle<()>>,
     control_tx: Option<Sender<SearchControl>>,
@@ -93,7 +95,18 @@ impl Search {
                 match cmd {
                     SearchControl::Start(sp) => {
                         search_params = sp;
-                        halt = false; // This will start the search.
+
+                        // Report to the engine if we are analyzing or searching.
+                        if search_params.search_mode == SearchMode::Infinite {
+                            let i = Information::Search(SearchReport::Analyzing);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                        } else if search_params.search_mode != SearchMode::Nothing {
+                            let i = Information::Search(SearchReport::Searching);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                        }
+
+                        // Start searching by disabling "halt"
+                        halt = false;
                     }
                     SearchControl::Quit => quit = true,
                     SearchControl::Stop | SearchControl::Exit | SearchControl::Nothing => (),
@@ -131,7 +144,11 @@ impl Search {
                             t_report_tx.send(i).expect(ErrFatal::CHANNEL);
                             halt = true;
                         }
-                        SearchTerminate::Exit => halt = true,
+                        SearchTerminate::Exit => {
+                            let i = Information::Search(SearchReport::Exited);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                            halt = true
+                        }
                         SearchTerminate::Quit => quit = true,
                         SearchTerminate::Nothing => (),
                     }

@@ -51,9 +51,12 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
+use self::defs::EngineStatus;
+
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
 pub struct Engine {
+    status: EngineStatus,                   // Indicate what the engine is doing
     quit: bool,                             // Flag that will quit the main thread.
     settings: Settings,                     // Struct holding all the settings.
     options: Arc<Vec<EngineOption>>,        // Engine options exported to the GUI
@@ -124,6 +127,7 @@ impl Engine {
 
         // Create the engine itself.
         Self {
+            status: EngineStatus::Idle,
             quit: false,
             settings: Settings {
                 threads,

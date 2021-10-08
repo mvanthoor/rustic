@@ -254,6 +254,9 @@ pub struct SearchRefs<'a> {
 // This struct holds all the reports a search can send to the engine.
 #[derive(PartialEq)]
 pub enum SearchReport {
+    Analyzing,                            // Sent when the engine starts analyzing.
+    Searching,                            // Sent when the engine starts searching.
+    Exited,                               // Search/analysis exited, no move provided.
     Finished(Move),                       // Search done. Contains the best move.
     SearchSummary(SearchSummary),         // Periodic intermediate results.
     SearchCurrentMove(SearchCurrentMove), // Move currently searched.
