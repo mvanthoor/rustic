@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchMode, SearchRefs, SearchResult, INF},
+    defs::{SearchMode, SearchRefs, SearchResult, SearchTerminate, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
 use crate::{defs::MAX_PLY, movegen::defs::Move};
@@ -58,10 +58,16 @@ impl Search {
 
         // Start the search
         refs.search_info.timer_start();
-        while (depth <= MAX_PLY)
-            && (depth <= refs.search_params.depth)
-            && !refs.search_info.interrupted()
-        {
+        while (depth <= MAX_PLY) && !refs.search_info.interrupted() {
+            // Stop the search if we are searching to a specific depth and
+            // we have reached it.
+            if refs.search_params.search_mode == SearchMode::Depth
+                && depth > refs.search_params.depth
+            {
+                refs.search_info.terminate = SearchTerminate::Stop;
+                break;
+            }
+
             // Set the current depth
             refs.search_info.depth = depth;
 

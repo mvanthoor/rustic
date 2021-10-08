@@ -94,11 +94,6 @@ impl Search {
         // Terminate search if certain conditions are met.
         let search_mode = refs.search_params.search_mode;
         match search_mode {
-            SearchMode::Depth => {
-                if refs.search_info.depth > refs.search_params.depth {
-                    refs.search_info.terminate = SearchTerminate::Stop
-                }
-            }
             SearchMode::MoveTime => {
                 let elapsed = refs.search_info.timer_elapsed();
                 if elapsed >= refs.search_params.move_time {
@@ -115,7 +110,8 @@ impl Search {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
-            SearchMode::Infinite => (), // Handled by a direct 'stop' command
+            SearchMode::Depth => (),    // Handled by iterative deepening.
+            SearchMode::Infinite => (), // Handled by a direct 'stop/exit' command.
             SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }
     }
