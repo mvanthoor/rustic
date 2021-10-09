@@ -36,6 +36,10 @@ impl Engine {
             SearchReport::Finished(m) => {
                 self.status = EngineStatus::Idle;
                 self.comm.send(CommOutput::BestMove(*m));
+
+                if self.comm.info().stateful() {
+                    self.execute_move(m.as_string());
+                }
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {

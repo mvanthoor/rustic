@@ -75,13 +75,14 @@ impl Engine {
 
             XBoardInput::UserMove(m) => {
                 let ok = self.execute_move(m.clone());
-                if !ok {
+                if ok {
+                    sp.depth = 5;
+                    sp.search_mode = SearchMode::Depth;
+                    self.search.send(SearchControl::Start(sp));
+                } else {
                     let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
                 }
-                sp.depth = 5;
-                sp.search_mode = SearchMode::Depth;
-                self.search.send(SearchControl::Start(sp));
             }
 
             XBoardInput::Go => {
