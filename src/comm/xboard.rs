@@ -55,6 +55,7 @@ pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
     output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
+    settings: XBoardSettings,
 }
 
 #[derive(PartialEq, Clone)]
@@ -88,6 +89,27 @@ impl XBoard {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
+            settings: XBoardSettings::new(),
+        }
+    }
+}
+
+struct XBoardSettings {
+    pub s_depth: u8,
+    pub s_time: u64,
+    pub moves_per_session: u8,
+    pub basetime: u64,
+    pub increment: u64,
+}
+
+impl XBoardSettings {
+    fn new() -> Self {
+        Self {
+            s_depth: 0,
+            s_time: 0,
+            moves_per_session: 0,
+            basetime: 0,
+            increment: 0,
         }
     }
 }
