@@ -55,7 +55,7 @@ pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
     output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
-    settings: XBoardSettings,
+    settings: Arc<Mutex<XBoardSettings>>,
 }
 
 #[derive(PartialEq, Clone)]
@@ -89,7 +89,7 @@ impl XBoard {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
-            settings: XBoardSettings::new(),
+            settings: Arc::new(Mutex::new(XBoardSettings::new())),
         }
     }
 }
@@ -166,6 +166,7 @@ impl XBoard {
         // Create thread-local variables
         let mut t_incoming_data = String::from(""); // Buffer for incoming data.
         let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
+        let t_settings = Arc::clone(&self.settings);
 
         // Actual thread creation.
         let receiving_handle = thread::spawn(move || {
