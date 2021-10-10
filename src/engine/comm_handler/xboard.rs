@@ -41,8 +41,7 @@ impl Engine {
 
             XBoardInput::ProtoVer(n) => {
                 if *n == PROTOCOL_VERSION {
-                    self.comm
-                        .send(CommOutput::XBoard(XBoardOutput::SendFeatures));
+                    self.comm.send(CommOutput::XBoard(XBoardOutput::Features));
                 }
             }
 
