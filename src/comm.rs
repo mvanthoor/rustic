@@ -21,23 +21,44 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub mod uci;
-// pub mod xboard;
+mod shared;
+mod uci;
+mod xboard;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineSetOption, Information},
+    engine::defs::{EngineOption, Information},
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
+pub use uci::{Uci, UciInput, UciOutput};
+pub use xboard::{XBoard, XBoardInput, XBoardOutput};
+
 // These are the types of communication the engine is capable of.
-pub struct CommType;
+pub struct CommType {
+    protocol: String,
+    stateful: bool,
+    fancy_about: bool,
+}
+
 impl CommType {
-    pub const XBOARD: &'static str = "xboard";
     pub const UCI: &'static str = "uci";
+    pub const XBOARD: &'static str = "xboard";
+
+    pub fn protocol(&self) -> String {
+        self.protocol.clone()
+    }
+
+    pub fn stateful(&self) -> bool {
+        self.stateful
+    }
+
+    pub fn fancy_about(&self) -> bool {
+        self.fancy_about
+    }
 }
 
 // Defines the public functions a Comm module must implement.
@@ -50,55 +71,40 @@ pub trait IComm {
     );
     fn send(&self, msg: CommOutput);
     fn wait_for_shutdown(&mut self);
-    fn get_protocol_name(&self) -> &'static str;
+    fn info(&self) -> CommType;
 }
 
-#[derive(PartialEq)]
-// This is a list of outputs the engine can generate, often in reaction to
-// one of the CommReceived inputs. (An exception is "Quit": this doesn't
-// generate an output. It terminates the comm module.)
-pub enum CommOutput {
-    Identify,                          // Transmit identification of the engine.
-    Ready,                             // Transmit that the engine is ready.
-    SearchSummary(SearchSummary),      // Transmit search information.
-    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
-    SearchStats(SearchStats),          // Transmit search Statistics.
-    InfoString(String),                // Transmit general information.
-    BestMove(Move),                    // Transmit the engine's best move.
-
-    // Output to screen when running in a terminal window.
-    PrintBoard,
-    PrintHistory,
-    PrintHelp,
-
-    // Exception: does not generate any output.
-    Quit, // Quit the Comm module.
-}
-
-// This is the list of commands the engine understands. Information coming
-// in through the Comm module is turned into one of these commands which
-// will then be sent to the engine thread.
 #[derive(PartialEq, Clone)]
-pub enum CommReceived {
-    Identification,
-    NewGame,
-    IsReady,
-    SetOption(EngineSetOption),
-    Position(String, Vec<String>),
-    GoInfinite,
-    GoDepth(i8),
-    GoMoveTime(u128),
-    GoNodes(usize),
-    GoGameTime(GameTime),
-    Stop,
+pub enum CommInput {
+    Uci(UciInput),
+    XBoard(XBoardInput),
+
+    // Common incoming commands
     Quit,
+    Unknown,
 
     // Custom
     Board,
     History,
     Eval,
     Help,
+}
 
-    // Empty or unknown command.
-    Unknown,
+pub enum CommOutput {
+    Uci(UciOutput),
+    XBoard(XBoardOutput),
+
+    // Common output for all protocols
+    BestMove(Move),                    // Transmit the engine's best move.
+    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
+    SearchSummary(SearchSummary),      // Transmit search information.
+    SearchStats(SearchStats),          // Transmit search Statistics.
+    Message(String),                   // Transmits a message to the GUI
+    Quit,                              // Terminates the output thread.
+
+    // Output to screen when running in a terminal window.
+    PrintBoard,
+    PrintHistory,
+    PrintHelp,
+    PrintEval(i16, i16),
 }

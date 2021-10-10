@@ -34,6 +34,7 @@ type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
     Start(SearchParams),
+    Exit,
     Stop,
     Quit,
     Nothing,
@@ -42,7 +43,8 @@ pub enum SearchControl {
 // Ways to terminate a search.
 #[derive(PartialEq, Copy, Clone)]
 pub enum SearchTerminate {
-    Stop,    // Search is halted.
+    Stop,    // Stop search, return best move.
+    Exit,    // Exit search, do not return best move.
     Quit,    // Search module is quit completely.
     Nothing, // No command received yet.
 }
@@ -252,6 +254,9 @@ pub struct SearchRefs<'a> {
 // This struct holds all the reports a search can send to the engine.
 #[derive(PartialEq)]
 pub enum SearchReport {
+    Analyzing,                            // Sent when the engine starts analyzing.
+    Searching,                            // Sent when the engine starts searching.
+    Exited,                               // Search/analysis exited, no move provided.
     Finished(Move),                       // Search done. Contains the best move.
     SearchSummary(SearchSummary),         // Periodic intermediate results.
     SearchCurrentMove(SearchCurrentMove), // Move currently searched.

@@ -47,6 +47,8 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use self::defs::SearchMode;
+
 pub struct Search {
     handle: Option<JoinHandle<()>>,
     control_tx: Option<Sender<SearchControl>>,
@@ -93,11 +95,21 @@ impl Search {
                 match cmd {
                     SearchControl::Start(sp) => {
                         search_params = sp;
-                        halt = false; // This will start the search.
+
+                        // Report to the engine if we are analyzing or searching.
+                        if search_params.search_mode == SearchMode::Infinite {
+                            let i = Information::Search(SearchReport::Analyzing);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                        } else if search_params.search_mode != SearchMode::Nothing {
+                            let i = Information::Search(SearchReport::Searching);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                        }
+
+                        // Start searching by disabling "halt"
+                        halt = false;
                     }
-                    SearchControl::Stop => halt = true,
                     SearchControl::Quit => quit = true,
-                    SearchControl::Nothing => (),
+                    SearchControl::Stop | SearchControl::Exit | SearchControl::Nothing => (),
                 }
 
                 // Search isn't halted and not going to quit.
@@ -124,20 +136,20 @@ impl Search {
                     // Start the search using Iterative Deepening.
                     let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
 
-                    // Inform the engine that the search has finished.
-                    let information = Information::Search(SearchReport::Finished(best_move));
-                    t_report_tx.send(information).expect(ErrFatal::CHANNEL);
-
-                    // If the search was finished due to a Stop or Quit
-                    // command then either halt or quit the search.
+                    // Only send a best move to the engine when the search
+                    // was stopped. Don't send on exit or quit.
                     match terminate {
                         SearchTerminate::Stop => {
+                            let i = Information::Search(SearchReport::Finished(best_move));
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
                             halt = true;
                         }
-                        SearchTerminate::Quit => {
-                            halt = true;
-                            quit = true;
+                        SearchTerminate::Exit => {
+                            let i = Information::Search(SearchReport::Exited);
+                            t_report_tx.send(i).expect(ErrFatal::CHANNEL);
+                            halt = true
                         }
+                        SearchTerminate::Quit => quit = true,
                         SearchTerminate::Nothing => (),
                     }
                 }

@@ -31,7 +31,7 @@ mod utils;
 
 use crate::{
     board::Board,
-    comm::{uci::Uci, CommOutput, CommType, IComm},
+    comm::{CommOutput, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
     engine::defs::{
         EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,
@@ -51,9 +51,12 @@ use crate::{
     extra::{testsuite, wizardry},
 };
 
+use self::defs::EngineStatus;
+
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
 pub struct Engine {
+    status: EngineStatus,                   // Indicate what the engine is doing
     quit: bool,                             // Flag that will quit the main thread.
     settings: Settings,                     // Struct holding all the settings.
     options: Arc<Vec<EngineOption>>,        // Engine options exported to the GUI
@@ -65,7 +68,6 @@ pub struct Engine {
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
-    tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
 impl Engine {
@@ -76,14 +78,10 @@ impl Engine {
 
         // Create the command-line object.
         let cmdline = CmdLine::new();
-        let mut is_xboard = false;
 
         // Create the communication interface
-        let comm: Box<dyn IComm> = match &cmdline.comm()[..] {
-            CommType::XBOARD => {
-                is_xboard = true;
-                Box::new(Uci::new())
-            }
+        let comm: Box<dyn IComm> = match &(cmdline.comm().to_lowercase())[..] {
+            CommType::XBOARD => Box::new(XBoard::new()),
             CommType::UCI => Box::new(Uci::new()),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
@@ -129,6 +127,7 @@ impl Engine {
 
         // Create the engine itself.
         Self {
+            status: EngineStatus::Idle,
             quit: false,
             settings: Settings {
                 threads,
@@ -144,21 +143,18 @@ impl Engine {
             tt_search,
             info_rx: None,
             search: Search::new(),
-            tmp_no_xboard: is_xboard,
         }
     }
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // This is temporary. Quit the engine immediately if anyone tries
-        // to start it in XBoard mode, as this is not implemented yet.
-        if self.tmp_no_xboard {
-            return Err(7);
+        if self.comm.info().fancy_about() {
+            self.print_ascii_logo();
+            self.print_fancy_about(&self.settings, self.comm.info().protocol());
+            println!();
+        } else {
+            self.print_simple_about(self.comm.info().protocol());
         }
-
-        self.print_ascii_logo();
-        self.print_about(&self.settings);
-        println!();
 
         // Setup position and abort if this fails.
         self.setup_position()?;
