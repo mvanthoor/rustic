@@ -75,7 +75,7 @@ pub enum XBoardInput {
 
 pub enum XBoardOutput {
     NewLine,
-    SendFeatures,
+    Features,
     IllegalMove(String),
     Pong(i8),
 }
@@ -273,7 +273,7 @@ impl XBoard {
                 // Perform command as sent by the engine thread.
                 match output {
                     CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
-                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::features(),
+                    CommOutput::XBoard(XBoardOutput::Features) => XBoard::features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
