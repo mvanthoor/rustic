@@ -62,7 +62,7 @@ impl Engine {
                     }
                     _ => (),
                 }
-                self.status = EngineStatus::Force;
+                self.status = EngineStatus::Observe;
             }
 
             XBoardInput::SetBoard(fen) => {

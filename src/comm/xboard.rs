@@ -302,7 +302,7 @@ impl XBoard {
 // Implement sending/response functions
 impl XBoard {
     fn new_line() {
-        println!("");
+        println!();
     }
 
     fn features() {
