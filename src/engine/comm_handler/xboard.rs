@@ -87,6 +87,13 @@ impl Engine {
                         sp.search_mode = SearchMode::MoveTime;
                     }
 
+                    // DepthMoveTime mode
+                    if time.sd > 0 && time.st > 0 {
+                        sp.depth = time.sd;
+                        sp.move_time = time.st;
+                        sp.search_mode = SearchMode::DepthMoveTime;
+                    }
+
                     self.search.send(SearchControl::Start(sp));
                 } else {
                     let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));

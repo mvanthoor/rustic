@@ -94,7 +94,7 @@ impl Search {
         // Terminate search if certain conditions are met.
         let search_mode = refs.search_params.search_mode;
         match search_mode {
-            SearchMode::MoveTime => {
+            SearchMode::MoveTime | SearchMode::DepthMoveTime => {
                 let elapsed = refs.search_info.timer_elapsed();
                 if elapsed >= refs.search_params.move_time {
                     refs.search_info.terminate = SearchTerminate::Stop
