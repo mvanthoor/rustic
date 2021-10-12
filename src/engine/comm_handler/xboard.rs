@@ -73,7 +73,11 @@ impl Engine {
             }
 
             XBoardInput::UserMove(m, time) => {
+                // OK if the incoming move is legal.
                 let ok = self.execute_move(m.clone());
+
+                // Set the engine thinking if the move is legal, and we
+                // have already received time and/or depth control params.
                 if ok {
                     // Depth mode
                     if time.sd > 0 && time.st == 0 {
@@ -94,7 +98,10 @@ impl Engine {
                         sp.search_mode = SearchMode::DepthMoveTime;
                     }
 
-                    self.search.send(SearchControl::Start(sp));
+                    if sp.search_mode != SearchMode::Nothing {
+                        self.status = EngineStatus::Searching;
+                        self.search.send(SearchControl::Start(sp));
+                    }
                 } else {
                     let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
