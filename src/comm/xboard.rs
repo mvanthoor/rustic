@@ -49,12 +49,16 @@ const BASIC_FEATURES: [&str; 8] = [
     "sigint=0",
     "sigterm=0",
 ];
+const KEY: usize = 0;
+const VALUE: usize = 1;
+const MILLISECONDS: u128 = 1000;
 
 // This struct is used to instantiate the Comm Console module.
 pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
     output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
+    time: Arc<Mutex<XBoardTime>>,             // Time management settings.
 }
 
 #[derive(PartialEq, Clone)]
@@ -64,7 +68,7 @@ pub enum XBoardInput {
     New,
     Force,
     SetBoard(String),
-    UserMove(String),
+    UserMove(String, XBoardTime),
     Go,
     MoveNow,
     Ping(i8),
@@ -75,7 +79,7 @@ pub enum XBoardInput {
 
 pub enum XBoardOutput {
     NewLine,
-    SendFeatures,
+    Features,
     IllegalMove(String),
     Pong(i8),
 }
@@ -88,6 +92,28 @@ impl XBoard {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
+            time: Arc::new(Mutex::new(XBoardTime::new())),
+        }
+    }
+}
+
+#[derive(PartialEq, Clone)]
+pub struct XBoardTime {
+    pub sd: i8,
+    pub st: u128,
+    pub moves_per_session: u8,
+    pub basetime: u64,
+    pub increment: u64,
+}
+
+impl XBoardTime {
+    fn new() -> Self {
+        Self {
+            sd: 0,
+            st: 0,
+            moves_per_session: 0,
+            basetime: 0,
+            increment: 0,
         }
     }
 }
@@ -144,6 +170,7 @@ impl XBoard {
         // Create thread-local variables
         let mut t_incoming_data = String::from(""); // Buffer for incoming data.
         let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
+        let t_time = Arc::clone(&self.time);
 
         // Actual thread creation.
         let receiving_handle = thread::spawn(move || {
@@ -157,7 +184,7 @@ impl XBoard {
                     .expect(ErrFatal::READ_IO);
 
                 // Create the CommInput object.
-                let comm_received = XBoard::create_comm_received(&t_incoming_data);
+                let comm_received = XBoard::create_comm_received(&t_incoming_data, &t_time);
 
                 // Send it to the engine thread.
                 t_receiving_tx
@@ -181,7 +208,7 @@ impl XBoard {
 impl XBoard {
     // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
-    fn create_comm_received(input: &str) -> CommInput {
+    fn create_comm_received(input: &str, time: &Arc<Mutex<XBoardTime>>) -> CommInput {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_string();
 
@@ -192,13 +219,15 @@ impl XBoard {
             cmd if cmd == "force" => CommInput::XBoard(XBoardInput::Force),
             cmd if cmd == "go" => CommInput::XBoard(XBoardInput::Go),
             cmd if cmd == "?" => CommInput::XBoard(XBoardInput::MoveNow),
-            cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
-            cmd if cmd.starts_with("usermove") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
             cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
+            cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
+            cmd if cmd.starts_with("usermove") => XBoard::parse_usermove(&cmd, time),
+            cmd if cmd.starts_with("sd") => XBoard::parse_time(&cmd, time),
+            cmd if cmd.starts_with("st") => XBoard::parse_time(&cmd, time),
             cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands
@@ -213,8 +242,6 @@ impl XBoard {
     }
 
     fn parse_key_value_pair(cmd: &str) -> CommInput {
-        const KEY: usize = 0;
-        const VALUE: usize = 1;
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
 
         // Key-value pair has to have two parts. Ignore anything else after
@@ -233,16 +260,47 @@ impl XBoard {
                     let value = parts[VALUE].parse::<usize>().unwrap_or(0);
                     CommInput::XBoard(XBoardInput::Memory(value))
                 }
-                "usermove" => {
-                    let value = parts[VALUE].to_lowercase();
-                    CommInput::XBoard(XBoardInput::UserMove(value))
-                }
-
                 _ => CommInput::Unknown,
             }
         } else {
             CommInput::Unknown
         }
+    }
+
+    fn parse_usermove(cmd: &str, time: &Arc<Mutex<XBoardTime>>) -> CommInput {
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        CommInput::XBoard(XBoardInput::UserMove(
+            parts[VALUE].to_lowercase(),
+            time.lock().expect(ErrFatal::LOCK).clone(),
+        ))
+    }
+
+    fn parse_time(cmd: &str, time: &Arc<Mutex<XBoardTime>>) -> CommInput {
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let mut result = CommInput::Ok;
+        let mut mtx_time = time.lock().expect(ErrFatal::LOCK);
+
+        if parts.len() >= 2 {
+            match &parts[KEY][..] {
+                "sd" => mtx_time.sd = parts[VALUE].parse::<i8>().unwrap_or(0),
+                "st" => {
+                    // Cancel settings from level command.
+                    mtx_time.basetime = 0;
+                    mtx_time.increment = 0;
+                    mtx_time.moves_per_session = 0;
+
+                    // Set move time in milliseconds.
+                    mtx_time.st = parts[VALUE].parse::<u128>().unwrap_or(0) * MILLISECONDS;
+                }
+                _ => result = CommInput::Unknown,
+            }
+        } else {
+            result = CommInput::Unknown;
+        }
+
+        std::mem::drop(mtx_time);
+
+        result
     }
 
     fn parse_setboard(cmd: &str) -> CommInput {
@@ -273,7 +331,7 @@ impl XBoard {
                 // Perform command as sent by the engine thread.
                 match output {
                     CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
-                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::features(),
+                    CommOutput::XBoard(XBoardOutput::Features) => XBoard::features(),
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
@@ -302,7 +360,7 @@ impl XBoard {
 // Implement sending/response functions
 impl XBoard {
     fn new_line() {
-        println!("");
+        println!();
     }
 
     fn features() {

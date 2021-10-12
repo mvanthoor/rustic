@@ -26,7 +26,7 @@ use crate::{comm::CommInput, search::defs::SearchReport};
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum EngineStatus {
-    Force,
+    Observe,
     Idle,
     Analyzing,
     Searching,

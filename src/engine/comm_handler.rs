@@ -48,7 +48,8 @@ impl Engine {
                 self.comm.send(CommOutput::PrintEval(eval, phase));
             }
             CommInput::Help => self.comm.send(CommOutput::PrintHelp),
-            CommInput::Unknown => (),
+            CommInput::Ok => (),      // Input completely handled by comm module.
+            CommInput::Unknown => (), // Unknown input. Ignored by the engine.
         }
     }
 }
