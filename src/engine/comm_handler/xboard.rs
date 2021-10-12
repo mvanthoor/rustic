@@ -72,11 +72,21 @@ impl Engine {
                 }
             }
 
-            XBoardInput::UserMove(m) => {
+            XBoardInput::UserMove(m, time) => {
                 let ok = self.execute_move(m.clone());
                 if ok {
-                    sp.depth = 5;
-                    sp.search_mode = SearchMode::Depth;
+                    // Depth mode
+                    if time.sd > 0 && time.st == 0 {
+                        sp.depth = time.sd;
+                        sp.search_mode = SearchMode::Depth;
+                    }
+
+                    // MoveTime mode
+                    if time.sd == 0 && time.st > 0 {
+                        sp.move_time = time.st;
+                        sp.search_mode = SearchMode::MoveTime;
+                    }
+
                     self.search.send(SearchControl::Start(sp));
                 } else {
                     let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));

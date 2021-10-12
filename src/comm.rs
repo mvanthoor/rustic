@@ -81,6 +81,7 @@ pub enum CommInput {
 
     // Common incoming commands
     Quit,
+    Ok,
     Unknown,
 
     // Custom
