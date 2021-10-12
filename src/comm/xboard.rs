@@ -236,8 +236,8 @@ impl XBoard {
             cmd if cmd == "eval" => CommInput::Eval,
             cmd if cmd == "help" => CommInput::Help,
 
-            // Ignore anything else.
-            _ => CommInput::Unknown,
+            // No specific command; try to parse as move.
+            _ => XBoard::parse_move(&i, time),
         }
     }
 
