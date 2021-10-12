@@ -307,6 +307,50 @@ impl XBoard {
         let fen = cmd.replace("setboard", "").trim().to_string();
         CommInput::XBoard(XBoardInput::SetBoard(fen))
     }
+
+    fn parse_move(cmd: &str, time: &Arc<Mutex<XBoardTime>>) -> CommInput {
+        const COORD_ALPHA: &str = "abcdefgh";
+        const COORD_DIGIT: &str = "12345678";
+        const PROMOTION: &str = "qrbn";
+
+        let input = cmd.to_lowercase();
+        let mut chars_ok: u8 = 0;
+        let mut result = CommInput::Unknown;
+
+        // Now check if the input can actually be a move.
+        if input.len() == 4 || input.len() == 5 {
+            for (i, c) in input.chars().enumerate() {
+                match i {
+                    0 | 2 => {
+                        if COORD_ALPHA.contains(c) {
+                            chars_ok += 1;
+                        }
+                    }
+                    1 | 3 => {
+                        if COORD_DIGIT.contains(c) {
+                            chars_ok += 1;
+                        }
+                    }
+                    4 => {
+                        if PROMOTION.contains(c) {
+                            chars_ok += 1;
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
+
+        // If the first four characters are within the character ranges for
+        // coordinates, and the fifth character (if any) is a valid promotion
+        // piece, then we have a plausible move.
+        if chars_ok == (input.len() as u8) {
+            let t = time.lock().expect(ErrFatal::LOCK).clone();
+            result = CommInput::XBoard(XBoardInput::UserMove(input, t));
+        }
+
+        result
+    }
 }
 
 // Implement the output thread
