@@ -127,7 +127,7 @@ impl Engine {
 
         // Create the engine itself.
         Self {
-            status: EngineStatus::Idle,
+            status: EngineStatus::Observe,
             quit: false,
             settings: Settings {
                 threads,
