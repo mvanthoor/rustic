@@ -59,11 +59,14 @@ impl Search {
         // Start the search
         refs.search_info.timer_start();
         while (depth <= MAX_PLY) && !refs.search_info.interrupted() {
-            // Stop the search if we are searching to a specific depth and
-            // we have reached it.
-            if refs.search_params.search_mode == SearchMode::Depth
-                && depth > refs.search_params.depth
-            {
+            // Shorthand for current search mode.
+            let s = refs.search_params.search_mode;
+
+            // Are we in one of the "depth" modes?
+            let depth_mode = (s == SearchMode::Depth) || (s == SearchMode::DepthMoveTime);
+
+            // Stop going deeper if we reached the requested depth.
+            if depth_mode && (depth > refs.search_params.depth) {
                 refs.search_info.terminate = SearchTerminate::Stop;
                 break;
             }

@@ -53,12 +53,13 @@ pub enum SearchTerminate {
 // to see if the search has to be stopped.
 #[derive(PartialEq, Copy, Clone)]
 pub enum SearchMode {
-    Depth,    // Run until requested depth is reached.
-    MoveTime, // Run until 'time per move' is used up.
-    Nodes,    // Run until the number of requested nodes was reached.
-    GameTime, // Search determines when to quit, depending on available time.
-    Infinite, // Run forever, until the 'stop' command is received.
-    Nothing,  // No search mode has been defined.
+    Depth,         // Run until requested depth is reached.
+    MoveTime,      // Run until 'time per move' is used up.
+    DepthMoveTime, // Run until either 'time per move' or 'depth' are reached.
+    Nodes,         // Run until the number of requested nodes was reached.
+    GameTime,      // Search determines when to quit, depending on available time.
+    Infinite,      // Run forever, until the 'stop' command is received.
+    Nothing,       // No search mode has been defined.
 }
 
 #[derive(PartialEq, Copy, Clone)]
