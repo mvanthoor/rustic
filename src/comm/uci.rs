@@ -382,7 +382,6 @@ impl Uci {
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
                     CommOutput::BestMove(bm) => Uci::best_move(bm),
-                    CommOutput::Message(msg) => Uci::message(msg),
                     CommOutput::Error(cmd, err_type) => Uci::error(cmd, err_type),
 
                     // Custom prints for use in the console.
@@ -525,10 +524,6 @@ impl Uci {
 
     fn best_move(m: Move) {
         println!("bestmove {}", m.as_string());
-    }
-
-    fn message(msg: String) {
-        println!("info string {}", msg);
     }
 
     fn error(cmd: String, err_type: String) {

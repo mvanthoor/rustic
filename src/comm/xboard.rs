@@ -367,7 +367,6 @@ impl XBoard {
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
                     CommOutput::BestMove(m) => XBoard::best_move(m),
-                    CommOutput::Message(msg) => XBoard::message(msg),
                     CommOutput::Error(cmd, err_type) => XBoard::error(cmd, err_type),
                     CommOutput::Quit => quit = true,
 
@@ -408,10 +407,6 @@ impl XBoard {
 
     fn pong(value: i8) {
         println!("pong {}", value)
-    }
-
-    fn message(msg: String) {
-        println!("{}", msg);
     }
 
     fn best_move(m: Move) {
