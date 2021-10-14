@@ -49,7 +49,10 @@ impl Engine {
             }
             CommInput::Help => self.comm.send(CommOutput::PrintHelp),
             CommInput::Ok => (), // Input completely handled by comm module.
-            CommInput::Unknown(cmd) => self.comm.send(CommOutput::Error((*cmd).clone())),
+            CommInput::Unknown(cmd) => {
+                let err_type = String::from("Unknown command");
+                self.comm.send(CommOutput::Error((*cmd).clone(), err_type));
+            }
         }
     }
 }

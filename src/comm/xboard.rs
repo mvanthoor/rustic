@@ -368,7 +368,7 @@ impl XBoard {
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
                     CommOutput::BestMove(m) => XBoard::best_move(m),
                     CommOutput::Message(msg) => XBoard::message(msg),
-                    CommOutput::Error(cmd) => XBoard::error(cmd),
+                    CommOutput::Error(cmd, err_type) => XBoard::error(cmd, err_type),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -433,7 +433,7 @@ impl XBoard {
         println!("Illegal move: {}", m);
     }
 
-    fn error(cmd: String) {
-        println!("Error (Unknown command): {}", cmd);
+    fn error(cmd: String, err_type: String) {
+        println!("Error ({}): {}", err_type, cmd);
     }
 }

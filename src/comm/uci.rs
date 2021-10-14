@@ -384,7 +384,7 @@ impl Uci {
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
                     CommOutput::BestMove(bm) => Uci::best_move(bm),
                     CommOutput::Message(msg) => Uci::message(msg),
-                    CommOutput::Error(cmd) => Uci::error(cmd),
+                    CommOutput::Error(cmd, err_type) => Uci::error(cmd, err_type),
 
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Shared::print_board(&t_board),
@@ -532,7 +532,7 @@ impl Uci {
         println!("info string {}", msg);
     }
 
-    fn error(cmd: String) {
-        println!("info string Unknown command: {}", cmd);
+    fn error(cmd: String, err_type: String) {
+        println!("info string {}: {}", err_type, cmd);
     }
 }
