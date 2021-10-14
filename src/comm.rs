@@ -101,6 +101,7 @@ pub enum CommOutput {
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.
     Message(String),                   // Transmits a message to the GUI
+    Error(String),                     // Transmit an error to the GUI
     Quit,                              // Terminates the output thread.
 
     // Output to screen when running in a terminal window.

@@ -49,7 +49,7 @@ impl Engine {
             }
             CommInput::Help => self.comm.send(CommOutput::PrintHelp),
             CommInput::Ok => (), // Input completely handled by comm module.
-            CommInput::Unknown(cmd) => (), // Unknown input. Ignored by the engine.
+            CommInput::Unknown(cmd) => self.comm.send(CommOutput::Error((*cmd).clone())),
         }
     }
 }
