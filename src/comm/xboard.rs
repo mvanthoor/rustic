@@ -260,10 +260,10 @@ impl XBoard {
                     let value = parts[VALUE].parse::<usize>().unwrap_or(0);
                     CommInput::XBoard(XBoardInput::Memory(value))
                 }
-                _ => CommInput::Unknown,
+                _ => CommInput::Unknown(String::from(cmd)),
             }
         } else {
-            CommInput::Unknown
+            CommInput::Unknown(String::from(cmd))
         }
     }
 
@@ -292,10 +292,10 @@ impl XBoard {
                     // Set move time in milliseconds.
                     mtx_time.st = parts[VALUE].parse::<u128>().unwrap_or(0) * MILLISECONDS;
                 }
-                _ => result = CommInput::Unknown,
+                _ => result = CommInput::Unknown(String::from(cmd)),
             }
         } else {
-            result = CommInput::Unknown;
+            result = CommInput::Unknown(String::from(cmd));
         }
 
         std::mem::drop(mtx_time);
@@ -315,35 +315,22 @@ impl XBoard {
 
         let input = cmd.to_lowercase();
         let mut chars_ok: u8 = 0;
-        let mut result = CommInput::Unknown;
+        let mut result = CommInput::Unknown(String::from(cmd));
 
         // Now check if the input can actually be a move.
         if input.len() == 4 || input.len() == 5 {
-            for (i, c) in input.chars().enumerate() {
+            for (i, char) in input.chars().enumerate() {
                 match i {
-                    0 | 2 => {
-                        if COORD_ALPHA.contains(c) {
-                            chars_ok += 1;
-                        }
-                    }
-                    1 | 3 => {
-                        if COORD_DIGIT.contains(c) {
-                            chars_ok += 1;
-                        }
-                    }
-                    4 => {
-                        if PROMOTION.contains(c) {
-                            chars_ok += 1;
-                        }
-                    }
+                    0 | 2 if COORD_ALPHA.contains(char) => chars_ok += 1,
+                    1 | 3 if COORD_DIGIT.contains(char) => chars_ok += 1,
+                    4 if PROMOTION.contains(char) => chars_ok += 1,
                     _ => (),
                 }
             }
         }
 
-        // If the first four characters are within the character ranges for
-        // coordinates, and the fifth character (if any) is a valid promotion
-        // piece, then we have a plausible move.
+        // If all characters are within specified ranges, then we have a
+        // possible move. Send this to the engine.
         if chars_ok == (input.len() as u8) {
             let t = time.lock().expect(ErrFatal::LOCK).clone();
             result = CommInput::XBoard(XBoardInput::UserMove(input, t));
@@ -379,8 +366,8 @@ impl XBoard {
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
-                    CommOutput::Message(msg) => XBoard::message(msg),
                     CommOutput::BestMove(m) => XBoard::best_move(m),
+                    CommOutput::Error(cmd, err_type) => XBoard::error(cmd, err_type),
                     CommOutput::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -422,10 +409,6 @@ impl XBoard {
         println!("pong {}", value)
     }
 
-    fn message(msg: String) {
-        println!("{}", msg);
-    }
-
     fn best_move(m: Move) {
         println!("move {}", m.as_string());
     }
@@ -443,5 +426,9 @@ impl XBoard {
 
     fn illegal_move(m: String) {
         println!("Illegal move: {}", m);
+    }
+
+    fn error(cmd: String, err_type: String) {
+        println!("Error ({}): {}", err_type, cmd);
     }
 }

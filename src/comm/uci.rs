@@ -59,9 +59,8 @@ pub enum UciInput {
 
 #[derive(PartialEq)]
 pub enum UciOutput {
-    Identify,           // Transmit Uci of the engine.
-    Ready,              // Transmit that the engine is ready.
-    InfoString(String), // Transmit general information.
+    Identify, // Transmit Uci of the engine.
+    Ready,    // Transmit that the engine is ready.
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -180,7 +179,7 @@ impl Uci {
         match i {
             // UCI commands
             cmd if cmd == "uci" => CommInput::Uci(UciInput::Uci),
-            cmd if cmd == "uciUciNewGame" => CommInput::Uci(UciInput::UciNewGame),
+            cmd if cmd == "ucinewgame" => CommInput::Uci(UciInput::UciNewGame),
             cmd if cmd == "isready" => CommInput::Uci(UciInput::IsReady),
             cmd if cmd == "stop" => CommInput::Uci(UciInput::Stop),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
@@ -195,7 +194,7 @@ impl Uci {
             cmd if cmd == "help" => CommInput::Help,
 
             // Everything else is ignored.
-            _ => CommInput::Unknown,
+            _ => CommInput::Unknown(i),
         }
     }
 
@@ -250,7 +249,7 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommInput::Unknown;
+        let mut comm_received = CommInput::Unknown(String::from(cmd));
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
@@ -378,12 +377,12 @@ impl Uci {
                         Uci::uciok();
                     }
                     CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
-                    CommOutput::Uci(UciOutput::InfoString(msg)) => Uci::info_string(&msg),
                     CommOutput::Quit => quit = true, // terminates the output thread.
                     CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOutput::BestMove(bm) => Uci::best_move(&bm),
+                    CommOutput::BestMove(bm) => Uci::best_move(bm),
+                    CommOutput::Error(cmd, err_type) => Uci::error(cmd, err_type),
 
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Shared::print_board(&t_board),
@@ -523,11 +522,11 @@ impl Uci {
         );
     }
 
-    fn info_string(msg: &str) {
-        println!("info string {}", msg);
+    fn best_move(m: Move) {
+        println!("bestmove {}", m.as_string());
     }
 
-    fn best_move(m: &Move) {
-        println!("bestmove {}", m.as_string());
+    fn error(cmd: String, err_type: String) {
+        println!("info string {}: {}", err_type, cmd);
     }
 }
