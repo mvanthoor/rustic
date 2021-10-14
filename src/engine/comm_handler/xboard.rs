@@ -67,8 +67,8 @@ impl Engine {
             XBoardInput::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
-                    let msg = String::from("Error: Incorrect FEN-string.");
-                    self.comm.send(CommOutput::Message(msg));
+                    let err_type = String::from("Incorrect FEN-string");
+                    self.comm.send(CommOutput::Error((*fen).clone(), err_type));
                 }
             }
 

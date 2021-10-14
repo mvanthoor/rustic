@@ -59,9 +59,8 @@ pub enum UciInput {
 
 #[derive(PartialEq)]
 pub enum UciOutput {
-    Identify,           // Transmit Uci of the engine.
-    Ready,              // Transmit that the engine is ready.
-    InfoString(String), // Transmit general information.
+    Identify, // Transmit Uci of the engine.
+    Ready,    // Transmit that the engine is ready.
 }
 
 // This struct is used to instantiate the Comm Console module.
