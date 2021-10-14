@@ -384,6 +384,7 @@ impl Uci {
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
                     CommOutput::BestMove(bm) => Uci::best_move(&bm),
+                    CommOutput::Error(cmd) => Uci::error(cmd),
 
                     // Custom prints for use in the console.
                     CommOutput::PrintBoard => Shared::print_board(&t_board),
@@ -529,5 +530,9 @@ impl Uci {
 
     fn best_move(m: &Move) {
         println!("bestmove {}", m.as_string());
+    }
+
+    fn error(cmd: String) {
+        println!("info string Unknown command: {}", cmd);
     }
 }
