@@ -366,8 +366,8 @@ impl XBoard {
                     CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
                     CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
                     CommOutput::SearchSummary(summary) => XBoard::search_summary(&summary),
-                    CommOutput::Message(msg) => XBoard::message(msg),
                     CommOutput::BestMove(m) => XBoard::best_move(m),
+                    CommOutput::Message(msg) => XBoard::message(msg),
                     CommOutput::Error(cmd) => XBoard::error(cmd),
                     CommOutput::Quit => quit = true,
 

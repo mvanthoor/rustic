@@ -378,12 +378,12 @@ impl Uci {
                         Uci::uciok();
                     }
                     CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
-                    CommOutput::Uci(UciOutput::InfoString(msg)) => Uci::info_string(&msg),
                     CommOutput::Quit => quit = true, // terminates the output thread.
                     CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOutput::BestMove(bm) => Uci::best_move(&bm),
+                    CommOutput::BestMove(bm) => Uci::best_move(bm),
+                    CommOutput::Message(msg) => Uci::message(msg),
                     CommOutput::Error(cmd) => Uci::error(cmd),
 
                     // Custom prints for use in the console.
@@ -524,12 +524,12 @@ impl Uci {
         );
     }
 
-    fn info_string(msg: &str) {
-        println!("info string {}", msg);
+    fn best_move(m: Move) {
+        println!("bestmove {}", m.as_string());
     }
 
-    fn best_move(m: &Move) {
-        println!("bestmove {}", m.as_string());
+    fn message(msg: String) {
+        println!("info string {}", msg);
     }
 
     fn error(cmd: String) {
