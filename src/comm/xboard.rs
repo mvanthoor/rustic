@@ -260,10 +260,10 @@ impl XBoard {
                     let value = parts[VALUE].parse::<usize>().unwrap_or(0);
                     CommInput::XBoard(XBoardInput::Memory(value))
                 }
-                _ => CommInput::Unknown,
+                _ => CommInput::Unknown(String::from(cmd)),
             }
         } else {
-            CommInput::Unknown
+            CommInput::Unknown(String::from(cmd))
         }
     }
 
@@ -292,10 +292,10 @@ impl XBoard {
                     // Set move time in milliseconds.
                     mtx_time.st = parts[VALUE].parse::<u128>().unwrap_or(0) * MILLISECONDS;
                 }
-                _ => result = CommInput::Unknown,
+                _ => result = CommInput::Unknown(String::from(cmd)),
             }
         } else {
-            result = CommInput::Unknown;
+            result = CommInput::Unknown(String::from(cmd));
         }
 
         std::mem::drop(mtx_time);
@@ -315,7 +315,7 @@ impl XBoard {
 
         let input = cmd.to_lowercase();
         let mut chars_ok: u8 = 0;
-        let mut result = CommInput::Unknown;
+        let mut result = CommInput::Unknown(String::from(cmd));
 
         // Now check if the input can actually be a move.
         if input.len() == 4 || input.len() == 5 {

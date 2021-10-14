@@ -195,7 +195,7 @@ impl Uci {
             cmd if cmd == "help" => CommInput::Help,
 
             // Everything else is ignored.
-            _ => CommInput::Unknown,
+            _ => CommInput::Unknown(i),
         }
     }
 
@@ -250,7 +250,7 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommInput::Unknown;
+        let mut comm_received = CommInput::Unknown(String::from(cmd));
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
