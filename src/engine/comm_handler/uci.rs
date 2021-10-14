@@ -78,7 +78,7 @@ impl Engine {
                     for m in moves.iter() {
                         let ok = self.execute_move(m.clone());
                         if !ok {
-                            let err_type = String::from("Illegal move");
+                            let err_type = String::from(ErrNormal::NOT_LEGAL);
                             self.comm.send(CommOutput::Error((*m).clone(), err_type));
                             break;
                         }
@@ -86,7 +86,7 @@ impl Engine {
                 }
 
                 if fen_result.is_err() {
-                    let err_type = String::from("Incorrect FEN-string");
+                    let err_type = String::from(ErrNormal::FEN_FAILED);
                     self.comm.send(CommOutput::Error((*fen).clone(), err_type));
                 }
             }

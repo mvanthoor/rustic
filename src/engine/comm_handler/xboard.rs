@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{EngineStatus, ErrFatal},
+        defs::{EngineStatus, ErrFatal, ErrNormal},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -67,7 +67,7 @@ impl Engine {
             XBoardInput::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
-                    let err_type = String::from("Incorrect FEN-string");
+                    let err_type = String::from(ErrNormal::FEN_FAILED);
                     self.comm.send(CommOutput::Error((*fen).clone(), err_type));
                 }
             }
