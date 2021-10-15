@@ -27,6 +27,7 @@ use super::{
 };
 use crate::{
     defs::MAX_PLY,
+    engine::defs::Verbosity,
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
@@ -39,7 +40,7 @@ impl Search {
         refs.search_info.nodes += 1;
 
         // No intermediate stats updates if quiet.
-        let quiet = refs.search_params.quiet;
+        let quiet = refs.search_params.verbosity == Verbosity::Quiet;
 
         // Check if search needs to be terminated.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {

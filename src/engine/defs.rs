@@ -54,10 +54,17 @@ impl ErrNormal {
     pub const FEN_FAILED: &'static str = "Incorrect FEN-string";
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum Verbosity {
+    Full,
+    Quiet,
+    Silent,
+}
+
 // This struct holds the engine's settings.
 pub struct Settings {
     pub threads: usize,
-    pub quiet: bool,
+    pub verbosity: Verbosity,
     pub tt_size: usize,
 }
 
