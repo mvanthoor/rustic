@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::MoveGenerator;
 use crate::{
     board::{
-        defs::{Direction, Files, Location, Ranks, BB_SQUARES},
+        defs::{Direction, Files, Location, Ranks},
         Board,
     },
     defs::{Bitboard, Square},
@@ -44,7 +44,7 @@ impl MoveGenerator {
     // exclude the edge squares and rook's square from the mask.
     pub fn rook_mask(square: Square) -> Bitboard {
         let location = Board::square_on_file_rank(square);
-        let bb_rook_square = BB_SQUARES[square];
+        let bb_rook_square = bits::bb_square(square);
         let bb_edges = MoveGenerator::edges_without_piece(location);
         let bb_mask = bits::bb_file(location.0 as usize) | bits::bb_rank(location.1 as usize);
 
@@ -151,7 +151,7 @@ impl MoveGenerator {
     pub fn bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
         let mut file = Board::square_on_file_rank(square).0 as usize;
         let mut rank = Board::square_on_file_rank(square).1 as usize;
-        let mut bb_square = BB_SQUARES[square];
+        let mut bb_square = bits::bb_square(square);
         let mut bb_ray = 0;
         let mut done = false;
         while !done {

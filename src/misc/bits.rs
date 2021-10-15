@@ -41,3 +41,7 @@ pub fn bb_rank(rank: usize) -> Bitboard {
 pub fn bb_file(file: usize) -> Bitboard {
     BB_FILE_A << file
 }
+
+pub fn bb_square(sq: usize) -> Bitboard {
+    1u64 << sq
+}

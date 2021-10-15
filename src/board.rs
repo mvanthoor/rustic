@@ -30,7 +30,7 @@ mod utils;
 mod zobrist;
 
 use self::{
-    defs::{Pieces, BB_SQUARES},
+    defs::Pieces,
     gamestate::GameState,
     history::History,
     zobrist::{ZobristKey, ZobristRandoms},
@@ -98,8 +98,8 @@ impl Board {
 
     // Remove a piece from the board, for the given side, piece, and square.
     pub fn remove_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.bb_pieces[side][piece] ^= BB_SQUARES[square];
-        self.bb_side[side] ^= BB_SQUARES[square];
+        self.bb_pieces[side][piece] ^= bits::bb_square(square);
+        self.bb_side[side] ^= bits::bb_square(square);
         self.piece_list[square] = Pieces::NONE;
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
 
@@ -114,8 +114,8 @@ impl Board {
 
     // Put a piece onto the board, for the given side, piece, and square.
     pub fn put_piece(&mut self, side: Side, piece: Piece, square: Square) {
-        self.bb_pieces[side][piece] |= BB_SQUARES[square];
-        self.bb_side[side] |= BB_SQUARES[square];
+        self.bb_pieces[side][piece] |= bits::bb_square(square);
+        self.bb_side[side] |= bits::bb_square(square);
         self.piece_list[square] = piece;
         self.game_state.zobrist_key ^= self.zr.piece(side, piece, square);
 

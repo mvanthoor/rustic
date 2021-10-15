@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // playmove.rs contains make() and unamke() for move execution and reversal.
 
 use super::{
-    defs::{Pieces, Squares, BB_SQUARES},
+    defs::{Pieces, Squares},
     Board,
 };
 use crate::{
@@ -33,6 +33,7 @@ use crate::{
         defs::{PST_EG, PST_MG},
         Evaluation,
     },
+    misc::bits,
     movegen::{defs::Move, MoveGenerator},
 };
 
@@ -236,15 +237,15 @@ impl Board {
 
 // Removes a piece from the board without Zobrist key updates.
 fn remove_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_pieces[side][piece] ^= BB_SQUARES[square];
-    board.bb_side[side] ^= BB_SQUARES[square];
+    board.bb_pieces[side][piece] ^= bits::bb_square(square);
+    board.bb_side[side] ^= bits::bb_square(square);
     board.piece_list[square] = Pieces::NONE;
 }
 
 // Puts a piece onto the board without Zobrist key updates.
 fn put_piece(board: &mut Board, side: Side, piece: Piece, square: Square) {
-    board.bb_pieces[side][piece] |= BB_SQUARES[square];
-    board.bb_side[side] |= BB_SQUARES[square];
+    board.bb_pieces[side][piece] |= bits::bb_square(square);
+    board.bb_side[side] |= bits::bb_square(square);
     board.piece_list[square] = piece;
 }
 
