@@ -64,7 +64,7 @@ pub enum Verbosity {
 // This struct holds the engine's settings.
 pub struct Settings {
     pub threads: usize,
-    pub quiet: Verbosity,
+    pub verbosity: Verbosity,
     pub tt_size: usize,
 }
 

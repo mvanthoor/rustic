@@ -99,7 +99,7 @@ pub struct SearchParams {
     pub nodes: usize,            // Maximum number of nodes to search
     pub game_time: GameTime,     // Time available for entire game
     pub search_mode: SearchMode, // Defines the mode to search in
-    pub quiet: Verbosity,        // No intermediate search stats updates
+    pub verbosity: Verbosity,    // No intermediate search stats updates
 }
 
 impl SearchParams {
@@ -110,7 +110,7 @@ impl SearchParams {
             nodes: 0,
             game_time: GameTime::new(0, 0, 0, 0, None),
             search_mode: SearchMode::Nothing,
-            quiet: Verbosity::Full,
+            verbosity: Verbosity::Full,
         }
     }
 

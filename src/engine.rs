@@ -88,7 +88,7 @@ impl Engine {
 
         // Get engine settings from the command-line.
         let threads = cmdline.threads();
-        let quiet = if cmdline.has_quiet() {
+        let verbosity = if cmdline.has_quiet() {
             Verbosity::Quiet
         } else {
             Verbosity::Full
@@ -135,7 +135,7 @@ impl Engine {
             quit: false,
             settings: Settings {
                 threads,
-                quiet,
+                verbosity,
                 tt_size,
             },
             options: Arc::new(options),
