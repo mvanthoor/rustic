@@ -21,7 +21,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::defs::{Bitboard, Square};
+use crate::{
+    board::defs::BB_RANK_1,
+    defs::{Bitboard, Square},
+};
 
 // Get the next set bit from a bitboard and unset it. When given a piece
 // bitboard, this provides the location/square of the next piece of that type.
@@ -29,4 +32,8 @@ pub fn next(bitboard: &mut Bitboard) -> Square {
     let square = bitboard.trailing_zeros() as Square;
     *bitboard ^= 1u64 << square;
     square
+}
+
+pub fn bb_rank(rank: usize) -> Bitboard {
+    BB_RANK_1 << (rank << 3)
 }

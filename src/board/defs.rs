@@ -110,9 +110,10 @@ impl RangeOf {
     pub const SQUARES: RangeInclusive<Square> = 0..=63;
 }
 
+pub const BB_RANK_1: Bitboard = 0xFF;
+
 // Initialize arrays with bitboards for each file, rank and square.
 type TBBFiles = [Bitboard; NrOf::FILES];
-type TBBRanks = [Bitboard; NrOf::RANKS as usize];
 type TBBSquares = [Bitboard; NrOf::SQUARES];
 
 const fn init_bb_files() -> TBBFiles {
@@ -128,19 +129,6 @@ const fn init_bb_files() -> TBBFiles {
     bb_files
 }
 
-const fn init_bb_ranks() -> TBBRanks {
-    pub const BB_RANK_1: Bitboard = 0xFF;
-    let mut bb_ranks = [0; NrOf::RANKS as usize];
-    let mut i = 0;
-
-    while i < (NrOf::RANKS as usize) {
-        bb_ranks[i] = BB_RANK_1 << (i * 8);
-        i += 1;
-    }
-
-    bb_ranks
-}
-
 const fn init_bb_squares() -> TBBSquares {
     let mut bb_squares: TBBSquares = [0; NrOf::SQUARES];
     let mut i = 0;
@@ -154,7 +142,6 @@ const fn init_bb_squares() -> TBBSquares {
 }
 
 pub const BB_FILES: TBBFiles = init_bb_files();
-pub const BB_RANKS: TBBRanks = init_bb_ranks();
 pub const BB_SQUARES: TBBSquares = init_bb_squares();
 
 // Piece location: (file, rank)

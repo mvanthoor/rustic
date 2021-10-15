@@ -29,7 +29,7 @@ mod movelist;
 
 use crate::{
     board::{
-        defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
+        defs::{Pieces, Squares, BB_SQUARES},
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
@@ -178,7 +178,7 @@ impl MoveGenerator {
         let us = board.us();
         let bb_opponent_pieces = board.bb_side[board.opponent()];
         let bb_empty = !board.occupancy();
-        let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
+        let bb_fourth = bits::bb_rank(Board::fourth_rank(us));
         let direction = Board::pawn_direction(us);
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
         let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
