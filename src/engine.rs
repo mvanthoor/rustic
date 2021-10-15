@@ -35,7 +35,7 @@ use crate::{
     defs::EngineRunResult,
     engine::defs::{
         EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,
-        UiElement,
+        UiElement, Verbosity,
     },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
@@ -88,7 +88,11 @@ impl Engine {
 
         // Get engine settings from the command-line.
         let threads = cmdline.threads();
-        let quiet = cmdline.has_quiet();
+        let quiet = if cmdline.has_quiet() {
+            Verbosity::Quiet
+        } else {
+            Verbosity::Full
+        };
         let tt_size = cmdline.hash();
         let tt_max = if is_64_bit {
             EngineOptionDefaults::HASH_MAX_64_BIT
