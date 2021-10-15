@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    board::defs::BB_RANK_1,
+    board::defs::{BB_FILE_A, BB_RANK_1},
     defs::{Bitboard, Square},
 };
 
@@ -36,4 +36,8 @@ pub fn next(bitboard: &mut Bitboard) -> Square {
 
 pub fn bb_rank(rank: usize) -> Bitboard {
     BB_RANK_1 << (rank << 3)
+}
+
+pub fn bb_file(file: usize) -> Bitboard {
+    BB_FILE_A << file
 }

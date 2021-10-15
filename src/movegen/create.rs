@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::MoveGenerator;
 use crate::{
     board::{
-        defs::{Direction, Files, Location, Ranks, BB_FILES, BB_SQUARES},
+        defs::{Direction, Files, Location, Ranks, BB_SQUARES},
         Board,
     },
     defs::{Bitboard, Square},
@@ -46,7 +46,7 @@ impl MoveGenerator {
         let location = Board::square_on_file_rank(square);
         let bb_rook_square = BB_SQUARES[square];
         let bb_edges = MoveGenerator::edges_without_piece(location);
-        let bb_mask = BB_FILES[location.0 as usize] | bits::bb_rank(location.1 as usize);
+        let bb_mask = bits::bb_file(location.0 as usize) | bits::bb_rank(location.1 as usize);
 
         bb_mask & !bb_edges & !bb_rook_square
     }
@@ -74,11 +74,11 @@ impl MoveGenerator {
     // clipping the entire ray if the piece itself is on an edge, the edge(s)
     // containing the piece are excluded.
     fn edges_without_piece(location: Location) -> Bitboard {
-        let bb_piece_file = BB_FILES[location.0 as usize];
+        let bb_piece_file = bits::bb_file(location.0 as usize);
         let bb_piece_rank = bits::bb_rank(location.1 as usize);
 
-        (BB_FILES[Files::A] & !bb_piece_file)
-            | (BB_FILES[Files::H] & !bb_piece_file)
+        (bits::bb_file(Files::A) & !bb_piece_file)
+            | (bits::bb_file(Files::H) & !bb_piece_file)
             | (bits::bb_rank(Ranks::R1) & !bb_piece_rank)
             | (bits::bb_rank(Ranks::R8) & !bb_piece_rank)
     }

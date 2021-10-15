@@ -26,7 +26,7 @@ use super::{
     MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE,
 };
 use crate::{
-    board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_SQUARES},
+    board::defs::{Files, Pieces, RangeOf, Ranks, BB_SQUARES},
     defs::{Piece, Sides, EMPTY},
     misc::bits,
 };
@@ -45,14 +45,14 @@ impl MoveGenerator {
         for sq in RangeOf::SQUARES {
             let bb_square = BB_SQUARES[sq];
             let bb_moves =
-            (bb_square & !BB_FILES[Files::A] & !bits::bb_rank(Ranks::R8)) << 7
+            (bb_square & !bits::bb_file(Files::A) & !bits::bb_rank(Ranks::R8)) << 7
             | (bb_square & !bits::bb_rank(Ranks::R8)) << 8
-            | (bb_square & !BB_FILES[Files::H] & !bits::bb_rank(Ranks::R8)) << 9
-            | (bb_square & !BB_FILES[Files::H]) << 1
-            | (bb_square & !BB_FILES[Files::H] & !bits::bb_rank(Ranks::R1)) >> 7
+            | (bb_square & !bits::bb_file(Files::H) & !bits::bb_rank(Ranks::R8)) << 9
+            | (bb_square & !bits::bb_file(Files::H)) << 1
+            | (bb_square & !bits::bb_file(Files::H) & !bits::bb_rank(Ranks::R1)) >> 7
             | (bb_square & !bits::bb_rank(Ranks::R1)) >> 8
-            | (bb_square & !BB_FILES[Files::A] & !bits::bb_rank(Ranks::R1)) >> 9
-            | (bb_square & !BB_FILES[Files::A]) >> 1;
+            | (bb_square & !bits::bb_file(Files::A) & !bits::bb_rank(Ranks::R1)) >> 9
+            | (bb_square & !bits::bb_file(Files::A)) >> 1;
             self.king[sq as usize] = bb_moves;
         }
     }
@@ -68,14 +68,14 @@ impl MoveGenerator {
     for sq in RangeOf::SQUARES {
         let bb_square = BB_SQUARES[sq];
         let bb_moves =
-            (bb_square & !bits::bb_rank(Ranks::R8) & !bits::bb_rank(Ranks::R7) & !BB_FILES[Files::A]) << 15
-            | (bb_square & !bits::bb_rank(Ranks::R8) & !bits::bb_rank(Ranks::R7) & !BB_FILES[Files::H]) << 17
-            | (bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !bits::bb_rank(Ranks::R8)) << 6
-            | (bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !bits::bb_rank(Ranks::R8)) << 10
-            | (bb_square & !bits::bb_rank(Ranks::R1) & !bits::bb_rank(Ranks::R2) & !BB_FILES[Files::A]) >> 17
-            | (bb_square & !bits::bb_rank(Ranks::R1) & !bits::bb_rank(Ranks::R2) & !BB_FILES[Files::H]) >> 15
-            | (bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !bits::bb_rank(Ranks::R1)) >> 10
-            | (bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !bits::bb_rank(Ranks::R1)) >> 6;
+            (bb_square & !bits::bb_rank(Ranks::R8) & !bits::bb_rank(Ranks::R7) & !bits::bb_file(Files::A)) << 15
+            | (bb_square & !bits::bb_rank(Ranks::R8) & !bits::bb_rank(Ranks::R7) & !bits::bb_file(Files::H)) << 17
+            | (bb_square & !bits::bb_file(Files::A) & !bits::bb_file(Files::B) & !bits::bb_rank(Ranks::R8)) << 6
+            | (bb_square & !bits::bb_file(Files::G) & !bits::bb_file(Files::H) & !bits::bb_rank(Ranks::R8)) << 10
+            | (bb_square & !bits::bb_rank(Ranks::R1) & !bits::bb_rank(Ranks::R2) & !bits::bb_file(Files::A)) >> 17
+            | (bb_square & !bits::bb_rank(Ranks::R1) & !bits::bb_rank(Ranks::R2) & !bits::bb_file(Files::H)) >> 15
+            | (bb_square & !bits::bb_file(Files::A) & !bits::bb_file(Files::B) & !bits::bb_rank(Ranks::R1)) >> 10
+            | (bb_square & !bits::bb_file(Files::G) & !bits::bb_file(Files::H) & !bits::bb_rank(Ranks::R1)) >> 6;
         self.knight[sq as usize] = bb_moves;
     }
 }
@@ -88,8 +88,10 @@ impl MoveGenerator {
     pub fn init_pawns(&mut self) {
         for sq in RangeOf::SQUARES {
             let bb_square = BB_SQUARES[sq];
-            let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
-            let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
+            let w = (bb_square & !bits::bb_file(Files::A)) << 7
+                | (bb_square & !bits::bb_file(Files::H)) << 9;
+            let b = (bb_square & !bits::bb_file(Files::A)) >> 9
+                | (bb_square & !bits::bb_file(Files::H)) >> 7;
             self.pawns[Sides::WHITE][sq as usize] = w;
             self.pawns[Sides::BLACK][sq as usize] = b;
         }
