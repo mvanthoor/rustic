@@ -175,7 +175,7 @@ impl Uci {
         match i {
             // UCI commands
             cmd if cmd == "uci" => CommInput::Uci(UciInput::Uci),
-            cmd if cmd == "uciUciNewGame" => CommInput::Uci(UciInput::UciNewGame),
+            cmd if cmd == "ucinewgame" => CommInput::Uci(UciInput::UciNewGame),
             cmd if cmd == "isready" => CommInput::Uci(UciInput::IsReady),
             cmd if cmd == "stop" => CommInput::Uci(UciInput::Stop),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
