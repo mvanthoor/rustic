@@ -35,7 +35,7 @@ impl Engine {
     pub fn uci_handler(&mut self, command: &UciInput) {
         // Setup default variables.
         let mut sp = SearchParams::new();
-        sp.quiet = self.settings.quiet;
+        sp.verbosity = self.settings.verbosity;
 
         match command {
             UciInput::Uci => self.comm.send(CommOutput::Uci(UciOutput::Identify)),

@@ -25,7 +25,7 @@ use super::{
     defs::{SearchMode, SearchRefs, SearchResult, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
-use crate::{defs::MAX_PLY, movegen::defs::Move};
+use crate::{defs::MAX_PLY, engine::defs::Verbosity, movegen::defs::Move};
 
 // Actual search routines.
 impl Search {
@@ -75,26 +75,28 @@ impl Search {
                     best_move = root_pv[0];
                 }
 
-                // Create search summary for this depth.
-                let elapsed = refs.search_info.timer_elapsed();
-                let nodes = refs.search_info.nodes;
-                let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
-                let summary = SearchSummary {
-                    depth,
-                    seldepth: refs.search_info.seldepth,
-                    time: elapsed,
-                    cp: eval,
-                    mate: 0,
-                    nodes,
-                    nps: Search::nodes_per_second(nodes, elapsed),
-                    hash_full,
-                    pv: root_pv.clone(),
-                };
+                if refs.search_params.verbosity != Verbosity::Silent {
+                    // Create search summary for this depth.
+                    let elapsed = refs.search_info.timer_elapsed();
+                    let nodes = refs.search_info.nodes;
+                    let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
+                    let summary = SearchSummary {
+                        depth,
+                        seldepth: refs.search_info.seldepth,
+                        time: elapsed,
+                        cp: eval,
+                        mate: 0,
+                        nodes,
+                        nps: Search::nodes_per_second(nodes, elapsed),
+                        hash_full,
+                        pv: root_pv.clone(),
+                    };
 
-                // Create information for the engine
-                let report = SearchReport::SearchSummary(summary);
-                let information = Information::Search(report);
-                refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    // Create information for the engine
+                    let report = SearchReport::SearchSummary(summary);
+                    let information = Information::Search(report);
+                    refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                }
 
                 // Search one ply deeper.
                 depth += 1;

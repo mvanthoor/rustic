@@ -28,7 +28,7 @@ use super::{
 use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
-    engine::defs::{ErrFatal, HashFlag, SearchData},
+    engine::defs::{ErrFatal, HashFlag, SearchData, Verbosity},
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
@@ -41,7 +41,7 @@ impl Search {
         pv: &mut Vec<Move>,
         refs: &mut SearchRefs,
     ) -> i16 {
-        let quiet = refs.search_params.quiet; // If quiet, don't send intermediate stats.
+        let verbosity = refs.search_params.verbosity; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
         let mut do_pvs = false; // Used for PVS (Principal Variation Search)
 
@@ -122,7 +122,7 @@ impl Search {
         // After SEND_STATS nodes have been searched, check if the
         // MIN_TIME_STATS has been exceeded; if so, sne dthe current
         // statistics to the GUI.
-        if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
+        if verbosity == Verbosity::Full && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);
         }
 
@@ -160,7 +160,7 @@ impl Search {
             }
 
             // Send currently searched move to GUI.
-            if !quiet && is_root {
+            if verbosity == Verbosity::Full && is_root {
                 Search::send_move_to_gui(refs, current_move, legal_moves_found);
             }
 

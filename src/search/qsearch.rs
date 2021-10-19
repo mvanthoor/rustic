@@ -27,6 +27,7 @@ use super::{
 };
 use crate::{
     defs::MAX_PLY,
+    engine::defs::Verbosity,
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
@@ -37,7 +38,7 @@ impl Search {
         refs.search_info.nodes += 1;
 
         // No intermediate stats updates if quiet.
-        let quiet = refs.search_params.quiet;
+        let verbosity = refs.search_params.verbosity;
 
         // Check if search needs to be terminated.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
@@ -86,7 +87,7 @@ impl Search {
 
         // Update search stats in the GUI. Check every SEND_STATS nodes if
         // the minimum MIN_TIME_STATS has elapsed before sending.
-        if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
+        if verbosity == Verbosity::Full && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);
         }
 
