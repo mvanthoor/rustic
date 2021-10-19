@@ -36,13 +36,18 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-const FEATURES: [&str; 6] = [
+const FEATURES: [&str; 11] = [
+    "done=0",
+    "myname=x",
     "ping=1",
     "memory=1",
     "setboard=1",
+    "usermove=1",
     "debug=1",
+    "draw=0",
     "sigint=0",
     "sigterm=0",
+    "done=1",
 ];
 
 // This struct is used to instantiate the Comm Console module.
@@ -288,14 +293,12 @@ impl XBoard {
     }
 
     fn send_features() {
-        println!("feature done=0");
-        println!("feature myname=\"{} {}\"", About::ENGINE, About::VERSION);
+        let myname = format!("myname=\"{} {}\"", About::ENGINE, About::VERSION);
 
         for f in FEATURES {
-            println!("feature {}", f);
+            let value = f.to_string().replace("myname=x", &myname[..]);
+            println!("feature {}", value);
         }
-
-        println!("feature done=1");
     }
 
     fn pong(value: i8) {
