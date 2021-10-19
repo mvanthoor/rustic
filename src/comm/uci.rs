@@ -143,7 +143,7 @@ impl Uci {
                     .expect(ErrFatal::READ_IO);
 
                 // Create the CommInput object.
-                let comm_received = Uci::create_comm_received(&t_incoming_data);
+                let comm_received = Uci::create_comm_input(&t_incoming_data);
 
                 // Send it to the engine thread.
                 t_receiving_tx
@@ -167,7 +167,7 @@ impl Uci {
 impl Uci {
     // This function turns the incoming data into CommInputs which the
     // engine is able to understand and react to.
-    fn create_comm_received(input: &str) -> CommInput {
+    fn create_comm_input(input: &str) -> CommInput {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_lowercase();
 
