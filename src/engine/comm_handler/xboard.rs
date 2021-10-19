@@ -24,7 +24,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     comm::{CommOutput, XBoardInput, XBoardOutput},
     defs::FEN_START_POSITION,
-    engine::{defs::ErrFatal, Engine},
+    engine::{
+        defs::{ErrFatal, Verbosity},
+        Engine,
+    },
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
@@ -71,6 +74,10 @@ impl Engine {
             XBoardInput::Ping(value) => self
                 .comm
                 .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
+
+            XBoardInput::Post => self.settings.verbosity = Verbosity::Full,
+
+            XBoardInput::NoPost => self.settings.verbosity = Verbosity::Silent,
 
             XBoardInput::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 

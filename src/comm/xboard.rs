@@ -65,6 +65,8 @@ pub enum XBoardInput {
     SetBoard(String),
     UserMove(String),
     Ping(i8),
+    Post,
+    NoPost,
     Memory(usize),
     Analyze,
     Exit,
@@ -183,14 +185,16 @@ impl XBoard {
         match i {
             cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
             cmd if cmd == "new" => CommInput::XBoard(XBoardInput::New),
+            cmd if cmd == "post" => CommInput::XBoard(XBoardInput::Post),
+            cmd if cmd == "nopost" => CommInput::XBoard(XBoardInput::NoPost),
+            cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
+            cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
+            cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
             cmd if cmd.starts_with("usermove") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
-            cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
-            cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
-            cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
 
             // Custom commands
             cmd if cmd == "board" => CommInput::Board,
