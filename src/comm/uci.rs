@@ -90,7 +90,7 @@ impl IComm for Uci {
         options: Arc<Vec<EngineOption>>,
     ) {
         // Start threads
-        self.receiving_thread(receiving_tx);
+        self.input_thread(receiving_tx);
         self.output_thread(board, options);
     }
 
@@ -126,7 +126,7 @@ impl Uci {
     // The receiving thread receives incoming commands from the console or
     // GUI, which is turns into a "CommInput" object. It sends this
     // object to the engine thread so the engine can decide what to do.
-    fn receiving_thread(&mut self, receiving_tx: Sender<Information>) {
+    fn input_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
         let mut t_incoming_data = String::from(""); // Buffer for incoming data.
         let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
