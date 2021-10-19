@@ -253,7 +253,7 @@ impl XBoard {
         let output_handle = thread::spawn(move || {
             let mut quit = false;
             let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
+            let _t_options = Arc::clone(&options);
 
             // Keep running as long as Quit is not received.
             while !quit {
