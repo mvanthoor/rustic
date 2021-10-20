@@ -30,27 +30,19 @@ use crate::{defs::About, engine::defs::Settings};
 const NOTICE_DEBUG_MODE: &str = "Notice: Running in debug mode";
 
 impl Engine {
-    pub fn print_ascii_logo(&self) {
-        println!();
-        println!("d888888b                      dP   oo        ");
-        println!("88     88                     88             ");
-        println!("88oooo88  88    88  d8888b  d8888P dP d88888b");
-        println!("88    88  88    88  8ooooo    88   88 88     ");
-        println!("88     88 88    88       88   88   88 88     ");
-        println!("88     88  88888P  888888P    dP   dP 888888P");
-        println!("ooooooooooooooooooooooooooooooooooooooooooooo");
-        println!();
-    }
-
     // Print information about the engine.
-    pub fn print_about(&self, s: &Settings) {
+    pub fn print_fancy_about(&self, s: &Settings, protocol: &str) {
         let bits = std::mem::size_of::<usize>() * 8;
+
+        Engine::print_ascii_logo();
+
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
         println!("{:<10} {}", "Author:", About::AUTHOR);
         println!("{:<10} {}", "EMail:", About::EMAIL);
         println!("{:<10} {}", "Website:", About::WEBSITE);
         println!("{:<10} {}-bit", "Type:", bits);
         println!("{:<10} {} MB", "TT size:", s.tt_size);
+        println!("{:<10} {}", "Protocol:", protocol);
 
         if s.threads == 1 {
             println!("{:<10} {}", "Threads:", s.threads)
@@ -60,18 +52,33 @@ impl Engine {
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
+        println!();
     }
 
-    pub fn print_xboard_greeting(&self) {
+    pub fn print_simple_about(&self, s: &Settings, protocol: &str) {
         println!(
-            "{} {} | {} <{}> | xboard",
+            "{} {} | {} <{}> | TT: {} | {}",
             About::ENGINE,
             About::VERSION,
             About::AUTHOR,
-            About::EMAIL
+            About::EMAIL,
+            s.tt_size,
+            protocol
         );
 
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
+    }
+
+    fn print_ascii_logo() {
+        println!();
+        println!("d888888b                      dP   oo        ");
+        println!("88     88                     88             ");
+        println!("88oooo88  88    88  d8888b  d8888P dP d88888b");
+        println!("88    88  88    88  8ooooo    88   88 88     ");
+        println!("88     88 88    88       88   88   88 88     ");
+        println!("88     88  88888P  888888P    dP   dP 888888P");
+        println!("ooooooooooooooooooooooooooooooooooooooooooooo");
+        println!();
     }
 }

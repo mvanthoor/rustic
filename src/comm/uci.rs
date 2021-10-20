@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{shared::Shared, CommIn, CommOut, CommType, IComm};
+use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
@@ -67,6 +67,7 @@ pub struct Uci {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
     output_tx: Option<Sender<CommOut>>,       // Actual output sender object.
+    info: CommInfo,
 }
 
 // Public functions
@@ -77,6 +78,7 @@ impl Uci {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
+            info: CommInfo::new(CommType::UCI, true),
         }
     }
 }
@@ -118,6 +120,10 @@ impl IComm for Uci {
     // This function just returns the name of the communication protocol.
     fn get_protocol_name(&self) -> &'static str {
         CommType::UCI
+    }
+
+    fn info(&self) -> &CommInfo {
+        &self.info
     }
 }
 
