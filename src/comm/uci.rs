@@ -117,11 +117,6 @@ impl IComm for Uci {
         }
     }
 
-    // This function just returns the name of the communication protocol.
-    fn get_protocol_name(&self) -> &'static str {
-        CommType::UCI
-    }
-
     fn info(&self) -> &CommInfo {
         &self.info
     }

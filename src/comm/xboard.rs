@@ -128,11 +128,6 @@ impl IComm for XBoard {
         }
     }
 
-    // This function just returns the name of the communication protocol.
-    fn get_protocol_name(&self) -> &'static str {
-        CommType::XBOARD
-    }
-
     fn info(&self) -> &CommInfo {
         &self.info
     }
@@ -211,7 +206,7 @@ impl XBoard {
             cmd if cmd == "help" => CommIn::Help,
 
             // Assume anything else is a move, such as e2e4.
-            _ => CommIn::XBoard(XBoardIn::UserMove(i)),
+            _ => CommIn::Unknown,
         }
     }
 

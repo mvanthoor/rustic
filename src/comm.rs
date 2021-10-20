@@ -77,7 +77,6 @@ pub trait IComm {
     );
     fn send(&self, msg: CommOut);
     fn wait_for_shutdown(&mut self);
-    fn get_protocol_name(&self) -> &'static str;
     fn info(&self) -> &CommInfo;
 }
 
