@@ -51,12 +51,15 @@ impl Shared {
         println!("Evaluation: {}, Phase: {}", eval, phase);
     }
 
-    pub fn print_help(protocol: &'static str) {
+    pub fn print_help(protocol: &str) {
         println!(
             "The engine is in {} communication mode. It supports some custom",
             protocol
         );
-        println!("non-UCI commands to make use through a terminal window easier.");
+        println!(
+            "non-{} commands to make use through a terminal window easier.",
+            protocol
+        );
         println!("These commands can also be very useful for debugging purposes.");
         println!();
         println!("Custom commands");

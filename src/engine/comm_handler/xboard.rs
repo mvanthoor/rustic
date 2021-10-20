@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOutput, XBoardInput, XBoardOutput},
+    comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
         defs::{ErrFatal, Verbosity},
@@ -32,21 +32,22 @@ use crate::{
 };
 
 impl Engine {
-    pub fn xboard_handler(&mut self, command: &XBoardInput) {
+    pub fn xboard_handler(&mut self, command: &XBoardIn) {
         const PROTOCOL_VERSION: u8 = 2;
+
         let mut sp = SearchParams::new();
+        sp.verbosity = self.settings.verbosity;
 
         match command {
-            XBoardInput::XBoard => self.comm.send(CommOutput::XBoard(XBoardOutput::NewLine)),
+            XBoardIn::XBoard => self.comm.send(CommOut::XBoard(XBoardOut::NewLine)),
 
-            XBoardInput::ProtoVer(n) => {
+            XBoardIn::ProtoVer(n) => {
                 if *n == PROTOCOL_VERSION {
-                    self.comm
-                        .send(CommOutput::XBoard(XBoardOutput::SendFeatures));
+                    self.comm.send(CommOut::XBoard(XBoardOut::Features));
                 }
             }
 
-            XBoardInput::New => {
+            XBoardIn::New => {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
@@ -55,38 +56,36 @@ impl Engine {
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
-            XBoardInput::SetBoard(fen) => {
+            XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
                     let msg = String::from("Error: Incorrect FEN-string.");
-                    self.comm.send(CommOutput::Message(msg));
+                    self.comm.send(CommOut::Message(msg));
                 }
             }
 
-            XBoardInput::UserMove(m) => {
+            XBoardIn::UserMove(m) => {
                 let ok = self.execute_move(m.clone());
                 if !ok {
-                    let illegal_move = CommOutput::XBoard(XBoardOutput::IllegalMove(m.clone()));
+                    let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
                 }
             }
 
-            XBoardInput::Ping(value) => self
-                .comm
-                .send(CommOutput::XBoard(XBoardOutput::Pong(*value))),
+            XBoardIn::Ping(value) => self.comm.send(CommOut::XBoard(XBoardOut::Pong(*value))),
 
-            XBoardInput::Post => self.settings.verbosity = Verbosity::Full,
+            XBoardIn::Post => self.settings.verbosity = Verbosity::Full,
 
-            XBoardInput::NoPost => self.settings.verbosity = Verbosity::Silent,
+            XBoardIn::NoPost => self.settings.verbosity = Verbosity::Silent,
 
-            XBoardInput::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
+            XBoardIn::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 
-            XBoardInput::Analyze => {
+            XBoardIn::Analyze => {
                 sp.search_mode = SearchMode::Infinite;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            XBoardInput::Exit => self.search.send(SearchControl::Stop),
+            XBoardIn::Exit => self.search.send(SearchControl::Stop),
         }
     }
 }

@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOutput, UciInput, UciOutput},
+    comm::{CommOut, UciIn, UciOut},
     defs::FEN_START_POSITION,
     engine::{
         defs::{EngineSetOption, ErrFatal, ErrNormal},
@@ -32,15 +32,15 @@ use crate::{
 };
 
 impl Engine {
-    pub fn uci_handler(&mut self, command: &UciInput) {
+    pub fn uci_handler(&mut self, command: &UciIn) {
         // Setup default variables.
         let mut sp = SearchParams::new();
         sp.verbosity = self.settings.verbosity;
 
         match command {
-            UciInput::Uci => self.comm.send(CommOutput::Uci(UciOutput::Identify)),
+            UciIn::Uci => self.comm.send(CommOut::Uci(UciOut::Identify)),
 
-            UciInput::UciNewGame => {
+            UciIn::UciNewGame => {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
@@ -49,16 +49,16 @@ impl Engine {
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
-            UciInput::IsReady => self.comm.send(CommOutput::Uci(UciOutput::Ready)),
+            UciIn::IsReady => self.comm.send(CommOut::Uci(UciOut::Ready)),
 
-            UciInput::SetOption(option) => {
+            UciIn::SetOption(option) => {
                 match option {
                     EngineSetOption::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
                             let msg = String::from(ErrNormal::NOT_INT);
-                            self.comm.send(CommOutput::Uci(UciOutput::InfoString(msg)));
+                            self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
                         }
                     }
 
@@ -70,7 +70,7 @@ impl Engine {
                 };
             }
 
-            UciInput::Position(fen, moves) => {
+            UciIn::Position(fen, moves) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
 
                 if fen_result.is_ok() {
@@ -78,7 +78,7 @@ impl Engine {
                         let ok = self.execute_move(m.clone());
                         if !ok {
                             let msg = format!("{}: {}", m, ErrNormal::NOT_LEGAL);
-                            self.comm.send(CommOutput::Uci(UciOutput::InfoString(msg)));
+                            self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
                             break;
                         }
                     }
@@ -86,40 +86,40 @@ impl Engine {
 
                 if fen_result.is_err() {
                     let msg = ErrNormal::FEN_FAILED.to_string();
-                    self.comm.send(CommOutput::Uci(UciOutput::InfoString(msg)));
+                    self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
                 }
             }
 
-            UciInput::GoInfinite => {
+            UciIn::GoInfinite => {
                 sp.search_mode = SearchMode::Infinite;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciInput::GoDepth(depth) => {
+            UciIn::GoDepth(depth) => {
                 sp.depth = *depth;
                 sp.search_mode = SearchMode::Depth;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciInput::GoMoveTime(msecs) => {
+            UciIn::GoMoveTime(msecs) => {
                 sp.move_time = *msecs - (SAFEGUARD as u128);
                 sp.search_mode = SearchMode::MoveTime;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciInput::GoNodes(nodes) => {
+            UciIn::GoNodes(nodes) => {
                 sp.nodes = *nodes;
                 sp.search_mode = SearchMode::Nodes;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciInput::GoGameTime(gt) => {
+            UciIn::GoGameTime(gt) => {
                 sp.game_time = *gt;
                 sp.search_mode = SearchMode::GameTime;
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciInput::Stop => self.search.send(SearchControl::Stop),
+            UciIn::Stop => self.search.send(SearchControl::Stop),
         }
     }
 }

@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{shared::Shared, CommInput, CommOutput, CommType, IComm};
+use super::{shared::Shared, CommIn, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
@@ -41,7 +41,7 @@ use std::{
 };
 
 #[derive(PartialEq, Clone)]
-pub enum UciInput {
+pub enum UciIn {
     Uci,
     UciNewGame,
     IsReady,
@@ -56,7 +56,7 @@ pub enum UciInput {
 }
 
 #[derive(PartialEq)]
-pub enum UciOutput {
+pub enum UciOut {
     Identify,           // Transmit Uci of the engine.
     Ready,              // Transmit that the engine is ready.
     InfoString(String), // Transmit general information.
@@ -66,7 +66,7 @@ pub enum UciOutput {
 pub struct Uci {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
-    output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
+    output_tx: Option<Sender<CommOut>>,       // Actual output sender object.
 }
 
 // Public functions
@@ -97,7 +97,7 @@ impl IComm for Uci {
     // The engine thread (which is the creator of the Comm module) can use
     // this function to send out of the engine onto the console, or towards
     // a user interface.
-    fn send(&self, msg: CommOutput) {
+    fn send(&self, msg: CommOut) {
         if let Some(tx) = &self.output_tx {
             tx.send(msg).expect(ErrFatal::CHANNEL);
         }
@@ -124,7 +124,7 @@ impl IComm for Uci {
 // Implement the receiving thread
 impl Uci {
     // The receiving thread receives incoming commands from the console or
-    // GUI, which is turns into a "CommInput" object. It sends this
+    // GUI, which is turns into a "CommIn" object. It sends this
     // object to the engine thread so the engine can decide what to do.
     fn input_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
@@ -142,7 +142,7 @@ impl Uci {
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
-                // Create the CommInput object.
+                // Create the CommIn object.
                 let comm_received = Uci::create_comm_input(&t_incoming_data);
 
                 // Send it to the engine thread.
@@ -151,7 +151,7 @@ impl Uci {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommInput::Quit;
+                quit = comm_received == CommIn::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -165,36 +165,36 @@ impl Uci {
 
 // Implement receiving/parsing functions
 impl Uci {
-    // This function turns the incoming data into CommInputs which the
+    // This function turns the incoming data into CommIns which the
     // engine is able to understand and react to.
-    fn create_comm_input(input: &str) -> CommInput {
+    fn create_comm_input(input: &str) -> CommIn {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_lowercase();
 
         // Convert to &str for matching the command.
         match i {
             // UCI commands
-            cmd if cmd == "uci" => CommInput::Uci(UciInput::Uci),
-            cmd if cmd == "ucinewgame" => CommInput::Uci(UciInput::UciNewGame),
-            cmd if cmd == "isready" => CommInput::Uci(UciInput::IsReady),
-            cmd if cmd == "stop" => CommInput::Uci(UciInput::Stop),
+            cmd if cmd == "uci" => CommIn::Uci(UciIn::Uci),
+            cmd if cmd == "ucinewgame" => CommIn::Uci(UciIn::UciNewGame),
+            cmd if cmd == "isready" => CommIn::Uci(UciIn::IsReady),
+            cmd if cmd == "stop" => CommIn::Uci(UciIn::Stop),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
-            cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
+            cmd if cmd == "quit" || cmd.is_empty() => CommIn::Quit,
 
             // Custom commands
-            cmd if cmd == "board" => CommInput::Board,
-            cmd if cmd == "history" => CommInput::History,
-            cmd if cmd == "eval" => CommInput::Eval,
-            cmd if cmd == "help" => CommInput::Help,
+            cmd if cmd == "board" => CommIn::Board,
+            cmd if cmd == "history" => CommIn::History,
+            cmd if cmd == "eval" => CommIn::Eval,
+            cmd if cmd == "help" => CommIn::Help,
 
             // Everything else is ignored.
-            _ => CommInput::Unknown,
+            _ => CommIn::Unknown,
         }
     }
 
-    fn parse_position(cmd: &str) -> CommInput {
+    fn parse_position(cmd: &str) -> CommIn {
         enum Tokens {
             Nothing,
             Fen,
@@ -228,10 +228,10 @@ impl Uci {
             fen = String::from(FEN_START_POSITION)
         }
 
-        CommInput::Uci(UciInput::Position(fen.trim().to_string(), moves))
+        CommIn::Uci(UciIn::Position(fen.trim().to_string(), moves))
     }
 
-    fn parse_go(cmd: &str) -> CommInput {
+    fn parse_go(cmd: &str) -> CommIn {
         enum Tokens {
             Nothing,
             Depth,
@@ -245,13 +245,13 @@ impl Uci {
         }
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
-        let mut comm_received = CommInput::Unknown;
+        let mut comm_received = CommIn::Unknown;
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
         for p in parts {
             match p {
-                t if t == "go" => comm_received = CommInput::Uci(UciInput::GoInfinite),
+                t if t == "go" => comm_received = CommIn::Uci(UciIn::GoInfinite),
                 t if t == "infinite" => break, // Already Infinite; nothing more to do.
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
@@ -265,17 +265,17 @@ impl Uci {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
                         let depth = p.parse::<i8>().unwrap_or(1);
-                        comm_received = CommInput::Uci(UciInput::GoDepth(depth));
+                        comm_received = CommIn::Uci(UciIn::GoDepth(depth));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::MoveTime => {
                         let milliseconds = p.parse::<u128>().unwrap_or(1000);
-                        comm_received = CommInput::Uci(UciInput::GoMoveTime(milliseconds));
+                        comm_received = CommIn::Uci(UciIn::GoMoveTime(milliseconds));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::Nodes => {
                         let nodes = p.parse::<usize>().unwrap_or(1);
-                        comm_received = CommInput::Uci(UciInput::GoNodes(nodes));
+                        comm_received = CommIn::Uci(UciIn::GoNodes(nodes));
                         break; // break for-loop: nothing more to do.
                     }
                     Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
@@ -296,18 +296,18 @@ impl Uci {
         // If we are still in the default "go infinite" mode, we must
         // switch to GameTime mode if at least one parameter of "go wtime
         // btime winc binc" was set to something else but 0.
-        let is_default_mode = comm_received == CommInput::Uci(UciInput::GoInfinite);
+        let is_default_mode = comm_received == CommIn::Uci(UciIn::GoInfinite);
         let has_time = game_time.wtime > 0 || game_time.btime > 0;
         let has_inc = game_time.winc > 0 || game_time.binc > 0;
         let is_game_time = has_time || has_inc;
         if is_default_mode && is_game_time {
-            comm_received = CommInput::Uci(UciInput::GoGameTime(game_time));
+            comm_received = CommIn::Uci(UciIn::GoGameTime(game_time));
         }
 
         comm_received
     } // end parse_go()
 
-    fn parse_setoption(cmd: &str) -> CommInput {
+    fn parse_setoption(cmd: &str) -> CommIn {
         enum Tokens {
             Nothing,
             Name,
@@ -344,7 +344,7 @@ impl Uci {
         }
 
         // Send the engine option name with value to the engine thread.
-        CommInput::Uci(UciInput::SetOption(eon))
+        CommIn::Uci(UciIn::SetOption(eon))
     }
 }
 
@@ -353,7 +353,7 @@ impl Uci {
     // The control thread receives commands from the engine thread.
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
-        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
+        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOut>();
 
         // Create the output thread.
         let output_handle = thread::spawn(move || {
@@ -367,24 +367,24 @@ impl Uci {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::Uci(UciOutput::Identify) => {
+                    CommOut::Uci(UciOut::Identify) => {
                         Uci::id();
                         Uci::options(&t_options);
                         Uci::uciok();
                     }
-                    CommOutput::Uci(UciOutput::Ready) => Uci::readyok(),
-                    CommOutput::Uci(UciOutput::InfoString(msg)) => Uci::info_string(&msg),
-                    CommOutput::Quit => quit = true, // terminates the output thread.
-                    CommOutput::SearchSummary(summary) => Uci::search_summary(&summary),
-                    CommOutput::SearchCurrMove(current) => Uci::search_currmove(&current),
-                    CommOutput::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOutput::BestMove(bm) => Uci::best_move(&bm),
+                    CommOut::Uci(UciOut::Ready) => Uci::readyok(),
+                    CommOut::Uci(UciOut::InfoString(msg)) => Uci::info_string(&msg),
+                    CommOut::Quit => quit = true, // terminates the output thread.
+                    CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
+                    CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
+                    CommOut::SearchStats(stats) => Uci::search_stats(&stats),
+                    CommOut::BestMove(bm) => Uci::best_move(&bm),
 
                     // Custom prints for use in the console.
-                    CommOutput::PrintBoard => Shared::print_board(&t_board),
-                    CommOutput::PrintHistory => Shared::print_history(&t_board),
-                    CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
-                    CommOutput::PrintHelp => Shared::print_help(CommType::UCI),
+                    CommOut::PrintBoard => Shared::print_board(&t_board),
+                    CommOut::PrintHistory => Shared::print_history(&t_board),
+                    CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOut::PrintHelp => Shared::print_help(CommType::UCI),
 
                     // Ignore everything else
                     _ => (),

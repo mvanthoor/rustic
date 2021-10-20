@@ -23,11 +23,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication module.
 
-use super::{shared::Shared, CommInput, CommOutput, CommType, IComm};
+use super::{shared::Shared, CommIn, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::About,
     engine::defs::{EngineOption, ErrFatal, Information},
+    search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -54,11 +55,11 @@ const FEATURES: [&str; 11] = [
 pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
-    output_tx: Option<Sender<CommOutput>>,    // Actual output sender object.
+    output_tx: Option<Sender<CommOut>>,       // Actual output sender object.
 }
 
 #[derive(PartialEq, Clone)]
-pub enum XBoardInput {
+pub enum XBoardIn {
     XBoard,
     ProtoVer(u8),
     New,
@@ -72,9 +73,9 @@ pub enum XBoardInput {
     Exit,
 }
 
-pub enum XBoardOutput {
+pub enum XBoardOut {
     NewLine,
-    SendFeatures,
+    Features,
     IllegalMove(String),
     Pong(i8),
 }
@@ -107,7 +108,7 @@ impl IComm for XBoard {
     // The engine thread (which is the creator of the Comm module) can use
     // this function to send out of the engine onto the console, or towards
     // a user interface.
-    fn send(&self, msg: CommOutput) {
+    fn send(&self, msg: CommOut) {
         if let Some(tx) = &self.output_tx {
             tx.send(msg).expect(ErrFatal::CHANNEL);
         }
@@ -134,7 +135,7 @@ impl IComm for XBoard {
 // Implement the receiving thread
 impl XBoard {
     // The receiving thread receives incoming commands from the console or
-    // GUI, which is turns into a "CommInput" object. It sends this
+    // GUI, which is turns into a "CommIn" object. It sends this
     // object to the engine thread so the engine can decide what to do.
     fn input_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
@@ -152,7 +153,7 @@ impl XBoard {
                     .read_line(&mut t_incoming_data)
                     .expect(ErrFatal::READ_IO);
 
-                // Create the CommInput object.
+                // Create the CommIn object.
                 let comm_received = XBoard::create_comm_input(&t_incoming_data);
 
                 // Send it to the engine thread.
@@ -161,7 +162,7 @@ impl XBoard {
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommInput::Quit;
+                quit = comm_received == CommIn::Quit;
 
                 // Clear for next input
                 t_incoming_data = String::from("");
@@ -175,21 +176,21 @@ impl XBoard {
 
 // Implement receiving/parsing functions
 impl XBoard {
-    // This function turns the incoming data into CommInputs which the
+    // This function turns the incoming data into CommIns which the
     // engine is able to understand and react to.
-    fn create_comm_input(input: &str) -> CommInput {
+    fn create_comm_input(input: &str) -> CommIn {
         // Trim CR/LF so only the usable characters remain.
         let i = input.trim_end().to_lowercase();
 
         // Convert to &str for matching the command.
         match i {
-            cmd if cmd == "xboard" => CommInput::XBoard(XBoardInput::XBoard),
-            cmd if cmd == "new" => CommInput::XBoard(XBoardInput::New),
-            cmd if cmd == "post" => CommInput::XBoard(XBoardInput::Post),
-            cmd if cmd == "nopost" => CommInput::XBoard(XBoardInput::NoPost),
-            cmd if cmd == "analyze" => CommInput::XBoard(XBoardInput::Analyze),
-            cmd if cmd == "exit" => CommInput::XBoard(XBoardInput::Exit),
-            cmd if cmd == "quit" || cmd.is_empty() => CommInput::Quit,
+            cmd if cmd == "xboard" => CommIn::XBoard(XBoardIn::XBoard),
+            cmd if cmd == "new" => CommIn::XBoard(XBoardIn::New),
+            cmd if cmd == "post" => CommIn::XBoard(XBoardIn::Post),
+            cmd if cmd == "nopost" => CommIn::XBoard(XBoardIn::NoPost),
+            cmd if cmd == "analyze" => CommIn::XBoard(XBoardIn::Analyze),
+            cmd if cmd == "exit" => CommIn::XBoard(XBoardIn::Exit),
+            cmd if cmd == "quit" || cmd.is_empty() => CommIn::Quit,
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
@@ -197,17 +198,17 @@ impl XBoard {
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
 
             // Custom commands
-            cmd if cmd == "board" => CommInput::Board,
-            cmd if cmd == "history" => CommInput::History,
-            cmd if cmd == "eval" => CommInput::Eval,
-            cmd if cmd == "help" => CommInput::Help,
+            cmd if cmd == "board" => CommIn::Board,
+            cmd if cmd == "history" => CommIn::History,
+            cmd if cmd == "eval" => CommIn::Eval,
+            cmd if cmd == "help" => CommIn::Help,
 
             // Assume anything else is a move, such as e2e4.
-            _ => CommInput::XBoard(XBoardInput::UserMove(i)),
+            _ => CommIn::XBoard(XBoardIn::UserMove(i)),
         }
     }
 
-    fn parse_key_value_pair(cmd: &str) -> CommInput {
+    fn parse_key_value_pair(cmd: &str) -> CommIn {
         const KEY: usize = 0;
         const VALUE: usize = 1;
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
@@ -218,31 +219,31 @@ impl XBoard {
             match &parts[KEY][..] {
                 "ping" => {
                     let value = parts[VALUE].parse::<i8>().unwrap_or(0);
-                    CommInput::XBoard(XBoardInput::Ping(value))
+                    CommIn::XBoard(XBoardIn::Ping(value))
                 }
                 "protover" => {
                     let value = parts[VALUE].parse::<u8>().unwrap_or(0);
-                    CommInput::XBoard(XBoardInput::ProtoVer(value))
+                    CommIn::XBoard(XBoardIn::ProtoVer(value))
                 }
                 "memory" => {
                     let value = parts[VALUE].parse::<usize>().unwrap_or(0);
-                    CommInput::XBoard(XBoardInput::Memory(value))
+                    CommIn::XBoard(XBoardIn::Memory(value))
                 }
                 "usermove" => {
                     let value = parts[VALUE].to_lowercase();
-                    CommInput::XBoard(XBoardInput::UserMove(value))
+                    CommIn::XBoard(XBoardIn::UserMove(value))
                 }
 
-                _ => CommInput::Unknown,
+                _ => CommIn::Unknown,
             }
         } else {
-            CommInput::Unknown
+            CommIn::Unknown
         }
     }
 
-    fn parse_setboard(cmd: &str) -> CommInput {
+    fn parse_setboard(cmd: &str) -> CommIn {
         let fen = cmd.replace("setboard", "").trim().to_string();
-        CommInput::XBoard(XBoardInput::SetBoard(fen))
+        CommIn::XBoard(XBoardIn::SetBoard(fen))
     }
 }
 
@@ -251,7 +252,7 @@ impl XBoard {
     // The control thread receives commands from the engine thread.
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
-        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOutput>();
+        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOut>();
 
         // Create the output thread.
         let output_handle = thread::spawn(move || {
@@ -265,18 +266,19 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
-                    CommOutput::XBoard(XBoardOutput::NewLine) => XBoard::new_line(),
-                    CommOutput::XBoard(XBoardOutput::SendFeatures) => XBoard::send_features(),
-                    CommOutput::XBoard(XBoardOutput::Pong(v)) => XBoard::pong(v),
-                    CommOutput::XBoard(XBoardOutput::IllegalMove(m)) => XBoard::illegal_move(m),
-                    CommOutput::Message(msg) => XBoard::send_message(msg),
-                    CommOutput::Quit => quit = true,
+                    CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
+                    CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
+                    CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
+                    CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
+                    CommOut::SearchSummary(summary) => XBoard::search_summary(&summary),
+                    CommOut::Message(msg) => XBoard::send_message(&msg),
+                    CommOut::Quit => quit = true,
 
                     // Custom prints for use in the console.
-                    CommOutput::PrintBoard => Shared::print_board(&t_board),
-                    CommOutput::PrintHistory => Shared::print_history(&t_board),
-                    CommOutput::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
-                    CommOutput::PrintHelp => Shared::print_help(CommType::XBOARD),
+                    CommOut::PrintBoard => Shared::print_board(&t_board),
+                    CommOut::PrintHistory => Shared::print_history(&t_board),
+                    CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOut::PrintHelp => Shared::print_help(CommType::XBOARD),
 
                     // Ignore everything else
                     _ => (),
@@ -296,7 +298,7 @@ impl XBoard {
         println!("\n");
     }
 
-    fn send_features() {
+    fn features() {
         let myname = format!("myname=\"{} {}\"", About::ENGINE, About::VERSION);
 
         for f in FEATURES {
@@ -309,11 +311,23 @@ impl XBoard {
         println!("pong {}", value)
     }
 
-    fn send_message(msg: String) {
+    fn send_message(msg: &str) {
         println!("{}", msg);
     }
 
-    fn illegal_move(m: String) {
+    fn illegal_move(m: &str) {
         println!("Illegal move: {}", m);
+    }
+
+    fn search_summary(s: &SearchSummary) {
+        // DEPTH SCORE TIME NODES PV
+        println!(
+            "{} {} {} {} {}",
+            s.depth,
+            s.cp,
+            (s.time as f64 / 10.0).round(),
+            s.nodes,
+            s.pv_as_string()
+        );
     }
 }

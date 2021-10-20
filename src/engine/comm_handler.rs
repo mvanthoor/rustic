@@ -25,7 +25,7 @@ mod uci;
 mod xboard;
 
 use crate::{
-    comm::{CommInput, CommOutput},
+    comm::{CommIn, CommOut},
     engine::{defs::ErrFatal, Engine},
     evaluation::Evaluation,
 };
@@ -33,22 +33,22 @@ use crate::{
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_handler(&mut self, input: &CommInput) {
+    pub fn comm_handler(&mut self, input: &CommIn) {
         match input {
-            CommInput::Uci(command) => self.uci_handler(command),
-            CommInput::XBoard(command) => self.xboard_handler(command),
+            CommIn::Uci(command) => self.uci_handler(command),
+            CommIn::XBoard(command) => self.xboard_handler(command),
 
-            CommInput::Quit => self.quit(),
-            CommInput::Board => self.comm.send(CommOutput::PrintBoard),
-            CommInput::History => self.comm.send(CommOutput::PrintHistory),
-            CommInput::Eval => {
+            CommIn::Quit => self.quit(),
+            CommIn::Board => self.comm.send(CommOut::PrintBoard),
+            CommIn::History => self.comm.send(CommOut::PrintHistory),
+            CommIn::Eval => {
                 let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
                 let eval = Evaluation::evaluate_position(mtx_board);
                 let phase = mtx_board.game_state.phase_value;
-                self.comm.send(CommOutput::PrintEval(eval, phase));
+                self.comm.send(CommOut::PrintEval(eval, phase));
             }
-            CommInput::Help => self.comm.send(CommOutput::PrintHelp),
-            CommInput::Unknown => (),
+            CommIn::Help => self.comm.send(CommOut::PrintHelp),
+            CommIn::Unknown => (),
         }
     }
 }

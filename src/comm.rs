@@ -34,8 +34,8 @@ use crate::{
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
-pub use uci::{Uci, UciInput, UciOutput};
-pub use xboard::{XBoard, XBoardInput, XBoardOutput};
+pub use uci::{Uci, UciIn, UciOut};
+pub use xboard::{XBoard, XBoardIn, XBoardOut};
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;
@@ -52,15 +52,15 @@ pub trait IComm {
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<EngineOption>>,
     );
-    fn send(&self, msg: CommOutput);
+    fn send(&self, msg: CommOut);
     fn wait_for_shutdown(&mut self);
     fn get_protocol_name(&self) -> &'static str;
 }
 
 #[derive(PartialEq, Clone)]
-pub enum CommInput {
-    Uci(UciInput),
-    XBoard(XBoardInput),
+pub enum CommIn {
+    Uci(UciIn),
+    XBoard(XBoardIn),
 
     // Common incoming commands
     Quit,
@@ -73,9 +73,9 @@ pub enum CommInput {
     Help,
 }
 
-pub enum CommOutput {
-    Uci(UciOutput),
-    XBoard(XBoardOutput),
+pub enum CommOut {
+    Uci(UciOut),
+    XBoard(XBoardOut),
 
     // Common output for all protocols
     BestMove(Move),                    // Transmit the engine's best move.

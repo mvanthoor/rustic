@@ -22,25 +22,25 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::Engine;
-use crate::{comm::CommOutput, search::defs::SearchReport};
+use crate::{comm::CommOut, search::defs::SearchReport};
 
 impl Engine {
     pub fn search_reports(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
-                self.comm.send(CommOutput::BestMove(*m));
+                self.comm.send(CommOut::BestMove(*m));
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {
-                self.comm.send(CommOutput::SearchCurrMove(*curr_move));
+                self.comm.send(CommOut::SearchCurrMove(*curr_move));
             }
 
             SearchReport::SearchSummary(summary) => {
-                self.comm.send(CommOutput::SearchSummary(summary.clone()));
+                self.comm.send(CommOut::SearchSummary(summary.clone()));
             }
 
             SearchReport::SearchStats(stats) => {
-                self.comm.send(CommOutput::SearchStats(*stats));
+                self.comm.send(CommOut::SearchStats(*stats));
             }
         }
     }
