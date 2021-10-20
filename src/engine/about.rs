@@ -57,7 +57,7 @@ impl Engine {
 
     pub fn print_simple_about(&self, s: &Settings, protocol: &str) {
         println!(
-            "{} {} | {} <{}> | TT: {} | {}",
+            "{} {} | {} <{}> | TT: {} MB | {}",
             About::ENGINE,
             About::VERSION,
             About::AUTHOR,
