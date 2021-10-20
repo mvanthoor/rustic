@@ -205,8 +205,8 @@ impl XBoard {
             cmd if cmd == "state" => CommIn::State,
             cmd if cmd == "help" => CommIn::Help,
 
-            // Assume anything else is unknown.
-            _ => CommIn::Unknown(i),
+            // Try to parse anything else as a move.
+            _ => XBoard::parse_move(&i),
         }
     }
 
@@ -246,6 +246,36 @@ impl XBoard {
     fn parse_setboard(cmd: &str) -> CommIn {
         let fen = cmd.replace("setboard", "").trim().to_string();
         CommIn::XBoard(XBoardIn::SetBoard(fen))
+    }
+
+    fn parse_move(cmd: &str) -> CommIn {
+        const ALPHA_COORDS: &str = "abcdefgh";
+        const DIGIT_COORDS: &str = "12345678";
+        const PROMOTIONS: &str = "qrbn";
+
+        // Count the number of correct characters.
+        let mut char_ok = 0;
+
+        // A move is always 4 or 5 characters long.
+        if cmd.len() == 4 || cmd.len() == 5 {
+            // Check correctness of each character.
+            for (i, char) in cmd.chars().enumerate() {
+                match i {
+                    0 | 2 if ALPHA_COORDS.contains(char) => char_ok += 1,
+                    1 | 3 if DIGIT_COORDS.contains(char) => char_ok += 1,
+                    4 if PROMOTIONS.contains(char) => char_ok += 1,
+                    _ => (),
+                }
+            }
+        }
+
+        // If all characters are OK, then this is a plausible move.
+        // Otherwise, it is an unknown command.
+        if cmd.len() == char_ok {
+            CommIn::XBoard(XBoardIn::UserMove(cmd.to_string()))
+        } else {
+            CommIn::Unknown(cmd.to_string())
+        }
     }
 }
 
