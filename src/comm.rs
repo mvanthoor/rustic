@@ -46,17 +46,20 @@ impl CommType {
 }
 
 pub struct CommInfo {
-    name: &'static str,
+    protocol_name: &'static str,
     fancy_about: bool,
 }
 
 impl CommInfo {
-    pub fn new(name: &'static str, fancy_about: bool) -> Self {
-        Self { name, fancy_about }
+    pub fn new(protocol_name: &'static str, fancy_about: bool) -> Self {
+        Self {
+            protocol_name,
+            fancy_about,
+        }
     }
 
     pub fn name(&self) -> &str {
-        self.name
+        self.protocol_name
     }
 
     pub fn fancy_about(&self) -> bool {
