@@ -274,6 +274,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::SearchSummary(summary) => XBoard::search_summary(&summary),
                     CommOut::Message(msg) => XBoard::send_message(&msg),
+                    CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
 
                     // Custom prints for use in the console.
@@ -320,6 +321,10 @@ impl XBoard {
 
     fn illegal_move(m: &str) {
         println!("Illegal move: {}", m);
+    }
+
+    fn error(err_type: &str, cmd: &str) {
+        println!("Error ({}): {}", err_type, cmd);
     }
 
     fn search_summary(s: &SearchSummary) {

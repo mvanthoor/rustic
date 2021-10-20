@@ -30,6 +30,8 @@ use crate::{
     evaluation::Evaluation,
 };
 
+use super::defs::ErrNormal;
+
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
@@ -49,7 +51,10 @@ impl Engine {
             }
             CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
-            CommIn::Unknown(cmd) => (),
+            CommIn::Unknown(cmd) => self.comm.send(CommOut::Error(
+                ErrNormal::UNKNOWN_COMMAND.to_string(),
+                cmd.to_string(),
+            )),
         }
     }
 }

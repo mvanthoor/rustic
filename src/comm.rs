@@ -106,7 +106,8 @@ pub enum CommOut {
     SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.
-    Message(String),                   // Transmits a message to the GUI
+    Message(String),                   // Transmits a message to the GUI.
+    Error(String, String),             // Transmits an error message.
     Quit,                              // Terminates the output thread.
 
     // Output to screen when running in a terminal window.
