@@ -53,6 +53,13 @@ pub enum Verbosity {
     Silent,
 }
 
+pub enum EngineState {
+    Observing,
+    Waiting,
+    Thinking,
+    Analyzing,
+}
+
 // This struct holds the engine's settings.
 pub struct Settings {
     pub threads: usize,
