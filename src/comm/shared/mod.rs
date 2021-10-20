@@ -21,7 +21,11 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use crate::{board::Board, engine::defs::ErrFatal, misc::print};
+use crate::{
+    board::Board,
+    engine::defs::{EngineState, ErrFatal},
+    misc::print,
+};
 use std::sync::{Arc, Mutex};
 
 pub struct Shared {}
@@ -51,6 +55,10 @@ impl Shared {
         println!("Evaluation: {}, Phase: {}", eval, phase);
     }
 
+    pub fn print_state(state: &EngineState) {
+        println!("State: {}", state);
+    }
+
     pub fn print_help(protocol: &str) {
         println!(
             "The engine is in {} communication mode. It supports some custom",
@@ -68,6 +76,7 @@ impl Shared {
         println!("board     :   Print the current board state.");
         println!("history   :   Print a list of past board states.");
         println!("eval      :   Print evaluation for side to move.");
+        println!("state     :   Print current state of the engine.");
         println!();
     }
 }

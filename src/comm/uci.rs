@@ -184,15 +184,16 @@ impl Uci {
             cmd if cmd == "ucinewgame" => CommIn::Uci(UciIn::UciNewGame),
             cmd if cmd == "isready" => CommIn::Uci(UciIn::IsReady),
             cmd if cmd == "stop" => CommIn::Uci(UciIn::Stop),
+            cmd if cmd == "quit" || cmd.is_empty() => CommIn::Quit,
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
-            cmd if cmd == "quit" || cmd.is_empty() => CommIn::Quit,
 
             // Custom commands
             cmd if cmd == "board" => CommIn::Board,
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
+            cmd if cmd == "state" => CommIn::State,
             cmd if cmd == "help" => CommIn::Help,
 
             // Everything else is ignored.
@@ -390,6 +391,7 @@ impl Uci {
                     CommOut::PrintBoard => Shared::print_board(&t_board),
                     CommOut::PrintHistory => Shared::print_history(&t_board),
                     CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOut::PrintState(state) => Shared::print_state(&state),
                     CommOut::PrintHelp => Shared::print_help(CommType::UCI),
 
                     // Ignore everything else

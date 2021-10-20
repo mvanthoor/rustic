@@ -27,7 +27,7 @@ mod xboard;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, Information},
+    engine::defs::{EngineOption, EngineState, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -94,6 +94,7 @@ pub enum CommIn {
     Board,
     History,
     Eval,
+    State,
     Help,
 }
 
@@ -113,5 +114,6 @@ pub enum CommOut {
     PrintBoard,
     PrintHistory,
     PrintHelp,
+    PrintState(EngineState),
     PrintEval(i16, i16),
 }

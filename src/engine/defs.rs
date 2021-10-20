@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use std::fmt::{Display, Formatter, Result};
+
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 use crate::{comm::CommIn, search::defs::SearchReport};
 
@@ -53,11 +55,23 @@ pub enum Verbosity {
     Silent,
 }
 
+#[derive(PartialEq, Copy, Clone)]
 pub enum EngineState {
     Observing,
     Waiting,
     Thinking,
     Analyzing,
+}
+
+impl Display for EngineState {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            EngineState::Observing => write!(f, "Observing"),
+            EngineState::Waiting => write!(f, "Waiting"),
+            EngineState::Thinking => write!(f, "Thinking"),
+            EngineState::Analyzing => write!(f, "Analyzing"),
+        }
+    }
 }
 
 // This struct holds the engine's settings.

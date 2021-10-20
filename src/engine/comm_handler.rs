@@ -47,6 +47,7 @@ impl Engine {
                 let phase = mtx_board.game_state.phase_value;
                 self.comm.send(CommOut::PrintEval(eval, phase));
             }
+            CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
             CommIn::Unknown => (),
         }

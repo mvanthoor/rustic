@@ -207,6 +207,7 @@ impl XBoard {
             cmd if cmd == "board" => CommIn::Board,
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
+            cmd if cmd == "state" => CommIn::State,
             cmd if cmd == "help" => CommIn::Help,
 
             // Assume anything else is a move, such as e2e4.
@@ -284,6 +285,7 @@ impl XBoard {
                     CommOut::PrintBoard => Shared::print_board(&t_board),
                     CommOut::PrintHistory => Shared::print_history(&t_board),
                     CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
+                    CommOut::PrintState(state) => Shared::print_state(&state),
                     CommOut::PrintHelp => Shared::print_help(CommType::XBOARD),
 
                     // Ignore everything else
