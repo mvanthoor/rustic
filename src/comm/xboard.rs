@@ -205,8 +205,8 @@ impl XBoard {
             cmd if cmd == "state" => CommIn::State,
             cmd if cmd == "help" => CommIn::Help,
 
-            // Assume anything else is a move, such as e2e4.
-            _ => CommIn::Unknown,
+            // Assume anything else is unknown.
+            _ => CommIn::Unknown(i),
         }
     }
 
@@ -236,10 +236,10 @@ impl XBoard {
                     CommIn::XBoard(XBoardIn::UserMove(value))
                 }
 
-                _ => CommIn::Unknown,
+                _ => CommIn::Unknown(cmd.to_string()),
             }
         } else {
-            CommIn::Unknown
+            CommIn::Unknown(cmd.to_string())
         }
     }
 

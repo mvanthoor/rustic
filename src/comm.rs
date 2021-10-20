@@ -87,7 +87,7 @@ pub enum CommIn {
 
     // Common incoming commands
     Quit,
-    Unknown,
+    Unknown(String),
 
     // Custom
     Board,

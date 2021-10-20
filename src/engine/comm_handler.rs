@@ -49,7 +49,7 @@ impl Engine {
             }
             CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
-            CommIn::Unknown => (),
+            CommIn::Unknown(cmd) => (),
         }
     }
 }
