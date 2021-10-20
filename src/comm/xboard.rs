@@ -181,7 +181,7 @@ impl XBoard {
     // engine is able to understand and react to.
     fn create_comm_input(input: &str) -> CommIn {
         // Trim CR/LF so only the usable characters remain.
-        let i = input.trim_end().to_lowercase();
+        let i = input.trim_end().to_string();
 
         // Convert to &str for matching the command.
         match i {
