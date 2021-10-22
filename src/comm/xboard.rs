@@ -327,7 +327,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::SearchSummary(summary) => XBoard::search_summary(&summary),
-                    CommOut::Message(msg) => XBoard::send_message(&msg),
+                    CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
 
@@ -369,8 +369,8 @@ impl XBoard {
         println!("pong {}", value)
     }
 
-    fn send_message(msg: &str) {
-        println!("{}", msg);
+    fn message(msg: &str) {
+        println!("# {}", msg);
     }
 
     fn illegal_move(m: &str) {
