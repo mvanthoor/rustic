@@ -33,6 +33,7 @@ use crate::{
 };
 use crossbeam_channel::{self, Sender};
 use std::{
+    fmt::{self, Display},
     io::{self},
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
@@ -74,6 +75,25 @@ pub enum XBoardIn {
     Memory(usize),
     Analyze,
     Exit,
+}
+
+impl Display for XBoardIn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            XBoardIn::XBoard => write!(f, "xboard"),
+            XBoardIn::ProtoVer(x) => write!(f, "protover {}", x),
+            XBoardIn::New => write!(f, "new"),
+            XBoardIn::Force => write!(f, "force"),
+            XBoardIn::SetBoard(x) => write!(f, "setboard {}", x),
+            XBoardIn::UserMove(x) => write!(f, "usermove {}", x),
+            XBoardIn::Ping(x) => write!(f, "ping {}", x),
+            XBoardIn::Post => write!(f, "post"),
+            XBoardIn::NoPost => write!(f, "nopost"),
+            XBoardIn::Memory(x) => write!(f, "memory {}", x),
+            XBoardIn::Analyze => write!(f, "analyze"),
+            XBoardIn::Exit => write!(f, "exit"),
+        }
+    }
 }
 
 pub enum XBoardOut {
