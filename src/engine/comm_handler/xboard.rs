@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, Verbosity},
+        defs::{EngineState, ErrFatal, ErrNormal, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -58,17 +58,23 @@ impl Engine {
                     self.set_waiting();
                 } else {
                     self.comm.send(CommOut::Error(
-                        format!(
-                            "{}. {}.",
-                            ErrNormal::NOT_OBSERVING,
-                            ErrNormal::COMMAND_IGNORED
-                        ),
-                        format!("{}", command),
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
                     ));
                 }
             }
 
-            XBoardIn::Force => (),
+            XBoardIn::Force => match self.state {
+                EngineState::Waiting => {
+                    self.set_observing();
+                }
+                _ => {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
+                    ));
+                }
+            },
 
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
