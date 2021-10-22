@@ -27,7 +27,7 @@ use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, EngineSetOption, ErrFatal, Information, UiElement},
+    engine::defs::{EngineOption, EngineSetOption, EngineState, ErrFatal, Information, UiElement},
     movegen::defs::Move,
     search::defs::{
         GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE, CHECKMATE_THRESHOLD,
@@ -78,7 +78,7 @@ impl Uci {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::UCI, true),
+            info: CommInfo::new(CommType::XBOARD, true, EngineState::Waiting),
         }
     }
 }

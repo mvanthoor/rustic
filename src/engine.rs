@@ -132,7 +132,7 @@ impl Engine {
         // Create the engine itself.
         Self {
             quit: false,
-            state: EngineState::Observing,
+            state: comm.info().entry_state(),
             settings: Settings {
                 threads,
                 verbosity,

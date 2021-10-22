@@ -48,13 +48,15 @@ impl CommType {
 pub struct CommInfo {
     protocol_name: &'static str,
     fancy_about: bool,
+    entry_state: EngineState,
 }
 
 impl CommInfo {
-    pub fn new(protocol_name: &'static str, fancy_about: bool) -> Self {
+    pub fn new(protocol_name: &'static str, fancy_about: bool, entry_state: EngineState) -> Self {
         Self {
             protocol_name,
             fancy_about,
+            entry_state,
         }
     }
 
@@ -64,6 +66,10 @@ impl CommInfo {
 
     pub fn fancy_about(&self) -> bool {
         self.fancy_about
+    }
+
+    pub fn entry_state(&self) -> EngineState {
+        self.entry_state
     }
 }
 

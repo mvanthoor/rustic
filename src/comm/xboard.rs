@@ -27,7 +27,7 @@ use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::About,
-    engine::defs::{EngineOption, ErrFatal, Information},
+    engine::defs::{EngineOption, EngineState, ErrFatal, Information},
     search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
@@ -89,7 +89,7 @@ impl XBoard {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::XBOARD, false),
+            info: CommInfo::new(CommType::XBOARD, false, EngineState::Observing),
         }
     }
 }
