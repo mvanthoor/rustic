@@ -40,7 +40,7 @@ use crate::{
 use crossbeam_channel::Sender;
 use defs::{
     SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
-    SearchTerminate,
+    SearchTerminated,
 };
 use std::{
     sync::{Arc, Mutex},
@@ -122,7 +122,7 @@ impl Search {
                     };
 
                     // Start the search using Iterative Deepening.
-                    let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
+                    let (best_move, termination) = Search::iterative_deepening(&mut search_refs);
 
                     // Inform the engine that the search has finished.
                     let information = Information::Search(SearchReport::Finished(best_move));
@@ -130,15 +130,15 @@ impl Search {
 
                     // If the search was finished due to a Stop or Quit
                     // command then either halt or quit the search.
-                    match terminate {
-                        SearchTerminate::Stop => {
+                    match termination {
+                        SearchTerminated::Stopped => {
                             halt = true;
                         }
-                        SearchTerminate::Quit => {
+                        SearchTerminated::Quit => {
                             halt = true;
                             quit = true;
                         }
-                        SearchTerminate::Nothing => (),
+                        SearchTerminated::Nothing => (),
                     }
                 }
             }

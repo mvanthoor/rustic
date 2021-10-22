@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminate, MAX_KILLER_MOVES, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
+        SearchTerminated, MAX_KILLER_MOVES, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
     },
     Search,
 };
@@ -85,8 +85,8 @@ impl Search {
         // Terminate search if stop or quit command is received.
         let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
-            SearchControl::Stop => refs.search_info.terminate = SearchTerminate::Stop,
-            SearchControl::Quit => refs.search_info.terminate = SearchTerminate::Quit,
+            SearchControl::Stop => refs.search_info.terminate = SearchTerminated::Stopped,
+            SearchControl::Quit => refs.search_info.terminate = SearchTerminated::Quit,
             SearchControl::Start(_) | SearchControl::Nothing => (),
         };
 
@@ -95,23 +95,23 @@ impl Search {
         match search_mode {
             SearchMode::Depth => {
                 if refs.search_info.depth > refs.search_params.depth {
-                    refs.search_info.terminate = SearchTerminate::Stop
+                    refs.search_info.terminate = SearchTerminated::Stopped
                 }
             }
             SearchMode::MoveTime => {
                 let elapsed = refs.search_info.timer_elapsed();
                 if elapsed >= refs.search_params.move_time {
-                    refs.search_info.terminate = SearchTerminate::Stop
+                    refs.search_info.terminate = SearchTerminated::Stopped
                 }
             }
             SearchMode::Nodes => {
                 if refs.search_info.nodes >= refs.search_params.nodes {
-                    refs.search_info.terminate = SearchTerminate::Stop
+                    refs.search_info.terminate = SearchTerminated::Stopped
                 }
             }
             SearchMode::GameTime => {
                 if Search::out_of_time(refs) {
-                    refs.search_info.terminate = SearchTerminate::Stop
+                    refs.search_info.terminate = SearchTerminated::Stopped
                 }
             }
             SearchMode::Infinite => (), // Handled by a direct 'stop' command

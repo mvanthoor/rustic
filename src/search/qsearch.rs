@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECK_TERMINATION, SEND_STATS},
+    defs::{SearchTerminated, CHECK_TERMINATION, SEND_STATS},
     Search, SearchRefs,
 };
 use crate::{
@@ -46,7 +46,7 @@ impl Search {
         }
 
         // Abort if we have to terminate. Depth not finished.
-        if refs.search_info.terminate != SearchTerminate::Nothing {
+        if refs.search_info.terminate != SearchTerminated::Nothing {
             return 0;
         }
 

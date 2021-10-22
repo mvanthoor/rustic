@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
+    defs::{SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
     Search, SearchRefs,
 };
 use crate::{
@@ -52,7 +52,7 @@ impl Search {
 
         // If time is up, abort. This depth won't be considered in
         // iterative deepening as it is unfinished.
-        if refs.search_info.terminate != SearchTerminate::Nothing {
+        if refs.search_info.terminate != SearchTerminated::Nothing {
             return 0;
         }
 

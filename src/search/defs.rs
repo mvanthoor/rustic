@@ -27,7 +27,7 @@ pub const MIN_TIME_STATS: u128 = 2_000; // Minimum time for sending stats
 pub const MIN_TIME_CURR_MOVE: u128 = 1_000; // Minimum time for sending curr_move
 pub const MAX_KILLER_MOVES: usize = 2;
 
-pub type SearchResult = (Move, SearchTerminate);
+pub type SearchResult = (Move, SearchTerminated);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
 #[derive(PartialEq)]
@@ -41,8 +41,8 @@ pub enum SearchControl {
 
 // Ways to terminate a search.
 #[derive(PartialEq, Copy, Clone)]
-pub enum SearchTerminate {
-    Stop,    // Search is halted.
+pub enum SearchTerminated {
+    Stopped, // Search is halted.
     Quit,    // Search module is quit completely.
     Nothing, // No command received yet.
 }
@@ -120,16 +120,16 @@ impl SearchParams {
 // search into this struct.
 #[derive(PartialEq)]
 pub struct SearchInfo {
-    start_time: Option<Instant>,    // Time the search started
-    pub depth: i8,                  // Depth currently being searched
-    pub seldepth: i8,               // Maximum selective depth reached
-    pub nodes: usize,               // Nodes searched
-    pub ply: i8,                    // Number of plys from the root
-    pub killer_moves: KillerMoves,  // Killer moves (array; see "type" above)
-    pub last_stats_sent: u128,      // When last stats update was sent
-    pub last_curr_move_sent: u128,  // When last current move was sent
-    pub allocated_time: u128,       // Allotted msecs to spend on move
-    pub terminate: SearchTerminate, // Terminate flag
+    start_time: Option<Instant>,     // Time the search started
+    pub depth: i8,                   // Depth currently being searched
+    pub seldepth: i8,                // Maximum selective depth reached
+    pub nodes: usize,                // Nodes searched
+    pub ply: i8,                     // Number of plys from the root
+    pub killer_moves: KillerMoves,   // Killer moves (array; see "type" above)
+    pub last_stats_sent: u128,       // When last stats update was sent
+    pub last_curr_move_sent: u128,   // When last current move was sent
+    pub allocated_time: u128,        // Allotted msecs to spend on move
+    pub terminate: SearchTerminated, // Terminate flag
 }
 
 impl SearchInfo {
@@ -144,7 +144,7 @@ impl SearchInfo {
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,
-            terminate: SearchTerminate::Nothing,
+            terminate: SearchTerminated::Nothing,
         }
     }
 
@@ -161,7 +161,7 @@ impl SearchInfo {
     }
 
     pub fn interrupted(&self) -> bool {
-        self.terminate != SearchTerminate::Nothing
+        self.terminate != SearchTerminated::Nothing
     }
 }
 
