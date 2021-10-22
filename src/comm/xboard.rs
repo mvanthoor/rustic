@@ -28,6 +28,7 @@ use crate::{
     board::Board,
     defs::About,
     engine::defs::{EngineOption, EngineState, ErrFatal, Information},
+    movegen::defs::Move,
     search::defs::SearchSummary,
 };
 use crossbeam_channel::{self, Sender};
@@ -302,6 +303,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
+                    CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::SearchSummary(summary) => XBoard::search_summary(&summary),
                     CommOut::Message(msg) => XBoard::send_message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
@@ -355,6 +357,10 @@ impl XBoard {
 
     fn error(err_type: &str, cmd: &str) {
         println!("Error ({}): {}", err_type, cmd);
+    }
+
+    fn best_move(m: &Move) {
+        println!("move {}", m.as_string());
     }
 
     fn search_summary(s: &SearchSummary) {
