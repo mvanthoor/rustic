@@ -112,7 +112,16 @@ impl Engine {
                 self.search.send(SearchControl::Start(sp));
             }
 
-            XBoardIn::Exit => self.search.send(SearchControl::Stop),
+            XBoardIn::Exit => {
+                if self.is_analyzing() {
+                    self.search.send(SearchControl::Stop);
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
+                    ));
+                }
+            }
         }
     }
 }
