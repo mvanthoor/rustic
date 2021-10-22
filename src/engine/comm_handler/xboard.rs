@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, Verbosity},
+        defs::{ErrFatal, ErrNormal, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -48,12 +48,24 @@ impl Engine {
             }
 
             XBoardIn::New => {
-                self.board
-                    .lock()
-                    .expect(ErrFatal::LOCK)
-                    .fen_read(Some(FEN_START_POSITION))
-                    .expect(ErrFatal::NEW_GAME);
-                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                if self.is_observing() {
+                    self.board
+                        .lock()
+                        .expect(ErrFatal::LOCK)
+                        .fen_read(Some(FEN_START_POSITION))
+                        .expect(ErrFatal::NEW_GAME);
+                    self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                    self.set_waiting();
+                } else {
+                    self.comm.send(CommOut::Error(
+                        format!(
+                            "{}. {}.",
+                            ErrNormal::NOT_OBSERVING,
+                            ErrNormal::COMMAND_IGNORED
+                        ),
+                        format!("{}", command),
+                    ));
+                }
             }
 
             XBoardIn::Force => (),
