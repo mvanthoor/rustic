@@ -42,8 +42,15 @@ impl Engine {
             XBoardIn::XBoard => self.comm.send(CommOut::XBoard(XBoardOut::NewLine)),
 
             XBoardIn::ProtoVer(n) => {
-                if *n == PROTOCOL_VERSION {
-                    self.comm.send(CommOut::XBoard(XBoardOut::Features));
+                if self.is_observing() {
+                    if *n == PROTOCOL_VERSION {
+                        self.comm.send(CommOut::XBoard(XBoardOut::Features));
+                    }
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
+                    ));
                 }
             }
 
