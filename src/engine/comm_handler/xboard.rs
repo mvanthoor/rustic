@@ -56,6 +56,8 @@ impl Engine {
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
 
+            XBoardIn::Force => (),
+
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {

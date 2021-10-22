@@ -65,6 +65,7 @@ pub enum XBoardIn {
     XBoard,
     ProtoVer(u8),
     New,
+    Force,
     SetBoard(String),
     UserMove(String),
     Ping(i8),
@@ -188,6 +189,7 @@ impl XBoard {
         match i {
             cmd if cmd == "xboard" => CommIn::XBoard(XBoardIn::XBoard),
             cmd if cmd == "new" => CommIn::XBoard(XBoardIn::New),
+            cmd if cmd == "force" => CommIn::XBoard(XBoardIn::Force),
             cmd if cmd == "post" => CommIn::XBoard(XBoardIn::Post),
             cmd if cmd == "nopost" => CommIn::XBoard(XBoardIn::NoPost),
             cmd if cmd == "analyze" => CommIn::XBoard(XBoardIn::Analyze),
