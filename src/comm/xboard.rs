@@ -62,7 +62,6 @@ struct Stat01 {
     curr_move: Move,
     curr_move_number: u8,
     legal_moves_total: u8,
-    complete: bool,
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -345,7 +344,6 @@ impl XBoard {
                 curr_move: Move::new(0),
                 curr_move_number: 0,
                 legal_moves_total: 0,
-                complete: false,
             };
 
             // Keep running as long as Quit is not received.
@@ -437,7 +435,6 @@ impl XBoard {
         stat01.curr_move = Move::new(0);
         stat01.curr_move_number = 0;
         stat01.legal_moves_total = 0;
-        stat01.complete = false;
     }
 
     fn search_stats(stat01: &mut Stat01, s: &SearchStats) {
@@ -451,21 +448,18 @@ impl XBoard {
         stat01.curr_move = scm.curr_move;
         stat01.curr_move_number = scm.curr_move_number;
         stat01.legal_moves_total = scm.legal_moves_total;
-        stat01.complete = true;
     }
 
     fn stat01(s: &Stat01) {
         // stat01: TIME NODES DEPTH MOVESLEFT TOTALMOVES CURRENTMOVE
-        if s.complete {
-            println!(
-                "stat01: {} {} {} {} {} {}",
-                (s.time as f64 / 10.0).round(),
-                s.nodes,
-                s.depth,
-                s.legal_moves_total - s.curr_move_number,
-                s.legal_moves_total,
-                s.curr_move.as_string()
-            );
-        }
+        println!(
+            "stat01: {} {} {} {} {} {}",
+            (s.time as f64 / 10.0).round(),
+            s.nodes,
+            s.depth,
+            s.legal_moves_total - s.curr_move_number,
+            s.legal_moves_total,
+            s.curr_move.as_string()
+        );
     }
 }
