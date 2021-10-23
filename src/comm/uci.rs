@@ -78,7 +78,7 @@ impl Uci {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::XBOARD, true, EngineState::Waiting),
+            info: CommInfo::new(CommType::UCI, true, EngineState::Waiting),
         }
     }
 }
