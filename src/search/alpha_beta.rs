@@ -161,7 +161,7 @@ impl Search {
 
             // Send currently searched move to GUI.
             if verbosity == Verbosity::Full && is_root {
-                Search::send_move_to_gui(refs, current_move, legal_moves_found);
+                Search::send_move_to_gui(refs, current_move, legal_moves_found, move_list.len());
             }
 
             // Create a node PV for this move.

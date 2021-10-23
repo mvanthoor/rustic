@@ -202,13 +202,15 @@ impl SearchSummary {
 pub struct SearchCurrentMove {
     pub curr_move: Move,
     pub curr_move_number: u8,
+    pub legal_moves_total: u8,
 }
 
 impl SearchCurrentMove {
-    pub fn new(curr_move: Move, curr_move_number: u8) -> Self {
+    pub fn new(curr_move: Move, curr_move_number: u8, legal_moves_total: u8) -> Self {
         Self {
             curr_move,
             curr_move_number,
+            legal_moves_total,
         }
     }
 }

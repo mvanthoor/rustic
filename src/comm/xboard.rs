@@ -29,7 +29,7 @@ use crate::{
     defs::About,
     engine::defs::{EngineOption, EngineState, ErrFatal, Information},
     movegen::defs::Move,
-    search::defs::SearchSummary,
+    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -59,6 +59,9 @@ struct Stat01 {
     time: u128,
     nodes: usize,
     pv: Vec<Move>,
+    curr_move: Move,
+    curr_move_number: u8,
+    legal_moves_total: u8,
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -334,6 +337,9 @@ impl XBoard {
                 time: 0,
                 nodes: 0,
                 pv: Vec::new(),
+                curr_move: Move::new(0),
+                curr_move_number: 0,
+                legal_moves_total: 0,
             };
 
             // Keep running as long as Quit is not received.
@@ -350,6 +356,8 @@ impl XBoard {
                     CommOut::SearchSummary(summary) => {
                         XBoard::search_summary(&mut stat01, &summary)
                     }
+                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut stat01, &stats),
+                    CommOut::SearchCurrMove(scm) => XBoard::search_current_move(&mut stat01, &scm),
                     CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
@@ -416,5 +424,18 @@ impl XBoard {
         stat01.time = s.time;
         stat01.nodes = s.nodes;
         stat01.pv = s.pv.clone();
+    }
+
+    fn search_stats(stat01: &mut Stat01, s: &SearchStats) {
+        // Update the cached search stats with new time information.
+        stat01.time = s.time;
+        stat01.nodes = s.nodes;
+    }
+
+    fn search_current_move(stat01: &mut Stat01, scm: &SearchCurrentMove) {
+        // Update cached search stats with new move information.s
+        stat01.curr_move = scm.curr_move;
+        stat01.curr_move_number = scm.curr_move_number;
+        stat01.legal_moves_total = scm.legal_moves_total;
     }
 }

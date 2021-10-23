@@ -65,12 +65,12 @@ impl Search {
     }
 
     // Send currently processed move to GUI.
-    pub fn send_move_to_gui(refs: &mut SearchRefs, current_move: Move, count: u8) {
+    pub fn send_move_to_gui(refs: &mut SearchRefs, current_move: Move, nr: u8, total: u8) {
         let elapsed = refs.search_info.timer_elapsed();
         let lcm = refs.search_info.last_curr_move_sent;
 
         if elapsed >= lcm + MIN_TIME_CURR_MOVE {
-            let scm = SearchCurrentMove::new(current_move, count);
+            let scm = SearchCurrentMove::new(current_move, nr, total);
             let scm_report = SearchReport::SearchCurrentMove(scm);
             let information = Information::Search(scm_report);
 
