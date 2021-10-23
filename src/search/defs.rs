@@ -34,17 +34,19 @@ type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
     Start(SearchParams),
-    Stop,
-    Quit,
-    Nothing,
+    Stop,    // Stop the search and deliver a best move.
+    Abandon, // Stop the search and abandon any results.
+    Quit,    // Quit the search and the engine.
+    Nothing, // No-Op
 }
 
 // Ways to terminate a search.
 #[derive(PartialEq, Copy, Clone)]
 pub enum SearchTerminated {
-    Stopped, // Search is halted.
-    Quit,    // Search module is quit completely.
-    Nothing, // No command received yet.
+    Stopped,   // Search is stopped with a best move.
+    Abandoned, //Search is stopped, best move abandoned
+    Quit,      // Search module (and engine) are shut down.
+    Nothing,   // No command received yet.
 }
 
 // SearchMode lists how the search termination criteria will be evaluated,

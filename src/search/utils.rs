@@ -86,36 +86,40 @@ impl Search {
         let cmd = refs.control_rx.try_recv().unwrap_or(SearchControl::Nothing);
         match cmd {
             SearchControl::Stop => refs.search_info.terminate = SearchTerminated::Stopped,
+            SearchControl::Abandon => refs.search_info.terminate = SearchTerminated::Abandoned,
             SearchControl::Quit => refs.search_info.terminate = SearchTerminated::Quit,
             SearchControl::Start(_) | SearchControl::Nothing => (),
         };
 
-        // Terminate search if certain conditions are met.
-        let search_mode = refs.search_params.search_mode;
-        match search_mode {
-            SearchMode::Depth => {
-                if refs.search_info.depth > refs.search_params.depth {
-                    refs.search_info.terminate = SearchTerminated::Stopped
+        // Terminate search if certain conditions are met. Only check this
+        // if the search was not terminated by a direct command.
+        if refs.search_info.terminate == SearchTerminated::Nothing {
+            let search_mode = refs.search_params.search_mode;
+            match search_mode {
+                SearchMode::Depth => {
+                    if refs.search_info.depth > refs.search_params.depth {
+                        refs.search_info.terminate = SearchTerminated::Stopped
+                    }
                 }
-            }
-            SearchMode::MoveTime => {
-                let elapsed = refs.search_info.timer_elapsed();
-                if elapsed >= refs.search_params.move_time {
-                    refs.search_info.terminate = SearchTerminated::Stopped
+                SearchMode::MoveTime => {
+                    let elapsed = refs.search_info.timer_elapsed();
+                    if elapsed >= refs.search_params.move_time {
+                        refs.search_info.terminate = SearchTerminated::Stopped
+                    }
                 }
-            }
-            SearchMode::Nodes => {
-                if refs.search_info.nodes >= refs.search_params.nodes {
-                    refs.search_info.terminate = SearchTerminated::Stopped
+                SearchMode::Nodes => {
+                    if refs.search_info.nodes >= refs.search_params.nodes {
+                        refs.search_info.terminate = SearchTerminated::Stopped
+                    }
                 }
-            }
-            SearchMode::GameTime => {
-                if Search::out_of_time(refs) {
-                    refs.search_info.terminate = SearchTerminated::Stopped
+                SearchMode::GameTime => {
+                    if Search::out_of_time(refs) {
+                        refs.search_info.terminate = SearchTerminated::Stopped
+                    }
                 }
+                SearchMode::Infinite => (), // Handled by a direct 'stop' command
+                SearchMode::Nothing => (),  // We're not searching. Nothing to do.
             }
-            SearchMode::Infinite => (), // Handled by a direct 'stop' command
-            SearchMode::Nothing => (),  // We're not searching. Nothing to do.
         }
     }
 

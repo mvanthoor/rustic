@@ -122,7 +122,9 @@ impl Engine {
 
             XBoardIn::Exit => {
                 if self.is_analyzing() {
-                    self.search.send(SearchControl::Stop);
+                    // We order the search / analysis to stop and abandon
+                    // any result such as the best move.
+                    self.search.send(SearchControl::Abandon);
                     self.set_observing();
                 } else {
                     self.comm.send(CommOut::Error(

@@ -95,7 +95,7 @@ impl Search {
                         search_params = sp;
                         halt = false; // This will start the search.
                     }
-                    SearchControl::Stop => halt = true,
+                    SearchControl::Stop | SearchControl::Abandon => halt = true,
                     SearchControl::Quit => quit = true,
                     SearchControl::Nothing => (),
                 }
@@ -124,14 +124,16 @@ impl Search {
                     // Start the search using Iterative Deepening.
                     let (best_move, termination) = Search::iterative_deepening(&mut search_refs);
 
-                    // Inform the engine that the search has finished.
-                    let information = Information::Search(SearchReport::Finished(best_move));
-                    t_report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    // if we didn't abandon the search, return a best move.
+                    if termination != SearchTerminated::Abandoned {
+                        let information = Information::Search(SearchReport::Finished(best_move));
+                        t_report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    }
 
-                    // If the search was finished due to a Stop or Quit
-                    // command then either halt or quit the search.
+                    // We halt (stop) or quit the search according to the
+                    // termination condition.
                     match termination {
-                        SearchTerminated::Stopped => {
+                        SearchTerminated::Stopped | SearchTerminated::Abandoned => {
                             halt = true;
                         }
                         SearchTerminated::Quit => {
