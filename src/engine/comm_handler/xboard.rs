@@ -108,13 +108,22 @@ impl Engine {
             XBoardIn::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 
             XBoardIn::Analyze => {
-                sp.search_mode = SearchMode::Infinite;
-                self.search.send(SearchControl::Start(sp));
+                if self.is_observing() {
+                    sp.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(sp));
+                    self.set_analyzing();
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
+                    ));
+                }
             }
 
             XBoardIn::Exit => {
                 if self.is_analyzing() {
                     self.search.send(SearchControl::Stop);
+                    self.set_observing();
                 } else {
                     self.comm.send(CommOut::Error(
                         ErrNormal::COMMAND_IGNORED.to_string(),
