@@ -424,6 +424,12 @@ impl XBoard {
         stat01.time = s.time;
         stat01.nodes = s.nodes;
         stat01.pv = s.pv.clone();
+
+        // These values for these fields are not yet known when the search
+        // summary comes in. They are send with SearchCurrMove.
+        stat01.curr_move = Move::new(0);
+        stat01.curr_move_number = 0;
+        stat01.legal_moves_total = 0;
     }
 
     fn search_stats(stat01: &mut Stat01, s: &SearchStats) {
