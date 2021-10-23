@@ -53,6 +53,14 @@ const FEATURES: [&str; 11] = [
     "done=1",
 ];
 
+struct Stat01 {
+    depth: i8,
+    cp: i16,
+    time: u128,
+    nodes: usize,
+    pv: Vec<Move>,
+}
+
 // This struct is used to instantiate the Comm Console module.
 pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
@@ -315,6 +323,19 @@ impl XBoard {
             let t_board = Arc::clone(&board);
             let _t_options = Arc::clone(&options);
 
+            // In the XBoard-protocol, the engine does not output stats all
+            // the time like it does in UCI. It sends the stats when the
+            // "." command comes in from the GUI. Therefore the output
+            // thread will cache the received stats in this struct, ready
+            // to send when the GUI asks for them.
+            let mut stat01 = Stat01 {
+                depth: 0,
+                cp: 0,
+                time: 0,
+                nodes: 0,
+                pv: Vec::new(),
+            };
+
             // Keep running as long as Quit is not received.
             while !quit {
                 let output = output_rx.recv().expect(ErrFatal::CHANNEL);
@@ -326,7 +347,9 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::BestMove(m) => XBoard::best_move(&m),
-                    CommOut::SearchSummary(summary) => XBoard::search_summary(&summary),
+                    CommOut::SearchSummary(summary) => {
+                        XBoard::search_summary(&mut stat01, &summary)
+                    }
                     CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
@@ -385,15 +408,13 @@ impl XBoard {
         println!("move {}", m.as_string());
     }
 
-    fn search_summary(s: &SearchSummary) {
-        // DEPTH SCORE TIME NODES PV
-        println!(
-            "{} {} {} {} {}",
-            s.depth,
-            s.cp,
-            (s.time as f64 / 10.0).round(),
-            s.nodes,
-            s.pv_as_string()
-        );
+    fn search_summary(stat01: &mut Stat01, s: &SearchSummary) {
+        // This function will cache the incoming search summary within the
+        // "stat01" struct that lives in the output thread.
+        stat01.depth = s.depth;
+        stat01.cp = s.cp;
+        stat01.time = s.time;
+        stat01.nodes = s.nodes;
+        stat01.pv = s.pv.clone();
     }
 }
