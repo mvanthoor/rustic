@@ -62,6 +62,7 @@ struct Stat01 {
     curr_move: Move,
     curr_move_number: u8,
     legal_moves_total: u8,
+    complete: bool,
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -85,6 +86,7 @@ pub enum XBoardIn {
     NoPost,
     Memory(usize),
     Analyze,
+    Dot,
     Exit,
 }
 
@@ -102,6 +104,7 @@ impl Display for XBoardIn {
             XBoardIn::NoPost => write!(f, "nopost"),
             XBoardIn::Memory(x) => write!(f, "memory {}", x),
             XBoardIn::Analyze => write!(f, "analyze"),
+            XBoardIn::Dot => write!(f, "."),
             XBoardIn::Exit => write!(f, "exit"),
         }
     }
@@ -110,6 +113,7 @@ impl Display for XBoardIn {
 pub enum XBoardOut {
     NewLine,
     Features,
+    Stat01,
     IllegalMove(String),
     Pong(i8),
 }
@@ -224,6 +228,7 @@ impl XBoard {
             cmd if cmd == "post" => CommIn::XBoard(XBoardIn::Post),
             cmd if cmd == "nopost" => CommIn::XBoard(XBoardIn::NoPost),
             cmd if cmd == "analyze" => CommIn::XBoard(XBoardIn::Analyze),
+            cmd if cmd == "." => CommIn::XBoard(XBoardIn::Dot),
             cmd if cmd == "exit" => CommIn::XBoard(XBoardIn::Exit),
             cmd if cmd == "quit" || cmd.is_empty() => CommIn::Quit,
             cmd if cmd.starts_with("ping") => XBoard::parse_key_value_pair(&cmd),
@@ -340,6 +345,7 @@ impl XBoard {
                 curr_move: Move::new(0),
                 curr_move_number: 0,
                 legal_moves_total: 0,
+                complete: false,
             };
 
             // Keep running as long as Quit is not received.
@@ -350,6 +356,7 @@ impl XBoard {
                 match output {
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
+                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat01),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::BestMove(m) => XBoard::best_move(&m),
@@ -430,6 +437,7 @@ impl XBoard {
         stat01.curr_move = Move::new(0);
         stat01.curr_move_number = 0;
         stat01.legal_moves_total = 0;
+        stat01.complete = false;
     }
 
     fn search_stats(stat01: &mut Stat01, s: &SearchStats) {
@@ -443,5 +451,21 @@ impl XBoard {
         stat01.curr_move = scm.curr_move;
         stat01.curr_move_number = scm.curr_move_number;
         stat01.legal_moves_total = scm.legal_moves_total;
+        stat01.complete = true;
+    }
+
+    fn stat01(s: &Stat01) {
+        // stat01: TIME NODES DEPTH MOVESLEFT TOTALMOVES CURRENTMOVE
+        if s.complete {
+            println!(
+                "stat01: {} {} {} {} {} {}",
+                (s.time as f64 / 10.0).round(),
+                s.nodes,
+                s.depth,
+                s.legal_moves_total - s.curr_move_number,
+                s.legal_moves_total,
+                s.curr_move.as_string()
+            );
+        }
     }
 }

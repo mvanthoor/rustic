@@ -120,6 +120,17 @@ impl Engine {
                 }
             }
 
+            &XBoardIn::Dot => {
+                if self.is_analyzing() {
+                    self.comm.send(CommOut::XBoard(XBoardOut::Stat01));
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_IGNORED.to_string(),
+                        command.to_string(),
+                    ));
+                }
+            }
+
             XBoardIn::Exit => {
                 if self.is_analyzing() {
                     // We order the search / analysis to stop and abandon
