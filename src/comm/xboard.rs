@@ -446,14 +446,16 @@ impl XBoard {
 
     fn stat01(s: &Stat01) {
         // stat01: TIME NODES DEPTH MOVESLEFT TOTALMOVES CURRENTMOVE
-        println!(
-            "stat01: {} {} {} {} {} {}",
-            (s.time as f64 / 10.0).round(),
-            s.nodes,
-            s.depth,
-            s.legal_moves_total - s.curr_move_number,
-            s.legal_moves_total,
-            s.curr_move.as_string()
-        );
+        if s.curr_move.get_move() != 0 {
+            println!(
+                "stat01: {} {} {} {} {} {}",
+                (s.time as f64 / 10.0).round(),
+                s.nodes,
+                s.depth,
+                s.legal_moves_total - s.curr_move_number,
+                s.legal_moves_total,
+                s.curr_move.as_string()
+            );
+        }
     }
 }
