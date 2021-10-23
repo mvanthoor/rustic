@@ -55,10 +55,8 @@ const FEATURES: [&str; 11] = [
 
 struct Stat01 {
     depth: i8,
-    cp: i16,
     time: u128,
     nodes: usize,
-    pv: Vec<Move>,
     curr_move: Move,
     curr_move_number: u8,
     legal_moves_total: u8,
@@ -337,10 +335,8 @@ impl XBoard {
             // to send when the GUI asks for them.
             let mut stat01 = Stat01 {
                 depth: 0,
-                cp: 0,
                 time: 0,
                 nodes: 0,
-                pv: Vec::new(),
                 curr_move: Move::new(0),
                 curr_move_number: 0,
                 legal_moves_total: 0,
@@ -425,10 +421,19 @@ impl XBoard {
         // This function will cache the incoming search summary within the
         // "stat01" struct that lives in the output thread.
         stat01.depth = s.depth;
-        stat01.cp = s.cp;
         stat01.time = s.time;
         stat01.nodes = s.nodes;
-        stat01.pv = s.pv.clone();
+
+        // It will also output the current search summary.
+        // DEPTH SCORE TIME NODES PV
+        println!(
+            "{} {} {} {} {}",
+            s.depth,
+            s.cp,
+            (s.time as f64 / 10.0).round(),
+            s.nodes,
+            s.pv_as_string()
+        );
     }
 
     fn search_stats(stat01: &mut Stat01, s: &SearchStats) {
