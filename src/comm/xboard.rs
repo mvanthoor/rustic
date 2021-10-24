@@ -241,6 +241,11 @@ impl XBoard {
             cmd if cmd == "state" => CommIn::State,
             cmd if cmd == "help" => CommIn::Help,
 
+            // Ignore these commands. May GUI's send them, but the  engine
+            // doesn't have any use for them (yet).
+            cmd if cmd == "easy" || cmd == "hard" => CommIn::Ignore(cmd),
+            cmd if cmd == "random" || cmd.starts_with("accepted") => CommIn::Ignore(cmd),
+
             // Try to parse anything else as a move.
             _ => XBoard::parse_move(&i),
         }

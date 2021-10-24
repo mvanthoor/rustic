@@ -101,6 +101,9 @@ pub enum CommIn {
     Eval,
     State,
     Help,
+
+    // Ignore an incoming command on purpose
+    Ignore(String),
 }
 
 pub enum CommOut {

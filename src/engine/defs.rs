@@ -47,7 +47,8 @@ impl ErrNormal {
     pub const NOT_INT: &'static str = "The value given was not an integer.";
     pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
-    pub const COMMAND_IGNORED: &'static str = "Command not valid in current engine state";
+    pub const COMMAND_NOT_VALID: &'static str = "Command not valid in current engine state";
+    pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
 }
 
 #[derive(PartialEq, Copy, Clone)]

@@ -51,6 +51,13 @@ impl Engine {
             }
             CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
+            CommIn::Ignore(cmd) => {
+                self.comm.send(CommOut::Message(format!(
+                    "{}: {}",
+                    ErrNormal::COMMAND_IGNORED.to_string(),
+                    cmd
+                )));
+            }
             CommIn::Unknown(cmd) => self.comm.send(CommOut::Error(
                 ErrNormal::UNKNOWN_COMMAND.to_string(),
                 cmd.to_string(),
