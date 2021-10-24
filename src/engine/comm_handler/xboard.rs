@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{EngineState, ErrFatal, ErrNormal, Verbosity},
+        defs::{ErrFatal, ErrNormal, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
