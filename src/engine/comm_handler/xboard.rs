@@ -68,17 +68,13 @@ impl Engine {
                 self.set_waiting();
             }
 
-            XBoardIn::Force => match self.state {
-                EngineState::Waiting => {
-                    self.set_observing();
+            XBoardIn::Force => {
+                if self.is_analyzing() || self.is_thinking() {
+                    self.search.send(SearchControl::Abandon);
                 }
-                _ => {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_IGNORED.to_string(),
-                        command.to_string(),
-                    ));
-                }
-            },
+
+                self.set_observing();
+            }
 
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
