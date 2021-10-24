@@ -55,20 +55,17 @@ impl Engine {
             }
 
             XBoardIn::New => {
-                if self.is_observing() {
-                    self.board
-                        .lock()
-                        .expect(ErrFatal::LOCK)
-                        .fen_read(Some(FEN_START_POSITION))
-                        .expect(ErrFatal::NEW_GAME);
-                    self.tt_search.lock().expect(ErrFatal::LOCK).clear();
-                    self.set_waiting();
-                } else {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_IGNORED.to_string(),
-                        command.to_string(),
-                    ));
+                if self.is_analyzing() || self.is_analyzing() {
+                    self.search.send(SearchControl::Abandon);
                 }
+
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_read(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.set_waiting();
             }
 
             XBoardIn::Force => match self.state {
