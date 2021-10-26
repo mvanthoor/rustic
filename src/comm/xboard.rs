@@ -62,6 +62,10 @@ struct Stat01 {
     legal_moves_total: u8,
 }
 
+struct Level {
+    sd: u8,
+}
+
 // This struct is used to instantiate the Comm Console module.
 pub struct XBoard {
     receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
@@ -338,7 +342,7 @@ impl XBoard {
             // "." command comes in from the GUI. Therefore the output
             // thread will cache the received stats in this struct, ready
             // to send when the GUI asks for them.
-            let mut stat01 = Stat01 {
+            let mut t_stat01_cache = Stat01 {
                 depth: 0,
                 time: 0,
                 nodes: 0,
@@ -355,15 +359,19 @@ impl XBoard {
                 match output {
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
-                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat01),
+                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&t_stat01_cache),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::SearchSummary(summary) => {
-                        XBoard::search_summary(&mut stat01, &summary)
+                        XBoard::search_summary(&mut t_stat01_cache, &summary)
                     }
-                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut stat01, &stats),
-                    CommOut::SearchCurrMove(scm) => XBoard::search_current_move(&mut stat01, &scm),
+                    CommOut::SearchStats(stats) => {
+                        XBoard::search_stats(&mut t_stat01_cache, &stats)
+                    }
+                    CommOut::SearchCurrMove(scm) => {
+                        XBoard::search_current_move(&mut t_stat01_cache, &scm)
+                    }
                     CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
