@@ -137,7 +137,11 @@ impl Engine {
                 }
             }
 
-            XBoardIn::Buffered(_) => (),
+            XBoardIn::Buffered(cmd) => self.comm.send(CommOut::Message(format!(
+                "{}: {}",
+                "Incoming command buffered".to_string(),
+                cmd.to_string()
+            ))),
         }
     }
 }

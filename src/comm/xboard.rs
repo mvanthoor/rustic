@@ -243,21 +243,20 @@ impl XBoard {
                 let comm_received = XBoard::create_comm_input(&t_incoming_data);
 
                 // Some commands such as "sd" and "st" are buffered in the
-                // input thread. The rest of the commands are sent directly
-                // to the engine.
+                // input thread. This is done here.
                 match comm_received {
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(d))) => {
-                        t_time_control_buf.sd = d;
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(depth))) => {
+                        t_time_control_buf.sd = depth;
                     }
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(t))) => {
-                        t_time_control_buf.st = t;
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(time))) => {
+                        t_time_control_buf.st = time;
                     }
-                    _ => {
-                        t_receiving_tx
-                            .send(Information::Comm(comm_received.clone()))
-                            .expect(ErrFatal::HANDLE);
-                    }
+                    _ => (),
                 }
+
+                t_receiving_tx
+                    .send(Information::Comm(comm_received.clone()))
+                    .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
                 quit = comm_received == CommIn::Quit;
