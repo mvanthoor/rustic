@@ -62,8 +62,15 @@ struct Stat01 {
     legal_moves_total: u8,
 }
 
-struct Level {
+struct TimeControl {
     sd: u8,
+    st: u128,
+}
+
+impl TimeControl {
+    fn new() -> Self {
+        Self { sd: 0, st: 0 }
+    }
 }
 
 // This struct is used to instantiate the Comm Console module.
