@@ -114,7 +114,7 @@ impl Engine {
                 }
             }
 
-            &XBoardIn::Dot => {
+            XBoardIn::Dot => {
                 if self.is_analyzing() {
                     self.comm.send(CommOut::XBoard(XBoardOut::Stat01));
                 } else {
