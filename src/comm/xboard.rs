@@ -145,6 +145,7 @@ impl Display for XBoardIn {
 pub enum XBoardInBuf {
     Sd(u8),
     St(u128),
+    Level(u8, u128, u128),
 }
 
 impl Display for XBoardInBuf {
@@ -152,6 +153,9 @@ impl Display for XBoardInBuf {
         match self {
             XBoardInBuf::Sd(x) => write!(f, "sd {}", x),
             XBoardInBuf::St(x) => write!(f, "st {}", x),
+            XBoardInBuf::Level(moves_per_session, base_time, increment) => {
+                write!(f, "level {} {} {}", moves_per_session, base_time, increment)
+            }
         }
     }
 }
