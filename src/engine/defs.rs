@@ -48,12 +48,12 @@ impl ErrNormal {
     pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
     pub const COMMAND_NOT_VALID: &'static str = "Command not valid in current engine state";
-    pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
 }
 
 pub struct Messages;
 impl Messages {
+    pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
 }
 

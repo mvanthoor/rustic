@@ -26,7 +26,10 @@ mod xboard;
 
 use crate::{
     comm::{CommIn, CommOut},
-    engine::{defs::ErrFatal, Engine},
+    engine::{
+        defs::{ErrFatal, Messages},
+        Engine,
+    },
     evaluation::Evaluation,
 };
 
@@ -54,7 +57,7 @@ impl Engine {
             CommIn::Ignore(cmd) => {
                 self.comm.send(CommOut::Message(format!(
                     "{}: {}",
-                    ErrNormal::COMMAND_IGNORED.to_string(),
+                    Messages::COMMAND_IGNORED.to_string(),
                     cmd
                 )));
             }
