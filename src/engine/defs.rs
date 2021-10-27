@@ -49,6 +49,7 @@ impl ErrNormal {
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
     pub const COMMAND_NOT_VALID: &'static str = "Command not valid in current engine state";
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
+    pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
 }
 
 #[derive(PartialEq, Copy, Clone)]
