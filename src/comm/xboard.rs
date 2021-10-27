@@ -39,6 +39,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+// We send this list of features to the user interface, so it knows which
+// features are supported by the engine. The most important features in
+// this list are "memory=1" (hash table), and "draw=0" (we don't accept or
+// offer draws and play all games until the end).
 const FEATURES: [&str; 12] = [
     "done=0",
     "myname=x",
@@ -54,6 +58,10 @@ const FEATURES: [&str; 12] = [
     "done=1",
 ];
 
+// This struct buffers statistics output. In XBoard, the engine does not
+// continuously send intermediate stat updates such as the current move.
+// The GUI asks for these stats by sending the Dot-command, and the engine
+// has to buffer the stats until the GUI wants them.
 struct Stat01 {
     depth: i8,
     time: u128,
@@ -63,6 +71,15 @@ struct Stat01 {
     legal_moves_total: u8,
 }
 
+// In XBoard, the GUI does not prompt the engine that it is its turn to
+// move by sending a position and time controls. It sends the time controls
+// at the beginning of the game and expects the engine to know when it is
+// its move. Because Rustic is essentially a UCI-engine at its core, it
+// expects time controls at the beginning of its move turn. This struct
+// buffers the TC which are sent at the beginning of the game, so the
+// XBoard module can send corrent TC to the engine. These are included in
+// the "usermove" command, so the engine has up-to-date TC for its own turn
+// after it executes the usermove.
 struct TimeControl {
     sd: u8,
     st: u128,
@@ -74,14 +91,15 @@ impl TimeControl {
     }
 }
 
-// This struct is used to instantiate the Comm Console module.
+// This struct is used to instantiate the Comm XBoard module.
 pub struct XBoard {
-    receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
-    output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
-    output_tx: Option<Sender<CommOut>>,       // Actual output sender object.
-    info: CommInfo,
+    input_handle: Option<JoinHandle<()>>, // Thread for receiving input.
+    output_handle: Option<JoinHandle<()>>, // Thread for sending output.
+    output_tx: Option<Sender<CommOut>>,   // Actual output sender object.
+    info: CommInfo,                       // Contains information about this comm module.
 }
 
+// This is a list of supported incoming XBoard commands.
 #[derive(PartialEq, Clone)]
 pub enum XBoardIn {
     XBoard,
@@ -99,6 +117,8 @@ pub enum XBoardIn {
     Exit,
 }
 
+// Define how commands are printed in case they need to be, for example
+// when an error is detected.
 impl Display for XBoardIn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -119,6 +139,7 @@ impl Display for XBoardIn {
     }
 }
 
+// This is a list of supported XBoard output commands.
 pub enum XBoardOut {
     NewLine,
     Features,
@@ -132,7 +153,7 @@ impl XBoard {
     // Create a new console.
     pub fn new() -> Self {
         Self {
-            receiving_handle: None,
+            input_handle: None,
             output_handle: None,
             output_tx: None,
             info: CommInfo::new(CommType::XBOARD, false, EngineState::Observing),
@@ -165,7 +186,7 @@ impl IComm for XBoard {
     // After the engine sends 'quit' to the control thread, it will call
     // wait_for_shutdown() and then wait here until shutdown is completed.
     fn wait_for_shutdown(&mut self) {
-        if let Some(h) = self.receiving_handle.take() {
+        if let Some(h) = self.input_handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
 
@@ -190,7 +211,7 @@ impl XBoard {
         let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
 
         // Actual thread creation.
-        let receiving_handle = thread::spawn(move || {
+        let input_handle = thread::spawn(move || {
             let mut quit = false;
 
             // Keep running as long as 'quit' is not detected.
@@ -217,7 +238,7 @@ impl XBoard {
         });
 
         // Store the handle.
-        self.receiving_handle = Some(receiving_handle);
+        self.input_handle = Some(input_handle);
     }
 }
 
