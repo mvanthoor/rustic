@@ -52,6 +52,11 @@ impl ErrNormal {
     pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
 }
 
+pub struct Messages;
+impl Messages {
+    pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
+}
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum Verbosity {
     Full,

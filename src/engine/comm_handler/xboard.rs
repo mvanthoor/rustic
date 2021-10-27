@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, Verbosity},
+        defs::{ErrFatal, ErrNormal, Messages, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -141,7 +141,7 @@ impl Engine {
 
             XBoardIn::Buffered(cmd) => self.comm.send(CommOut::Message(format!(
                 "{}: {}",
-                "Incoming command buffered".to_string(),
+                Messages::INCOMING_CMD_BUFFERED.to_string(),
                 cmd.to_string()
             ))),
         }
