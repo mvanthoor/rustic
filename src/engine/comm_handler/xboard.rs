@@ -48,7 +48,7 @@ impl Engine {
                     }
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_NOT_VALID.to_string(),
+                        ErrNormal::COMMAND_INVALID.to_string(),
                         command.to_string(),
                     ));
                 }
@@ -119,7 +119,7 @@ impl Engine {
                     self.comm.send(CommOut::XBoard(XBoardOut::Stat01));
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_NOT_VALID.to_string(),
+                        ErrNormal::COMMAND_INVALID.to_string(),
                         command.to_string(),
                     ));
                 }
@@ -133,7 +133,7 @@ impl Engine {
                     self.set_observing();
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_NOT_VALID.to_string(),
+                        ErrNormal::COMMAND_INVALID.to_string(),
                         command.to_string(),
                     ));
                 }
