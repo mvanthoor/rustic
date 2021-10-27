@@ -115,6 +115,7 @@ pub enum XBoardIn {
     Analyze,
     Dot,
     Exit,
+    Buffered(XBoardInBuf),
 }
 
 // Define how commands are printed in case they need to be, for example
@@ -135,6 +136,22 @@ impl Display for XBoardIn {
             XBoardIn::Analyze => write!(f, "analyze"),
             XBoardIn::Dot => write!(f, "."),
             XBoardIn::Exit => write!(f, "exit"),
+            XBoardIn::Buffered(b) => write!(f, "{}", b),
+        }
+    }
+}
+
+#[derive(PartialEq, Clone)]
+pub enum XBoardInBuf {
+    Sd(u8),
+    St(u128),
+}
+
+impl Display for XBoardInBuf {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            XBoardInBuf::Sd(x) => write!(f, "sd {}", x),
+            XBoardInBuf::St(x) => write!(f, "st {}", x),
         }
     }
 }
@@ -207,8 +224,9 @@ impl XBoard {
     // object to the engine thread so the engine can decide what to do.
     fn input_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
-        let mut t_incoming_data = String::from(""); // Buffer for incoming data.
-        let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
+        let mut t_incoming_data = String::from("");
+        let mut t_time_control_buf = TimeControl::new();
+        let t_receiving_tx = receiving_tx;
 
         // Actual thread creation.
         let input_handle = thread::spawn(move || {
@@ -224,10 +242,22 @@ impl XBoard {
                 // Create the CommIn object.
                 let comm_received = XBoard::create_comm_input(&t_incoming_data);
 
-                // Send it to the engine thread.
-                t_receiving_tx
-                    .send(Information::Comm(comm_received.clone()))
-                    .expect(ErrFatal::HANDLE);
+                // Some commands such as "sd" and "st" are buffered in the
+                // input thread. The rest of the commands are sent directly
+                // to the engine.
+                match comm_received {
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(d))) => {
+                        t_time_control_buf.sd = d;
+                    }
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(t))) => {
+                        t_time_control_buf.st = t;
+                    }
+                    _ => {
+                        t_receiving_tx
+                            .send(Information::Comm(comm_received.clone()))
+                            .expect(ErrFatal::HANDLE);
+                    }
+                }
 
                 // Terminate the receiving thread if "Quit" was detected.
                 quit = comm_received == CommIn::Quit;
@@ -266,6 +296,8 @@ impl XBoard {
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
             cmd if cmd.starts_with("usermove") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("sd") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("st") && cmd != "state" => XBoard::parse_key_value_pair(&cmd),
 
             // Custom commands
             cmd if cmd == "board" => CommIn::Board,
@@ -308,6 +340,14 @@ impl XBoard {
                 "usermove" => {
                     let value = parts[VALUE].to_lowercase();
                     CommIn::XBoard(XBoardIn::UserMove(value))
+                }
+                "sd" => {
+                    let value = parts[VALUE].parse::<u8>().unwrap_or(0);
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(value)))
+                }
+                "st" => {
+                    let value = parts[VALUE].parse::<u128>().unwrap_or(0);
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(value)))
                 }
 
                 _ => CommIn::Unknown(cmd.to_string()),

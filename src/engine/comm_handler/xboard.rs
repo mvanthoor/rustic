@@ -136,6 +136,8 @@ impl Engine {
                     ));
                 }
             }
+
+            XBoardIn::Buffered(_) => (),
         }
     }
 }
