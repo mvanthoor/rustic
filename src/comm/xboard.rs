@@ -39,7 +39,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-const FEATURES: [&str; 11] = [
+const FEATURES: [&str; 12] = [
     "done=0",
     "myname=x",
     "ping=1",
@@ -48,6 +48,7 @@ const FEATURES: [&str; 11] = [
     "usermove=1",
     "debug=1",
     "draw=0",
+    "ics=0",
     "sigint=0",
     "sigterm=0",
     "done=1",
