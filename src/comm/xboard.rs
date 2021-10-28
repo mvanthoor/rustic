@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-// This file implements the XBoard communication module.
+// This file implements the XBoard communication protocol.
 
 use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
@@ -69,6 +69,18 @@ struct Stat01 {
     curr_move: Move,
     curr_move_number: u8,
     legal_moves_total: u8,
+}
+impl Stat01 {
+    fn new() -> Self {
+        Self {
+            depth: 0,
+            time: 0,
+            nodes: 0,
+            curr_move: Move::new(0),
+            curr_move_number: 0,
+            legal_moves_total: 0,
+        }
+    }
 }
 
 // In XBoard, the GUI does not prompt the engine that it is its turn to
@@ -411,16 +423,10 @@ impl XBoard {
             // In the XBoard-protocol, the engine does not output stats all
             // the time like it does in UCI. It sends the stats when the
             // "." command comes in from the GUI. Therefore the output
-            // thread will cache the received stats in this struct, ready
-            // to send when the GUI asks for them.
-            let mut stat_buf = Stat01 {
-                depth: 0,
-                time: 0,
-                nodes: 0,
-                curr_move: Move::new(0),
-                curr_move_number: 0,
-                legal_moves_total: 0,
-            };
+            // thread will buffer the received stats in this struct,
+            // instead of outputting them directly. This way the latest
+            // stats are ready to send as soon as the GUI asks for them.
+            let mut stat01_buf = Stat01::new();
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -430,16 +436,16 @@ impl XBoard {
                 match output {
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
-                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat_buf),
+                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat01_buf),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::SearchSummary(summary) => {
-                        XBoard::search_summary(&mut stat_buf, &summary)
+                        XBoard::search_summary(&mut stat01_buf, &summary)
                     }
-                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut stat_buf, &stats),
+                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut stat01_buf, &stats),
                     CommOut::SearchCurrMove(scm) => {
-                        XBoard::search_current_move(&mut stat_buf, &scm)
+                        XBoard::search_current_move(&mut stat01_buf, &scm)
                     }
                     CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
