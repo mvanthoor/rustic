@@ -39,6 +39,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+// ---------------------------------------------------------------------
+// XBOARD Type definitions
+// ---------------------------------------------------------------------
+
 // We send this list of features to the user interface, so it knows which
 // features are supported by the engine. The most important features in
 // this list are "memory=1" (hash table), and "draw=0" (we don't accept or
@@ -86,12 +90,8 @@ impl Stat01 {
 // In XBoard, the GUI does not prompt the engine that it is its turn to
 // move by sending a position and time controls. It sends the time controls
 // at the beginning of the game and expects the engine to know when it is
-// its move. Because Rustic is essentially a UCI-engine at its core, it
-// expects time controls at the beginning of its move turn. This struct
-// buffers the TC which are sent at the beginning of the game, so the
-// XBoard module can send corrent TC to the engine. These are included in
-// the "usermove" command, so the engine has up-to-date TC for its own turn
-// after it executes the usermove.
+// its move, and how much time is left. This struct stores the time control
+// informatin as sent by the GUI at the beginning of the game.
 struct TimeControl {
     sd: u8,
     st: u128,
@@ -145,6 +145,12 @@ impl Display for XBoardIn {
     }
 }
 
+// Some incoming commands are not sent to the engine thread directly. An
+// example are the commands regarding time control. These are buffered
+// within the XBoard module, to keep the engine unaware of XBoard
+// implementation details. An "XBoardInBuf::sd" commmand is sent to the
+// engine, so it knows (and prints) that an incoming command was received
+// and buffered.
 #[derive(PartialEq, Clone)]
 pub enum XBoardInBuf {
     Sd(u8),
@@ -173,6 +179,10 @@ pub enum XBoardOut {
     Pong(i8),
 }
 
+// ---------------------------------------------------------------------
+// XBOARD Communication module to be instantiated by the engine
+// ---------------------------------------------------------------------
+
 // This struct is used to instantiate the Comm XBoard module.
 pub struct XBoard {
     input_handle: Option<JoinHandle<()>>,
@@ -196,7 +206,10 @@ impl XBoard {
     }
 }
 
-// Any communication module must implement the trait IComm.
+// ---------------------------------------------------------------------
+// Communication interface: must be implemented by all comm modules.
+// ---------------------------------------------------------------------
+
 impl IComm for XBoard {
     fn init(
         &mut self,
@@ -235,7 +248,10 @@ impl IComm for XBoard {
     }
 }
 
-// Implement the receiving thread
+// ---------------------------------------------------------------------
+// XBoard input thread
+// ---------------------------------------------------------------------
+
 impl XBoard {
     // The receiving thread receives incoming commands from the console or
     // GUI, which is turns into a "CommIn" object. It sends this
@@ -291,7 +307,10 @@ impl XBoard {
     }
 }
 
-// Implement receiving/parsing functions
+// ---------------------------------------------------------------------
+// Parsing functions for the input thread
+// ---------------------------------------------------------------------
+
 impl XBoard {
     // This function turns the incoming data into CommIns which the
     // engine is able to understand and react to.
@@ -412,7 +431,10 @@ impl XBoard {
     }
 }
 
-// Implement the output thread
+// ---------------------------------------------------------------------
+// XBOARD output thread
+// ---------------------------------------------------------------------
+
 impl XBoard {
     // The control thread receives commands from the engine thread.
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
@@ -474,7 +496,10 @@ impl XBoard {
     }
 }
 
-// Implement sending/response functions
+// ---------------------------------------------------------------------
+// Print functions for the output thread
+// ---------------------------------------------------------------------
+
 impl XBoard {
     fn new_line() {
         println!();
