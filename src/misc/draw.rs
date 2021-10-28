@@ -48,11 +48,11 @@ pub fn is_fifty_move_rule(board: &Board) -> bool {
 pub fn is_repetition(board: &Board) -> u8 {
     let mut count = 0;
     let mut stop = false;
-    let mut i = board.history.len() - 1;
+    let mut i = (board.history.len() - 1) as i16;
 
     // Search the history list.
-    while i != 0 && !stop {
-        let historic = board.history.get_ref(i);
+    while i >= 0 && !stop {
+        let historic = board.history.get_ref(i as usize);
 
         // If the historic zobrist key is equal to the one of the board
         // passed into the function, then we found a repetition.
