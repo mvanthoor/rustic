@@ -95,11 +95,20 @@ impl Stat01 {
 struct TimeControl {
     sd: u8,
     st: u128,
+    moves_per_session: u8,
+    base_time: u128,
+    increment: u128,
 }
 
 impl TimeControl {
     fn new() -> Self {
-        Self { sd: 0, st: 0 }
+        Self {
+            sd: 0,
+            st: 0,
+            moves_per_session: 0,
+            base_time: 0,
+            increment: 0,
+        }
     }
 }
 
@@ -284,7 +293,22 @@ impl XBoard {
                         mtx_tc.sd = depth;
                     }
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(time))) => {
+                        // Set "movetime" time control
                         mtx_tc.st = time;
+
+                        // Disable "level" time controls.
+                        mtx_tc.moves_per_session = 0;
+                        mtx_tc.base_time = 0;
+                        mtx_tc.increment = 0;
+                    }
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc))) => {
+                        // Set "level" time controls.
+                        mtx_tc.moves_per_session = mps;
+                        mtx_tc.base_time = bt;
+                        mtx_tc.increment = inc;
+
+                        // Disable "movetime" time control
+                        mtx_tc.st = 0;
                     }
                     _ => (),
                 }
