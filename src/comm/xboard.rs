@@ -105,10 +105,11 @@ impl TimeControl {
 
 // This struct is used to instantiate the Comm XBoard module.
 pub struct XBoard {
-    input_handle: Option<JoinHandle<()>>, // Thread for receiving input.
-    output_handle: Option<JoinHandle<()>>, // Thread for sending output.
-    output_tx: Option<Sender<CommOut>>,   // Actual output sender object.
-    info: CommInfo,                       // Contains information about this comm module.
+    input_handle: Option<JoinHandle<()>>,
+    output_handle: Option<JoinHandle<()>>,
+    output_tx: Option<Sender<CommOut>>,
+    time_control: Arc<Mutex<TimeControl>>,
+    info: CommInfo,
 }
 
 // This is a list of supported incoming XBoard commands.
@@ -190,6 +191,7 @@ impl XBoard {
             output_handle: None,
             output_tx: None,
             info: CommInfo::new(CommType::XBOARD, false, EngineState::Observing),
+            time_control: Arc::new(Mutex::new(TimeControl::new())),
         }
     }
 }
@@ -241,7 +243,7 @@ impl XBoard {
     fn input_thread(&mut self, receiving_tx: Sender<Information>) {
         // Create thread-local variables
         let mut t_incoming_data = String::from("");
-        let mut t_time_control_buf = TimeControl::new();
+        let t_time_control = Arc::clone(&self.time_control);
         let t_receiving_tx = receiving_tx;
 
         // Actual thread creation.
@@ -260,15 +262,17 @@ impl XBoard {
 
                 // Some commands such as "sd" and "st" are buffered in the
                 // input thread. This is done here.
+                let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
                 match comm_received {
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(depth))) => {
-                        t_time_control_buf.sd = depth;
+                        mtx_tc.sd = depth;
                     }
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(time))) => {
-                        t_time_control_buf.st = time;
+                        mtx_tc.st = time;
                     }
                     _ => (),
                 }
+                std::mem::drop(mtx_tc);
 
                 t_receiving_tx
                     .send(Information::Comm(comm_received.clone()))
