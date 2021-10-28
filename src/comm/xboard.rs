@@ -167,6 +167,7 @@ pub enum XBoardInBuf {
     Level(u8, u128, u128),
 }
 
+// Same as normal incoming commands: define how they are displayed.
 impl Display for XBoardInBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -179,7 +180,8 @@ impl Display for XBoardInBuf {
     }
 }
 
-// This is a list of supported XBoard output commands.
+// This is a list of supported XBoard output commands. These commands send
+// information to the GUI.
 pub enum XBoardOut {
     NewLine,
     Features,
@@ -379,6 +381,8 @@ impl XBoard {
         }
     }
 
+    // Parse a key value pair. This turns commands such as "memory 32" into
+    // the enum Memory(32) which can then be sent to the engine.
     fn parse_key_value_pair(cmd: &str) -> CommIn {
         const KEY: usize = 0;
         const VALUE: usize = 1;
@@ -425,7 +429,6 @@ impl XBoard {
         CommIn::XBoard(XBoardIn::SetBoard(fen))
     }
 
-    // Parse incoming "level" command
     fn parse_level(cmd: &str) -> CommIn {
         const MOVES_PER_SESSION: usize = 1;
         const BASE_TIME: usize = 2;
