@@ -103,15 +103,6 @@ impl TimeControl {
     }
 }
 
-// This struct is used to instantiate the Comm XBoard module.
-pub struct XBoard {
-    input_handle: Option<JoinHandle<()>>,
-    output_handle: Option<JoinHandle<()>>,
-    output_tx: Option<Sender<CommOut>>,
-    time_control: Arc<Mutex<TimeControl>>,
-    info: CommInfo,
-}
-
 // This is a list of supported incoming XBoard commands.
 #[derive(PartialEq, Clone)]
 pub enum XBoardIn {
@@ -180,6 +171,15 @@ pub enum XBoardOut {
     Stat01,
     IllegalMove(String),
     Pong(i8),
+}
+
+// This struct is used to instantiate the Comm XBoard module.
+pub struct XBoard {
+    input_handle: Option<JoinHandle<()>>,
+    output_handle: Option<JoinHandle<()>>,
+    output_tx: Option<Sender<CommOut>>,
+    time_control: Arc<Mutex<TimeControl>>,
+    info: CommInfo,
 }
 
 // Public functions
