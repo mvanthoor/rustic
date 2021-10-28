@@ -336,6 +336,7 @@ impl XBoard {
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("sd") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("st") && cmd != "state" => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("level") => XBoard::parse_level(&cmd),
 
             // Custom commands
             cmd if cmd == "board" => CommIn::Board,
@@ -400,6 +401,29 @@ impl XBoard {
         CommIn::XBoard(XBoardIn::SetBoard(fen))
     }
 
+    // Parse incoming "level" command
+    fn parse_level(cmd: &str) -> CommIn {
+        const MOVES_PER_SESSION: usize = 1;
+        const BASE_TIME: usize = 2;
+        const INCREMENT: usize = 3;
+
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+
+        // The level command must have at least a length of four parts: "level
+        // moves_per_session base_time increment". Anything after
+        // "increment" is ignored.
+        if parts.len() >= 4 {
+            let mps = parts[MOVES_PER_SESSION].parse::<u8>().unwrap_or(0);
+            let bt = parts[BASE_TIME].parse::<u128>().unwrap_or(0);
+            let inc = parts[INCREMENT].parse::<u128>().unwrap_or(0);
+
+            CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc)))
+        } else {
+            CommIn::Unknown(cmd.to_string())
+        }
+    }
+
+    // Try to parse anything that is not a command as a move.
     fn parse_move(cmd: &str) -> CommIn {
         const ALPHA_COORDS: &str = "abcdefgh";
         const DIGIT_COORDS: &str = "12345678";
