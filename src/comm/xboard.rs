@@ -26,7 +26,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
-    defs::About,
+    defs::{About, Sides},
     engine::defs::{EngineOption, EngineState, ErrFatal, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
@@ -62,6 +62,9 @@ const FEATURES: [&str; 12] = [
     "done=1",
 ];
 
+const MPS_PLAYER: usize = 0;
+const MPS_ENGINE: usize = 1;
+
 // This struct buffers statistics output. In XBoard, the engine does not
 // continuously send intermediate stat updates such as the current move.
 // The GUI asks for these stats by sending the Dot-command, and the engine
@@ -95,7 +98,7 @@ impl Stat01 {
 struct TimeControl {
     sd: u8,
     st: u128,
-    moves_per_session: u8,
+    moves_per_session: [u8; Sides::BOTH],
     base_time: u128,
     increment: u128,
 }
@@ -105,7 +108,7 @@ impl TimeControl {
         Self {
             sd: 0,
             st: 0,
-            moves_per_session: 0,
+            moves_per_session: [0, 0],
             base_time: 0,
             increment: 0,
         }
@@ -137,19 +140,19 @@ impl Display for XBoardIn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             XBoardIn::XBoard => write!(f, "xboard"),
-            XBoardIn::ProtoVer(x) => write!(f, "protover {}", x),
+            XBoardIn::ProtoVer(version) => write!(f, "protover {}", version),
             XBoardIn::New => write!(f, "new"),
             XBoardIn::Force => write!(f, "force"),
-            XBoardIn::SetBoard(x) => write!(f, "setboard {}", x),
-            XBoardIn::UserMove(x) => write!(f, "usermove {}", x),
-            XBoardIn::Ping(x) => write!(f, "ping {}", x),
+            XBoardIn::SetBoard(fen) => write!(f, "setboard {}", fen),
+            XBoardIn::UserMove(mv) => write!(f, "usermove {}", mv),
+            XBoardIn::Ping(count) => write!(f, "ping {}", count),
             XBoardIn::Post => write!(f, "post"),
             XBoardIn::NoPost => write!(f, "nopost"),
-            XBoardIn::Memory(x) => write!(f, "memory {}", x),
+            XBoardIn::Memory(mb) => write!(f, "memory {}", mb),
             XBoardIn::Analyze => write!(f, "analyze"),
             XBoardIn::Dot => write!(f, "."),
             XBoardIn::Exit => write!(f, "exit"),
-            XBoardIn::Buffered(b) => write!(f, "{}", b),
+            XBoardIn::Buffered(cmd) => write!(f, "{}", cmd),
         }
     }
 }
@@ -171,8 +174,8 @@ pub enum XBoardInBuf {
 impl Display for XBoardInBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            XBoardInBuf::Sd(x) => write!(f, "sd {}", x),
-            XBoardInBuf::St(x) => write!(f, "st {}", x),
+            XBoardInBuf::Sd(depth) => write!(f, "sd {}", depth),
+            XBoardInBuf::St(time) => write!(f, "st {}", time),
             XBoardInBuf::Level(moves_per_session, base_time, increment) => {
                 write!(f, "level {} {} {}", moves_per_session, base_time, increment)
             }
@@ -299,13 +302,13 @@ impl XBoard {
                         mtx_tc.st = time;
 
                         // Disable "level" time controls.
-                        mtx_tc.moves_per_session = 0;
+                        mtx_tc.moves_per_session = [0, 0];
                         mtx_tc.base_time = 0;
                         mtx_tc.increment = 0;
                     }
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
-                        mtx_tc.moves_per_session = mps;
+                        mtx_tc.moves_per_session = [mps, mps];
                         mtx_tc.base_time = bt;
                         mtx_tc.increment = inc;
 
