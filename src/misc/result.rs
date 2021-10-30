@@ -29,8 +29,18 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
+    movegen::{
+        defs::{MoveList, MoveType},
+        MoveGenerator,
+    },
     search::defs::SearchRefs,
 };
+
+pub enum NoMoves {
+    Checkmate,
+    Stalemate,
+    False,
+}
 
 // Returns true if the position should be evaluated as a draw.
 pub fn is_draw(refs: &SearchRefs) -> bool {
@@ -99,4 +109,10 @@ pub fn is_insufficient_material(board:&Board) -> bool {
     // If one of the conditions above is true, we still have enough
     // material for checkmate, so insufficient_material returns false.
     !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b ||  w_bn || b_bn)
+}
+
+pub fn no_moves(board: &mut Board, mg: &MoveGenerator) -> NoMoves {
+    println!("Checking...");
+
+    NoMoves::False
 }

@@ -28,6 +28,7 @@ use crate::{
         defs::{ErrFatal, ErrNormal, Messages, Verbosity},
         Engine,
     },
+    misc::result,
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
@@ -87,8 +88,10 @@ impl Engine {
             }
 
             XBoardIn::UserMove(m) => {
-                let ok = self.execute_move(m.clone());
-                if !ok {
+                if self.execute_move(m.clone()) {
+                    let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+                    result::no_moves(&mut mtx_board, &self.mg);
+                } else {
                     let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
                 }
