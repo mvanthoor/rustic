@@ -30,7 +30,7 @@ use crate::{
     defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData, Verbosity},
     evaluation::Evaluation,
-    misc::draw,
+    misc::result,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
 
@@ -174,7 +174,7 @@ impl Search {
             let mut score = DRAW;
 
             // If it isn't a draw, we must search.
-            if !draw::is_draw(refs) {
+            if !result::is_draw(refs) {
                 // Try a PVS if applicable.
                 if do_pvs {
                     score = -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);

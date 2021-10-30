@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod bits;
 pub mod cmdline;
-pub mod draw;
 pub mod parse;
 pub mod perft;
 pub mod print;
+pub mod result;
