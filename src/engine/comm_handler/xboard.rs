@@ -90,7 +90,28 @@ impl Engine {
             XBoardIn::UserMove(m) => {
                 if self.execute_move(m.clone()) {
                     let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-                    let x = result::game_over(&mut mtx_board, &self.mg);
+                    let game_result = result::game_result(&mut mtx_board, &self.mg);
+
+                    match game_result {
+                        result::GameResult::Running => {
+                            println!("Running...");
+                        }
+                        result::GameResult::Checkmate => {
+                            println!("Checkmate.");
+                        }
+                        result::GameResult::Stalemate => {
+                            println!("Stalemate.");
+                        }
+                        result::GameResult::Insufficient => {
+                            println!("Insufficient material.");
+                        }
+                        result::GameResult::FiftyMoves => {
+                            println!("Fifty move rule.");
+                        }
+                        result::GameResult::ThreeFold => {
+                            println!("Threefold repetition.");
+                        }
+                    }
                 } else {
                     let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);

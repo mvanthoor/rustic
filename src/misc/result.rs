@@ -115,7 +115,7 @@ pub fn is_insufficient_material(board: &Board) -> bool {
 }
 
 // This function determines if, and how, the game was ended.
-pub fn game_over(board: &mut Board, mg: &MoveGenerator) -> GameResult {
+pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
     let mut move_list = MoveList::new();
     let mut result = GameResult::Running;
     let mut has_move = false;
