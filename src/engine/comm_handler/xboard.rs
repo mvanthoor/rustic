@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
-    defs::FEN_START_POSITION,
+    defs::{Sides, FEN_START_POSITION},
     engine::{
         defs::{ErrFatal, ErrNormal, Messages, Verbosity},
         Engine,
@@ -91,16 +91,21 @@ impl Engine {
                 if self.execute_move(m.clone()) {
                     let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
                     let game_result = result::game_result(&mut mtx_board, &self.mg);
+                    let color = if mtx_board.us() == Sides::WHITE {
+                        "White"
+                    } else {
+                        "Black"
+                    };
 
                     match game_result {
                         result::GameResult::Running => {
                             println!("Running...");
                         }
                         result::GameResult::Checkmate => {
-                            println!("Checkmate.");
+                            println!("{} Checkmate.", color);
                         }
                         result::GameResult::Stalemate => {
-                            println!("Stalemate.");
+                            println!("{} Stalemate.", color);
                         }
                         result::GameResult::Insufficient => {
                             println!("Insufficient material.");
