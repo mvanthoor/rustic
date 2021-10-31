@@ -116,41 +116,42 @@ pub fn is_insufficient_material(board: &Board) -> bool {
 
 // This function determines if, and how, the game was ended.
 pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
-    let mut move_list = MoveList::new();
-    let mut result = GameResult::Running;
-    let mut has_move = false;
-
-    // Generate all the pseudo-legal moves.
-    mg.generate_moves(board, &mut move_list, MoveType::All);
-
-    // As soon as we find a legal move, the game may not yet be over.
-    for i in 0..move_list.len() {
-        let m = move_list.get_move(i);
-        if board.make(m, mg) {
-            has_move = true;
-            break;
-        }
-    }
-
     // If we don't have a legal move, we see if we are in check or not. If
     // in check, it's checkmate; if not, the result is stalemate.
-    if !has_move {
+    if !active_side_has_moves(board, mg) {
         // If we're in check, the opponent is attacking our king square.
-        if mg.square_attacked(board, board.opponent(), board.king_square(board.us())) {
-            result = GameResult::Checkmate;
+        let in_check = mg.square_attacked(board, board.opponent(), board.king_square(board.us()));
+        if in_check {
+            GameResult::Checkmate
         } else {
-            result = GameResult::Stalemate;
+            GameResult::Stalemate
         }
     } else {
         // If we do have legal moves, the game could still be a draw.
-        if is_insufficient_material(board) {
-            result = GameResult::Insufficient;
-        } else if is_fifty_move_rule(board) {
-            result = GameResult::FiftyMoves;
-        } else if is_repetition(board) >= 2 {
-            result = GameResult::ThreeFold
+        match () {
+            _ if is_insufficient_material(board) => GameResult::Insufficient,
+            _ if is_fifty_move_rule(board) => GameResult::FiftyMoves,
+            _ if is_repetition(board) >= 2 => GameResult::ThreeFold,
+            _ => GameResult::Running,
+        }
+    }
+}
+
+// Determines if the side to move has at least one legal move.
+fn active_side_has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
+    let mut move_list = MoveList::new();
+
+    // Generate pseudo-logal moves.
+    mg.generate_moves(board, &mut move_list, MoveType::All);
+
+    // We can break as soon as we find a legal move.
+    for i in 0..move_list.len() {
+        let m = move_list.get_move(i);
+        if board.make(m, mg) {
+            return true;
         }
     }
 
-    result
+    // No legal moves available.
+    false
 }
