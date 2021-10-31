@@ -49,6 +49,22 @@ impl Display for GameResult {
     }
 }
 
+pub enum GameScore {
+    WhiteWins,
+    BlackWins,
+    Draw,
+}
+
+impl Display for GameScore {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            GameScore::WhiteWins => write!(f, "1-0"),
+            GameScore::BlackWins => write!(f, "0-1"),
+            GameScore::Draw => write!(f, "1/2-1/2"),
+        }
+    }
+}
+
 // This struct holds messages that are reported on fatal engine errors.
 // These should never happen; if they do the engine is in an unknown state,
 // and it will panic without trying any recovery whatsoever.
