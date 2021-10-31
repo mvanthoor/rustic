@@ -88,7 +88,7 @@ pub fn is_repetition(board: &Board) -> u8 {
 
 #[rustfmt::skip]
 // Returns true if there is insufficient matrial to deliver mate.
-pub fn is_insufficient_material(board:&Board) -> bool {
+pub fn is_insufficient_material(board: &Board) -> bool {
     // It's not a draw if: ...there are still pawns.
     let w_p = board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0;     
     let b_p = board.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0;        
@@ -114,8 +114,43 @@ pub fn is_insufficient_material(board:&Board) -> bool {
     !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b ||  w_bn || b_bn)
 }
 
+// This function determines if, and how, the game was ended.
 pub fn game_over(board: &mut Board, mg: &MoveGenerator) -> GameResult {
-    println!("Checking...");
+    let mut move_list = MoveList::new();
+    let mut result = GameResult::Running;
+    let mut has_move = false;
 
-    GameResult::Running
+    // Generate all the pseudo-legal moves.
+    mg.generate_moves(board, &mut move_list, MoveType::All);
+
+    // As soon as we find a legal move, the game may not yet be over.
+    for i in 0..move_list.len() {
+        let m = move_list.get_move(i);
+        if board.make(m, mg) {
+            has_move = true;
+            break;
+        }
+    }
+
+    // If we don't have a legal move, we see if we are in check or not. If
+    // in check, it's checkmate; if not, the result is stalemate.
+    if !has_move {
+        // If we're in check, the opponent is attacking our king square.
+        if mg.square_attacked(board, board.opponent(), board.king_square(board.us())) {
+            result = GameResult::Checkmate;
+        } else {
+            result = GameResult::Stalemate;
+        }
+    } else {
+        // If we do have legal moves, the game could still be a draw.
+        if is_insufficient_material(board) {
+            result = GameResult::Insufficient;
+        } else if is_fifty_move_rule(board) {
+            result = GameResult::FiftyMoves;
+        } else if is_repetition(board) >= 2 {
+            result = GameResult::ThreeFold
+        }
+    }
+
+    result
 }
