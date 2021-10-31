@@ -40,6 +40,9 @@ pub fn has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
     for i in 0..move_list.len() {
         let m = move_list.get_move(i);
         if board.make(m, mg) {
+            // Unmake the move we just made.
+            board.unmake();
+            // Return true, as we have at least one move.
             return true;
         }
     }
