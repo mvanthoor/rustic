@@ -91,7 +91,7 @@ impl Engine {
                 if self.execute_move(m.clone()) {
                     let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
                     let game_result = result::game_result(&mut mtx_board, &self.mg);
-                    let color = if mtx_board.us() == Sides::WHITE {
+                    let color = if mtx_board.us_is_white() {
                         "White"
                     } else {
                         "Black"
@@ -99,24 +99,26 @@ impl Engine {
 
                     match game_result {
                         result::GameResult::Running => {
-                            println!("Running...");
+                            //
                         }
                         result::GameResult::Checkmate => {
-                            println!("{} Checkmate.", color);
+                            //
                         }
                         result::GameResult::Stalemate => {
-                            println!("{} Stalemate.", color);
+                            //
                         }
                         result::GameResult::Insufficient => {
-                            println!("Insufficient material.");
+                            //
                         }
                         result::GameResult::FiftyMoves => {
-                            println!("Fifty move rule.");
+                            //
                         }
                         result::GameResult::ThreeFold => {
-                            println!("Threefold repetition.");
+                            //
                         }
                     }
+
+                    println!("result: {} {}", color, game_result);
                 } else {
                     let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);

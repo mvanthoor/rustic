@@ -77,4 +77,8 @@ impl Board {
             square
         }
     }
+
+    pub fn us_is_white(&self) -> bool {
+        self.us() == Sides::WHITE
+    }
 }

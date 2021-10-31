@@ -26,6 +26,8 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 // draw such as the 50-move rule, or a technical draw due to insufficient
 // material to deliver mate.
 
+use std::fmt::{Display, Formatter, Result};
+
 use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
@@ -42,6 +44,19 @@ pub enum GameResult {
     FiftyMoves,
     ThreeFold,
     Running,
+}
+
+impl Display for GameResult {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            GameResult::Checkmate => write!(f, "checkmate"),
+            GameResult::Stalemate => write!(f, "stalemate"),
+            GameResult::Insufficient => write!(f, "insufficient material"),
+            GameResult::FiftyMoves => write!(f, "fifty move rule"),
+            GameResult::ThreeFold => write!(f, "threefold repetition"),
+            GameResult::Running => write!(f, "running..."),
+        }
+    }
 }
 
 // Returns true if the position should be evaluated as a draw.
