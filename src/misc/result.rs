@@ -36,10 +36,13 @@ use crate::{
     search::defs::SearchRefs,
 };
 
-pub enum NoMoves {
+pub enum GameResult {
     Checkmate,
     Stalemate,
-    False,
+    Insufficient,
+    FiftyMoves,
+    ThreeFold,
+    Running,
 }
 
 // Returns true if the position should be evaluated as a draw.
@@ -111,8 +114,8 @@ pub fn is_insufficient_material(board:&Board) -> bool {
     !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b ||  w_bn || b_bn)
 }
 
-pub fn no_moves(board: &mut Board, mg: &MoveGenerator) -> NoMoves {
+pub fn game_over(board: &mut Board, mg: &MoveGenerator) -> GameResult {
     println!("Checking...");
 
-    NoMoves::False
+    GameResult::Running
 }

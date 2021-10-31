@@ -90,7 +90,7 @@ impl Engine {
             XBoardIn::UserMove(m) => {
                 if self.execute_move(m.clone()) {
                     let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-                    result::no_moves(&mut mtx_board, &self.mg);
+                    let x = result::game_over(&mut mtx_board, &self.mg);
                 } else {
                     let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
