@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
-    defs::{Sides, FEN_START_POSITION},
+    defs::FEN_START_POSITION,
     engine::{
         defs::{ErrFatal, ErrNormal, Messages, Verbosity},
         Engine,
