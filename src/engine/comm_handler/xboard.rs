@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, GameResult, GameScore, Messages, Verbosity},
+        defs::{ErrFatal, ErrNormal, GameEndReason, GameResult, Messages, Verbosity},
         Engine,
     },
     misc::result,
@@ -155,39 +155,39 @@ impl Engine {
     // The result will then be sent to the GUI, to notify it that the
     // engine considers the game to be finished.
     fn determine_if_game_over(&mut self) {
-        // Lock the board and determine the game's result.
+        // Lock the board and determine the game's end result and reason.
         let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-        let game_result = result::game_result(&mut mtx_board, &self.mg);
+        let game_end_reason = result::game_end_reason(&mut mtx_board, &self.mg);
 
-        match game_result {
+        match game_end_reason {
             // The game is still going. We don't do anything.
-            GameResult::Running => (),
+            GameEndReason::NotEnded => (),
 
             // Side to move is checkmated.
-            GameResult::Checkmate => {
+            GameEndReason::Checkmate => {
                 // If checkmated and we are white, then black wins.
                 if mtx_board.us_is_white() {
                     self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                        GameScore::BlackWins,
-                        game_result,
+                        GameResult::BlackWins,
+                        game_end_reason,
                     )));
                 } else {
                     // And the other way around, obviously.
                     self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                        GameScore::WhiteWins,
-                        game_result,
+                        GameResult::WhiteWins,
+                        game_end_reason,
                     )));
                 }
             }
 
             // A draw is a draw, irrespective of side to move.
-            GameResult::Stalemate
-            | GameResult::Insufficient
-            | GameResult::FiftyMoves
-            | GameResult::ThreeFold => {
+            GameEndReason::Stalemate
+            | GameEndReason::Insufficient
+            | GameEndReason::FiftyMoves
+            | GameEndReason::ThreeFold => {
                 self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                    GameScore::Draw,
-                    game_result,
+                    GameResult::Draw,
+                    game_end_reason,
                 )));
             }
         }

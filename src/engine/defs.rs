@@ -27,40 +27,40 @@ pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchDat
 use crate::{comm::CommIn, search::defs::SearchReport};
 
 // Lists all possible game results.
-pub enum GameResult {
+pub enum GameEndReason {
     Checkmate,
     Stalemate,
     Insufficient,
     FiftyMoves,
     ThreeFold,
-    Running,
+    NotEnded,
 }
 
-impl Display for GameResult {
+impl Display for GameEndReason {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            GameResult::Checkmate => write!(f, "checkmate"),
-            GameResult::Stalemate => write!(f, "stalemate"),
-            GameResult::Insufficient => write!(f, "insufficient material"),
-            GameResult::FiftyMoves => write!(f, "fifty move rule"),
-            GameResult::ThreeFold => write!(f, "threefold repetition"),
-            GameResult::Running => write!(f, "running..."),
+            GameEndReason::Checkmate => write!(f, "checkmate"),
+            GameEndReason::Stalemate => write!(f, "stalemate"),
+            GameEndReason::Insufficient => write!(f, "insufficient material"),
+            GameEndReason::FiftyMoves => write!(f, "fifty move rule"),
+            GameEndReason::ThreeFold => write!(f, "threefold repetition"),
+            GameEndReason::NotEnded => write!(f, "running..."),
         }
     }
 }
 
-pub enum GameScore {
+pub enum GameResult {
     WhiteWins,
     BlackWins,
     Draw,
 }
 
-impl Display for GameScore {
+impl Display for GameResult {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            GameScore::WhiteWins => write!(f, "1-0"),
-            GameScore::BlackWins => write!(f, "0-1"),
-            GameScore::Draw => write!(f, "1/2-1/2"),
+            GameResult::WhiteWins => write!(f, "1-0"),
+            GameResult::BlackWins => write!(f, "0-1"),
+            GameResult::Draw => write!(f, "1/2-1/2"),
         }
     }
 }

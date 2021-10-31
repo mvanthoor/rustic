@@ -29,7 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
-    engine::defs::GameResult,
+    engine::defs::GameEndReason,
     misc::utils,
     movegen::MoveGenerator,
     search::defs::SearchRefs,
@@ -105,23 +105,23 @@ pub fn is_insufficient_material(board: &Board) -> bool {
 }
 
 // This function determines if, and how, the game was ended.
-pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
+pub fn game_end_reason(board: &mut Board, mg: &MoveGenerator) -> GameEndReason {
     // If we don't have a legal move, we see if we are in check or not. If
     // in check, it's checkmate; if not, the result is stalemate.
     if !utils::we_have_moves(board, mg) {
         // If we're in check, the opponent is attacking our king square.
         if utils::we_are_in_check(board, mg) {
-            GameResult::Checkmate
+            GameEndReason::Checkmate
         } else {
-            GameResult::Stalemate
+            GameEndReason::Stalemate
         }
     } else {
         // If we do have legal moves, the game could still be a draw.
         match () {
-            _ if is_insufficient_material(board) => GameResult::Insufficient,
-            _ if is_fifty_move_rule(board) => GameResult::FiftyMoves,
-            _ if is_repetition(board) >= 2 => GameResult::ThreeFold,
-            _ => GameResult::Running,
+            _ if is_insufficient_material(board) => GameEndReason::Insufficient,
+            _ if is_fifty_move_rule(board) => GameEndReason::FiftyMoves,
+            _ if is_repetition(board) >= 2 => GameEndReason::ThreeFold,
+            _ => GameEndReason::NotEnded,
         }
     }
 }

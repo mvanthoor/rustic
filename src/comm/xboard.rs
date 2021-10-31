@@ -27,7 +27,7 @@ use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
     defs::{About, Sides},
-    engine::defs::{EngineOption, EngineState, ErrFatal, GameResult, GameScore, Information},
+    engine::defs::{EngineOption, EngineState, ErrFatal, GameEndReason, GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -189,7 +189,7 @@ pub enum XBoardOut {
     NewLine,
     Features,
     Stat01,
-    Result(GameScore, GameResult),
+    Result(GameResult, GameEndReason),
     IllegalMove(String),
     Pong(i8),
 }
@@ -639,7 +639,7 @@ impl XBoard {
         }
     }
 
-    fn result(score: GameScore, reason: GameResult) {
+    fn result(score: GameResult, reason: GameEndReason) {
         println!("{} {{{}}}", score, reason);
     }
 }
