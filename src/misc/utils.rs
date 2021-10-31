@@ -30,7 +30,7 @@ use crate::{
 };
 
 // Determines if the side to move has at least one legal move.
-pub fn has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
+pub fn we_have_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
     let mut move_list = MoveList::new();
 
     // Generate pseudo-logal moves.
@@ -51,6 +51,6 @@ pub fn has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
     false
 }
 
-pub fn in_check(board: &mut Board, mg: &MoveGenerator) -> bool {
+pub fn we_are_in_check(board: &mut Board, mg: &MoveGenerator) -> bool {
     mg.square_attacked(board, board.opponent(), board.king_square(board.us()))
 }

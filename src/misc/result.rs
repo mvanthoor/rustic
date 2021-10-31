@@ -29,7 +29,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
-    misc::active_side,
+    misc::utils,
     movegen::MoveGenerator,
     search::defs::SearchRefs,
 };
@@ -117,9 +117,9 @@ pub fn is_insufficient_material(board: &Board) -> bool {
 pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
     // If we don't have a legal move, we see if we are in check or not. If
     // in check, it's checkmate; if not, the result is stalemate.
-    if !active_side::has_moves(board, mg) {
+    if !utils::we_have_moves(board, mg) {
         // If we're in check, the opponent is attacking our king square.
-        if active_side::in_check(board, mg) {
+        if utils::we_are_in_check(board, mg) {
             GameResult::Checkmate
         } else {
             GameResult::Stalemate

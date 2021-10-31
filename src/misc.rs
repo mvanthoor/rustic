@@ -21,10 +21,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub mod active_side;
 pub mod bits;
 pub mod cmdline;
 pub mod parse;
 pub mod perft;
 pub mod print;
 pub mod result;
+pub mod utils;
