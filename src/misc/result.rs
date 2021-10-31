@@ -29,13 +29,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
-    movegen::{
-        defs::{MoveList, MoveType},
-        MoveGenerator,
-    },
+    misc::active_side,
+    movegen::MoveGenerator,
     search::defs::SearchRefs,
 };
 
+// Lists all possible game results.
 pub enum GameResult {
     Checkmate,
     Stalemate,
@@ -118,10 +117,9 @@ pub fn is_insufficient_material(board: &Board) -> bool {
 pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
     // If we don't have a legal move, we see if we are in check or not. If
     // in check, it's checkmate; if not, the result is stalemate.
-    if !active_side_has_moves(board, mg) {
+    if !active_side::has_moves(board, mg) {
         // If we're in check, the opponent is attacking our king square.
-        let in_check = mg.square_attacked(board, board.opponent(), board.king_square(board.us()));
-        if in_check {
+        if active_side::in_check(board, mg) {
             GameResult::Checkmate
         } else {
             GameResult::Stalemate
@@ -135,23 +133,4 @@ pub fn game_result(board: &mut Board, mg: &MoveGenerator) -> GameResult {
             _ => GameResult::Running,
         }
     }
-}
-
-// Determines if the side to move has at least one legal move.
-fn active_side_has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
-    let mut move_list = MoveList::new();
-
-    // Generate pseudo-logal moves.
-    mg.generate_moves(board, &mut move_list, MoveType::All);
-
-    // We can break as soon as we find a legal move.
-    for i in 0..move_list.len() {
-        let m = move_list.get_move(i);
-        if board.make(m, mg) {
-            return true;
-        }
-    }
-
-    // No legal moves available.
-    false
 }

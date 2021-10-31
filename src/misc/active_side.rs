@@ -21,10 +21,33 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub mod active_side;
-pub mod bits;
-pub mod cmdline;
-pub mod parse;
-pub mod perft;
-pub mod print;
-pub mod result;
+use crate::{
+    board::Board,
+    movegen::{
+        defs::{MoveList, MoveType},
+        MoveGenerator,
+    },
+};
+
+// Determines if the side to move has at least one legal move.
+pub fn has_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
+    let mut move_list = MoveList::new();
+
+    // Generate pseudo-logal moves.
+    mg.generate_moves(board, &mut move_list, MoveType::All);
+
+    // We can break as soon as we find a legal move.
+    for i in 0..move_list.len() {
+        let m = move_list.get_move(i);
+        if board.make(m, mg) {
+            return true;
+        }
+    }
+
+    // No legal moves available.
+    false
+}
+
+pub fn in_check(board: &mut Board, mg: &MoveGenerator) -> bool {
+    mg.square_attacked(board, board.opponent(), board.king_square(board.us()))
+}
