@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, Messages, Verbosity},
+        defs::{ErrFatal, ErrNormal, GameResult, Messages, Verbosity},
         Engine,
     },
     misc::result,
@@ -98,22 +98,22 @@ impl Engine {
                     };
 
                     match game_result {
-                        result::GameResult::Running => {
+                        GameResult::Running => {
                             //
                         }
-                        result::GameResult::Checkmate => {
+                        GameResult::Checkmate => {
                             //
                         }
-                        result::GameResult::Stalemate => {
+                        GameResult::Stalemate => {
                             //
                         }
-                        result::GameResult::Insufficient => {
+                        GameResult::Insufficient => {
                             //
                         }
-                        result::GameResult::FiftyMoves => {
+                        GameResult::FiftyMoves => {
                             //
                         }
-                        result::GameResult::ThreeFold => {
+                        GameResult::ThreeFold => {
                             //
                         }
                     }

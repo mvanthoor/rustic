@@ -26,6 +26,29 @@ use std::fmt::{Display, Formatter, Result};
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 use crate::{comm::CommIn, search::defs::SearchReport};
 
+// Lists all possible game results.
+pub enum GameResult {
+    Checkmate,
+    Stalemate,
+    Insufficient,
+    FiftyMoves,
+    ThreeFold,
+    Running,
+}
+
+impl Display for GameResult {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            GameResult::Checkmate => write!(f, "checkmate"),
+            GameResult::Stalemate => write!(f, "stalemate"),
+            GameResult::Insufficient => write!(f, "insufficient material"),
+            GameResult::FiftyMoves => write!(f, "fifty move rule"),
+            GameResult::ThreeFold => write!(f, "threefold repetition"),
+            GameResult::Running => write!(f, "running..."),
+        }
+    }
+}
+
 // This struct holds messages that are reported on fatal engine errors.
 // These should never happen; if they do the engine is in an unknown state,
 // and it will panic without trying any recovery whatsoever.
