@@ -123,8 +123,6 @@ impl Engine {
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
                                 Engine::set_time_control(&mut sp, tc);
-                                println!("I should start thinking here...");
-                                println!("Time control: {}", tc);
                             }
                         } else {
                             let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
