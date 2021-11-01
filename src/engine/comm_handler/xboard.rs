@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},
+        defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -104,20 +104,36 @@ impl Engine {
             // react to this usermove, according to the state we were in
             // when the move was received.
             XBoardIn::UserMove(m) => {
-                if self.is_observing() || self.is_waiting() {
-                    if self.execute_move(m.clone()) {
-                        if self.send_game_result() == GameEndReason::NotEnded {
-                            println!("I should start thinking here...");
+                match self.state {
+                    // When we are observing, we just execute the incoming
+                    // move and send the game result (if any).
+                    EngineState::Observing => {
+                        if self.execute_move(m.clone()) {
+                            self.send_game_result();
+                        } else {
+                            let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                            self.comm.send(im);
                         }
-                    } else {
-                        let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
-                        self.comm.send(illegal_move);
                     }
-                } else {
-                    self.comm.send(CommOut::Error(
+
+                    // When we're waiting, we execute the incoming move and
+                    // then we start thinking if the game is not over.
+                    EngineState::Waiting => {
+                        if self.execute_move(m.clone()) {
+                            if self.send_game_result() == GameEndReason::NotEnded {
+                                println!("I should start thinking here...");
+                            }
+                        } else {
+                            let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                            self.comm.send(im);
+                        }
+                    }
+
+                    // Do not accept user moves in other engine states.
+                    _ => self.comm.send(CommOut::Error(
                         ErrNormal::COMMAND_INVALID.to_string(),
                         command.to_string(),
-                    ));
+                    )),
                 }
             }
 
