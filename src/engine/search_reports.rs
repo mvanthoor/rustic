@@ -33,6 +33,7 @@ impl Engine {
                 if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
                     self.comm.send(CommOut::BestMove(*m));
                     self.send_game_result();
+                    self.set_waiting();
                 } else {
                     // This should never, ever happen.
                     panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
