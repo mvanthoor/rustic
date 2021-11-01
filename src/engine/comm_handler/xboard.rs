@@ -39,8 +39,10 @@ impl Engine {
         sp.verbosity = self.settings.verbosity;
 
         match command {
+            // Send a NewLine to the GUI to flush the output buffer.
             XBoardIn::XBoard => self.comm.send(CommOut::XBoard(XBoardOut::NewLine)),
 
+            // Send the engine's supported features to the GUI.
             XBoardIn::ProtoVer(n) => {
                 if self.is_observing() {
                     if *n == PROTOCOL_VERSION {
@@ -54,11 +56,14 @@ impl Engine {
                 }
             }
 
+            // Set up a new game from the starting position.
             XBoardIn::New => {
+                // Abaondon the search if it is running.
                 if self.is_analyzing() || self.is_thinking() {
                     self.search.send(SearchControl::Abandon);
                 }
 
+                // Set up a new game and then wait.
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
@@ -68,6 +73,8 @@ impl Engine {
                 self.set_waiting();
             }
 
+            // Return to observation state. First abandon the search if the
+            // engine is thinking.
             XBoardIn::Force => {
                 if self.is_thinking() {
                     self.search.send(SearchControl::Abandon);
@@ -82,6 +89,7 @@ impl Engine {
                 }
             }
 
+            // Set up the board according the incoming FEN-string.
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
@@ -92,6 +100,9 @@ impl Engine {
                 }
             }
 
+            // Accept an incoming usermove. Execute it on the board. Then
+            // react to this usermove, according to the state we were in
+            // when the move was received.
             XBoardIn::UserMove(m) => {
                 if self.is_observing() || self.is_waiting() {
                     if self.execute_move(m.clone()) {
@@ -108,14 +119,20 @@ impl Engine {
                 }
             }
 
+            // Send "Pong" to confirm that the engine is still active.
             XBoardIn::Ping(value) => self.comm.send(CommOut::XBoard(XBoardOut::Pong(*value))),
 
+            // Enable sending search information.
             XBoardIn::Post => self.settings.verbosity = Verbosity::Full,
 
+            // Disable sending search information.
             XBoardIn::NoPost => self.settings.verbosity = Verbosity::Silent,
 
+            // Set the transposition table size.
             XBoardIn::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 
+            // Start analyze mode. First abandon the search if the engine
+            // is thinking.
             XBoardIn::Analyze => {
                 if !self.is_analyzing() {
                     if self.is_thinking() {
@@ -128,6 +145,7 @@ impl Engine {
                 }
             }
 
+            // Send intermediate statistics to the GUI.
             XBoardIn::Dot => {
                 if self.is_analyzing() {
                     self.comm.send(CommOut::XBoard(XBoardOut::Stat01));
@@ -139,6 +157,7 @@ impl Engine {
                 }
             }
 
+            // Stop analyzing and return to "observe" state.
             XBoardIn::Exit => {
                 if self.is_analyzing() {
                     // We order the search / analysis to stop and abandon
@@ -153,6 +172,10 @@ impl Engine {
                 }
             }
 
+            // Some incoming commands are buffered by the comm module. The
+            // engine is notified that a command was received and buffered.
+            // The engine will output a message to confirm that the command
+            // was received and handled.
             XBoardIn::Buffered(cmd) => self.comm.send(CommOut::Message(format!(
                 "{}: {}",
                 Messages::INCOMING_CMD_BUFFERED.to_string(),
