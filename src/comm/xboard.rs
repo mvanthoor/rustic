@@ -306,8 +306,9 @@ impl XBoard {
                 // Create the CommIn object.
                 let comm_received = XBoard::create_comm_input(&t_incoming_data);
 
-                // Some commands such as "sd" and "st" are buffered in the
-                // input thread. This is done here.
+                // Some incoming commands are buffered in in the XBoard
+                // module, or adjusted before being sent to the engine.
+                // This is done here.
                 let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
                 match comm_received {
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(depth))) => {
