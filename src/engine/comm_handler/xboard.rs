@@ -100,10 +100,11 @@ impl Engine {
                 }
             }
 
-            // Accept an incoming usermove. Execute it on the board. Then
-            // react to this usermove, according to the state we were in
-            // when the move was received.
-            XBoardIn::UserMove(m, _tc) => {
+            // Accept an incoming usermove (and time control for the
+            // engine's nex turn). Execute it on the board. Then react to
+            // this usermove, according to the state we were in when the
+            // move was received.
+            XBoardIn::UserMove(m, tc) => {
                 match self.state {
                     // When we are observing, we just execute the incoming
                     // move and send the game result (if any).
@@ -122,6 +123,7 @@ impl Engine {
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
                                 println!("I should start thinking here...");
+                                println!("Time control: {}", tc);
                             }
                         } else {
                             let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));

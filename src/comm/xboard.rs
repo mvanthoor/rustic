@@ -304,16 +304,18 @@ impl XBoard {
                     .expect(ErrFatal::READ_IO);
 
                 // Create the CommIn object.
-                let comm_received = XBoard::create_comm_input(&t_incoming_data);
+                let mut comm_received = XBoard::create_comm_input(&t_incoming_data);
 
                 // Some incoming commands are buffered in in the XBoard
                 // module, or adjusted before being sent to the engine.
                 // This is done here.
                 let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
                 match comm_received {
+                    // Buffer maximum search depth as time control.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(depth))) => {
                         mtx_tc.sd = depth;
                     }
+                    // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(time))) => {
                         // Set "movetime" time control
                         mtx_tc.st = time;
@@ -323,14 +325,20 @@ impl XBoard {
                         mtx_tc.base_time = 0;
                         mtx_tc.increment = 0;
                     }
+                    // Buffer the "level" command.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
                         mtx_tc.moves_per_session = [mps, mps];
                         mtx_tc.base_time = bt;
                         mtx_tc.increment = inc;
 
-                        // Disable "movetime" time control
+                        // Disable "movetime" time control.
                         mtx_tc.st = 0;
+                    }
+                    // Replace usermove command with a version that also
+                    // includes the current time control.
+                    CommIn::XBoard(XBoardIn::UserMove(mv, _)) => {
+                        comm_received = CommIn::XBoard(XBoardIn::UserMove(mv, mtx_tc.clone()))
                     }
                     _ => (),
                 }
