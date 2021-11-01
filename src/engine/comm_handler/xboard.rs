@@ -167,16 +167,12 @@ impl Engine {
             GameEndReason::Checkmate => {
                 // If checkmated and we are white, then black wins.
                 if mtx_board.us_is_white() {
-                    self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                        GameResult::BlackWins,
-                        game_end_reason,
-                    )));
+                    self.comm
+                        .send(CommOut::Result(GameResult::BlackWins, game_end_reason));
                 } else {
                     // And the other way around, obviously.
-                    self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                        GameResult::WhiteWins,
-                        game_end_reason,
-                    )));
+                    self.comm
+                        .send(CommOut::Result(GameResult::WhiteWins, game_end_reason));
                 }
             }
 
@@ -185,10 +181,8 @@ impl Engine {
             | GameEndReason::Insufficient
             | GameEndReason::FiftyMoves
             | GameEndReason::ThreeFold => {
-                self.comm.send(CommOut::XBoard(XBoardOut::Result(
-                    GameResult::Draw,
-                    game_end_reason,
-                )));
+                self.comm
+                    .send(CommOut::Result(GameResult::Draw, game_end_reason));
             }
         }
     }

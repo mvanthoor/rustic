@@ -189,7 +189,6 @@ pub enum XBoardOut {
     NewLine,
     Features,
     Stat01,
-    Result(GameResult, GameEndReason),
     IllegalMove(String),
     Pong(i8),
 }
@@ -515,15 +514,16 @@ impl XBoard {
 
                 // Perform command as sent by the engine thread.
                 match output {
+                    // Specific XBoard outputs
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
                     CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat01_buf),
-                    CommOut::XBoard(XBoardOut::Result(score, reason)) => {
-                        XBoard::result(score, reason)
-                    }
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
+
+                    // Common outputs avaliable to all protocols
                     CommOut::BestMove(m) => XBoard::best_move(&m),
+                    CommOut::Result(score, reason) => XBoard::result(score, reason),
                     CommOut::SearchSummary(summary) => {
                         XBoard::search_summary(&mut stat01_buf, &summary)
                     }
@@ -535,7 +535,8 @@ impl XBoard {
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
                     CommOut::Quit => quit = true,
 
-                    // Custom prints for use in the console.
+                    // Custom prints for use in the console. These are
+                    // available to all protocols.
                     CommOut::PrintBoard => Shared::print_board(&board),
                     CommOut::PrintHistory => Shared::print_history(&board),
                     CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),

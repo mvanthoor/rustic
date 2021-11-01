@@ -27,7 +27,7 @@ mod xboard;
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineState, Information},
+    engine::defs::{EngineOption, EngineState, GameEndReason, GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -112,6 +112,7 @@ pub enum CommOut {
 
     // Common output for all protocols
     BestMove(Move),                    // Transmit the engine's best move.
+    Result(GameResult, GameEndReason), // Notify GUI of game result and end reason.
     SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.
