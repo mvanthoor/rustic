@@ -97,7 +97,7 @@ impl Stat01 {
 // informatin as sent by the GUI at the beginning of the game.
 #[derive(PartialEq, Clone)]
 pub struct TimeControl {
-    sd: u8,
+    sd: i8,
     st: u128,
     moves_per_session: [u8; Sides::BOTH],
     base_time: u128,
@@ -113,6 +113,14 @@ impl TimeControl {
             base_time: 0,
             increment: 0,
         }
+    }
+
+    pub fn depth(&self) -> i8 {
+        self.sd
+    }
+
+    pub fn move_time(&self) -> u128 {
+        self.st
     }
 }
 
@@ -181,7 +189,7 @@ impl Display for XBoardIn {
 // and buffered.
 #[derive(PartialEq, Clone)]
 pub enum XBoardInBuf {
-    Sd(u8),
+    Sd(i8),
     St(u128),
     Level(u8, u128, u128),
 }
@@ -437,7 +445,7 @@ impl XBoard {
                     CommIn::XBoard(XBoardIn::UserMove(value, TimeControl::new()))
                 }
                 "sd" => {
-                    let value = parts[VALUE].parse::<u8>().unwrap_or(0);
+                    let value = parts[VALUE].parse::<i8>().unwrap_or(0);
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(value)))
                 }
                 "st" => {

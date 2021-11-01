@@ -35,7 +35,7 @@ use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
 pub use uci::{Uci, UciIn, UciOut};
-pub use xboard::{XBoard, XBoardIn, XBoardOut};
+pub use xboard::{TimeControl, XBoard, XBoardIn, XBoardOut};
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;

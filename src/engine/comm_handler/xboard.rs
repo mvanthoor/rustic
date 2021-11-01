@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOut, XBoardIn, XBoardOut},
+    comm::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
         defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},
@@ -122,6 +122,7 @@ impl Engine {
                     EngineState::Waiting => {
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
+                                Engine::set_time_control(&mut sp, tc);
                                 println!("I should start thinking here...");
                                 println!("Time control: {}", tc);
                             }
@@ -202,5 +203,10 @@ impl Engine {
                 cmd.to_string()
             ))),
         }
+    }
+
+    fn set_time_control(sp: &mut SearchParams, tc: &TimeControl) {
+        sp.depth = tc.depth();
+        sp.move_time = tc.move_time();
     }
 }
