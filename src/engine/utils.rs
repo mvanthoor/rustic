@@ -21,12 +21,16 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{defs::ErrFatal, Engine};
+use super::{
+    defs::{ErrFatal, GameEndReason, GameResult},
+    Engine,
+};
 use crate::{
     board::Board,
+    comm::CommOut,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
-    misc::parse,
     misc::parse::PotentialMove,
+    misc::{parse, result},
     movegen::{
         defs::{Move, MoveList, MoveType},
         MoveGenerator,
@@ -99,5 +103,41 @@ impl Engine {
             }
         }
         result
+    }
+
+    // This function sends the game result (and the reason for that result)
+    //  to the output thread. If the current protocol requires it, the
+    //  result will be sent to the GUI.
+    pub fn send_game_result(&mut self) {
+        // Lock the board and determine the game's end result and reason.
+        let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+        let game_end_reason = result::game_end_reason(&mut mtx_board, &self.mg);
+
+        match game_end_reason {
+            // The game is still going. We don't send anything.
+            GameEndReason::NotEnded => (),
+
+            // Side to move is checkmated.
+            GameEndReason::Checkmate => {
+                // If checkmated and we are white, then black wins.
+                if mtx_board.us_is_white() {
+                    self.comm
+                        .send(CommOut::Result(GameResult::BlackWins, game_end_reason));
+                } else {
+                    // And the other way around, obviously.
+                    self.comm
+                        .send(CommOut::Result(GameResult::WhiteWins, game_end_reason));
+                }
+            }
+
+            // A draw is a draw, irrespective of side to move.
+            GameEndReason::Stalemate
+            | GameEndReason::Insufficient
+            | GameEndReason::FiftyMoves
+            | GameEndReason::ThreeFold => {
+                self.comm
+                    .send(CommOut::Result(GameResult::Draw, game_end_reason));
+            }
+        }
     }
 }

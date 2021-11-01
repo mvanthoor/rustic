@@ -25,10 +25,9 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, GameEndReason, GameResult, Messages, Verbosity},
+        defs::{ErrFatal, ErrNormal, Messages, Verbosity},
         Engine,
     },
-    misc::result,
     search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
@@ -90,7 +89,7 @@ impl Engine {
             XBoardIn::UserMove(m) => {
                 // Execute the incoming user move...
                 if self.execute_move(m.clone()) {
-                    self.determine_if_game_over();
+                    self.send_game_result();
                 } else {
                     let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                     self.comm.send(illegal_move);
@@ -147,43 +146,6 @@ impl Engine {
                 Messages::INCOMING_CMD_BUFFERED.to_string(),
                 cmd.to_string()
             ))),
-        }
-    }
-
-    // This function determines if the game is over. If so, it sends the
-    // game's result (and the reason for that result) to the output thread.
-    // The result will then be sent to the GUI, to notify it that the
-    // engine considers the game to be finished.
-    fn determine_if_game_over(&mut self) {
-        // Lock the board and determine the game's end result and reason.
-        let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-        let game_end_reason = result::game_end_reason(&mut mtx_board, &self.mg);
-
-        match game_end_reason {
-            // The game is still going. We don't do anything.
-            GameEndReason::NotEnded => (),
-
-            // Side to move is checkmated.
-            GameEndReason::Checkmate => {
-                // If checkmated and we are white, then black wins.
-                if mtx_board.us_is_white() {
-                    self.comm
-                        .send(CommOut::Result(GameResult::BlackWins, game_end_reason));
-                } else {
-                    // And the other way around, obviously.
-                    self.comm
-                        .send(CommOut::Result(GameResult::WhiteWins, game_end_reason));
-                }
-            }
-
-            // A draw is a draw, irrespective of side to move.
-            GameEndReason::Stalemate
-            | GameEndReason::Insufficient
-            | GameEndReason::FiftyMoves
-            | GameEndReason::ThreeFold => {
-                self.comm
-                    .send(CommOut::Result(GameResult::Draw, game_end_reason));
-            }
         }
     }
 }
