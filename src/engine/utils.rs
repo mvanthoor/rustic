@@ -108,7 +108,7 @@ impl Engine {
     // This function sends the game result (and the reason for that result)
     //  to the output thread. If the current protocol requires it, the
     //  result will be sent to the GUI.
-    pub fn send_game_result(&mut self) {
+    pub fn send_game_result(&mut self) -> GameEndReason {
         // Lock the board and determine the game's end result and reason.
         let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
         let game_end_reason = result::game_end_reason(&mut mtx_board, &self.mg);
@@ -139,5 +139,7 @@ impl Engine {
                     .send(CommOut::Result(GameResult::Draw, game_end_reason));
             }
         }
+
+        game_end_reason
     }
 }

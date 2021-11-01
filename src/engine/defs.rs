@@ -27,6 +27,7 @@ pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchDat
 use crate::{comm::CommIn, search::defs::SearchReport};
 
 // Lists all possible game results.
+#[derive(PartialEq, Clone, Copy)]
 pub enum GameEndReason {
     Checkmate,
     Stalemate,

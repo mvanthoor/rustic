@@ -25,7 +25,7 @@ use crate::{
     comm::{CommOut, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{ErrFatal, ErrNormal, Messages, Verbosity},
+        defs::{ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams},
@@ -106,7 +106,9 @@ impl Engine {
             XBoardIn::UserMove(m) => {
                 if self.is_observing() || self.is_waiting() {
                     if self.execute_move(m.clone()) {
-                        self.send_game_result();
+                        if self.send_game_result() == GameEndReason::NotEnded {
+                            println!("I should start thinking here...");
+                        }
                     } else {
                         let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
                         self.comm.send(illegal_move);
