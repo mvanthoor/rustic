@@ -93,12 +93,18 @@ impl Engine {
             }
 
             XBoardIn::UserMove(m) => {
-                // Execute the incoming user move...
-                if self.execute_move(m.clone()) {
-                    self.send_game_result();
+                if self.is_observing() || self.is_waiting() {
+                    if self.execute_move(m.clone()) {
+                        self.send_game_result();
+                    } else {
+                        let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                        self.comm.send(illegal_move);
+                    }
                 } else {
-                    let illegal_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
-                    self.comm.send(illegal_move);
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_INVALID.to_string(),
+                        command.to_string(),
+                    ));
                 }
             }
 
