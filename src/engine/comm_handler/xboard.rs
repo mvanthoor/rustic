@@ -123,6 +123,8 @@ impl Engine {
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
                                 Engine::set_time_control(&mut sp, tc);
+                                self.search.send(SearchControl::Start(sp));
+                                self.set_thinking();
                             }
                         } else {
                             let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
@@ -204,7 +206,16 @@ impl Engine {
     }
 
     fn set_time_control(sp: &mut SearchParams, tc: &TimeControl) {
-        sp.depth = tc.depth();
-        sp.move_time = tc.move_time();
+        // Set search mode "Depth"
+        if tc.depth() > 0 || tc.move_time() == 0 {
+            sp.search_mode = SearchMode::Depth;
+            sp.depth = tc.depth();
+        }
+
+        // Set search mode "MoveTime"
+        if tc.depth() == 0 && tc.move_time() > 0 {
+            sp.search_mode = SearchMode::MoveTime;
+            sp.move_time = tc.move_time();
+        }
     }
 }
