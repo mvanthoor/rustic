@@ -95,7 +95,8 @@ impl Stat01 {
 // at the beginning of the game and expects the engine to know when it is
 // its move, and how much time is left. This struct stores the time control
 // informatin as sent by the GUI at the beginning of the game.
-struct TimeControl {
+#[derive(PartialEq, Clone)]
+pub struct TimeControl {
     sd: u8,
     st: u128,
     moves_per_session: [u8; Sides::BOTH],
@@ -119,7 +120,7 @@ impl Display for TimeControl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "TC: sd: {} st: {} mps: {}/{} bt: {} inc: {}",
+            "sd: {} st: {} mps: {}/{} bt: {} inc: {}",
             self.sd,
             self.st,
             self.moves_per_session[MPS_PLAYER],
@@ -138,7 +139,7 @@ pub enum XBoardIn {
     New,
     Force,
     SetBoard(String),
-    UserMove(String),
+    UserMove(String, TimeControl),
     Ping(i8),
     Post,
     NoPost,
@@ -159,7 +160,7 @@ impl Display for XBoardIn {
             XBoardIn::New => write!(f, "new"),
             XBoardIn::Force => write!(f, "force"),
             XBoardIn::SetBoard(fen) => write!(f, "setboard {}", fen),
-            XBoardIn::UserMove(mv) => write!(f, "usermove {}", mv),
+            XBoardIn::UserMove(mv, tc) => write!(f, "usermove {} {}", mv, tc),
             XBoardIn::Ping(count) => write!(f, "ping {}", count),
             XBoardIn::Post => write!(f, "post"),
             XBoardIn::NoPost => write!(f, "nopost"),
@@ -424,7 +425,7 @@ impl XBoard {
                 }
                 "usermove" => {
                     let value = parts[VALUE].to_lowercase();
-                    CommIn::XBoard(XBoardIn::UserMove(value))
+                    CommIn::XBoard(XBoardIn::UserMove(value, TimeControl::new()))
                 }
                 "sd" => {
                     let value = parts[VALUE].parse::<u8>().unwrap_or(0);
@@ -493,7 +494,7 @@ impl XBoard {
         // If all characters are OK, then this is a plausible move.
         // Otherwise, it is an unknown command.
         if cmd.len() == char_ok {
-            CommIn::XBoard(XBoardIn::UserMove(cmd.to_string()))
+            CommIn::XBoard(XBoardIn::UserMove(cmd.to_string(), TimeControl::new()))
         } else {
             CommIn::Unknown(cmd.to_string())
         }

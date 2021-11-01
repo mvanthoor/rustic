@@ -103,7 +103,7 @@ impl Engine {
             // Accept an incoming usermove. Execute it on the board. Then
             // react to this usermove, according to the state we were in
             // when the move was received.
-            XBoardIn::UserMove(m) => {
+            XBoardIn::UserMove(m, _tc) => {
                 match self.state {
                     // When we are observing, we just execute the incoming
                     // move and send the game result (if any).
