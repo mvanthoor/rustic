@@ -115,6 +115,21 @@ impl TimeControl {
     }
 }
 
+impl Display for TimeControl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "TC: sd: {} st: {} mps: {}/{} bt: {} inc: {}",
+            self.sd,
+            self.st,
+            self.moves_per_session[MPS_PLAYER],
+            self.moves_per_session[MPS_ENGINE],
+            self.base_time,
+            self.increment
+        )
+    }
+}
+
 // This is a list of supported incoming XBoard commands.
 #[derive(PartialEq, Clone)]
 pub enum XBoardIn {
