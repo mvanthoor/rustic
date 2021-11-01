@@ -55,7 +55,7 @@ impl Engine {
             }
 
             XBoardIn::New => {
-                if self.is_analyzing() || self.is_analyzing() {
+                if self.is_analyzing() || self.is_thinking() {
                     self.search.send(SearchControl::Abandon);
                 }
 
