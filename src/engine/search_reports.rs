@@ -21,14 +21,22 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::Engine;
+use super::{defs::ErrFatal, Engine};
 use crate::{comm::CommOut, search::defs::SearchReport};
 
 impl Engine {
     pub fn search_reports(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
-                self.comm.send(CommOut::BestMove(*m));
+                // Execute the move on the internal board and send it. Also
+                // send the game result, if any (checkmate, stalemate...)
+                if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
+                    self.comm.send(CommOut::BestMove(*m));
+                    self.send_game_result();
+                } else {
+                    // This should never, ever happen.
+                    panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
+                }
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {

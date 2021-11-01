@@ -79,6 +79,7 @@ impl ErrFatal {
     pub const THREAD: &'static str = "Thread has failed.";
     pub const CHANNEL: &'static str = "Broken channel.";
     pub const NO_INFO_RX: &'static str = "No incoming Info channel.";
+    pub const GENERATED_ILLEGAL_MOVE: &'static str = "The engine generated an illegal move!";
 }
 
 pub struct ErrNormal;
