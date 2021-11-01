@@ -69,11 +69,17 @@ impl Engine {
             }
 
             XBoardIn::Force => {
-                if self.is_analyzing() || self.is_thinking() {
+                if self.is_thinking() {
                     self.search.send(SearchControl::Abandon);
+                    self.set_observing();
+                } else if self.is_waiting() {
+                    self.set_observing();
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_INVALID.to_string(),
+                        command.to_string(),
+                    ));
                 }
-
-                self.set_observing();
             }
 
             XBoardIn::SetBoard(fen) => {
