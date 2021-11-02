@@ -89,6 +89,19 @@ impl Engine {
                 }
             }
 
+            XBoardIn::Go(tc) => {
+                if self.is_observing() || self.is_waiting() {
+                    Engine::set_time_control(&mut sp, tc);
+                    self.search.send(SearchControl::Start(sp));
+                    self.set_thinking();
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_INVALID.to_string(),
+                        command.to_string(),
+                    ));
+                }
+            }
+
             // Set up the board according the incoming FEN-string.
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));

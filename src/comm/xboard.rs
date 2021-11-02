@@ -146,6 +146,7 @@ pub enum XBoardIn {
     ProtoVer(u8),
     New,
     Force,
+    Go(TimeControl),
     SetBoard(String),
     UserMove(String, TimeControl),
     Ping(i8),
@@ -167,6 +168,7 @@ impl Display for XBoardIn {
             XBoardIn::ProtoVer(version) => write!(f, "protover {}", version),
             XBoardIn::New => write!(f, "new"),
             XBoardIn::Force => write!(f, "force"),
+            XBoardIn::Go(tc) => write!(f, "go {}", tc),
             XBoardIn::SetBoard(fen) => write!(f, "setboard {}", fen),
             XBoardIn::UserMove(mv, tc) => write!(f, "usermove {} {}", mv, tc),
             XBoardIn::Ping(count) => write!(f, "ping {}", count),
@@ -346,7 +348,11 @@ impl XBoard {
                     // Replace usermove command with a version that also
                     // includes the current time control.
                     CommIn::XBoard(XBoardIn::UserMove(mv, _)) => {
-                        comm_received = CommIn::XBoard(XBoardIn::UserMove(mv, mtx_tc.clone()))
+                        comm_received = CommIn::XBoard(XBoardIn::UserMove(mv, mtx_tc.clone()));
+                    }
+                    // Add the time control to the Go command.
+                    CommIn::XBoard(XBoardIn::Go(_)) => {
+                        comm_received = CommIn::XBoard(XBoardIn::Go(mtx_tc.clone()));
                     }
                     _ => (),
                 }
@@ -385,6 +391,7 @@ impl XBoard {
             cmd if cmd == "xboard" => CommIn::XBoard(XBoardIn::XBoard),
             cmd if cmd == "new" => CommIn::XBoard(XBoardIn::New),
             cmd if cmd == "force" => CommIn::XBoard(XBoardIn::Force),
+            cmd if cmd == "go" => CommIn::XBoard(XBoardIn::Go(TimeControl::new())),
             cmd if cmd == "post" => CommIn::XBoard(XBoardIn::Post),
             cmd if cmd == "nopost" => CommIn::XBoard(XBoardIn::NoPost),
             cmd if cmd == "analyze" => CommIn::XBoard(XBoardIn::Analyze),
