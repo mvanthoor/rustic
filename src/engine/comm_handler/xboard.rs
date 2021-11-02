@@ -76,17 +76,17 @@ impl Engine {
             // Return to observation state. First abandon the search if the
             // engine is thinking.
             XBoardIn::Force => {
-                if self.is_thinking() {
-                    self.search.send(SearchControl::Abandon);
-                    self.set_observing();
-                } else if self.is_waiting() {
-                    self.set_observing();
-                } else {
-                    self.comm.send(CommOut::Error(
+                match self.state {
+                    EngineState::Thinking => {
+                        self.search.send(SearchControl::Abandon);
+                        self.set_observing();
+                    }
+                    EngineState::Waiting => self.set_observing(),
+                    _ => self.comm.send(CommOut::Error(
                         ErrNormal::COMMAND_INVALID.to_string(),
                         command.to_string(),
-                    ));
-                }
+                    )),
+                };
             }
 
             XBoardIn::Go(tc) => {
