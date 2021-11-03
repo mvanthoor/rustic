@@ -165,6 +165,26 @@ impl Engine {
                 }
             }
 
+            XBoardIn::Result(result, reason) => match self.state {
+                EngineState::Observing | EngineState::Waiting | EngineState::Thinking => {
+                    if self.is_thinking() {
+                        self.search.send(SearchControl::Abandon);
+                    }
+                    self.comm.send(CommOut::Message(format!(
+                        "{}: {} {{{}}}",
+                        Messages::RESULT_ACCEPTED.to_string(),
+                        result,
+                        reason
+                    )))
+                }
+                _ => {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_INVALID.to_string(),
+                        command.to_string(),
+                    ));
+                }
+            },
+
             // Send "Pong" to confirm that the engine is still active.
             XBoardIn::Ping(value) => self.comm.send(CommOut::XBoard(XBoardOut::Pong(*value))),
 

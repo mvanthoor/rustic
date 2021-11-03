@@ -96,6 +96,7 @@ pub struct Messages;
 impl Messages {
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
+    pub const RESULT_ACCEPTED: &'static str = "Result accepted";
 }
 
 #[derive(PartialEq, Copy, Clone)]

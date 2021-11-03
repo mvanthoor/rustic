@@ -150,6 +150,7 @@ pub enum XBoardIn {
     QuestionMark,
     SetBoard(String),
     UserMove(String, TimeControl),
+    Result(String, String),
     Ping(i8),
     Post,
     NoPost,
@@ -173,6 +174,7 @@ impl Display for XBoardIn {
             XBoardIn::QuestionMark => write!(f, "?"),
             XBoardIn::SetBoard(fen) => write!(f, "setboard {}", fen),
             XBoardIn::UserMove(mv, tc) => write!(f, "usermove {} {}", mv, tc),
+            XBoardIn::Result(result, reason) => write!(f, "result {} {{{}}}", result, reason),
             XBoardIn::Ping(count) => write!(f, "ping {}", count),
             XBoardIn::Post => write!(f, "post"),
             XBoardIn::NoPost => write!(f, "nopost"),
@@ -405,6 +407,7 @@ impl XBoard {
             cmd if cmd.starts_with("protover") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => XBoard::parse_setboard(&cmd),
             cmd if cmd.starts_with("usermove") => XBoard::parse_key_value_pair(&cmd),
+            cmd if cmd.starts_with("result") => XBoard::parse_result(&cmd),
             cmd if cmd.starts_with("memory") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("sd") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd.starts_with("st") && cmd != "state" => XBoard::parse_key_value_pair(&cmd),
@@ -468,6 +471,25 @@ impl XBoard {
         } else {
             CommIn::Unknown(cmd.to_string())
         }
+    }
+
+    fn parse_result(cmd: &str) -> CommIn {
+        const RESULT: usize = 1;
+        const REASON: usize = 2;
+        const VALID_RESULTS: [&str; 4] = ["1-0", "0-1", "1/2-1/2", "*"];
+
+        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let mut comm_in = CommIn::Unknown(cmd.to_string());
+
+        if parts.len() >= 3 {
+            let result = &parts[RESULT][..];
+            let reason = parts[REASON].replace("{", "").replace("}", "");
+            if VALID_RESULTS.contains(&result) {
+                comm_in = CommIn::XBoard(XBoardIn::Result(result.to_string(), reason));
+            };
+        };
+
+        comm_in
     }
 
     fn parse_setboard(cmd: &str) -> CommIn {
