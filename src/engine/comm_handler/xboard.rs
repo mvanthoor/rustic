@@ -171,8 +171,8 @@ impl Engine {
                         self.search.send(SearchControl::Abandon);
                     }
                     self.comm.send(CommOut::Message(format!(
-                        "{}: {} {{{}}}",
-                        Messages::RESULT_ACCEPTED.to_string(),
+                        "{}: result {}, reason {}",
+                        Messages::ACCEPTED.to_string(),
                         result,
                         reason
                     )))

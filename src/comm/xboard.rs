@@ -474,19 +474,33 @@ impl XBoard {
     }
 
     fn parse_result(cmd: &str) -> CommIn {
-        const RESULT: usize = 1;
-        const REASON: usize = 2;
         const VALID_RESULTS: [&str; 4] = ["1-0", "0-1", "1/2-1/2", "*"];
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let length = parts.len();
+        let space_and_brackets: &[_] = &[' ', '{', '}'];
+        let mut reason = String::from("");
+        let mut result = String::from("");
         let mut comm_in = CommIn::Unknown(cmd.to_string());
 
-        if parts.len() >= 3 {
-            let result = &parts[RESULT][..];
-            let reason = parts[REASON].replace("{", "").replace("}", "");
-            if VALID_RESULTS.contains(&result) {
-                comm_in = CommIn::XBoard(XBoardIn::Result(result.to_string(), reason));
+        if length >= 2 {
+            for (i, p) in parts.iter().enumerate() {
+                match i {
+                    0 => continue,
+                    1 if VALID_RESULTS.contains(&(&p[..])) => result = p.to_string(),
+                    _ if length > 2 => reason = format!("{} {}", reason, p),
+                    _ => (),
+                }
+            }
+
+            reason = reason.trim_matches(space_and_brackets).to_string();
+            if reason.is_empty() {
+                reason = String::from("(empty)");
             };
+
+            if !result.is_empty() {
+                comm_in = CommIn::XBoard(XBoardIn::Result(result, reason));
+            }
         };
 
         comm_in
