@@ -152,22 +152,22 @@ impl Engine {
                     // When we're waiting, we execute the incoming move and
                     // then we start thinking if the game is not over.
                     EngineState::Waiting => {
-                        if self.execute_move(m.clone()) {
-                            if self.send_game_result() == GameEndReason::NotEnded {
-                                Engine::set_time_control(&mut sp, tc);
-                                if tc.is_set() {
+                        if tc.is_set() {
+                            if self.execute_move(m.clone()) {
+                                if self.send_game_result() == GameEndReason::NotEnded {
+                                    Engine::set_time_control(&mut sp, tc);
                                     self.search.send(SearchControl::Start(sp));
                                     self.set_thinking();
-                                } else {
-                                    self.comm.send(CommOut::Error(
-                                        ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
-                                        command.to_string(),
-                                    ));
                                 }
+                            } else {
+                                let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                                self.comm.send(im);
                             }
                         } else {
-                            let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
-                            self.comm.send(im);
+                            self.comm.send(CommOut::Error(
+                                ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
+                                command.to_string(),
+                            ));
                         }
                     }
 
