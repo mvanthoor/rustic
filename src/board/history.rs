@@ -65,9 +65,13 @@ impl History {
     // Return the last game state and decremnt the counter. The game state is
     // not deleted from the array. If necessary, another game state will just
     // overwrite it.
-    pub fn pop(&mut self) -> GameState {
-        self.count -= 1;
-        self.list[self.count]
+    pub fn pop(&mut self) -> Option<GameState> {
+        if self.count > 0 {
+            self.count -= 1;
+            Some(self.list[self.count])
+        } else {
+            None
+        }
     }
 
     pub fn get_ref(&self, index: usize) -> &GameState {

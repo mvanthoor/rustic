@@ -177,7 +177,14 @@ impl Board {
     #[cfg_attr(debug_assertions, inline(never))]
     #[cfg_attr(not(debug_assertions), inline(always))]
     pub fn unmake(&mut self) {
-        self.game_state = self.history.pop();
+        // Set the previous game state from the game state history. If
+        // there is none (because we're at the starting position), we can
+        // immediately return without unmaking a move.
+        if let Some(gs) = self.history.pop() {
+            self.game_state = gs;
+        } else {
+            return;
+        }
 
         // Set "us" and "opponent"
         let us = self.us();
