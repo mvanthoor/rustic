@@ -122,6 +122,10 @@ impl TimeControl {
     pub fn move_time(&self) -> u128 {
         self.st
     }
+
+    pub fn is_set(&self) -> bool {
+        *self != TimeControl::new()
+    }
 }
 
 impl Display for TimeControl {
@@ -134,7 +138,7 @@ impl Display for TimeControl {
             self.moves_per_session[MPS_PLAYER],
             self.moves_per_session[MPS_ENGINE],
             self.base_time,
-            self.increment
+            self.increment,
         )
     }
 }

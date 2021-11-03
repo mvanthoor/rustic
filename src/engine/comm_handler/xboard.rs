@@ -92,8 +92,15 @@ impl Engine {
             XBoardIn::Go(tc) => {
                 if self.is_observing() || self.is_waiting() {
                     Engine::set_time_control(&mut sp, tc);
-                    self.search.send(SearchControl::Start(sp));
-                    self.set_thinking();
+                    if tc.is_set() {
+                        self.search.send(SearchControl::Start(sp));
+                        self.set_thinking();
+                    } else {
+                        self.comm.send(CommOut::Error(
+                            ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
+                            command.to_string(),
+                        ));
+                    }
                 } else {
                     self.comm.send(CommOut::Error(
                         ErrNormal::COMMAND_INVALID.to_string(),
@@ -148,8 +155,15 @@ impl Engine {
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
                                 Engine::set_time_control(&mut sp, tc);
-                                self.search.send(SearchControl::Start(sp));
-                                self.set_thinking();
+                                if tc.is_set() {
+                                    self.search.send(SearchControl::Start(sp));
+                                    self.set_thinking();
+                                } else {
+                                    self.comm.send(CommOut::Error(
+                                        ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
+                                        command.to_string(),
+                                    ));
+                                }
                             }
                         } else {
                             let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));

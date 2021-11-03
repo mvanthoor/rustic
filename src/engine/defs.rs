@@ -90,6 +90,7 @@ impl ErrNormal {
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
     pub const COMMAND_INVALID: &'static str = "Command invalid in current engine state";
     pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
+    pub const TIME_CONTROL_NOT_SET: &'static str = "Time control not set";
 }
 
 pub struct Messages;
