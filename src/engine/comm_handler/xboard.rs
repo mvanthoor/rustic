@@ -165,6 +165,27 @@ impl Engine {
                 }
             }
 
+            // Undo the last move.
+            XBoardIn::Undo => {
+                if self.is_thinking() {
+                    self.search.send(SearchControl::Abandon);
+                }
+
+                self.board.lock().expect(ErrFatal::LOCK).unmake();
+                self.is_waiting();
+            }
+
+            // Undo the last two moves (same side stays to move)
+            XBoardIn::Remove => {
+                if self.is_thinking() {
+                    self.search.send(SearchControl::Abandon);
+                }
+
+                self.board.lock().expect(ErrFatal::LOCK).unmake();
+                self.board.lock().expect(ErrFatal::LOCK).unmake();
+                self.set_waiting();
+            }
+
             XBoardIn::Result(result, reason) => match self.state {
                 EngineState::Observing | EngineState::Waiting | EngineState::Thinking => {
                     if self.is_thinking() {
