@@ -27,13 +27,11 @@ mod xboard;
 use crate::{
     comm::defs::{CommIn, CommOut},
     engine::{
-        defs::{ErrFatal, Messages},
+        defs::{ErrFatal, ErrNormal, Messages},
         Engine,
     },
     evaluation::Evaluation,
 };
-
-use super::defs::ErrNormal;
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
