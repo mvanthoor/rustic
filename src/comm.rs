@@ -22,5 +22,5 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 pub mod defs;
-mod protocol;
+mod protocols;
 mod shared;

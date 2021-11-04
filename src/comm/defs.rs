@@ -30,7 +30,7 @@ use crate::{
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
-pub use crate::comm::protocol::{
+pub use crate::comm::protocols::{
     uci::{Uci, UciIn, UciOut},
     xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
 };
