@@ -23,9 +23,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the UCI communication module.
 
-use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
+    comm::{
+        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+        shared::Shared,
+    },
     defs::{About, FEN_START_POSITION},
     engine::defs::{EngineOption, EngineSetOption, EngineState, ErrFatal, Information, UiElement},
     movegen::defs::Move,

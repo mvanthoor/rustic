@@ -21,6 +21,5 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-pub mod defs;
-mod protocol;
-mod shared;
+pub mod uci;
+pub mod xboard;

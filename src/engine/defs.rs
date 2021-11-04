@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use std::fmt::{Display, Formatter, Result};
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
-use crate::{comm::CommIn, search::defs::SearchReport};
+use crate::{comm::defs::CommIn, search::defs::SearchReport};
 
 // Lists all possible game results.
 #[derive(PartialEq, Clone, Copy)]

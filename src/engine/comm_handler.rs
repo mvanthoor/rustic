@@ -25,7 +25,7 @@ mod uci;
 mod xboard;
 
 use crate::{
-    comm::{CommIn, CommOut},
+    comm::defs::{CommIn, CommOut},
     engine::{
         defs::{ErrFatal, Messages},
         Engine,

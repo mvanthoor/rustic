@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOut, TimeControl, XBoardIn, XBoardOut},
+    comm::defs::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
         defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},

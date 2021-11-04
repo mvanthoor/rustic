@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{defs::ErrFatal, Engine};
-use crate::{comm::CommOut, search::defs::SearchReport};
+use crate::{comm::defs::CommOut, search::defs::SearchReport};
 
 impl Engine {
     pub fn search_reports(&mut self, search_report: &SearchReport) {

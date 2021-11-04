@@ -27,7 +27,7 @@ use super::{
 };
 use crate::{
     board::Board,
-    comm::CommOut,
+    comm::defs::CommOut,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::parse::PotentialMove,
     misc::{parse, result},

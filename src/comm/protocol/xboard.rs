@@ -23,9 +23,12 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // This file implements the XBoard communication protocol.
 
-use super::{shared::Shared, CommIn, CommInfo, CommOut, CommType, IComm};
 use crate::{
     board::Board,
+    comm::{
+        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+        shared::Shared,
+    },
     defs::{About, Sides},
     engine::defs::{EngineOption, EngineState, ErrFatal, GameEndReason, GameResult, Information},
     movegen::defs::Move,
@@ -99,7 +102,7 @@ impl Stat01 {
 pub struct TimeControl {
     sd: i8,
     st: u128,
-    moves_per_session: [u8; Sides::BOTH],
+    mps: [u8; Sides::BOTH],
     base_time: u128,
     increment: u128,
 }
@@ -109,7 +112,7 @@ impl TimeControl {
         Self {
             sd: 0,
             st: 0,
-            moves_per_session: [0, 0],
+            mps: [0, 0],
             base_time: 0,
             increment: 0,
         }
@@ -135,8 +138,8 @@ impl Display for TimeControl {
             "sd: {} st: {} mps: {}/{} bt: {} inc: {}",
             self.sd,
             self.st,
-            self.moves_per_session[MPS_PLAYER],
-            self.moves_per_session[MPS_ENGINE],
+            self.mps[MPS_PLAYER],
+            self.mps[MPS_ENGINE],
             self.base_time,
             self.increment,
         )
@@ -164,7 +167,7 @@ pub enum XBoardIn {
     Analyze,
     Dot,
     Exit,
-    Buffered(XBoardInBuf),
+    Buffered(XBoardInBuffered),
 }
 
 // Define how commands are printed in case they need to be, for example
@@ -198,24 +201,24 @@ impl Display for XBoardIn {
 // Some incoming commands are not sent to the engine thread directly. An
 // example are the commands regarding time control. These are buffered
 // within the XBoard module, to keep the engine unaware of XBoard
-// implementation details. An "XBoardInBuf::sd" commmand is sent to the
+// implementation details. An "XBoardInBuffered::sd" commmand is sent to the
 // engine, so it knows (and prints) that an incoming command was received
 // and buffered.
 #[derive(PartialEq, Clone)]
-pub enum XBoardInBuf {
+pub enum XBoardInBuffered {
     Sd(i8),
     St(u128),
     Level(u8, u128, u128),
 }
 
 // Same as normal incoming commands: define how they are displayed.
-impl Display for XBoardInBuf {
+impl Display for XBoardInBuffered {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            XBoardInBuf::Sd(depth) => write!(f, "sd {}", depth),
-            XBoardInBuf::St(time) => write!(f, "st {}", time),
-            XBoardInBuf::Level(moves_per_session, base_time, increment) => {
-                write!(f, "level {} {} {}", moves_per_session, base_time, increment)
+            XBoardInBuffered::Sd(depth) => write!(f, "sd {}", depth),
+            XBoardInBuffered::St(time) => write!(f, "st {}", time),
+            XBoardInBuffered::Level(mps, base_time, increment) => {
+                write!(f, "level {} {} {}", mps, base_time, increment)
             }
         }
     }
@@ -334,23 +337,23 @@ impl XBoard {
                 let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
                 match comm_received {
                     // Buffer maximum search depth as time control.
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(depth))) => {
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Sd(depth))) => {
                         mtx_tc.sd = depth;
                     }
                     // Buffer XBoard version of "movetime".
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(time))) => {
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
                         // Set "movetime" time control
                         mtx_tc.st = time;
 
                         // Disable "level" time controls.
-                        mtx_tc.moves_per_session = [0, 0];
+                        mtx_tc.mps = [0, 0];
                         mtx_tc.base_time = 0;
                         mtx_tc.increment = 0;
                     }
                     // Buffer the "level" command.
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc))) => {
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
-                        mtx_tc.moves_per_session = [mps, mps];
+                        mtx_tc.mps = [mps, mps];
                         mtx_tc.base_time = bt;
                         mtx_tc.increment = inc;
 
@@ -469,11 +472,11 @@ impl XBoard {
                 }
                 "sd" => {
                     let value = parts[VALUE].parse::<i8>().unwrap_or(0);
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Sd(value)))
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Sd(value)))
                 }
                 "st" => {
                     let value = parts[VALUE].parse::<u128>().unwrap_or(0);
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::St(value)))
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(value)))
                 }
 
                 _ => CommIn::Unknown(cmd.to_string()),
@@ -536,7 +539,7 @@ impl XBoard {
             let bt = parts[BASE_TIME].parse::<u128>().unwrap_or(0);
             let inc = parts[INCREMENT].parse::<u128>().unwrap_or(0);
 
-            CommIn::XBoard(XBoardIn::Buffered(XBoardInBuf::Level(mps, bt, inc)))
+            CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc)))
         } else {
             CommIn::Unknown(cmd.to_string())
         }

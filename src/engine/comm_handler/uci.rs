@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::{
-    comm::{CommOut, UciIn, UciOut},
+    comm::defs::{CommOut, UciIn, UciOut},
     defs::FEN_START_POSITION,
     engine::{
         defs::{EngineSetOption, ErrFatal, ErrNormal},
