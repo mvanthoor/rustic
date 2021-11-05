@@ -191,6 +191,24 @@ impl Engine {
                         }
                     }
 
+                    // We can also accept a usermove during analysis mode.
+                    EngineState::Analyzing => {
+                        self.search.send(SearchControl::Abandon);
+                        while self.info_rx() != Information::Search(SearchReport::Ready) {}
+
+                        if self.execute_move(m.clone()) {
+                            if self.send_game_result() == GameEndReason::NotEnded {
+                                sp.search_mode = SearchMode::Infinite;
+                                self.search.send(SearchControl::Start(sp));
+                            } else {
+                                self.set_observing();
+                            }
+                        } else {
+                            let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                            self.comm.send(im);
+                        }
+                    }
+
                     // Do not accept user moves in other engine states.
                     _ => self.comm.send(CommOut::Error(
                         ErrNormal::COMMAND_INVALID.to_string(),
