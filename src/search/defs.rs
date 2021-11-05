@@ -259,5 +259,6 @@ pub enum SearchReport {
     Finished(Move),                       // Search done. Contains the best move.
     SearchSummary(SearchSummary),         // Periodic intermediate results.
     SearchCurrentMove(SearchCurrentMove), // Move currently searched.
-    SearchStats(SearchStats),             // General search statistics
+    SearchStats(SearchStats),             // General search statistics.
+    Ready,                                // Send when search thread is ready.
 }

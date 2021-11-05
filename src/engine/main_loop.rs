@@ -64,7 +64,7 @@ impl Engine {
     }
 
     // This is the main engine thread Information receiver.
-    fn info_rx(&mut self) -> Information {
+    pub fn info_rx(&mut self) -> Information {
         match &self.info_rx {
             Some(i) => i.recv().expect(ErrFatal::CHANNEL),
             None => panic!("{}", ErrFatal::NO_INFO_RX),

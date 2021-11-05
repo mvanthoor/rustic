@@ -51,6 +51,8 @@ impl Engine {
             SearchReport::SearchStats(stats) => {
                 self.comm.send(CommOut::SearchStats(*stats));
             }
+
+            SearchReport::Ready => (),
         }
     }
 }

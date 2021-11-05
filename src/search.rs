@@ -86,6 +86,11 @@ impl Search {
 
             // As long as the search isn't quit, keep this thread alive.
             while !quit {
+                // Inform the engine that we are now ready to search.
+                t_report_tx
+                    .send(Information::Search(SearchReport::Ready))
+                    .expect(ErrFatal::CHANNEL);
+
                 // Wait for the next incoming command from the engine.
                 let cmd = control_rx.recv().expect(ErrFatal::CHANNEL);
 

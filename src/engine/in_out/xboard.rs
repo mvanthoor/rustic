@@ -25,10 +25,10 @@ use crate::{
     comm::defs::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Messages, Verbosity},
+        defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Information, Messages, Verbosity},
         Engine,
     },
-    search::defs::{SearchControl, SearchMode, SearchParams},
+    search::defs::{SearchControl, SearchMode, SearchParams, SearchReport},
 };
 
 impl Engine {
@@ -91,8 +91,11 @@ impl Engine {
 
             XBoardIn::Go(tc) => {
                 if self.is_observing() || self.is_waiting() {
-                    Engine::set_time_control(&mut sp, tc);
+                    // Pass time control to search parameters and start
+                    // thinking. If no time control is set, we display an
+                    // error.
                     if tc.is_set() {
+                        Engine::set_time_control(&mut sp, tc);
                         self.search.send(SearchControl::Start(sp));
                         self.set_thinking();
                     } else {
@@ -123,12 +126,28 @@ impl Engine {
 
             // Set up the board according the incoming FEN-string.
             XBoardIn::SetBoard(fen) => {
+                // If we were analyzing, we abandon the search, wait for
+                // the search to become ready again, and clear the TT.
+                if self.is_analyzing() {
+                    self.search.send(SearchControl::Abandon);
+                    while self.info_rx() != Information::Search(SearchReport::Ready) {}
+                    self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                }
+
+                // Set up the new board.
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
                     self.comm.send(CommOut::Error(
                         ErrNormal::INCORRECT_FEN.to_string(),
                         fen.to_string(),
                     ));
+                }
+
+                // Restart analysis on the new position. (If the FEN-setup
+                // failed, we restart on the old position.)
+                if self.is_analyzing() {
+                    sp.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(sp));
                 }
             }
 
@@ -150,7 +169,8 @@ impl Engine {
                     }
 
                     // When we're waiting, we execute the incoming move and
-                    // then we start thinking if the game is not over.
+                    // then we start thinking if the game is not over. We
+                    // only do this if we have a time control available.
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
@@ -200,25 +220,27 @@ impl Engine {
                 self.set_waiting();
             }
 
-            XBoardIn::Result(result, reason) => match self.state {
-                EngineState::Observing | EngineState::Waiting | EngineState::Thinking => {
-                    if self.is_thinking() {
-                        self.search.send(SearchControl::Abandon);
+            XBoardIn::Result(result, reason) => {
+                match self.state {
+                    EngineState::Observing | EngineState::Waiting | EngineState::Thinking => {
+                        if self.is_thinking() {
+                            self.search.send(SearchControl::Abandon);
+                        }
+                        self.comm.send(CommOut::Message(format!(
+                            "{}: result {}, reason {}",
+                            Messages::ACCEPTED.to_string(),
+                            result,
+                            reason
+                        )))
                     }
-                    self.comm.send(CommOut::Message(format!(
-                        "{}: result {}, reason {}",
-                        Messages::ACCEPTED.to_string(),
-                        result,
-                        reason
-                    )))
-                }
-                _ => {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
-                        command.to_string(),
-                    ));
-                }
-            },
+                    _ => {
+                        self.comm.send(CommOut::Error(
+                            ErrNormal::COMMAND_INVALID.to_string(),
+                            command.to_string(),
+                        ));
+                    }
+                };
+            }
 
             // Send "Pong" to confirm that the engine is still active.
             XBoardIn::Ping(value) => self.comm.send(CommOut::XBoard(XBoardOut::Pong(*value))),
@@ -232,17 +254,17 @@ impl Engine {
             // Set the transposition table size.
             XBoardIn::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
 
-            // Start analyze mode. First abandon the search if the engine
-            // is thinking.
+            // Start analyze mode.
             XBoardIn::Analyze => {
-                if !self.is_analyzing() {
-                    if self.is_thinking() {
-                        self.search.send(SearchControl::Abandon);
-                    }
-
+                if self.is_observing() || self.is_waiting() {
                     sp.search_mode = SearchMode::Infinite;
                     self.search.send(SearchControl::Start(sp));
                     self.set_analyzing();
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::COMMAND_INVALID.to_string(),
+                        command.to_string(),
+                    ));
                 }
             }
 
