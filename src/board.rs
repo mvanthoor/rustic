@@ -189,11 +189,11 @@ impl Board {
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
 
-        let material = material::count(&self);
+        let material = material::count(self);
         self.game_state.material[Sides::WHITE] = material.0;
         self.game_state.material[Sides::BLACK] = material.1;
 
-        let psqt = psqt::apply(&self);
+        let psqt = psqt::apply(self);
         self.game_state.psqt[Sides::WHITE] = psqt.0;
         self.game_state.psqt[Sides::BLACK] = psqt.1;
     }
