@@ -18,7 +18,7 @@
 - Fixed a variable having the wrong type. This caused the "extra" module
   failing to compile.
 
-NB: For normal chenss engine usage nothing has changed. You can just keep
+NB: For normal chess engine usage nothing has changed. You can just keep
 using the binaries for Alpha 3.0.0. A default compile does not include the
 "extra" module.
 
