@@ -16,8 +16,14 @@
 
 ## Rustic 4.0.0 (2021, TBA)
 
+This version has two main new features: Tapered and tuned evaluation, and
+support for the XBoard-protocol. The engine dropped the "Alpha" part from
+its name because now everything I consider to be the basics have been
+implemented.
+
 - New features:
   - Tapered and tuned evaluation.
+  - Support for XBoard-protocol version 2 <sup>(1)</sup>.
 - Improvements:
   - TT Clear function: properly clear TT, instead of recreating it.
   - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
@@ -25,26 +31,43 @@
   - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
   - Simplify time management (+30 Elo).
   - pick_move() speed improvement (+3 Elo).
-- Misc:
-  - Refactor: Switch alpha/beta from a strange mix of fail-hard and
-    fail-soft to fully fail-soft. No Elo improvement, but the code is
-    cleaner and more readable.
-  - Refactor: Better privacy and namespacing for several modules.
-  - Cleanup: Made "Entry" the TT index, containing "Buckets" instead of
-    the other way around, to be more in line with other engines.
-  - Cleanup: Renamed some variables here and there for consistency.
-  - Update "rand" crate to 0.8.4.
-  - Update "rand_chacha" crate to 0.3.1.
-  - Update "if_chain" crate to 1.0.2.
+- Refactor:
+  - Restructured Comm to be in line with the rest of the modules.
+  - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
+    fully fail-soft. No Elo improvement, but the code is cleaner and more
+    readable.
+  - Better privacy and namespacing for several modules.
+  - Made "Entry" the TT index, containing "Buckets" instead of the other
+    way around, to be more in line with other engines.
+  - Renamed some variables here and there for consistency.
+- Update:
+  - "rand" crate to 0.8.4.
+  - "rand_chacha" crate to 0.3.1.
+  - "if_chain" crate to 1.0.2.
+
+> <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
+> the UCI-protocol will remain the default. It is recommended to use UCI
+> when testing the engine for rating lists. The XBoard-protocol was
+> implemented for completeness, didactic purposes and as an example for
+> others who may wish to build a multi-protocol engine.
+> 
+> If you wish to run Rustic using the XBoard-protocol, you can do so by
+> indicating this by appending "**-c xboard**" (without quotes) to the engine's
+> startup command. (How this is done depends on the user interface you are
+> using.) For example:
+> 
+> ```
+> ./rustic-4.0.0-bmi2 -c xboard
+> ```
 
 ## Rustic Alpha 3.0.1 (2021, November 6)
 
 - Fixed a variable having the wrong type. This caused the "extra" module
   failing to compile.
 
-NB: For normal chess engine usage nothing has changed. You can just keep
-using the binaries for Alpha 3.0.0. A default compile does not include the
-"extra" module.
+> **Notice:** For normal chess engine usage nothing has changed. You can just keep
+> using the binaries for Alpha 3.0.0. A default compile does not include the
+> "extra" module.
 
 ## Rustic Alpha 3.0.0 (2021, June 18)
 
