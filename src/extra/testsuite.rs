@@ -91,7 +91,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
                 .map(|s| s.to_string())
                 .collect();
 
-            let depth = (depth_ln[0][1..]).parse::<u8>().unwrap_or(0);
+            let depth = (depth_ln[0][1..]).parse::<u8>().unwrap_or(0) as i8;
             let expected_ln = depth_ln[1].parse::<u64>().unwrap_or(0);
 
             // Abort if depth or expected leaf node parsing fails.

@@ -5,6 +5,7 @@
 
 - [Changelog](#changelog)
   - [Rustic 4.0.0 (2021, TBA)](#rustic-400-2021-tba)
+  - [Rustic Alpha 3.0.1 (2021, November 6)](#rustic-alpha-301-2021-november-6)
   - [Rustic Alpha 3.0.0 (2021, June 18)](#rustic-alpha-300-2021-june-18)
   - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
   - [Rustic Alpha 1.1 (2021, March 15)](#rustic-alpha-11-2021-march-15)
@@ -35,6 +36,15 @@
   - Update "rand" crate to 0.8.4.
   - Update "rand_chacha" crate to 0.3.1.
   - Update "if_chain" crate to 1.0.2.
+
+## Rustic Alpha 3.0.1 (2021, November 6)
+
+- Fixed a variable having the wrong type. This caused the "extra" module
+  failing to compile.
+
+NB: For normal chess engine usage nothing has changed. You can just keep
+using the binaries for Alpha 3.0.0. A default compile does not include the
+"extra" module.
 
 ## Rustic Alpha 3.0.0 (2021, June 18)
 
