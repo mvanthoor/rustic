@@ -100,9 +100,9 @@ impl Stat01 {
 // informatin as sent by the GUI at the beginning of the game.
 #[derive(PartialEq, Clone)]
 pub struct TimeControl {
-    sd: i8,
-    st: u128,
-    mps: [u8; Sides::BOTH],
+    move_depth: i8,
+    move_time: u128,
+    moves_to_go: [u8; Sides::BOTH],
     base_time: u128,
     increment: u128,
 }
@@ -110,20 +110,20 @@ pub struct TimeControl {
 impl TimeControl {
     fn new() -> Self {
         Self {
-            sd: 0,
-            st: 0,
-            mps: [0, 0],
+            move_depth: 0,
+            move_time: 0,
+            moves_to_go: [0, 0],
             base_time: 0,
             increment: 0,
         }
     }
 
     pub fn depth(&self) -> i8 {
-        self.sd
+        self.move_depth
     }
 
     pub fn move_time(&self) -> u128 {
-        self.st
+        self.move_time
     }
 
     pub fn is_set(&self) -> bool {
@@ -136,10 +136,10 @@ impl Display for TimeControl {
         write!(
             f,
             "sd: {} st: {} mps: {}/{} bt: {} inc: {}",
-            self.sd,
-            self.st,
-            self.mps[MPS_PLAYER],
-            self.mps[MPS_ENGINE],
+            self.move_depth,
+            self.move_time,
+            self.moves_to_go[MPS_PLAYER],
+            self.moves_to_go[MPS_ENGINE],
             self.base_time,
             self.increment,
         )
@@ -338,27 +338,27 @@ impl XBoard {
                 match comm_received {
                     // Buffer maximum search depth as time control.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Sd(depth))) => {
-                        mtx_tc.sd = depth;
+                        mtx_tc.move_depth = depth;
                     }
                     // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
                         // Set "movetime" time control
-                        mtx_tc.st = time;
+                        mtx_tc.move_time = time;
 
                         // Disable "level" time controls.
-                        mtx_tc.mps = [0, 0];
+                        mtx_tc.moves_to_go = [0, 0];
                         mtx_tc.base_time = 0;
                         mtx_tc.increment = 0;
                     }
                     // Buffer the "level" command.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
-                        mtx_tc.mps = [mps, mps];
+                        mtx_tc.moves_to_go = [mps, mps];
                         mtx_tc.base_time = bt;
                         mtx_tc.increment = inc;
 
                         // Disable "movetime" time control.
-                        mtx_tc.st = 0;
+                        mtx_tc.move_time = 0;
                     }
                     // Replace usermove command with a version that also
                     // includes the current time control.
