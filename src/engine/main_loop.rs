@@ -54,7 +54,7 @@ impl Engine {
 
             match information {
                 Information::Comm(received) => self.comm_handler(received),
-                Information::Search(report) => self.search_reports(report),
+                Information::Search(report) => self.search_handler(report),
             }
         }
 

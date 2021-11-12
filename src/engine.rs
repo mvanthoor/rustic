@@ -22,10 +22,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 mod about;
+mod comm_handler;
 pub mod defs;
-mod in_out;
 mod main_loop;
-mod search_reports;
+mod search_handler;
 mod transposition;
 mod utils;
 

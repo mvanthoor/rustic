@@ -25,7 +25,7 @@ use super::{defs::ErrFatal, Engine};
 use crate::{comm::defs::CommOut, search::defs::SearchReport};
 
 impl Engine {
-    pub fn search_reports(&mut self, search_report: &SearchReport) {
+    pub fn search_handler(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
                 // Execute the move on the internal board and send it. Also
