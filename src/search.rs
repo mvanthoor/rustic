@@ -165,7 +165,7 @@ impl Search {
 
     // After sending the quit command, the engine calls this function to
     // wait for the search to shut down.
-    pub fn wait_for_shutdown(&mut self) {
+    pub fn shutdown(&mut self) {
         if let Some(h) = self.handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }

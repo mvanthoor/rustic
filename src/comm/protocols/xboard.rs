@@ -287,8 +287,8 @@ impl IComm for XBoard {
     }
 
     // After the engine sends 'quit' to the control thread, it will call
-    // wait_for_shutdown() and then wait here until shutdown is completed.
-    fn wait_for_shutdown(&mut self) {
+    // shutdown() and then wait here until shutdown is completed.
+    fn shutdown(&mut self) {
         if let Some(h) = self.input_handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }

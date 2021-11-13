@@ -59,8 +59,8 @@ impl Engine {
         }
 
         // Main loop has ended.
-        self.comm.wait_for_shutdown();
-        self.search.wait_for_shutdown();
+        self.comm.shutdown();
+        self.search.shutdown();
     }
 
     // This is the main engine thread Information receiver.

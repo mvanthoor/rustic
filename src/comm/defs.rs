@@ -80,7 +80,7 @@ pub trait IComm {
         options: Arc<Vec<EngineOption>>,
     );
     fn send(&self, msg: CommOut);
-    fn wait_for_shutdown(&mut self);
+    fn shutdown(&mut self);
     fn info(&self) -> &CommInfo;
 }
 
