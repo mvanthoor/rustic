@@ -632,7 +632,7 @@ impl XBoard {
             // thread will buffer the received stats in this struct,
             // instead of outputting them directly. This way the latest
             // stats are ready to send as soon as the GUI asks for them.
-            let mut stat01_buf = Stat01::new();
+            let mut buf_stat01 = Stat01::new();
 
             // Keep running as long as Quit is not received.
             while !quit {
@@ -643,7 +643,7 @@ impl XBoard {
                     // Specific XBoard outputs
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
                     CommOut::XBoard(XBoardOut::Features) => XBoard::features(),
-                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&stat01_buf),
+                    CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&buf_stat01),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
 
@@ -651,11 +651,11 @@ impl XBoard {
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::Result(score, reason) => XBoard::result(score, reason),
                     CommOut::SearchSummary(summary) => {
-                        XBoard::search_summary(&mut stat01_buf, &summary)
+                        XBoard::search_summary(&mut buf_stat01, &summary)
                     }
-                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut stat01_buf, &stats),
+                    CommOut::SearchStats(stats) => XBoard::search_stats(&mut buf_stat01, &stats),
                     CommOut::SearchCurrMove(scm) => {
-                        XBoard::search_current_move(&mut stat01_buf, &scm)
+                        XBoard::search_current_move(&mut buf_stat01, &scm)
                     }
                     CommOut::Message(msg) => XBoard::message(&msg),
                     CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
