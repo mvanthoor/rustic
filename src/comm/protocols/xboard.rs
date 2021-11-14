@@ -342,8 +342,8 @@ impl XBoard {
                     }
                     // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
-                        // Set "movetime" time control
-                        mtx_tc.move_time = time;
+                        // Set "movetime" time control in milliseconds.
+                        mtx_tc.move_time = time * 1000;
 
                         // Disable "level" time controls.
                         mtx_tc.moves_to_go = [0, 0];
