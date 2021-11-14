@@ -60,9 +60,8 @@ pub enum UciIn {
 
 #[derive(PartialEq)]
 pub enum UciOut {
-    Identify,           // Transmit Uci of the engine.
-    Ready,              // Transmit that the engine is ready.
-    InfoString(String), // Transmit general information.
+    Identify, // Transmit Uci of the engine.
+    Ready,    // Transmit that the engine is ready.
 }
 
 // This struct is used to instantiate the Comm Console module.
@@ -379,15 +378,16 @@ impl Uci {
                         Uci::uciok();
                     }
                     CommOut::Uci(UciOut::Ready) => Uci::readyok(),
-                    CommOut::Uci(UciOut::InfoString(msg)) => Uci::info_string(&msg),
+
                     CommOut::Quit => quit = true, // terminates the output thread.
+                    CommOut::Message(msg) => Uci::message(&msg),
                     CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOut::SearchStats(stats) => Uci::search_stats(&stats),
                     CommOut::BestMove(bm) => Uci::best_move(&bm),
                     CommOut::Error(err_type, cmd) => Uci::error(&err_type, &cmd),
 
-                    // Custom prints for use in the console.
+                    // Custom commands
                     CommOut::PrintBoard => Shared::print_board(&t_board),
                     CommOut::PrintHistory => Shared::print_history(&t_board),
                     CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
@@ -526,12 +526,12 @@ impl Uci {
         );
     }
 
-    fn info_string(msg: &str) {
-        println!("info string {}", msg);
-    }
-
     fn best_move(m: &Move) {
         println!("bestmove {}", m.as_string());
+    }
+
+    fn message(msg: &str) {
+        println!("info string {}", msg);
     }
 
     fn error(err_type: &str, cmd: &str) {

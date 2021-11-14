@@ -58,7 +58,7 @@ impl Engine {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
                             let msg = String::from(ErrNormal::NOT_INT);
-                            self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
+                            self.comm.send(CommOut::Message(msg));
                         }
                     }
 
@@ -78,7 +78,7 @@ impl Engine {
                         let ok = self.execute_move(m.clone());
                         if !ok {
                             let msg = format!("{}: {}", m, ErrNormal::NOT_LEGAL);
-                            self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
+                            self.comm.send(CommOut::Message(msg));
                             break;
                         }
                     }
@@ -86,7 +86,7 @@ impl Engine {
 
                 if fen_result.is_err() {
                     let msg = ErrNormal::FEN_FAILED.to_string();
-                    self.comm.send(CommOut::Uci(UciOut::InfoString(msg)));
+                    self.comm.send(CommOut::Message(msg));
                 }
             }
 
