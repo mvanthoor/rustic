@@ -32,7 +32,7 @@ impl Engine {
                 self.set_waiting();
 
                 // If we are using a protocol that expects the engine to
-                // maintian game state at all times, we execute the move
+                // maintain game state at all times, we execute the move
                 // and send the game result.
                 if self.comm.info().stateful() {
                     if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
