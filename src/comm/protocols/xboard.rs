@@ -534,6 +534,10 @@ impl XBoard {
         const MOVES_PER_SESSION: usize = 1;
         const BASE_TIME: usize = 2;
         const INCREMENT: usize = 3;
+        const MINUTES: usize = 0;
+        const SECONDS: usize = 1;
+        const COLON: &str = ":";
+        const PERIOD: &str = ".";
 
         let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
 
@@ -541,9 +545,31 @@ impl XBoard {
         // moves_per_session base_time increment". Anything after
         // "increment" is ignored.
         if parts.len() >= 4 {
+            // Set moves per session.
             let mps = parts[MOVES_PER_SESSION].parse::<u8>().unwrap_or(0);
-            let bt = parts[BASE_TIME].parse::<u128>().unwrap_or(0);
-            let inc = parts[INCREMENT].parse::<u128>().unwrap_or(0);
+
+            // Parse base time into milliseconds.
+            let bt = if parts[BASE_TIME].contains(COLON) {
+                // Split into minutes and seconds
+                let time: Vec<String> = parts[BASE_TIME]
+                    .split(COLON)
+                    .map(|s| s.to_string())
+                    .collect();
+                let minutes = time[MINUTES].parse::<u128>().unwrap_or(0);
+                let seconds = time[SECONDS].parse::<u128>().unwrap_or(0);
+                ((minutes * 60) + seconds) * 1000
+            } else {
+                let minutes = parts[BASE_TIME].parse::<u128>().unwrap_or(0);
+                minutes * 60 * 1000
+            };
+
+            // Return increment in milliseconds.
+            let inc = if parts[INCREMENT].contains(PERIOD) {
+                let fraction_of_second = parts[INCREMENT].parse::<f64>().unwrap_or(0.0);
+                (fraction_of_second * 1000_f64).round() as u128
+            } else {
+                parts[INCREMENT].parse::<u128>().unwrap_or(0) * 1000
+            };
 
             CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc)))
         } else {
