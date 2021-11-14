@@ -51,6 +51,11 @@ impl Engine {
                 self.comm.send(CommOut::PrintEval(eval, phase));
             }
             CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
+            CommIn::ClearTt => {
+                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.comm
+                    .send(CommOut::Message(Messages::CLEARED_TT.to_string()));
+            }
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
             CommIn::Ignore(cmd) => {
                 self.comm.send(CommOut::Message(format!(

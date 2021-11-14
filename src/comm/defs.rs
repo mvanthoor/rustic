@@ -98,6 +98,7 @@ pub enum CommIn {
     History,
     Eval,
     State,
+    ClearTt,
     Help,
 
     // Ignore an incoming command on purpose

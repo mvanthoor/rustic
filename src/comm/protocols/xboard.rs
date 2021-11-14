@@ -431,6 +431,7 @@ impl XBoard {
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
             cmd if cmd == "state" => CommIn::State,
+            cmd if cmd == "cleartt" => CommIn::ClearTt,
             cmd if cmd == "help" => CommIn::Help,
 
             // Ignore these commands. May GUI's send them, but the  engine

@@ -192,6 +192,7 @@ impl Uci {
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
             cmd if cmd == "state" => CommIn::State,
+            cmd if cmd == "cleartt" => CommIn::ClearTt,
             cmd if cmd == "help" => CommIn::Help,
 
             // Everything else is ignored.

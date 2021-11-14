@@ -97,6 +97,7 @@ pub struct Messages;
 impl Messages {
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
+    pub const CLEARED_TT: &'static str = "Cleared the transposition table";
     pub const ACCEPTED: &'static str = "Accepted";
 }
 
