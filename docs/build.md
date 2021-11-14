@@ -240,7 +240,7 @@ needs the Microsoft Linker that comes with these tools. (Warning: the C++
 build tools have a massive installation size.)
 
 It is probably also possible to build Rustic on WSL2 (Windows Subsystem for
-Linux 2) and on Cygwin, by installing the respecitve versions of Rust and
+Linux 2) and on Cygwin, by installing the respective versions of Rust and
 GNU tools there before either running "make" or "cargo build --release".
 
 If built on Cygwin, the Rustic executable will depend on Cygwin1.dll. As

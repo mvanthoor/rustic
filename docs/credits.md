@@ -11,7 +11,7 @@ dedications to their spouses/children/families in their books.
   around the house that without her, I wouldn't have even had the time to
   consider a project like this. In addition, she also helped in the
   development of the engine by listening to me blabbering about it, and
-  then saying thigs like: "Maybe I'm asking a stupid question,
+  then saying things like: "Maybe I'm asking a stupid question,
   but...",which helped me to avoid some stupid mistake more than once.
 
 Many people on the [Talkchess.com](http://talkchess.com/forum3/index.php)
