@@ -26,7 +26,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::Board,
     comm::{
-        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+        defs::{CommIn, CommInfo, CommOut, CommType, FancyAbout, IComm, Stateful},
         shared::Shared,
     },
     defs::{About, FEN_START_POSITION},
@@ -80,7 +80,12 @@ impl Uci {
             receiving_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::UCI, true, EngineState::Waiting),
+            info: CommInfo::new(
+                CommType::UCI,
+                FancyAbout::Yes,
+                Stateful::No,
+                EngineState::Waiting,
+            ),
         }
     }
 }

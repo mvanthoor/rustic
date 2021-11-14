@@ -43,17 +43,34 @@ impl CommType {
     pub const UCI: &'static str = "uci";
 }
 
+pub enum FancyAbout {
+    Yes,
+    No,
+}
+
+pub enum Stateful {
+    Yes,
+    No,
+}
+
 pub struct CommInfo {
     protocol_name: &'static str,
-    fancy_about: bool,
+    fancy_about: FancyAbout,
+    stateful: Stateful,
     entry_state: EngineState,
 }
 
 impl CommInfo {
-    pub fn new(protocol_name: &'static str, fancy_about: bool, entry_state: EngineState) -> Self {
+    pub fn new(
+        protocol_name: &'static str,
+        fancy_about: FancyAbout,
+        stateful: Stateful,
+        entry_state: EngineState,
+    ) -> Self {
         Self {
             protocol_name,
             fancy_about,
+            stateful,
             entry_state,
         }
     }
@@ -63,7 +80,17 @@ impl CommInfo {
     }
 
     pub fn fancy_about(&self) -> bool {
-        self.fancy_about
+        match self.fancy_about {
+            FancyAbout::Yes => true,
+            FancyAbout::No => false,
+        }
+    }
+
+    pub fn stateful(&self) -> bool {
+        match self.stateful {
+            Stateful::Yes => true,
+            Stateful::No => false,
+        }
     }
 
     pub fn entry_state(&self) -> EngineState {
