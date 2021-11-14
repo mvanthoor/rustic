@@ -243,7 +243,6 @@ pub struct XBoard {
     input_handle: Option<JoinHandle<()>>,
     output_handle: Option<JoinHandle<()>>,
     output_tx: Option<Sender<CommOut>>,
-    time_control: Arc<Mutex<TimeControl>>,
     info: CommInfo,
 }
 
@@ -261,7 +260,6 @@ impl XBoard {
                 Stateful::Yes,
                 EngineState::Observing,
             ),
-            time_control: Arc::new(Mutex::new(TimeControl::new())),
         }
     }
 }
@@ -316,11 +314,13 @@ impl XBoard {
     // The receiving thread receives incoming commands from the console or
     // GUI, which is turns into a "CommIn" object. It sends this
     // object to the engine thread so the engine can decide what to do.
-    fn input_thread(&mut self, receiving_tx: Sender<Information>) {
-        // Create thread-local variables
-        let mut t_incoming_data = String::from("");
-        let t_time_control = Arc::clone(&self.time_control);
-        let t_receiving_tx = receiving_tx;
+    fn input_thread(&mut self, transmitter: Sender<Information>) {
+        let mut incoming_data = String::from("");
+
+        // Incoming time controls are buffered so they can be sent on each
+        // new engine turn, just as in the UCI protocol. This way the
+        // engine does not have to keep its own time controls.
+        let mut buf_tc = TimeControl::new();
 
         // Actual thread creation.
         let input_handle = thread::spawn(move || {
@@ -330,70 +330,63 @@ impl XBoard {
             while !quit {
                 // Get data from stdin.
                 io::stdin()
-                    .read_line(&mut t_incoming_data)
+                    .read_line(&mut incoming_data)
                     .expect(ErrFatal::READ_IO);
 
                 // Create the CommIn object.
-                let mut comm_received = XBoard::create_comm_input(&t_incoming_data);
+                let mut comm_in = XBoard::create_comm_input(&incoming_data);
 
-                // Some incoming commands are buffered in in the XBoard
-                // module, or adjusted before being sent to the engine.
-                // This is done here.
-                let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
-
-                match comm_received {
+                match comm_in {
                     // Buffer maximum search depth as time control.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Sd(depth))) => {
-                        mtx_tc.move_depth = depth;
+                        buf_tc.move_depth = depth;
                     }
 
                     // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
                         // Set "movetime" time control in milliseconds.
-                        mtx_tc.move_time = time;
+                        buf_tc.move_time = time;
 
                         // Disable "level" time controls.
-                        mtx_tc.moves_to_go = [0, 0];
-                        mtx_tc.base_time = 0;
-                        mtx_tc.increment = 0;
+                        buf_tc.moves_to_go = [0, 0];
+                        buf_tc.base_time = 0;
+                        buf_tc.increment = 0;
                     }
 
                     // Buffer the "level" command.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
-                        mtx_tc.moves_to_go = [mps, mps];
-                        mtx_tc.base_time = bt;
-                        mtx_tc.increment = inc;
+                        buf_tc.moves_to_go = [mps, mps];
+                        buf_tc.base_time = bt;
+                        buf_tc.increment = inc;
 
                         // Disable "movetime" time control.
-                        mtx_tc.move_time = 0;
+                        buf_tc.move_time = 0;
                     }
 
-                    // Replace usermove command with a version that also
-                    // includes the current time control.
+                    // Add the time control to the usermove. This way the
+                    // engine has current TC data when its turn comes up
+                    // after executing the usermove.
                     CommIn::XBoard(XBoardIn::UserMove(mv, _)) => {
-                        comm_received = CommIn::XBoard(XBoardIn::UserMove(mv, mtx_tc.clone()));
+                        comm_in = CommIn::XBoard(XBoardIn::UserMove(mv, buf_tc.clone()));
                     }
 
                     // Add the time control to the Go command.
                     CommIn::XBoard(XBoardIn::Go(_)) => {
-                        comm_received = CommIn::XBoard(XBoardIn::Go(mtx_tc.clone()));
+                        comm_in = CommIn::XBoard(XBoardIn::Go(buf_tc.clone()));
                     }
                     _ => (),
                 }
 
-                // Drop the lock on the time control struct.
-                std::mem::drop(mtx_tc);
-
-                t_receiving_tx
-                    .send(Information::Comm(comm_received.clone()))
+                transmitter
+                    .send(Information::Comm(comm_in.clone()))
                     .expect(ErrFatal::HANDLE);
 
                 // Terminate the receiving thread if "Quit" was detected.
-                quit = comm_received == CommIn::Quit;
+                quit = comm_in == CommIn::Quit;
 
                 // Clear for next input
-                t_incoming_data = String::from("");
+                incoming_data = String::from("");
             }
         });
 
