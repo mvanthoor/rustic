@@ -327,7 +327,7 @@ impl Engine {
 
     fn set_time_control(sp: &mut SearchParams, tc: &TimeControl) {
         // Set search mode "Depth"
-        if tc.depth() > 0 || tc.move_time() == 0 {
+        if tc.depth() > 0 && tc.move_time() == 0 {
             sp.search_mode = SearchMode::Depth;
             sp.depth = tc.depth();
         }
