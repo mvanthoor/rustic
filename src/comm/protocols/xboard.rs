@@ -102,7 +102,7 @@ impl Stat01 {
 pub struct TimeControl {
     move_depth: i8,
     move_time: u128,
-    moves_to_go: [u8; Sides::BOTH],
+    moves_per_session: [u8; Sides::BOTH],
     base_time: u128,
     increment: u128,
 }
@@ -112,7 +112,7 @@ impl TimeControl {
         Self {
             move_depth: 0,
             move_time: 0,
-            moves_to_go: [0, 0],
+            moves_per_session: [0, 0],
             base_time: 0,
             increment: 0,
         }
@@ -138,8 +138,8 @@ impl Display for TimeControl {
             "sd: {} st: {} mps: {}/{} bt: {} inc: {}",
             self.move_depth,
             self.move_time,
-            self.moves_to_go[MPS_PLAYER],
-            self.moves_to_go[MPS_ENGINE],
+            self.moves_per_session[MPS_PLAYER],
+            self.moves_per_session[MPS_ENGINE],
             self.base_time,
             self.increment,
         )
@@ -217,8 +217,8 @@ impl Display for XBoardInBuffered {
         match self {
             XBoardInBuffered::Sd(depth) => write!(f, "sd {}", depth),
             XBoardInBuffered::St(time) => write!(f, "st {}", time),
-            XBoardInBuffered::Level(mps, base_time, increment) => {
-                write!(f, "level {} {} {}", mps, base_time, increment)
+            XBoardInBuffered::Level(moves_per_session, base_time, increment) => {
+                write!(f, "level {} {} {}", moves_per_session, base_time, increment)
             }
         }
     }
@@ -348,7 +348,7 @@ impl XBoard {
                         buf_tc.move_time = time;
 
                         // Disable "level" time controls.
-                        buf_tc.moves_to_go = [0, 0];
+                        buf_tc.moves_per_session = [0, 0];
                         buf_tc.base_time = 0;
                         buf_tc.increment = 0;
                     }
@@ -356,7 +356,7 @@ impl XBoard {
                     // Buffer the "level" command.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
-                        buf_tc.moves_to_go = [mps, mps];
+                        buf_tc.moves_per_session = [mps, mps];
                         buf_tc.base_time = bt;
                         buf_tc.increment = inc;
 
