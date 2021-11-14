@@ -340,11 +340,13 @@ impl XBoard {
                 // module, or adjusted before being sent to the engine.
                 // This is done here.
                 let mut mtx_tc = t_time_control.lock().expect(ErrFatal::LOCK);
+
                 match comm_received {
                     // Buffer maximum search depth as time control.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Sd(depth))) => {
                         mtx_tc.move_depth = depth;
                     }
+
                     // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
                         // Set "movetime" time control in milliseconds.
@@ -355,6 +357,7 @@ impl XBoard {
                         mtx_tc.base_time = 0;
                         mtx_tc.increment = 0;
                     }
+
                     // Buffer the "level" command.
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::Level(mps, bt, inc))) => {
                         // Set "level" time controls.
@@ -365,17 +368,21 @@ impl XBoard {
                         // Disable "movetime" time control.
                         mtx_tc.move_time = 0;
                     }
+
                     // Replace usermove command with a version that also
                     // includes the current time control.
                     CommIn::XBoard(XBoardIn::UserMove(mv, _)) => {
                         comm_received = CommIn::XBoard(XBoardIn::UserMove(mv, mtx_tc.clone()));
                     }
+
                     // Add the time control to the Go command.
                     CommIn::XBoard(XBoardIn::Go(_)) => {
                         comm_received = CommIn::XBoard(XBoardIn::Go(mtx_tc.clone()));
                     }
                     _ => (),
                 }
+
+                // Drop the lock on the time control struct.
                 std::mem::drop(mtx_tc);
 
                 t_receiving_tx
