@@ -121,7 +121,7 @@ impl Search {
         Search::score_moves(&mut move_list, tt_move, refs);
 
         // After SEND_STATS nodes have been searched, check if the
-        // MIN_TIME_STATS has been exceeded; if so, sne dthe current
+        // MIN_TIME_STATS has been exceeded; if so, send the current
         // statistics to the GUI.
         if verbosity == Verbosity::Full && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);

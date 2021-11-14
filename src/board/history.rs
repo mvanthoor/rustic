@@ -62,7 +62,7 @@ impl History {
         self.count += 1;
     }
 
-    // Return the last game state and decremnt the counter. The game state is
+    // Return the last game state and decrement the counter. The game state is
     // not deleted from the array. If necessary, another game state will just
     // overwrite it.
     pub fn pop(&mut self) -> Option<GameState> {

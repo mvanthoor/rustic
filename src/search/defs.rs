@@ -126,7 +126,7 @@ pub struct SearchInfo {
     pub depth: i8,                   // Depth currently being searched
     pub seldepth: i8,                // Maximum selective depth reached
     pub nodes: usize,                // Nodes searched
-    pub ply: i8,                     // Number of plys from the root
+    pub ply: i8,                     // Number of plies from the root
     pub killer_moves: KillerMoves,   // Killer moves (array; see "type" above)
     pub last_stats_sent: u128,       // When last stats update was sent
     pub last_curr_move_sent: u128,   // When last current move was sent
@@ -180,7 +180,7 @@ pub struct SearchSummary {
     pub mate: u8,       // mate in X moves
     pub nodes: usize,   // nodes searched
     pub nps: usize,     // nodes per second
-    pub hash_full: u16, // TT use in permille
+    pub hash_full: u16, // TT use in per mille
     pub pv: Vec<Move>,  // Principal Variation
 }
 
@@ -222,7 +222,7 @@ pub struct SearchStats {
     pub time: u128,     // Time spent searching
     pub nodes: usize,   // Number of nodes searched
     pub nps: usize,     // Speed in nodes per second
-    pub hash_full: u16, // TT full in permille
+    pub hash_full: u16, // TT full in per mille
 }
 
 impl SearchStats {

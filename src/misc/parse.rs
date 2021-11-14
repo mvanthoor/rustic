@@ -35,10 +35,10 @@ pub fn algebraic_move_to_number(m: &str) -> ParseMoveResult {
     // Assume parsing the move will fail.
     let mut parse_move_result: ParseMoveResult = Err(());
 
-    // Get the "from" and "to" squares from the move stirng.
+    // Get the "from" and "to" squares from the move string.
     if m.len() == 4 || m.len() == 5 {
         if_chain! {
-            // If converstion from algebraic square to number succeeds...
+            // If conversion from algebraic square to number succeeds...
             if let Some(f) = algebraic_square_to_number(&lower_case_move[0..=1]);
             if let Some(t) = algebraic_square_to_number(&lower_case_move[2..=3]);
             then {

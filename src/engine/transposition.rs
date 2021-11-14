@@ -318,7 +318,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         self.used_buckets = 0;
     }
 
-    // Provides TT usage in permille (1 per 1000, as opposed to percent,
+    // Provides TT usage per mille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
         if self.megabytes > 0 {

@@ -33,7 +33,7 @@ use crate::{
 pub fn we_have_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
     let mut move_list = MoveList::new();
 
-    // Generate pseudo-logal moves.
+    // Generate pseudo-legal moves.
     mg.generate_moves(board, &mut move_list, MoveType::All);
 
     // We can break as soon as we find a legal move.

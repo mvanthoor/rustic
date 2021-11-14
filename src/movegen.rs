@@ -296,7 +296,7 @@ impl MoveGenerator {
         to: Bitboard,
         list: &mut MoveList,
     ) {
-        // Shorthand variiables.
+        // Shorthand variables.
         let mut bb_to = to;
         let us = board.us();
         let promotion_rank = Board::promotion_rank(us);

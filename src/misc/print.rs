@@ -183,7 +183,7 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     to_console(&ascii_board, mark_square);
 }
 
-// Prints a given movelist to the screen.
+// Prints a given move list to the screen.
 #[allow(dead_code)]
 pub fn movelist(ml: &MoveList) {
     for i in 0..ml.len() {

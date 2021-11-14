@@ -58,7 +58,7 @@ impl Engine {
 
             // Set up a new game from the starting position.
             XBoardIn::New => {
-                // Abaondon the search if it is running.
+                // Abandon the search if it is running.
                 if self.is_analyzing() || self.is_thinking() {
                     self.search.send(SearchControl::Abandon);
                 }

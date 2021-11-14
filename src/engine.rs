@@ -216,7 +216,7 @@ impl Engine {
         Ok(())
     }
 
-    // This function quits Commm, Search, and then the engine thread itself.
+    // This function quits Comm, Search, and then the engine thread itself.
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
         self.comm.send(CommOut::Quit);

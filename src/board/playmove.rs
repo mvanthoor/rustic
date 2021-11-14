@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-// playmove.rs contains make() and unamke() for move execution and reversal.
+// playmove.rs contains make() and unmake() for move execution and reversal.
 
 use super::{
     defs::{Pieces, Squares, BB_SQUARES},
@@ -234,7 +234,7 @@ impl Board {
 
 /*** Functions local to playmove.rs ====================================================== ***/
 
-// unamke() pops the entire game history from a list at the beginning. This
+// unmake() pops the entire game history from a list at the beginning. This
 // includes the zobrist key, and any other incrementally updated values,
 // such as material count and PSQT evaluation. Because these values are
 // recovered instantly, they don't have to be recalculated backward.

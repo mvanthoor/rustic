@@ -201,7 +201,7 @@ impl Display for XBoardIn {
 // Some incoming commands are not sent to the engine thread directly. An
 // example are the commands regarding time control. These are buffered
 // within the XBoard module, to keep the engine unaware of XBoard
-// implementation details. An "XBoardInBuffered::sd" commmand is sent to the
+// implementation details. An "XBoardInBuffered::sd" command is sent to the
 // engine, so it knows (and prints) that an incoming command was received
 // and buffered.
 #[derive(PartialEq, Clone)]
@@ -613,7 +613,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
 
-                    // Common outputs avaliable to all protocols
+                    // Common outputs available to all protocols
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::Result(score, reason) => XBoard::result(score, reason),
                     CommOut::SearchSummary(summary) => {

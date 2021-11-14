@@ -78,7 +78,7 @@ pub fn find_magics(piece: Piece) {
         try_this.shift = (64 - bits) as u8;
         try_this.offset = offset;
 
-        // Start finding a magic that works for this square, for all permuations.
+        // Start finding a magic that works for this square, for all permutations.
         while !found {
             attempts += 1; // Next attempt to find magic.
             found = true; // Assume this new magic will work.
@@ -130,7 +130,7 @@ pub fn find_magics(piece: Piece) {
     }
 
     // Check if the entire table is correct. The offset should be equal to
-    // the size of the table. If it isn't, we skipped permuations and thus
+    // the size of the table. If it isn't, we skipped permutations and thus
     // have some sort of error in our code above.
     let r_ts = ROOK_TABLE_SIZE as u64;
     let b_ts = BISHOP_TABLE_SIZE as u64;

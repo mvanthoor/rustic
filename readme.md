@@ -125,7 +125,7 @@ Rustic's documentation.
 
 # Extra module
 
-There is a module called "Extra", which copmiles some extra capabilities
+There is a module called "Extra", which compiles some extra capabilities
 into the Rustic executable.
 
 - Command-line option -e: Rustic can run a perft suite containing 172
@@ -183,6 +183,6 @@ Rustic. They are listed below, in no particular order.
 > least, Ed Schröder and Robert Hyatt (for still hanging around the chess
 > programming community after 40 or 50 years).
 
-All of these people (except my girlfiriend) can be found on the
+All of these people (except my girlfriend) can be found on the
 [Talkchess.com](http://talkchess.com/forum3/index.php) forum.
 

@@ -77,7 +77,7 @@ pub fn is_repetition(board: &Board) -> u8 {
 }
 
 #[rustfmt::skip]
-// Returns true if there is insufficient matrial to deliver mate.
+// Returns true if there is insufficient material to deliver mate.
 pub fn is_insufficient_material(board: &Board) -> bool {
     // It's not a draw if: ...there are still pawns.
     let w_p = board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0;     

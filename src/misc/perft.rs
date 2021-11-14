@@ -81,7 +81,7 @@ pub fn run(
         total_time += elapsed;
         total_nodes += leaf_nodes;
 
-        // Request TT usage. (This is provided permille as per UCI
+        // Request TT usage. (This is provided per mille as per UCI
         // spec, so divide by 10 to get the usage in percents.)
         if tt_enabled {
             hash_full = format!(
