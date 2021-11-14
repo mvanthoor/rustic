@@ -348,7 +348,7 @@ impl XBoard {
                     // Buffer XBoard version of "movetime".
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(time))) => {
                         // Set "movetime" time control in milliseconds.
-                        mtx_tc.move_time = time * 1000;
+                        mtx_tc.move_time = time;
 
                         // Disable "level" time controls.
                         mtx_tc.moves_to_go = [0, 0];
@@ -482,7 +482,9 @@ impl XBoard {
                 }
                 "st" => {
                     let value = parts[VALUE].parse::<u128>().unwrap_or(0);
-                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(value)))
+
+                    // Convert to milliseconds
+                    CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(value * 1000)))
                 }
 
                 _ => CommIn::Unknown(cmd.to_string()),
