@@ -105,6 +105,8 @@ pub struct TimeControl {
     moves_per_session: [u8; Sides::BOTH],
     base_time: u128,
     increment: u128,
+    is_move_time: bool,
+    is_game_time: bool,
 }
 
 impl TimeControl {
@@ -115,6 +117,8 @@ impl TimeControl {
             moves_per_session: [0, 0],
             base_time: 0,
             increment: 0,
+            is_move_time: false,
+            is_game_time: false,
         }
     }
 
@@ -124,6 +128,14 @@ impl TimeControl {
 
     pub fn move_time(&self) -> u128 {
         self.move_time
+    }
+
+    pub fn is_move_time(&self) -> bool {
+        self.is_move_time
+    }
+
+    pub fn is_game_time(&self) -> bool {
+        self.is_game_time
     }
 
     pub fn is_set(&self) -> bool {
@@ -351,6 +363,11 @@ impl XBoard {
                         buf_tc.moves_per_session = [0, 0];
                         buf_tc.base_time = 0;
                         buf_tc.increment = 0;
+                        buf_tc.is_game_time = false;
+
+                        // But we're only in MoveTime mode if we got a time
+                        // above 0.
+                        buf_tc.is_move_time = time > 0;
                     }
 
                     // Buffer the "level" command.
@@ -362,6 +379,11 @@ impl XBoard {
 
                         // Disable "movetime" time control.
                         buf_tc.move_time = 0;
+                        buf_tc.is_move_time = false;
+
+                        // But we are only in GameTime mode if one of the
+                        // parameters is larger than 0.
+                        buf_tc.is_game_time = mps > 0 || bt > 0 || inc > 0;
                     }
 
                     // Add the time control to the usermove. This way the
