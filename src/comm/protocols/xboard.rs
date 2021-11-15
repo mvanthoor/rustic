@@ -481,7 +481,7 @@ impl XBoard {
         // Key-value pair has to have two parts. Ignore anything else after
         // the second part.
         if parts.len() >= 2 {
-            match &parts[KEY][..] {
+            match parts[KEY].as_str() {
                 "ping" => {
                     let value = parts[VALUE].parse::<i8>().unwrap_or(0);
                     CommIn::XBoard(XBoardIn::Ping(value))
@@ -530,7 +530,7 @@ impl XBoard {
             for (i, p) in parts.iter().enumerate() {
                 match i {
                     0 => continue,
-                    1 if VALID_RESULTS.contains(&(&p[..])) => result = p.to_string(),
+                    1 if VALID_RESULTS.contains(&p.as_str()) => result = p.to_string(),
                     _ if length > 2 => reason = format!("{} {}", reason, p),
                     _ => (),
                 }
@@ -716,7 +716,7 @@ impl XBoard {
         let myname = format!("myname=\"{} {}\"", About::ENGINE, About::VERSION);
 
         for f in FEATURES {
-            let value = f.to_string().replace("myname=x", &myname[..]);
+            let value = f.to_string().replace("myname=x", myname.as_str());
             println!("feature {}", value);
         }
     }
