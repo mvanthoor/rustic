@@ -57,10 +57,8 @@ impl Engine {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
-                            self.comm.send(CommOut::Error(
-                                ErrNormal::NOT_INT.to_string(),
-                                value.to_string(),
-                            ));
+                            self.comm
+                                .send(CommOut::Error(ErrNormal::NOT_INT, value.to_string()));
                         }
                     }
 
@@ -79,18 +77,16 @@ impl Engine {
                     for m in moves.iter() {
                         let ok = self.execute_move(m.clone());
                         if !ok {
-                            let err = ErrNormal::NOT_LEGAL.to_string();
-                            self.comm.send(CommOut::Error(err, m.clone()));
+                            self.comm
+                                .send(CommOut::Error(ErrNormal::NOT_LEGAL, m.clone()));
                             break;
                         }
                     }
                 }
 
                 if fen_result.is_err() {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::FEN_FAILED.to_string(),
-                        fen.clone(),
-                    ));
+                    self.comm
+                        .send(CommOut::Error(ErrNormal::FEN_FAILED, fen.clone()));
                 }
             }
 

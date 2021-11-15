@@ -389,7 +389,7 @@ impl Uci {
                     CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOut::SearchStats(stats) => Uci::search_stats(&stats),
                     CommOut::BestMove(bm) => Uci::best_move(&bm),
-                    CommOut::Error(err_type, cmd) => Uci::error(&err_type, &cmd),
+                    CommOut::Error(err_type, cmd) => Uci::error(err_type, &cmd),
 
                     // Custom commands
                     CommOut::PrintBoard => Shared::print_board(&t_board),

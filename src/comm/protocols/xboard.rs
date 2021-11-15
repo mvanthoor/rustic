@@ -680,7 +680,7 @@ impl XBoard {
                         XBoard::search_current_move(&mut buf_stat01, &scm)
                     }
                     CommOut::Message(msg) => XBoard::message(&msg),
-                    CommOut::Error(err_type, cmd) => XBoard::error(&err_type, &cmd),
+                    CommOut::Error(err_type, cmd) => XBoard::error(err_type, &cmd),
                     CommOut::Quit => quit = true,
 
                     // Custom prints for use in the console. These are

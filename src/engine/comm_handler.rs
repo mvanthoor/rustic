@@ -64,10 +64,9 @@ impl Engine {
                     cmd
                 )));
             }
-            CommIn::Unknown(cmd) => self.comm.send(CommOut::Error(
-                ErrNormal::UNKNOWN_COMMAND.to_string(),
-                cmd.to_string(),
-            )),
+            CommIn::Unknown(cmd) => self
+                .comm
+                .send(CommOut::Error(ErrNormal::UNKNOWN_COMMAND, cmd.to_string())),
         }
     }
 }

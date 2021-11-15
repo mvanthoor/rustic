@@ -143,7 +143,7 @@ pub enum CommOut {
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.
     Message(String),                   // Transmits a message to the GUI.
-    Error(String, String),             // Transmits an error message.
+    Error(&'static str, String),       // Transmits an error message.
     Quit,                              // Terminates the output thread.
 
     // Output to screen when running in a terminal window.

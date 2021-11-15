@@ -50,7 +50,7 @@ impl Engine {
                     }
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
@@ -83,7 +83,7 @@ impl Engine {
                     }
                     EngineState::Waiting => self.set_observing(),
                     _ => self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     )),
                 };
@@ -100,13 +100,13 @@ impl Engine {
                         self.set_thinking();
                     } else {
                         self.comm.send(CommOut::Error(
-                            ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
+                            ErrNormal::TIME_CONTROL_NOT_SET,
                             command.to_string(),
                         ));
                     }
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
@@ -118,7 +118,7 @@ impl Engine {
                     self.set_waiting();
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
@@ -137,10 +137,8 @@ impl Engine {
                 // Set up the new board.
                 let fen_result = self.board.lock().expect(ErrFatal::LOCK).fen_read(Some(fen));
                 if fen_result.is_err() {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::INCORRECT_FEN.to_string(),
-                        fen.to_string(),
-                    ));
+                    self.comm
+                        .send(CommOut::Error(ErrNormal::INCORRECT_FEN, fen.to_string()));
                 }
 
                 // Restart analysis on the new position. (If the FEN-setup
@@ -185,7 +183,7 @@ impl Engine {
                             }
                         } else {
                             self.comm.send(CommOut::Error(
-                                ErrNormal::TIME_CONTROL_NOT_SET.to_string(),
+                                ErrNormal::TIME_CONTROL_NOT_SET,
                                 command.to_string(),
                             ));
                         }
@@ -211,7 +209,7 @@ impl Engine {
 
                     // Do not accept user moves in other engine states.
                     _ => self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     )),
                 }
@@ -253,7 +251,7 @@ impl Engine {
                     }
                     _ => {
                         self.comm.send(CommOut::Error(
-                            ErrNormal::COMMAND_INVALID.to_string(),
+                            ErrNormal::COMMAND_INVALID,
                             command.to_string(),
                         ));
                     }
@@ -280,7 +278,7 @@ impl Engine {
                     self.set_analyzing();
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
@@ -292,7 +290,7 @@ impl Engine {
                     self.comm.send(CommOut::XBoard(XBoardOut::Stat01));
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
@@ -307,7 +305,7 @@ impl Engine {
                     self.set_observing();
                 } else {
                     self.comm.send(CommOut::Error(
-                        ErrNormal::COMMAND_INVALID.to_string(),
+                        ErrNormal::COMMAND_INVALID,
                         command.to_string(),
                     ));
                 }
