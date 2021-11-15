@@ -35,8 +35,8 @@ impl Engine {
     pub fn xboard_handler(&mut self, command: &XBoardIn) {
         const PROTOCOL_VERSION: u8 = 2;
 
-        let mut sp = SearchParams::new();
-        sp.verbosity = self.settings.verbosity;
+        let mut search_params = SearchParams::new();
+        search_params.verbosity = self.settings.verbosity;
 
         match command {
             // Send a NewLine to the GUI to flush the output buffer.
@@ -92,11 +92,11 @@ impl Engine {
             XBoardIn::Go(tc) => {
                 if self.is_observing() || self.is_waiting() {
                     // Pass time control to search parameters and start
-                    // thinking. If no time control is set, we display an
-                    // error.
+                    // thinking. We display an error if no time control has
+                    // been set.
                     if tc.is_set() {
-                        Engine::set_time_control(&mut sp, tc);
-                        self.search.send(SearchControl::Start(sp));
+                        Engine::set_time_control(&mut search_params, tc);
+                        self.search.send(SearchControl::Start(search_params));
                         self.set_thinking();
                     } else {
                         self.comm.send(CommOut::Error(
@@ -146,8 +146,8 @@ impl Engine {
                 // Restart analysis on the new position. (If the FEN-setup
                 // failed, we restart on the old position.)
                 if self.is_analyzing() {
-                    sp.search_mode = SearchMode::Infinite;
-                    self.search.send(SearchControl::Start(sp));
+                    search_params.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(search_params));
                 }
             }
 
@@ -175,8 +175,8 @@ impl Engine {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
                                 if self.send_game_result() == GameEndReason::NotEnded {
-                                    Engine::set_time_control(&mut sp, tc);
-                                    self.search.send(SearchControl::Start(sp));
+                                    Engine::set_time_control(&mut search_params, tc);
+                                    self.search.send(SearchControl::Start(search_params));
                                     self.set_thinking();
                                 }
                             } else {
@@ -198,8 +198,8 @@ impl Engine {
 
                         if self.execute_move(m.clone()) {
                             if self.send_game_result() == GameEndReason::NotEnded {
-                                sp.search_mode = SearchMode::Infinite;
-                                self.search.send(SearchControl::Start(sp));
+                                search_params.search_mode = SearchMode::Infinite;
+                                self.search.send(SearchControl::Start(search_params));
                             } else {
                                 self.set_observing();
                             }
@@ -275,8 +275,8 @@ impl Engine {
             // Start analyze mode.
             XBoardIn::Analyze => {
                 if self.is_observing() || self.is_waiting() {
-                    sp.search_mode = SearchMode::Infinite;
-                    self.search.send(SearchControl::Start(sp));
+                    search_params.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(search_params));
                     self.set_analyzing();
                 } else {
                     self.comm.send(CommOut::Error(
@@ -325,29 +325,29 @@ impl Engine {
         }
     }
 
-    fn set_time_control(sp: &mut SearchParams, tc: &TimeControl) {
+    fn set_time_control(search_params: &mut SearchParams, tc: &TimeControl) {
         // In XBoard, "Depth" can stop the search even if other time
         //  controls are set, so this parameter is always set if higher
         //  than zero.
         if tc.depth() > 0 {
-            sp.depth = tc.depth();
+            search_params.depth = tc.depth();
         }
 
         // If we have a depth setting, but no settings for either MoveTime
         // or GameTime, we must be in Depth mode.
         if tc.depth() > 0 && !tc.is_move_time() && !tc.is_game_time() {
-            sp.search_mode = SearchMode::Depth
+            search_params.search_mode = SearchMode::Depth
         }
 
         // MoveTime mode. (We can't be in GameTime at the same time.)
         if tc.is_move_time() {
-            sp.search_mode = SearchMode::MoveTime;
-            sp.move_time = tc.move_time();
+            search_params.search_mode = SearchMode::MoveTime;
+            search_params.move_time = tc.move_time();
         }
 
         // GameTime mode. (We can't be in MoveTime at the same time.)
         if tc.is_game_time() {
-            sp.search_mode = SearchMode::GameTime;
+            search_params.search_mode = SearchMode::GameTime;
         }
     }
 }
