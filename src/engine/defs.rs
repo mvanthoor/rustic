@@ -21,10 +21,10 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use crate::{comm::defs::CommIn, search::defs::SearchReport};
 use std::fmt::{Display, Formatter, Result};
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
-use crate::{comm::defs::CommIn, search::defs::SearchReport};
 
 // Lists all possible game results.
 #[derive(PartialEq, Clone, Copy)]
@@ -84,9 +84,9 @@ impl ErrFatal {
 
 pub struct ErrNormal;
 impl ErrNormal {
-    pub const NOT_LEGAL: &'static str = "This is not a legal move in this position.";
-    pub const NOT_INT: &'static str = "The value given was not an integer.";
-    pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed.";
+    pub const NOT_LEGAL: &'static str = "This is not a legal move in this position";
+    pub const NOT_INT: &'static str = "The value given was not an integer";
+    pub const FEN_FAILED: &'static str = "Setting up FEN failed. Board not changed";
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
     pub const COMMAND_INVALID: &'static str = "Command invalid in current engine state";
     pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
@@ -179,9 +179,20 @@ pub enum EngineSetOption {
     ClearHash,
     Nothing,
 }
+
 impl EngineSetOption {
     pub const HASH: &'static str = "Hash";
     pub const CLEAR_HASH: &'static str = "Clear Hash";
+}
+
+impl Display for EngineSetOption {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            EngineSetOption::Hash(mb) => write!(f, "Hash {}", mb),
+            EngineSetOption::ClearHash => write!(f, "Clear Hash"),
+            EngineSetOption::Nothing => write!(f, ""),
+        }
+    }
 }
 
 pub struct EngineOptionDefaults;

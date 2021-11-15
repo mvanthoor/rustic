@@ -57,8 +57,10 @@ impl Engine {
                         if let Ok(v) = value.parse::<usize>() {
                             self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
                         } else {
-                            let msg = String::from(ErrNormal::NOT_INT);
-                            self.comm.send(CommOut::Message(msg));
+                            self.comm.send(CommOut::Error(
+                                ErrNormal::NOT_INT.to_string(),
+                                value.to_string(),
+                            ));
                         }
                     }
 
