@@ -79,8 +79,8 @@ impl Engine {
                     for m in moves.iter() {
                         let ok = self.execute_move(m.clone());
                         if !ok {
-                            self.comm
-                                .send(CommOut::Error(ErrNormal::NOT_LEGAL.to_string(), m.clone()));
+                            let err = ErrNormal::NOT_LEGAL.to_string();
+                            self.comm.send(CommOut::Error(err, m.clone()));
                             break;
                         }
                     }
