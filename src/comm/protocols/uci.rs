@@ -539,6 +539,6 @@ impl Uci {
     }
 
     fn error(err_type: &str, cmd: &str) {
-        println!("info string {}: {}", err_type, cmd);
+        println!("info string ERROR {}: {}", err_type, cmd);
     }
 }

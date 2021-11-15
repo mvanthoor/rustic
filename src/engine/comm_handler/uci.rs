@@ -79,16 +79,18 @@ impl Engine {
                     for m in moves.iter() {
                         let ok = self.execute_move(m.clone());
                         if !ok {
-                            let msg = format!("{}: {}", m, ErrNormal::NOT_LEGAL);
-                            self.comm.send(CommOut::Message(msg));
+                            self.comm
+                                .send(CommOut::Error(ErrNormal::NOT_LEGAL.to_string(), m.clone()));
                             break;
                         }
                     }
                 }
 
                 if fen_result.is_err() {
-                    let msg = ErrNormal::FEN_FAILED.to_string();
-                    self.comm.send(CommOut::Message(msg));
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::FEN_FAILED.to_string(),
+                        fen.clone(),
+                    ));
                 }
             }
 
