@@ -326,16 +326,28 @@ impl Engine {
     }
 
     fn set_time_control(sp: &mut SearchParams, tc: &TimeControl) {
-        // Set search mode "Depth"
-        if tc.depth() > 0 && tc.move_time() == 0 {
-            sp.search_mode = SearchMode::Depth;
+        // In XBoard, "Depth" can stop the search even if other time
+        //  controls are set, so this parameter is always set if higher
+        //  than zero.
+        if tc.depth() > 0 {
             sp.depth = tc.depth();
         }
 
-        // Set search mode "MoveTime"
-        if tc.depth() == 0 && tc.move_time() > 0 {
+        // If we have a depth setting, but no settings for either MoveTime
+        // or GameTime, we must be in Depth mode.
+        if tc.depth() > 0 && !tc.is_move_time() && !tc.is_game_time() {
+            sp.search_mode = SearchMode::Depth
+        }
+
+        // MoveTime mode. (We can't be in GameTime at the same time.)
+        if tc.is_move_time() {
             sp.search_mode = SearchMode::MoveTime;
             sp.move_time = tc.move_time();
+        }
+
+        // GameTime mode. (We can't be in MoveTime at the same time.)
+        if tc.is_game_time() {
+            sp.search_mode = SearchMode::GameTime;
         }
     }
 }
