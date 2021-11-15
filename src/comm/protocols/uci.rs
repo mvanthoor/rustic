@@ -226,7 +226,7 @@ impl Uci {
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Fen => {
-                        fen.push_str(&p[..]);
+                        fen.push_str(p.as_str());
                         fen.push(' ');
                     }
                     Tokens::Moves => moves.push(p),
@@ -345,8 +345,7 @@ impl Uci {
 
         // Determine which engine option name to send.
         if !name.is_empty() {
-            name = name.to_lowercase().trim().to_string();
-            match &name[..] {
+            match name.to_lowercase().trim() {
                 "hash" => eon = EngineSetOption::Hash(value),
                 "clear hash" => eon = EngineSetOption::ClearHash,
                 _ => (),
