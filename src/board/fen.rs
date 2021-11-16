@@ -65,7 +65,7 @@ impl Board {
         }
         .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
         .split(SPACE)
-        .map(|s| s.to_string())
+        .map(String::from)
         .collect();
 
         if fen_parts.len() == SHORT_FEN_PARTS {
