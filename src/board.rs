@@ -165,15 +165,6 @@ impl Board {
 
 // Private board functions (for initialization on startup)
 impl Board {
-    // Resets/wipes the board. Used by the FEN reader function.
-    fn reset(&mut self) {
-        self.bb_pieces = [[0; NrOf::PIECE_TYPES]; Sides::BOTH];
-        self.bb_side = [EMPTY; Sides::BOTH];
-        self.game_state = GameState::new();
-        self.history.clear();
-        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
-    }
-
     // Main initialization function. This is used to initialize the "other"
     // bit-boards that are not set up by the FEN-reader function.
     fn init(&mut self) {

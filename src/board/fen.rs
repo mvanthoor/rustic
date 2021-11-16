@@ -84,8 +84,7 @@ impl Board {
             let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
 
             // Create a new board so we don't destroy the original.
-            let mut new_board = self.clone();
-            new_board.reset();
+            let mut new_board = Board::new();
 
             // Parse all the parts and check if each one succeeds.
             let mut i: usize = 0;

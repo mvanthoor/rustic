@@ -50,12 +50,6 @@ impl History {
         }
     }
 
-    // Wipe the entire array.
-    pub fn clear(&mut self) {
-        self.list = [GameState::new(); MAX_GAME_MOVES as usize];
-        self.count = 0;
-    }
-
     // Put a new game state into the array.
     pub fn push(&mut self, g: GameState) {
         self.list[self.count] = g;
