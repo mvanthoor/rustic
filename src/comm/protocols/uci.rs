@@ -43,6 +43,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+// ---------------------------------------------------------------------
+// UCI Type definitions
+// ---------------------------------------------------------------------
+
 #[derive(PartialEq, Clone)]
 pub enum UciIn {
     Uci,
@@ -64,7 +68,11 @@ pub enum UciOut {
     Ready,    // Transmit that the engine is ready.
 }
 
-// This struct is used to instantiate the Comm Console module.
+// ---------------------------------------------------------------------
+// UCI Communication module to be instantiated by the engine
+// ---------------------------------------------------------------------
+
+// This struct is used to instantiate the Comm UCI module.
 pub struct Uci {
     input_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>, // Thread for sending output.
@@ -89,6 +97,10 @@ impl Uci {
         }
     }
 }
+
+// ---------------------------------------------------------------------
+// Communication interface: must be implemented by all comm modules.
+// ---------------------------------------------------------------------
 
 // Any communication module must implement the trait IComm.
 impl IComm for Uci {
@@ -128,6 +140,10 @@ impl IComm for Uci {
         &self.info
     }
 }
+
+// ---------------------------------------------------------------------
+// UCI input thread
+// ---------------------------------------------------------------------
 
 // Implement the input thread
 impl Uci {
@@ -169,6 +185,10 @@ impl Uci {
         self.input_handle = Some(input_handle);
     }
 }
+
+// ---------------------------------------------------------------------
+// Parsing functions for the input thread
+// ---------------------------------------------------------------------
 
 // Implement receiving/parsing functions
 impl Uci {
@@ -356,6 +376,10 @@ impl Uci {
     }
 }
 
+// ---------------------------------------------------------------------
+// UCI output thread
+// ---------------------------------------------------------------------
+
 // Implement the output thread
 impl Uci {
     // The control thread receives commands from the engine thread.
@@ -408,6 +432,10 @@ impl Uci {
         self.output_tx = Some(output_tx);
     }
 }
+
+// ---------------------------------------------------------------------
+// Print functions for the output thread
+// ---------------------------------------------------------------------
 
 // Implement output functions
 impl Uci {
