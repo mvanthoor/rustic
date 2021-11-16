@@ -323,7 +323,7 @@ impl IComm for XBoard {
 // ---------------------------------------------------------------------
 
 impl XBoard {
-    // The receiving thread receives incoming commands from the console or
+    // The input thread receives incoming commands from the console or
     // GUI, which is turns into a "CommIn" object. It sends this
     // object to the engine thread so the engine can decide what to do.
     fn input_thread(&mut self, transmitter: Sender<Information>) {

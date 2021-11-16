@@ -66,9 +66,9 @@ pub enum UciOut {
 
 // This struct is used to instantiate the Comm Console module.
 pub struct Uci {
-    receiving_handle: Option<JoinHandle<()>>, // Thread for receiving input.
-    output_handle: Option<JoinHandle<()>>,    // Thread for sending output.
-    output_tx: Option<Sender<CommOut>>,       // Actual output sender object.
+    input_handle: Option<JoinHandle<()>>, // Thread for receiving input.
+    output_handle: Option<JoinHandle<()>>, // Thread for sending output.
+    output_tx: Option<Sender<CommOut>>,   // Actual output sender object.
     info: CommInfo,
 }
 
@@ -77,7 +77,7 @@ impl Uci {
     // Create a new console.
     pub fn new() -> Self {
         Self {
-            receiving_handle: None,
+            input_handle: None,
             output_handle: None,
             output_tx: None,
             info: CommInfo::new(
@@ -115,7 +115,7 @@ impl IComm for Uci {
     // After the engine sends 'quit' to the control thread, it will call
     // shutdown() and then wait here until shutdown is completed.
     fn shutdown(&mut self) {
-        if let Some(h) = self.receiving_handle.take() {
+        if let Some(h) = self.input_handle.take() {
             h.join().expect(ErrFatal::THREAD);
         }
 
@@ -129,32 +129,31 @@ impl IComm for Uci {
     }
 }
 
-// Implement the receiving thread
+// Implement the input thread
 impl Uci {
-    // The receiving thread receives incoming commands from the console or
-    // GUI, which is turns into a "CommIn" object. It sends this
-    // object to the engine thread so the engine can decide what to do.
-    fn input_thread(&mut self, receiving_tx: Sender<Information>) {
+    // The input thread receives incoming commands from the console or
+    // GUI, which is turns into a "CommIn" object. It sends this object to
+    // the engine thread so the engine can decide what to do.
+    fn input_thread(&mut self, transmitter: Sender<Information>) {
         // Create thread-local variables
-        let mut t_incoming_data = String::from(""); // Buffer for incoming data.
-        let t_receiving_tx = receiving_tx; // Sends incoming data to engine thread.
+        let mut incoming_data = String::from(""); // Buffer for incoming data.
 
         // Actual thread creation.
-        let receiving_handle = thread::spawn(move || {
+        let input_handle = thread::spawn(move || {
             let mut quit = false;
 
             // Keep running as long as 'quit' is not detected.
             while !quit {
                 // Get data from stdin.
                 io::stdin()
-                    .read_line(&mut t_incoming_data)
+                    .read_line(&mut incoming_data)
                     .expect(ErrFatal::READ_IO);
 
                 // Create the CommIn object.
-                let comm_received = Uci::create_comm_input(&t_incoming_data);
+                let comm_received = Uci::create_comm_input(&incoming_data);
 
                 // Send it to the engine thread.
-                t_receiving_tx
+                transmitter
                     .send(Information::Comm(comm_received.clone()))
                     .expect(ErrFatal::HANDLE);
 
@@ -162,12 +161,12 @@ impl Uci {
                 quit = comm_received == CommIn::Quit;
 
                 // Clear for next input
-                t_incoming_data = String::from("");
+                incoming_data = String::from("");
             }
         });
 
         // Store the handle.
-        self.receiving_handle = Some(receiving_handle);
+        self.input_handle = Some(input_handle);
     }
 }
 
