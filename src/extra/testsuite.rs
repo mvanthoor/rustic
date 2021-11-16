@@ -62,10 +62,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
     let mut test_nr = 0;
     while (test_nr < number_of_tests) && (result == 0) {
         // Split the test's data string into multiple parts.
-        let test_data: Vec<String> = LARGE_TEST_EPDS[test_nr]
-            .split(SEMI_COLON)
-            .map(|s| s.trim().to_string())
-            .collect();
+        let test_data: Vec<&str> = LARGE_TEST_EPDS[test_nr].split(SEMI_COLON).collect();
         let fen = &test_data[0];
 
         // Set up the position according to the provided FEN-string.
@@ -86,11 +83,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
             // start at index 1 to find the expected leaf nodes per depth.
 
             // Split "D1 20" into a vector containing "D1" (depth) and "20" (leaf nodes)
-            let depth_ln: Vec<String> = test_data[index]
-                .split(SPACE)
-                .map(|s| s.to_string())
-                .collect();
-
+            let depth_ln: Vec<&str> = test_data[index].split(SPACE).collect();
             let depth = (depth_ln[0][1..]).parse::<u8>().unwrap_or(0) as i8;
             let expected_ln = depth_ln[1].parse::<u64>().unwrap_or(0);
 

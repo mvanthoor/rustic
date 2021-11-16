@@ -68,6 +68,7 @@ impl Board {
         .map(String::from)
         .collect();
 
+        // However, if its a short fen, extend it with the missing two parts.
         if fen_parts.len() == SHORT_FEN_PARTS {
             fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
         }
