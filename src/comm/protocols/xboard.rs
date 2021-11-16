@@ -476,12 +476,12 @@ impl XBoard {
     fn parse_key_value_pair(cmd: &str) -> CommIn {
         const KEY: usize = 0;
         const VALUE: usize = 1;
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
 
         // Key-value pair has to have two parts. Ignore anything else after
         // the second part.
         if parts.len() >= 2 {
-            match parts[KEY].as_str() {
+            match parts[KEY] {
                 "ping" => {
                     let value = parts[VALUE].parse::<i8>().unwrap_or(0);
                     CommIn::XBoard(XBoardIn::Ping(value))
@@ -519,7 +519,7 @@ impl XBoard {
     fn parse_result(cmd: &str) -> CommIn {
         const VALID_RESULTS: [&str; 4] = ["1-0", "0-1", "1/2-1/2", "*"];
 
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
         let length = parts.len();
         let space_and_brackets: &[_] = &[' ', '{', '}'];
         let mut reason = String::from("");
@@ -530,7 +530,7 @@ impl XBoard {
             for (i, p) in parts.iter().enumerate() {
                 match i {
                     0 => continue,
-                    1 if VALID_RESULTS.contains(&p.as_str()) => result = p.to_string(),
+                    1 if VALID_RESULTS.contains(p) => result = p.to_string(),
                     _ if length > 2 => reason = format!("{} {}", reason, p),
                     _ => (),
                 }
@@ -563,7 +563,7 @@ impl XBoard {
         const COLON: &str = ":";
         const PERIOD: &str = ".";
 
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
 
         // The level command must have at least a length of four parts: "level
         // moves_per_session base_time increment". Anything after
@@ -575,10 +575,7 @@ impl XBoard {
             // Parse base time into milliseconds.
             let bt = if parts[BASE_TIME].contains(COLON) {
                 // Split into minutes and seconds
-                let time: Vec<String> = parts[BASE_TIME]
-                    .split(COLON)
-                    .map(|s| s.to_string())
-                    .collect();
+                let time: Vec<&str> = parts[BASE_TIME].split(COLON).collect();
                 let minutes = time[MINUTES].parse::<u128>().unwrap_or(0);
                 let seconds = time[SECONDS].parse::<u128>().unwrap_or(0);
                 ((minutes * 60) + seconds) * 1000

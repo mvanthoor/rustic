@@ -230,7 +230,7 @@ impl Uci {
             Moves,
         }
 
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
         let mut fen = String::from("");
         let mut moves: Vec<String> = Vec::new();
         let mut skip_fen = false;
@@ -245,10 +245,10 @@ impl Uci {
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Fen => {
-                        fen.push_str(p.as_str());
+                        fen.push_str(p);
                         fen.push(' ');
                     }
-                    Tokens::Moves => moves.push(p),
+                    Tokens::Moves => moves.push(String::from(p)),
                 },
             }
         }
@@ -273,7 +273,7 @@ impl Uci {
             MovesToGo,
         }
 
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
         let mut comm_received = CommIn::Unknown(cmd.to_string());
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
@@ -343,7 +343,7 @@ impl Uci {
             Value,
         }
 
-        let parts: Vec<String> = cmd.split_whitespace().map(|s| s.to_string()).collect();
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
         let mut token = Tokens::Nothing;
         let mut name = String::from(""); // Option name provided by the UCI command.
         let mut value = String::from(""); // Option value provided by the UCI command.
