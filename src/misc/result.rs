@@ -28,9 +28,9 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::{defs::Pieces, Board},
-    defs::{Bitboard, Sides, MAX_MOVE_RULE},
+    defs::{Sides, MAX_MOVE_RULE},
     engine::defs::GameEndReason,
-    misc::{bits, utils},
+    misc::utils,
     movegen::MoveGenerator,
     search::defs::SearchRefs,
 };
@@ -88,11 +88,9 @@ pub fn is_insufficient_material(board: &Board) -> bool {
     let w_r = board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0;
     let b_r = board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0;
 
-    // Or one side has at least two bishops, on different colored squares
-    let w_bishops = board.get_pieces(Pieces::BISHOP, Sides::WHITE);
-    let b_bishops = board.get_pieces(Pieces::BISHOP, Sides::BLACK);
-    let w_b = two_bishops_on_different_colored_squares(w_bishops);
-    let b_b = two_bishops_on_different_colored_squares(b_bishops);
+    // Or one side has at least 2 bishops on different colored squares
+    let w_b = board.has_bishop_pair(Sides::WHITE);
+    let b_b = board.has_bishop_pair(Sides::BLACK);
 
     // Or one side has a bishop and a knight
     let w_bn = board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 0
@@ -103,28 +101,6 @@ pub fn is_insufficient_material(board: &Board) -> bool {
     // If one of the conditions above is true, we still have enough
     // material for checkmate, so insufficient_material is false.
     !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b || w_bn || b_bn)
-}
-
-// This function determines if we have two or more bishops, and two of them
-// are on different colored squares. (We cannot deliver mate even if we
-// have 3 or more bishops on squares of the same color.)
-pub fn two_bishops_on_different_colored_squares(mut bishops: Bitboard) -> bool {
-    let mut white_square = 0;
-    let mut black_square = 0;
-
-    if bishops.count_ones() >= 2 {
-        while bishops > 0 {
-            let square = bits::next(&mut bishops);
-
-            if Board::is_white_square(square) {
-                white_square += 1;
-            } else {
-                black_square += 1;
-            }
-        }
-    }
-
-    white_square >= 1 && black_square >= 1
 }
 
 // This function determines if, and how, the game was ended.

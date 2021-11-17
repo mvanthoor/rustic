@@ -161,6 +161,26 @@ impl Board {
         self.game_state.castling = new_permissions;
         self.game_state.zobrist_key ^= self.zr.castling(self.game_state.castling);
     }
+
+    pub fn has_bishop_pair(&self, side: Side) -> bool {
+        let mut bishops = self.get_pieces(Pieces::BISHOP, side);
+        let mut white_square = 0;
+        let mut black_square = 0;
+
+        if bishops.count_ones() >= 2 {
+            while bishops > 0 {
+                let square = bits::next(&mut bishops);
+
+                if Board::is_white_square(square) {
+                    white_square += 1;
+                } else {
+                    black_square += 1;
+                }
+            }
+        }
+
+        white_square >= 1 && black_square >= 1
+    }
 }
 
 // Private board functions (for initialization on startup)
