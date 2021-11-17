@@ -105,33 +105,26 @@ pub fn is_insufficient_material(board: &Board) -> bool {
     !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b || w_bn || b_bn)
 }
 
+// This function determines if we have two or more bishops, and two of them
+// are on different colored squares. (We cannot deliver mate even if we
+// have 3 or more bishops on squares of the same color.)
 pub fn two_bishops_on_different_colored_squares(mut bishops: Bitboard) -> bool {
-    let mut white_square = false;
-    let mut black_square = false;
+    let mut white_square = 0;
+    let mut black_square = 0;
 
-    // If we actually have at least two bishops...
     if bishops.count_ones() >= 2 {
-        // Then loop through all of them.
         while bishops > 0 {
-            // Find the square the bishop is on.
             let square = bits::next(&mut bishops);
 
-            // Check if the square number is even.
-            let even = (square & 1) == 0;
-
-            // A1 = 0, B1 = 1, C1 = 2, D1 = 3, and so on. Even squares are
-            // black, uneven squares are white.
-            if even {
-                black_square = true
+            if Board::is_white_square(square) {
+                white_square += 1;
             } else {
-                white_square = true
-            };
+                black_square += 1;
+            }
         }
     }
 
-    // Do we have at least one bishop on an even (black) and an uneven
-    // (white) square?
-    white_square && black_square
+    white_square >= 1 && black_square >= 1
 }
 
 // This function determines if, and how, the game was ended.

@@ -59,6 +59,14 @@ impl Board {
         }
     }
 
+    pub fn is_white_square(square: Square) -> bool {
+        let rank = square / 8;
+        let even_square = (square & 1) == 0;
+        let even_rank = (rank & 1) == 0;
+
+        (even_rank && !even_square) || (!even_rank && even_square)
+    }
+
     pub const fn pawn_direction(side: Side) -> i8 {
         const UP: i8 = 8;
         const DOWN: i8 = -8;
