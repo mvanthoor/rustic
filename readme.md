@@ -61,16 +61,34 @@ The current feature-set for Rustic Alpha 3.0.0 is:
 # Included binaries, supported platforms
 
 Each release contains several binaries; these are compiled for different
-types of CPU's. You can use the binary which runs fastest on your
-particular system for maximum playing strength. Start a terminal, and run
-each Rustic version in a terminal:
+types of CPU's. The following binaries are supplied:
+
+- bmi2: Intel Haswell (2013), AMD Zen 3 (2020)
+- popcnt: Intel Nehalem (2008), AMD Bulldozer (2011), AMD Zen 1 and 2 (2017)
+- old: Intel Core2 Duo (2006) and AMD CPU's between 2003 and 2011
+- ancient: For the very first 64-bit CPU's (2003)
+- i686: Intel Pentium II (1998) (Windows only), 32-bit
+- arm: Raspberry Pi 3 and 4 (not tested on RPi 1 and 2)
+
+Windows still supports a 32-bit executable. Note that this executable is at
+50% slower (half the speed) as compared to the 64-bit one and not as well
+tested. Many Linux-distributions have dropped support for 32-bit native
+Linux software, so no 32-bit executable for Linux is provided. The same is
+true for MacOS. The executable for the Raspberry Pi will be 32-bit as long
+as the 32-bit version of Raspbian OS is the default and 64-bit is
+experimental.
+
+You can use the binary which runs fastest on your particular system for
+maximum playing strength. Start a terminal, and run each Rustic version:
 
 ```
 $ ./<executable_name> -p7 -h512
 ```
 
 This will run perft 7 from the starting position, using a 512 MB
-transposition table. Pick the version that runs perft 7 the fastest.
+transposition table. Pick the version that runs perft 7 the fastest. If a
+binary crashes, your CPU does not support the required instructions to run
+it. Try a different binary.
 
 If you wish to run Rustic on a system for which no binary is supplied, you
 can try to compile the engine yourself using the compilation tips below.
