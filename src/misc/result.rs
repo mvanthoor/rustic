@@ -78,29 +78,25 @@ pub fn is_repetition(board: &Board) -> u8 {
 
 // Returns true if there is insufficient material to deliver mate.
 pub fn is_insufficient_material(board: &Board) -> bool {
-    // It's not a draw if: ...there are still pawns
-    let w_p = board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0;
-    let b_p = board.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0;
+    // If one of the conditions below is true, we still have sufficient
+    // material to deliver checkmate.
+    let sufficient_material = board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
+        || board.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0
+        || board.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0
+        || board.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0
+        || board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0
+        || board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0
+        || board.has_bishop_pair(Sides::WHITE)
+        || board.has_bishop_pair(Sides::BLACK)
+        || (board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() >= 1
+            && board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 1)
+        || (board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() >= 1
+            && board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 1)
+        || board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 3
+        || board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 3;
 
-    // Or if there's a major piece on the board
-    let w_q = board.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0;
-    let b_q = board.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0;
-    let w_r = board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0;
-    let b_r = board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0;
-
-    // Or one side has at least 2 bishops on different colored squares
-    let w_b = board.has_bishop_pair(Sides::WHITE);
-    let b_b = board.has_bishop_pair(Sides::BLACK);
-
-    // Or one side has a bishop and a knight
-    let w_bn = board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 0
-        && board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() > 0;
-    let b_bn = board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() > 0
-        && board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() > 0;
-
-    // If one of the conditions above is true, we still have enough
-    // material for checkmate, so insufficient_material is false.
-    !(w_p || b_p || w_q || b_q || w_r || b_r || w_b || b_b || w_bn || b_bn)
+    // Return true if we do not have sufficient material.
+    !sufficient_material
 }
 
 // This function determines if, and how, the game was ended.
