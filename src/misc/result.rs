@@ -37,7 +37,7 @@ use crate::{
 
 // Returns true if the position should be evaluated as a draw.
 pub fn is_draw(refs: &SearchRefs) -> bool {
-    is_insufficient_material(refs.board)
+    (!is_checkmate_possible(refs.board))
         || is_repetition(refs.board) > 0
         || is_fifty_move_rule(refs.board)
 }
@@ -76,11 +76,11 @@ pub fn is_repetition(board: &Board) -> u8 {
     count
 }
 
-// Returns true if there is insufficient material to deliver mate.
-pub fn is_insufficient_material(board: &Board) -> bool {
-    // If one of the conditions below is true, we still have sufficient
-    // material to deliver checkmate.
-    let sufficient_material = board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
+// This function determines if checkmate can be delivered.
+pub fn is_checkmate_possible(board: &Board) -> bool {
+    // At least one side can still deliver checkmate if one of the
+    // conditions below is true.
+    board.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
         || board.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0
         || board.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0
         || board.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0
@@ -93,10 +93,11 @@ pub fn is_insufficient_material(board: &Board) -> bool {
         || (board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() >= 1
             && board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 1)
         || board.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 3
-        || board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 3;
+        || board.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 3
+}
 
-    // Return true if we do not have sufficient material.
-    !sufficient_material
+pub fn is_claimable_insufficient_material(board: &Board) -> bool {
+    false
 }
 
 // This function determines if, and how, the game was ended.
@@ -113,7 +114,7 @@ pub fn game_end_reason(board: &mut Board, mg: &MoveGenerator) -> GameEndReason {
     } else {
         // If we do have legal moves, the game could still be a draw.
         match () {
-            _ if is_insufficient_material(board) => GameEndReason::Insufficient,
+            _ if is_claimable_insufficient_material(board) => GameEndReason::Insufficient,
             _ if is_fifty_move_rule(board) => GameEndReason::FiftyMoves,
             _ if is_repetition(board) >= 2 => GameEndReason::ThreeFold,
             _ => GameEndReason::NotEnded,
