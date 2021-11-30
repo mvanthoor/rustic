@@ -27,4 +27,3 @@ pub mod parse;
 pub mod perft;
 pub mod print;
 pub mod result;
-pub mod utils;
