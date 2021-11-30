@@ -26,6 +26,10 @@ use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
     evaluation::defs::FLIP,
+    movegen::{
+        defs::{MoveList, MoveType},
+        MoveGenerator,
+    },
 };
 
 impl Board {
@@ -88,5 +92,31 @@ impl Board {
 
     pub fn us_is_white(&self) -> bool {
         self.us() == Sides::WHITE
+    }
+
+    // Determines if the side to move has at least one legal move.
+    pub fn we_have_moves(board: &mut Board, mg: &MoveGenerator) -> bool {
+        let mut move_list = MoveList::new();
+
+        // Generate pseudo-legal moves.
+        mg.generate_moves(board, &mut move_list, MoveType::All);
+
+        // We can break as soon as we find a legal move.
+        for i in 0..move_list.len() {
+            let m = move_list.get_move(i);
+            if board.make(m, mg) {
+                // Unmake the move we just made.
+                board.unmake();
+                // Return true, as we have at least one move.
+                return true;
+            }
+        }
+
+        // No legal moves available.
+        false
+    }
+
+    pub fn we_are_in_check(board: &mut Board, mg: &MoveGenerator) -> bool {
+        mg.square_attacked(board, board.opponent(), board.king_square(board.us()))
     }
 }

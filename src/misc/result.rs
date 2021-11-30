@@ -30,7 +30,6 @@ use crate::{
     board::{defs::Pieces, Board},
     defs::{Sides, MAX_MOVE_RULE},
     engine::defs::GameEndReason,
-    misc::utils,
     movegen::MoveGenerator,
     search::defs::SearchRefs,
 };
@@ -104,9 +103,9 @@ pub fn is_claimable_insufficient_material(board: &Board) -> bool {
 pub fn game_end_reason(board: &mut Board, mg: &MoveGenerator) -> GameEndReason {
     // If we don't have a legal move, we see if we are in check or not. If
     // in check, it's checkmate; if not, the result is stalemate.
-    if !utils::we_have_moves(board, mg) {
+    if !Board::we_have_moves(board, mg) {
         // If we're in check, the opponent is attacking our king square.
-        if utils::we_are_in_check(board, mg) {
+        if Board::we_are_in_check(board, mg) {
             GameEndReason::Checkmate
         } else {
             GameEndReason::Stalemate
