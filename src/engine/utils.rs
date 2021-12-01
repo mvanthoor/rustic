@@ -29,8 +29,8 @@ use crate::{
     board::Board,
     comm::defs::CommOut,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
+    misc::parse,
     misc::parse::PotentialMove,
-    misc::{parse, result},
     movegen::{
         defs::{Move, MoveList, MoveType},
         MoveGenerator,
@@ -111,7 +111,7 @@ impl Engine {
     pub fn send_game_result(&mut self) -> GameEndReason {
         // Lock the board and determine the game's end result and reason.
         let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-        let game_end_reason = result::game_end_reason(&mut mtx_board, &self.mg);
+        let game_end_reason = mtx_board.is_game_end(&self.mg);
 
         match game_end_reason {
             // The game is still going. We don't send anything.
@@ -120,7 +120,7 @@ impl Engine {
             // Side to move is checkmated.
             GameEndReason::Checkmate => {
                 // If checkmated and we are white, then black wins.
-                if mtx_board.us_is_white() {
+                if mtx_board.is_white() {
                     self.comm
                         .send(CommOut::Result(GameResult::BlackWins, game_end_reason));
                 } else {
