@@ -80,23 +80,12 @@ pub const BISHOP_MAGIC_NRS: [u64; NrOf::SQUARES] = [
  * offset: contains the offset where the indexing of the square's attack boards begin.
  * magic: the magic number itself, used to create the magic index into the attack table.
 */
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Magic {
     pub mask: Bitboard,
     pub shift: u8,
     pub offset: u64,
     pub nr: u64,
-}
-
-impl Default for Magic {
-    fn default() -> Self {
-        Self {
-            mask: 0,
-            shift: 0,
-            offset: 0,
-            nr: 0,
-        }
-    }
 }
 
 /**
