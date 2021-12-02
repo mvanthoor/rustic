@@ -39,10 +39,12 @@ implemented.
   - Better privacy and name spacing for several modules.
   - Made "Entry" the TT index, containing "Buckets" instead of the other
     way around, to be more in line with other engines.
-  - Renamed some variables here and there for consistency.
+  - Renamed some variables here and there for more consistency.
+  - Moved some functions between modules for more consistency.
 - Update:
   - "rand" crate to 0.8.4.
   - "rand_chacha" crate to 0.3.1.
+  - "clap" crate to 2.34.0.
   - "if_chain" crate to 1.0.2.
 
 > <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
