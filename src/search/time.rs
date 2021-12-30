@@ -1,6 +1,6 @@
 /* =======================================================================
 Rustic is a chess playing engine.
-Copyright (C) 2019-2021, Marcel Vanthoor
+Copyright (C) 2019-2022, Marcel Vanthoor
 https://rustic-chess.org/
 
 Rustic is written in the Rust programming language. It is an original
@@ -61,6 +61,9 @@ impl Search {
     // to go", if this value is not supplied.
     fn moves_to_go(refs: &SearchRefs) -> usize {
         // Default to GAME_LENGTH moves if movestogo was not provided
-        refs.search_params.game_time.moves_to_go.unwrap_or(GAME_LENGTH)
+        refs.search_params
+            .game_time
+            .moves_to_go
+            .unwrap_or(GAME_LENGTH)
     }
 }
