@@ -31,6 +31,7 @@ implemented.
   - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
   - Simplify time management (+30 Elo).
   - pick_move() speed improvement (+3 Elo).
+  - Remove unsafe code in move list swap function (0 Elo, +/- 3).
 - Refactor:
   - Restructured Comm to be in line with the rest of the modules.
   - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
