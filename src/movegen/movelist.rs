@@ -32,10 +32,12 @@ use super::defs::Move;
 use crate::defs::MAX_LEGAL_MOVES;
 use std::mem;
 
+type TMoveList = [Move; MAX_LEGAL_MOVES as usize];
+
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
 pub struct MoveList {
-    list: [Move; MAX_LEGAL_MOVES as usize],
+    list: TMoveList,
     count: u8,
 }
 
