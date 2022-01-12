@@ -30,7 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::defs::Move;
 use crate::defs::MAX_LEGAL_MOVES;
-use std::mem;
+use std::mem::MaybeUninit;
 
 type TMoveList = [Move; MAX_LEGAL_MOVES as usize];
 
@@ -42,17 +42,23 @@ pub struct MoveList {
 }
 
 impl MoveList {
-    // Creates a new move list. Memory is not initialized. This is not
-    // necessary, because the next step will always be to generate moves, and
-    // store them in the list beginning at index 0, which would overwrite the
-    // initialization. Therefore, doing memory initialization slows the program
-    // down. (Tests show this slowdown to be around 50%-60%.)
+    // This function uses unsafe code to create an uninitialized move list.
+    // We do this because initializing the list with zero's (and then
+    // overwriting them with actual moves) is a massive performance hit. In
+    // the future we could pass in the move generator so the list can
+    // immediately be initialized with moves.
     pub fn new() -> Self {
         Self {
             list: unsafe {
-                // FIXME: Look into MaybeUnit changes.
-                #[allow(clippy::uninit_assumed_init)]
-                mem::MaybeUninit::uninit().assume_init()
+                // Create the memory block.
+                let block = MaybeUninit::<TMoveList>::uninit();
+
+                // *** Officially, the initialization should be here. This
+                // is now left up to the caller of this function. ***
+
+                // Immediately extract it; which is not best practice, but
+                // required to avoid the mentioned performance hit.
+                block.assume_init()
             },
             count: 0,
         }
