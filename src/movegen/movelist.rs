@@ -33,6 +33,7 @@ use crate::defs::MAX_LEGAL_MOVES;
 use std::mem::MaybeUninit;
 
 type TMoveList = [Move; MAX_LEGAL_MOVES as usize];
+type RawMoveList = MaybeUninit<TMoveList>;
 
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
@@ -51,7 +52,7 @@ impl MoveList {
         Self {
             list: unsafe {
                 // Create the memory block.
-                let block = MaybeUninit::<TMoveList>::uninit();
+                let block = RawMoveList::uninit();
 
                 // *** Officially, the initialization should be here. This
                 // is now left up to the caller of this function. ***
