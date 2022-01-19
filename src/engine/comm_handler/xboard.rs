@@ -244,7 +244,7 @@ impl Engine {
                         }
                         self.comm.send(CommOut::Message(format!(
                             "{}: result {}, reason {}",
-                            Messages::ACCEPTED.to_string(),
+                            Messages::ACCEPTED,
                             result,
                             reason
                         )))
@@ -317,8 +317,8 @@ impl Engine {
             // was received and handled.
             XBoardIn::Buffered(cmd) => self.comm.send(CommOut::Message(format!(
                 "{}: {}",
-                Messages::INCOMING_CMD_BUFFERED.to_string(),
-                cmd.to_string()
+                Messages::INCOMING_CMD_BUFFERED,
+                cmd
             ))),
         }
     }

@@ -60,7 +60,7 @@ impl Engine {
             CommIn::Ignore(cmd) => {
                 self.comm.send(CommOut::Message(format!(
                     "{}: {}",
-                    Messages::COMMAND_IGNORED.to_string(),
+                    Messages::COMMAND_IGNORED,
                     cmd
                 )));
             }
