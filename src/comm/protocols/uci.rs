@@ -490,10 +490,10 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         // If mate found, report this; otherwise report normal score.
-        let score = if let Some(moves_to_mate) = Shared::moves_to_checkmate(s.cp) {
+        let score = if let Some(moves) = Shared::moves_to_checkmate(s.cp) {
             // If the engine is being mated itself, flip the score.
             let flip = if s.cp < 0 { -1 } else { 1 };
-            format!("mate {}", moves_to_mate * flip)
+            format!("mate {}", moves * flip)
         } else {
             format!("cp {}", s.cp)
         };

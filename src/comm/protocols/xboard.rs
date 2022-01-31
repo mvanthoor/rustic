@@ -67,6 +67,7 @@ const FEATURES: [&str; 12] = [
 
 const MPS_PLAYER: usize = 0;
 const MPS_ENGINE: usize = 1;
+const CHECKMATE_VALUE: i32 = 100000;
 
 // This struct buffers statistics output. In XBoard, the engine does not
 // continuously send intermediate stat updates such as the current move.
@@ -745,12 +746,21 @@ impl XBoard {
         stat01.time = s.time;
         stat01.nodes = s.nodes;
 
-        // It will also output the current search summary.
+        // Report moves to checkmate if detected. Otherwise report normal score.
+        let score = if let Some(moves) = Shared::moves_to_checkmate(s.cp) {
+            // Flip the score if the engine is the one being mated.
+            let flip = if s.cp < 0 { -1 } else { 1 };
+            (CHECKMATE_VALUE + (moves as i32)) * flip
+        } else {
+            s.cp as i32
+        };
+
+        // After caching it will output the current search summary.
         // DEPTH SCORE TIME NODES PV
         println!(
             "{} {} {} {} {}",
             s.depth,
-            s.cp,
+            score,
             (s.time as f64 / 10.0).round(),
             s.nodes,
             s.pv_as_string()
