@@ -32,8 +32,18 @@ use std::sync::{Arc, Mutex};
 pub struct Shared {}
 
 impl Shared {
-    pub fn within_checkmate_range(score: i16) -> bool {
-        (score.abs() >= CHECKMATE_THRESHOLD) && (score.abs() < CHECKMATE)
+    // This function returns the number of moves to mate, or None if no
+    // mate is detected.
+    pub fn moves_to_checkmate(score: i16) -> Option<i16> {
+        let detected = (score.abs() >= CHECKMATE_THRESHOLD) && (score.abs() < CHECKMATE);
+        if detected {
+            let plies = CHECKMATE - score.abs();
+            let is_odd = plies % 2 == 1;
+            let moves = if is_odd { (plies + 1) / 2 } else { plies / 2 };
+            Some(moves)
+        } else {
+            None
+        }
     }
 
     pub fn print_board(board: &Arc<Mutex<Board>>) {

@@ -32,7 +32,7 @@ use crate::{
     defs::{About, FEN_START_POSITION},
     engine::defs::{EngineOption, EngineSetOption, EngineState, ErrFatal, Information, UiElement},
     movegen::defs::Move,
-    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary, CHECKMATE},
+    search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
@@ -490,23 +490,11 @@ impl Uci {
 
     fn search_summary(s: &SearchSummary) {
         // If mate found, report this; otherwise report normal score.
-        let score = if Shared::within_checkmate_range(s.cp) {
-            // Number of plies to mate.
-            let ply = CHECKMATE - s.cp.abs();
-
-            // Check if the number of ply's is odd
-            let is_odd = ply % 2 == 1;
-
-            // Calculate number of moves to mate
-            let moves = if is_odd { (ply + 1) / 2 } else { ply / 2 };
-
+        let score = if let Some(moves_to_mate) = Shared::moves_to_checkmate(s.cp) {
             // If the engine is being mated itself, flip the score.
             let flip = if s.cp < 0 { -1 } else { 1 };
-
-            // Report the mate
-            format!("mate {}", moves * flip)
+            format!("mate {}", moves_to_mate * flip)
         } else {
-            // Report the normal score if there's no mate detected.
             format!("cp {}", s.cp)
         };
 
