@@ -11,7 +11,7 @@ rand = { version = "0.8.4", features = ["small_rng"] }
 rand_chacha = "0.3.1"
 if_chain = "1.0.2"
 clap = "3.0.13"
-crossbeam-channel = "0.5.1"
+crossbeam-channel = "0.5.2"
 
 
 [features]
