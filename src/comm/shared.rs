@@ -25,12 +25,17 @@ use crate::{
     board::Board,
     engine::defs::{EngineState, ErrFatal},
     misc::print,
+    search::defs::{CHECKMATE, CHECKMATE_THRESHOLD},
 };
 use std::sync::{Arc, Mutex};
 
 pub struct Shared {}
 
 impl Shared {
+    pub fn within_checkmate_range(score: i16) -> bool {
+        (score.abs() >= CHECKMATE_THRESHOLD) && (score.abs() < CHECKMATE)
+    }
+
     pub fn print_board(board: &Arc<Mutex<Board>>) {
         print::position(&board.lock().expect(ErrFatal::LOCK), None);
     }
