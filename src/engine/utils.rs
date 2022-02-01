@@ -52,7 +52,7 @@ impl Engine {
         self.board
             .lock()
             .expect(ErrFatal::LOCK)
-            .fen_read(Some(fen))?;
+            .from_fen(Some(fen))?;
 
         Ok(())
     }
