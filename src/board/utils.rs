@@ -21,10 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{
-    defs::{Location, Pieces},
-    Board,
-};
+use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
@@ -96,26 +93,6 @@ impl Board {
 
     pub fn is_white(&self) -> bool {
         self.us() == Sides::WHITE
-    }
-
-    // This function determines if checkmate can be delivered.
-    pub fn is_checkmate_possible(&self) -> bool {
-        // At least one side can still deliver checkmate if one of the
-        // conditions below is true.
-        self.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0
-            || self.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0
-            || self.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0
-            || self.has_bishop_pair(Sides::WHITE)
-            || self.has_bishop_pair(Sides::BLACK)
-            || (self.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() >= 1
-                && self.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 1)
-            || (self.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() >= 1
-                && self.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 1)
-            || self.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 3
-            || self.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 3
     }
 
     // This function determines if, and how, the game was ended.
