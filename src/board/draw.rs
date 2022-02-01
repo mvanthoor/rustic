@@ -32,7 +32,7 @@ impl Board {
     // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(&self) -> bool {
         (!self.is_checkmate_possible())
-            || self.is_draw_by_repetition() > 0
+            || self.is_draw_by_repetition_rule() > 0
             || self.is_draw_by_fifty_move_rule()
     }
 
@@ -49,7 +49,7 @@ impl Board {
 
     // Detects position repetitions in the game's history and returns the
     // of times a position was repeated.
-    pub fn is_draw_by_repetition(&self) -> u8 {
+    pub fn is_draw_by_repetition_rule(&self) -> u8 {
         let mut count = 0;
         let mut stop = false;
         let mut i = (self.history.len() - 1) as i16;
