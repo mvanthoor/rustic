@@ -67,7 +67,7 @@ const FEATURES: [&str; 12] = [
 
 const MPS_PLAYER: usize = 0;
 const MPS_ENGINE: usize = 1;
-const CHECKMATE_VALUE: i32 = 100000;
+const CHECKMATE_VALUE: i32 = 100_000;
 
 // This struct buffers statistics output. In XBoard, the engine does not
 // continuously send intermediate stat updates such as the current move.
