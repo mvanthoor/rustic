@@ -110,8 +110,8 @@ impl Board {
             // If we do have legal moves, the game could still be a draw.
             match () {
                 _ if self.is_draw_by_insufficient_material() => GameEndReason::Insufficient,
-                _ if self.is_draw_by_fifty_move_rule() => GameEndReason::FiftyMoves,
-                _ if self.is_draw_by_repetition_rule() >= 2 => GameEndReason::ThreeFold,
+                _ if self.draw_by_fifty_move_rule() => GameEndReason::FiftyMoves,
+                _ if self.draw_by_repetition_rule() >= 2 => GameEndReason::ThreeFold,
                 _ => GameEndReason::NotEnded,
             }
         }
