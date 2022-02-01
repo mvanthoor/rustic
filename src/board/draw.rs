@@ -31,7 +31,7 @@ use super::defs::Pieces;
 impl Board {
     // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(&self) -> bool {
-        (!self.is_checkmate_possible())
+        (!self.sufficient_material_for_checkmate())
             || self.is_draw_by_repetition_rule() > 0
             || self.is_draw_by_fifty_move_rule()
     }
@@ -78,7 +78,7 @@ impl Board {
     }
 
     // This function determines if checkmate can be delivered.
-    pub fn is_checkmate_possible(&self) -> bool {
+    pub fn sufficient_material_for_checkmate(&self) -> bool {
         // At least one side can still deliver checkmate if one of the
         // conditions below is true.
         self.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
