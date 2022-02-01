@@ -31,19 +31,23 @@ use super::defs::Pieces;
 impl Board {
     // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(&self) -> bool {
-        (!self.sufficient_material_for_checkmate())
+        (!self.sufficient_material_to_force_checkmate())
             || self.draw_by_repetition_rule() > 0
             || self.draw_by_fifty_move_rule()
     }
 
-    // Checks the 50-move rule.
+    // Checks for the 50-move rule.
     pub fn draw_by_fifty_move_rule(&self) -> bool {
         self.game_state.halfmove_clock >= MAX_MOVE_RULE
     }
 
-    // For some positions with insufficient material a draw can be claimed
-    // according to FIDE rules.
-    pub fn is_draw_by_insufficient_material(&self) -> bool {
+    // This function returns true if the amount of material on the board is
+    // not sufficient to deliver checkmate using any sequence of legal
+    // moves, even if the losing side is trying to assist in getting
+    // checkmated. In such a position a draw can officially be claimed
+    // under FIDE rules. Note that this is different from
+    // sufficient_material_to_force_checkmate().
+    pub fn draw_by_insufficient_material_rule(&self) -> bool {
         false
     }
 
@@ -77,10 +81,12 @@ impl Board {
         count
     }
 
-    // This function determines if checkmate can be delivered.
-    pub fn sufficient_material_for_checkmate(&self) -> bool {
-        // At least one side can still deliver checkmate if one of the
-        // conditions below is true.
+    // This function determines if there is enough material available for
+    // one of the sides to force a checkmate, even with best play from the
+    // losing side. If mate cannot be forced (even though it is
+    // theoretically still possible if the losing side plays poorly, or
+    // even assists in getting mated), then this function returns false.
+    pub fn sufficient_material_to_force_checkmate(&self) -> bool {
         self.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
             || self.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0
             || self.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0
