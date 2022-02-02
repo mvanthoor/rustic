@@ -182,29 +182,3 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
     to_console(&ascii_board, mark_square);
 }
-
-// Prints a given move list to the screen.
-#[allow(dead_code)]
-pub fn movelist(ml: &MoveList) {
-    for i in 0..ml.len() {
-        move_data(ml.get_move(i), i);
-    }
-}
-
-// Prints decoded move data to the screen.
-#[allow(dead_code)]
-pub fn move_data(m: Move, nr: u8) {
-    println!(
-        "{}. Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}, score: {}",
-        nr + 1,
-        PIECE_CHAR_CAPS[m.piece()],
-        SQUARE_NAME[m.from()],
-        SQUARE_NAME[m.to()],
-        PIECE_NAME[m.captured()],
-        PIECE_NAME[m.promoted()],
-        m.en_passant(),
-        m.double_step(),
-        m.castling(),
-        m.get_sort_score(),
-    );
-}
