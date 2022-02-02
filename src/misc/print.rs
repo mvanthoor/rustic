@@ -27,6 +27,7 @@ use crate::{
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Sides},
+    movegen::defs::{Move, MoveList},
 };
 
 type AsciiBoard = [char; NrOf::SQUARES];
@@ -44,6 +45,7 @@ const CHAR_BR: char = 'r';
 const CHAR_BB: char = 'b';
 const CHAR_BN: char = 'n';
 const CHAR_BP: char = 'i';
+const PIECE_CHAR_CAPS: [&str; NrOf::PIECE_TYPES + 1] = ["K", "Q", "R", "B", "N", "", "_"];
 
 // Prints the current position to the screen.
 pub fn position(board: &Board, mark_square: Option<u8>) {
@@ -180,4 +182,30 @@ pub fn bitboard(bitboard: Bitboard, mark_square: Option<u8>) {
     let mut ascii_board: AsciiBoard = [CHAR_ES; 64];
     put_character_on_square(bitboard, &mut ascii_board, SQUARE_OCCUPIED);
     to_console(&ascii_board, mark_square);
+}
+
+// Prints a given move list to the screen.
+#[allow(dead_code)]
+pub fn movelist(ml: &MoveList) {
+    for i in 0..ml.len() {
+        move_data(ml.get_move(i), i);
+    }
+}
+
+// Prints decoded move data to the screen.
+#[allow(dead_code)]
+pub fn move_data(m: Move, nr: u8) {
+    println!(
+        "{}. Move: {}{}{} capture: {}, promotion: {}, ep: {}, double: {}, castling: {}, score: {}",
+        nr + 1,
+        PIECE_CHAR_CAPS[m.piece()],
+        SQUARE_NAME[m.from()],
+        SQUARE_NAME[m.to()],
+        PIECE_CHAR_CAPS[m.captured()],
+        PIECE_CHAR_CAPS[m.promoted()],
+        m.en_passant(),
+        m.double_step(),
+        m.castling(),
+        m.get_sort_score(),
+    );
 }
