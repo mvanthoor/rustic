@@ -54,16 +54,13 @@ impl Shared {
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
         let length = mtx_board.history.len();
 
-        if length == 0 {
+        if length > 0 {
+            for i in 0..length {
+                println!("{:<3}| ply: {} {}", i, i + 1, mtx_board.history.get_ref(i));
+            }
+        } else {
             println!("No history available.");
         }
-
-        for i in 0..length {
-            let h = mtx_board.history.get_ref(i);
-            println!("{:<3}| ply: {} {}", i, i + 1, h.as_string());
-        }
-
-        std::mem::drop(mtx_board);
     }
 
     pub fn print_eval(eval: i16, phase: i16) {

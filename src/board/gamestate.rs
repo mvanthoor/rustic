@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use std::fmt::{self, Display};
+
 use crate::{
     board::defs::{Pieces, PIECE_NAME, SQUARE_NAME},
     defs::Sides,
@@ -62,8 +64,10 @@ impl GameState {
             next_move: Move::new(0),
         }
     }
+}
 
-    pub fn as_string(&self) -> String {
+impl Display for GameState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ep = if let Some(x) = self.en_passant {
             SQUARE_NAME[x as usize]
         } else {
@@ -76,7 +80,8 @@ impl GameState {
             ""
         };
 
-        format!(
+        write!(
+            f,
             "zk: {:x} ac: {} cperm: {} ep: {} hmc: {} fmn: {}, pst_mg: {}/{}, pst_eg: {}/{} next: {}{}{}",
             self.zobrist_key,
             self.active_color,
