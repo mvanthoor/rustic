@@ -62,6 +62,8 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
+use std::fmt::{self, Display};
+
 pub use super::{magics::Magic, movelist::MoveList};
 use crate::{
     board::defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
@@ -148,21 +150,24 @@ impl Move {
         self.data = (self.data & !mask) | v;
     }
 
-    pub fn as_string(&self) -> String {
-        format!(
-            "{}{}{}",
-            SQUARE_NAME[self.from()],
-            SQUARE_NAME[self.to()],
-            PIECE_CHAR_SMALL[self.promoted()]
-        )
-    }
-
     pub fn to_short_move(self) -> ShortMove {
         ShortMove::new((self.data & MOVE_ONLY) as u32)
     }
 
     pub fn get_move(&self) -> u32 {
         (self.data & MOVE_ONLY) as u32
+    }
+}
+
+impl Display for Move {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}{}",
+            SQUARE_NAME[self.from()],
+            SQUARE_NAME[self.to()],
+            PIECE_CHAR_SMALL[self.promoted()]
+        )
     }
 }
 

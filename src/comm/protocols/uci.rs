@@ -523,8 +523,7 @@ impl Uci {
     fn search_currmove(c: &SearchCurrentMove) {
         println!(
             "info currmove {} currmovenumber {}",
-            c.curr_move.as_string(),
-            c.curr_move_number
+            c.curr_move, c.curr_move_number
         );
     }
 
@@ -542,7 +541,7 @@ impl Uci {
     }
 
     fn best_move(m: &Move) {
-        println!("bestmove {}", m.as_string());
+        println!("bestmove {}", m);
     }
 
     fn message(msg: &str) {

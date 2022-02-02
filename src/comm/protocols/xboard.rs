@@ -736,7 +736,7 @@ impl XBoard {
     }
 
     fn best_move(m: &Move) {
-        println!("move {}", m.as_string());
+        println!("move {}", m);
     }
 
     fn search_summary(stat01: &mut Stat01, s: &SearchSummary) {
@@ -790,7 +790,7 @@ impl XBoard {
                 s.depth,
                 s.legal_moves_total - s.curr_move_number,
                 s.legal_moves_total,
-                s.curr_move.as_string()
+                s.curr_move
             );
         }
     }

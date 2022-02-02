@@ -64,8 +64,7 @@ impl Display for PrincipalVariation {
         let mut s = String::from("");
 
         for next_move in self.0.iter() {
-            let m = format!(" {}", next_move.as_string());
-            s.push_str(&m[..]);
+            s.push_str(format!(" {}", next_move).as_str());
         }
 
         write!(f, "{}", s.trim())
