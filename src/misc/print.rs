@@ -23,11 +23,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::{
-        defs::{Pieces, RangeOf, PIECE_CHAR_CAPS, PIECE_NAME, SQUARE_NAME},
+        defs::{Pieces, RangeOf, SQUARE_NAME},
         Board,
     },
     defs::{Bitboard, Castling, NrOf, Sides},
-    movegen::defs::{Move, MoveList},
 };
 
 type AsciiBoard = [char; NrOf::SQUARES];
