@@ -40,7 +40,6 @@ pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
 ];
 pub const PIECE_NAME: [&str; NrOf::PIECE_TYPES + 1] =
     ["King", "Queen", "Rook", "Bishop", "Knight", "Pawn", "-"];
-pub const PIECE_CHAR_CAPS: [&str; NrOf::PIECE_TYPES + 1] = ["K", "Q", "R", "B", "N", "", "_"];
 pub const PIECE_CHAR_SMALL: [&str; NrOf::PIECE_TYPES + 1] = ["k", "q", "r", "b", "n", "", ""];
 
 pub struct Pieces;
