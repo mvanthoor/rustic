@@ -22,7 +22,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
+    defs::{
+        PrincipalVariation, SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS,
+        STALEMATE,
+    },
     Search, SearchRefs,
 };
 use crate::{
@@ -38,7 +41,7 @@ impl Search {
         mut depth: i8,
         mut alpha: i16,
         beta: i16,
-        pv: &mut Vec<Move>,
+        pv: &mut PrincipalVariation,
         refs: &mut SearchRefs,
     ) -> i16 {
         let verbosity = refs.search_params.verbosity; // If quiet, don't send intermediate stats.
@@ -165,7 +168,7 @@ impl Search {
             }
 
             // Create a node PV for this move.
-            let mut node_pv: Vec<Move> = Vec::new();
+            let mut node_pv = PrincipalVariation::new();
 
             // We just made a move. We are not yet at one of the leaf
             // nodes, so if the position is not a draw, we must search

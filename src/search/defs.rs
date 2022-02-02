@@ -30,6 +30,34 @@ pub const MAX_KILLER_MOVES: usize = 2;
 pub type SearchResult = (Move, SearchTerminated);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
+#[derive(PartialEq, Clone)]
+pub struct PrincipalVariation(Vec<Move>);
+impl PrincipalVariation {
+    pub fn new() -> Self {
+        Self { 0: Vec::new() }
+    }
+
+    pub fn first_move(&self) -> Move {
+        if !self.0.is_empty() {
+            self.0[0]
+        } else {
+            Move::new(0)
+        }
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn push(&mut self, m: Move) {
+        self.0.push(m);
+    }
+
+    pub fn append(&mut self, pv: &mut PrincipalVariation) {
+        self.0.append(&mut pv.0);
+    }
+}
+
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
@@ -173,21 +201,21 @@ impl SearchInfo {
 // information into UCI/XBoard/Console output and print it to STDOUT.
 #[derive(PartialEq, Clone)]
 pub struct SearchSummary {
-    pub depth: i8,      // depth reached during search
-    pub seldepth: i8,   // Maximum selective depth reached
-    pub time: u128,     // milliseconds
-    pub cp: i16,        // centipawns score
-    pub mate: u8,       // mate in X moves
-    pub nodes: usize,   // nodes searched
-    pub nps: usize,     // nodes per second
-    pub hash_full: u16, // TT use in per mille
-    pub pv: Vec<Move>,  // Principal Variation
+    pub depth: i8,              // depth reached during search
+    pub seldepth: i8,           // Maximum selective depth reached
+    pub time: u128,             // milliseconds
+    pub cp: i16,                // centipawns score
+    pub mate: u8,               // mate in X moves
+    pub nodes: usize,           // nodes searched
+    pub nps: usize,             // nodes per second
+    pub hash_full: u16,         // TT use in per mille
+    pub pv: PrincipalVariation, // Principal Variation
 }
 
 impl SearchSummary {
     pub fn pv_as_string(&self) -> String {
         let mut pv = String::from("");
-        for next_move in self.pv.iter() {
+        for next_move in self.pv.0.iter() {
             let m = format!(" {}", next_move.as_string());
             pv.push_str(&m[..]);
         }

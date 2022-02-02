@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchMode, SearchRefs, SearchResult, INF},
+    defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, INF},
     ErrFatal, Information, Search, SearchReport, SearchSummary,
 };
 use crate::{defs::MAX_PLY, engine::defs::Verbosity, movegen::defs::Move};
@@ -33,7 +33,7 @@ impl Search {
         // Working variables
         let mut depth = 1;
         let mut best_move = Move::new(0);
-        let mut root_pv: Vec<Move> = Vec::new();
+        let mut root_pv = PrincipalVariation::new();
         let is_game_time = refs.search_params.is_game_time();
 
         // Determine available time in case of GameTime search mode.
@@ -71,9 +71,7 @@ impl Search {
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
-                if !root_pv.is_empty() {
-                    best_move = root_pv[0];
-                }
+                best_move = root_pv.first_move();
 
                 if refs.search_params.verbosity != Verbosity::Silent {
                     // Create search summary for this depth.

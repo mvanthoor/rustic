@@ -22,18 +22,23 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminated, CHECK_TERMINATION, SEND_STATS},
+    defs::{PrincipalVariation, SearchTerminated, CHECK_TERMINATION, SEND_STATS},
     Search, SearchRefs,
 };
 use crate::{
     defs::MAX_PLY,
     engine::defs::Verbosity,
     evaluation::Evaluation,
-    movegen::defs::{Move, MoveList, MoveType, ShortMove},
+    movegen::defs::{MoveList, MoveType, ShortMove},
 };
 
 impl Search {
-    pub fn quiescence(mut alpha: i16, beta: i16, pv: &mut Vec<Move>, refs: &mut SearchRefs) -> i16 {
+    pub fn quiescence(
+        mut alpha: i16,
+        beta: i16,
+        pv: &mut PrincipalVariation,
+        refs: &mut SearchRefs,
+    ) -> i16 {
         // We created a new node which we'll search, so count it.
         refs.search_info.nodes += 1;
 
@@ -113,7 +118,7 @@ impl Search {
             }
 
             // Create a PV for this node.
-            let mut node_pv: Vec<Move> = Vec::new();
+            let mut node_pv = PrincipalVariation::new();
 
             // The position is not yet quiet. Go one ply deeper.
             let eval_score = -Search::quiescence(-beta, -alpha, &mut node_pv, refs);
