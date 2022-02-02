@@ -1,3 +1,4 @@
+pub use super::time::SAFEGUARD;
 use crate::{
     board::Board,
     defs::MAX_PLY,
@@ -9,14 +10,12 @@ use crate::{
 };
 use crossbeam_channel::{Receiver, Sender};
 use std::{
+    fmt::{self, Display},
     sync::{Arc, Mutex},
     time::Instant,
 };
 
-pub use super::time::SAFEGUARD;
-
 pub const INF: i16 = 25_000;
-// pub const ASPIRATION_WINDOW: i16 = 50;
 pub const CHECKMATE: i16 = 24_000;
 pub const CHECKMATE_THRESHOLD: i16 = 23_900;
 pub const STALEMATE: i16 = 0;
@@ -30,6 +29,8 @@ pub const MAX_KILLER_MOVES: usize = 2;
 pub type SearchResult = (Move, SearchTerminated);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
+// This struct hides the details of how the principal variation works, and
+// it also enables the implementation of the Display trait.
 #[derive(PartialEq, Clone)]
 pub struct PrincipalVariation(Vec<Move>);
 impl PrincipalVariation {
@@ -58,6 +59,19 @@ impl PrincipalVariation {
     }
 }
 
+impl Display for PrincipalVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut s = String::from("");
+
+        for next_move in self.0.iter() {
+            let m = format!(" {}", next_move.as_string());
+            s.push_str(&m[..]);
+        }
+
+        write!(f, "{}", s.trim())
+    }
+}
+
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
@@ -72,7 +86,7 @@ pub enum SearchControl {
 #[derive(PartialEq, Copy, Clone)]
 pub enum SearchTerminated {
     Stopped,   // Search is stopped with a best move.
-    Abandoned, //Search is stopped, best move abandoned
+    Abandoned, // Search is stopped, best move abandoned.
     Quit,      // Search module (and engine) are shut down.
     Nothing,   // No command received yet.
 }
@@ -210,17 +224,6 @@ pub struct SearchSummary {
     pub nps: usize,             // nodes per second
     pub hash_full: u16,         // TT use in per mille
     pub pv: PrincipalVariation, // Principal Variation
-}
-
-impl SearchSummary {
-    pub fn pv_as_string(&self) -> String {
-        let mut pv = String::from("");
-        for next_move in self.pv.0.iter() {
-            let m = format!(" {}", next_move.as_string());
-            pv.push_str(&m[..]);
-        }
-        pv.trim().to_string()
-    }
 }
 
 #[derive(PartialEq, Copy, Clone)]

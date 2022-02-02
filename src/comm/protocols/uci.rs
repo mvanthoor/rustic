@@ -512,11 +512,9 @@ impl Uci {
             String::from(" ")
         };
 
-        let pv = s.pv_as_string();
-
         let info = format!(
             "info score {} {} time {} nodes {} nps {}{}pv {}",
-            score, depth, s.time, s.nodes, s.nps, hash_full, pv,
+            score, depth, s.time, s.nodes, s.nps, hash_full, s.pv,
         );
 
         println!("{}", info);
