@@ -34,13 +34,14 @@ pub type BlockerBoards = Vec<Bitboard>;
 pub type AttackBoards = Vec<Bitboard>;
 
 impl MoveGenerator {
-    // Explanation of rook mask, step by step. Get the location of square the
-    // rook is on, as a (file, rank) tuple. Create the bitboards for files, ranks,
-    // and the rook's square. Get the bitboards of the file and rank the rook is on.
-    // Create a bitboard for the edges of the board, but do NOT include an edge if
-    // the rook is actually on it. (Otherwise all bits would be unset.) Create the
-    // rook's mask by combining its file and rank bitboards. For the final result:
-    // exclude the edge squares and rook's square from the mask.
+    // Explanation of rook mask, step by step. Get the location of square
+    // the rook is on, as a (file, rank) tuple. Create the bitboards for
+    // files, ranks, and the rook's square. Get the bitboards of the file
+    // and rank the rook is on. Create a bitboard for the edges of the
+    // board, but do NOT include an edge if the rook is actually on it.
+    // (Otherwise all bits would be unset.) Create the rook's mask by
+    // combining its file and rank bitboards. For the final result: exclude
+    // the edge squares and rook's square from the mask.
     pub fn rook_mask(square: Square) -> Bitboard {
         let location = Board::square_on_file_rank(square);
         let bb_rook_square = BB_SQUARES[square];
@@ -50,28 +51,30 @@ impl MoveGenerator {
         bb_mask & !bb_edges & !bb_rook_square
     }
 
-    // bishop_mask() works a bit differently compared to rook_mask(),
-    // but in the end it does the same thing: create a mask for a sliding piece.
-    // First, a bitboard containing all the edges (if the piece is not on the edge).
-    // Starting at the given square, the function generates four rays, one for each
-    // diagonal direction, on an empty board. As a final result, the four rays are
-    // combined, to generate all bishop moves from that square, on an empty board.
-    // Then the edges are clipped off, as they are not needed in the mask.
+    // bishop_mask() works a bit differently compared to rook_mask(), but
+    // in the end it does the same thing: create a mask for a sliding
+    // piece. First, a bitboard containing all the edges (if the piece is
+    // not on the edge). Starting at the given square, the function
+    // generates four rays, one for each diagonal direction, on an empty
+    // board. As a final result, the four rays are combined, to generate
+    // all bishop moves from that square, on an empty board. Then the edges
+    // and bishop square are clipped off, as they are not needed.
     pub fn bishop_mask(square: Square) -> Bitboard {
         let location = Board::square_on_file_rank(square);
         let bb_edges = MoveGenerator::edges_without_piece(location);
+        let bb_bishop_square = BB_SQUARES[square];
         let bb_up_left = MoveGenerator::bb_ray(0, square, Direction::UpLeft);
         let bb_up_right = MoveGenerator::bb_ray(0, square, Direction::UpRight);
         let bb_down_right = MoveGenerator::bb_ray(0, square, Direction::DownRight);
         let bb_down_left = MoveGenerator::bb_ray(0, square, Direction::DownLeft);
 
-        (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges
+        (bb_up_left | bb_up_right | bb_down_right | bb_down_left) & !bb_edges & !bb_bishop_square
     }
 
-    // This function creates a bitboard holding all the edges of the board, as
-    // needed to clip the board edges off the rook and bishop masks. To prevent
-    // clipping the entire ray if the piece itself is on an edge, the edge(s)
-    // containing the piece are excluded.
+    // This function creates a bitboard holding all the edges of the board,
+    // as needed to clip the board edges off the rook and bishop masks. To
+    // prevent clipping the entire ray if the piece itself is on an edge,
+    // the edge(s) containing the piece are excluded.
     fn edges_without_piece(location: Location) -> Bitboard {
         let bb_piece_file = BB_FILES[location.0 as usize];
         let bb_piece_rank = BB_RANKS[location.1 as usize];
@@ -82,10 +85,11 @@ impl MoveGenerator {
             | (BB_RANKS[Ranks::R8] & !bb_piece_rank)
     }
 
-    // This function takes a square, and all the blocker boards belonging to that
-    // square. Then it'll iterate through those blocker boards, and generate the
-    // attack board belonging to that blocker board. The 'length' parameter is the
-    // length of the given array of blocker boards.
+    // This function takes a square, and all the blocker boards belonging
+    // to that square. Then it'll iterate through those blocker boards, and
+    // generate the attack board belonging to that blocker board. The
+    // 'length' parameter is the length of the given array of blocker
+    // boards.
     pub fn rook_attack_boards(square: Square, blockers: &[Bitboard]) -> AttackBoards {
         let mut bb_attack_boards: AttackBoards = Vec::new();
 
@@ -116,12 +120,11 @@ impl MoveGenerator {
     }
 
     // blocker_boards() takes a piece mask. This is a bitboard in which all
-    // the bits are set for a square where a slider can move to, without the edges.
-    // (As generated by the functions in the mask.rs file.) blocker_boards()
-    // generates all possible permutations for the given mask, using the Carry
-    // Rippler method. See the given link, or http://rustic-chess.org for more
-    // information.
-
+    // the bits are set for a square where a slider can move to, without
+    // the edges. (As generated by the functions in the mask.rs file.)
+    // blocker_boards() generates all possible permutations for the given
+    // mask, using the Carry Rippler method. See the given link, or
+    // http://rustic-chess.org for more information.
     pub fn blocker_boards(mask: Bitboard) -> BlockerBoards {
         let d: Bitboard = mask;
         let mut bb_blocker_boards: BlockerBoards = Vec::new();
@@ -140,13 +143,14 @@ impl MoveGenerator {
         bb_blocker_boards
     }
 
-    // This is a long function, but fortunately it's easy to understand. It creates
-    // a ray for a sliding piece, in one of 8 directions: up, left, right, down,
-    // up left, up right, down left, down right. (Some programs call it N, E, S, W, NW,
-    // NE, SE, SW.) The function starts at the given square, in a given direction,
-    // and then it keeps iterating in that direction until it either hits a piece,
-    // or the edge of the board. Therefore, in each call, only one of the eight
-    // blocks of this function will be executed.
+    // This is a long function, but fortunately it's easy to understand. It
+    // creates a ray for a sliding piece, in one of 8 directions: up, left,
+    // right, down, up left, up right, down left, down right. (Some
+    // programs call it N, E, S, W, NW, NE, SE, SW.) The function starts at
+    // the given square, in a given direction, and then it keeps iterating
+    // in that direction until it either hits a piece, or the edge of the
+    // board. Therefore, in each call, only one of the eight blocks of this
+    // function will be executed.
     pub fn bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
         let mut file = Board::square_on_file_rank(square).0 as usize;
         let mut rank = Board::square_on_file_rank(square).1 as usize;
