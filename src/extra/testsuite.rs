@@ -25,7 +25,7 @@ use crate::{
     board::Board,
     engine::defs::{PerftData, TT},
     extra::epds::LARGE_TEST_EPDS,
-    misc::{perft, print},
+    misc::perft,
     movegen::MoveGenerator,
 };
 use std::{
@@ -72,7 +72,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
 
         // If setup ok, then print position. Else, print error and continue to the next test.
         match setup_result {
-            Ok(()) => print::position(&board, None),
+            Ok(()) => println!("{}", board),
             Err(_) => result = ERR_FEN,
         };
 

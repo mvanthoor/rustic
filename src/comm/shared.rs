@@ -24,7 +24,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::Board,
     engine::defs::{EngineState, ErrFatal},
-    misc::print,
     search::defs::{CHECKMATE, CHECKMATE_THRESHOLD},
 };
 use std::sync::{Arc, Mutex};
@@ -47,7 +46,7 @@ impl Shared {
     }
 
     pub fn print_board(board: &Arc<Mutex<Board>>) {
-        print::position(&board.lock().expect(ErrFatal::LOCK), None);
+        println!("{}", &board.lock().expect(ErrFatal::LOCK));
     }
 
     pub fn print_history(board: &Arc<Mutex<Board>>) {

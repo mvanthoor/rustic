@@ -25,8 +25,7 @@ use std::fmt::{self, Display};
 
 use crate::{
     board::defs::{Pieces, PIECE_NAME, SQUARE_NAME},
-    defs::Sides,
-    misc::print,
+    defs::{Castling, Sides},
     movegen::defs::Move,
 };
 
@@ -64,6 +63,22 @@ impl GameState {
             next_move: Move::new(0),
         }
     }
+
+    pub fn castling_to_string(&self) -> String {
+        let mut s: String = String::from("");
+        let c = self.castling;
+
+        s += if c & Castling::WK > 0 { "K" } else { "" };
+        s += if c & Castling::WQ > 0 { "Q" } else { "" };
+        s += if c & Castling::BK > 0 { "k" } else { "" };
+        s += if c & Castling::BQ > 0 { "q" } else { "" };
+
+        if s.is_empty() {
+            s = String::from("-");
+        }
+
+        s
+    }
 }
 
 impl Display for GameState {
@@ -85,7 +100,7 @@ impl Display for GameState {
             "zk: {:x} ac: {} cperm: {} ep: {} hmc: {} fmn: {}, pst_mg: {}/{}, pst_eg: {}/{} next: {}{}{}",
             self.zobrist_key,
             self.active_color,
-            print::castling_as_string(self.castling),
+            self.castling_to_string(),
             ep,
             self.halfmove_clock,
             self.fullmove_number,

@@ -24,7 +24,6 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, PerftData, TT},
-    misc::print,
     movegen::{
         defs::{MoveList, MoveType},
         MoveGenerator,
@@ -63,7 +62,7 @@ pub fn run(
 
     println!("Benchmarking perft 1-{}:", depth);
 
-    print::position(&local_board, None);
+    println!("{}", local_board);
 
     // Perform all perfts for depths 1 up to and including "depth"
     for d in 1..=depth {
