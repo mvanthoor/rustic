@@ -80,7 +80,6 @@ pub fn algebraic_square_to_number(algebraic_square: &str) -> Option<Square> {
         .position(|&element| element == algebraic_square)
 }
 
-#[allow(dead_code)]
 // Convert promotion piece names to number
 pub fn promotion_piece_letter_to_number(piece_letter: char) -> Option<Piece> {
     // Assume that the character does not represent a promotion piece.
