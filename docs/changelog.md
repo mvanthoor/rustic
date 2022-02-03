@@ -29,7 +29,7 @@ implemented.
   - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
   - Fix inaccuracy in TT mate handling (+20 Elo).
   - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
-  - Simplify time management (+30 Elo).
+  - Simplify time management (+25 Elo).
   - pick_move() speed improvement (+3 Elo).
   - Remove unsafe code in move list swap function (0 Elo, +/- 3).
 - Refactor:
@@ -40,8 +40,10 @@ implemented.
   - Better privacy and name spacing for several modules.
   - Made "Entry" the TT index, containing "Buckets" instead of the other
     way around, to be more in line with other engines.
-  - Renamed some variables here and there for more consistency.
-  - Moved some functions between modules for more consistency.
+  - Renamed some variables for more consistency.
+  - Moved lots of functions between modules for more consistency.
+  - Implemented Display for many structs, removing custom functions.
+  - Dropped the "misc::print" module (no code left after refactoring).
 - Update:
   - "rand" crate to 0.8.4.
   - "rand_chacha" crate to 0.3.1.
