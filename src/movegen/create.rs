@@ -46,7 +46,7 @@ impl MoveGenerator {
         let location = Board::square_on_file_rank(square);
         let bb_rook_square = BB_SQUARES[square];
         let bb_edges = MoveGenerator::edges_without_piece(location);
-        let bb_mask = BB_FILES[location.0 as usize] | BB_RANKS[location.1 as usize];
+        let bb_mask = BB_FILES[location.file as usize] | BB_RANKS[location.rank as usize];
 
         bb_mask & !bb_edges & !bb_rook_square
     }
@@ -76,8 +76,8 @@ impl MoveGenerator {
     // prevent clipping the entire ray if the piece itself is on an edge,
     // the edge(s) containing the piece are excluded.
     fn edges_without_piece(location: Location) -> Bitboard {
-        let bb_piece_file = BB_FILES[location.0 as usize];
-        let bb_piece_rank = BB_RANKS[location.1 as usize];
+        let bb_piece_file = BB_FILES[location.file as usize];
+        let bb_piece_rank = BB_RANKS[location.rank as usize];
 
         (BB_FILES[Files::A] & !bb_piece_file)
             | (BB_FILES[Files::H] & !bb_piece_file)
@@ -152,8 +152,8 @@ impl MoveGenerator {
     // board. Therefore, in each call, only one of the eight blocks of this
     // function will be executed.
     pub fn bb_ray(bb_in: Bitboard, square: Square, direction: Direction) -> Bitboard {
-        let mut file = Board::square_on_file_rank(square).0 as usize;
-        let mut rank = Board::square_on_file_rank(square).1 as usize;
+        let mut file = Board::square_on_file_rank(square).file as usize;
+        let mut rank = Board::square_on_file_rank(square).rank as usize;
         let mut bb_square = BB_SQUARES[square];
         let mut bb_ray = 0;
         let mut done = false;

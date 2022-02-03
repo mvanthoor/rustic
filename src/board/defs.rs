@@ -113,8 +113,11 @@ pub const BB_FILES: [Bitboard; NrOf::FILES] = init_bb_files();
 pub const BB_RANKS: [Bitboard; NrOf::RANKS] = init_bb_ranks();
 pub const BB_SQUARES: [Bitboard; NrOf::SQUARES] = init_bb_squares();
 
-// Piece location: (file, rank)
-pub type Location = (u8, u8);
+#[derive(Copy, Clone)]
+pub struct Location {
+    pub file: u8,
+    pub rank: u8,
+}
 
 // This enum holds the direction in which a ray of a slider piece can point.
 #[derive(Copy, Clone)]
