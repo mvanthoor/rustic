@@ -29,48 +29,6 @@ pub type SearchResult = (Move, SearchTerminated);
 pub type PrincipalVariation = Vec<Move>;
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
-// // This struct hides the details of how the principal variation works, and
-// // it also enables the implementation of the Display trait.
-// #[derive(PartialEq, Clone)]
-// pub struct PrincipalVariation(Vec<Move>);
-// impl PrincipalVariation {
-//     pub fn new() -> Self {
-//         Self { 0: Vec::new() }
-//     }
-
-//     pub fn first_move(&self) -> Move {
-//         if !self.0.is_empty() {
-//             self.0[0]
-//         } else {
-//             Move::new(0)
-//         }
-//     }
-
-//     pub fn clear(&mut self) {
-//         self.0.clear();
-//     }
-
-//     pub fn push(&mut self, m: Move) {
-//         self.0.push(m);
-//     }
-
-//     pub fn append(&mut self, pv: &mut PrincipalVariation) {
-//         self.0.append(&mut pv.0);
-//     }
-// }
-
-// impl Display for PrincipalVariation {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         let mut s = String::from("");
-
-//         for next_move in self.0.iter() {
-//             s.push_str(format!(" {}", next_move).as_str());
-//         }
-
-//         write!(f, "{}", s.trim())
-//     }
-// }
-
 #[derive(PartialEq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
