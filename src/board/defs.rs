@@ -109,52 +109,9 @@ impl RangeOf {
     pub const SQUARES: RangeInclusive<Square> = 0..=63;
 }
 
-// Initialize arrays with bitboards for each file, rank and square.
-type TBBFiles = [Bitboard; NrOf::FILES];
-type TBBRanks = [Bitboard; NrOf::RANKS];
-type TBBSquares = [Bitboard; NrOf::SQUARES];
-
-const fn init_bb_files() -> TBBFiles {
-    const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
-    let mut bb_files: TBBFiles = [0; NrOf::FILES];
-    let mut i = 0;
-
-    while i < (NrOf::FILES) {
-        bb_files[i] = BB_FILE_A << i;
-        i += 1;
-    }
-
-    bb_files
-}
-
-const fn init_bb_ranks() -> TBBRanks {
-    pub const BB_RANK_1: Bitboard = 0xFF;
-    let mut bb_ranks = [0; NrOf::RANKS as usize];
-    let mut i = 0;
-
-    while i < (NrOf::RANKS as usize) {
-        bb_ranks[i] = BB_RANK_1 << (i * 8);
-        i += 1;
-    }
-
-    bb_ranks
-}
-
-const fn init_bb_squares() -> TBBSquares {
-    let mut bb_squares: TBBSquares = [0; NrOf::SQUARES];
-    let mut i = 0;
-
-    while i < NrOf::SQUARES {
-        bb_squares[i] = 1u64 << i;
-        i += 1;
-    }
-
-    bb_squares
-}
-
-pub const BB_FILES: TBBFiles = init_bb_files();
-pub const BB_RANKS: TBBRanks = init_bb_ranks();
-pub const BB_SQUARES: TBBSquares = init_bb_squares();
+pub const BB_FILES: [Bitboard; NrOf::FILES] = init_bb_files();
+pub const BB_RANKS: [Bitboard; NrOf::RANKS] = init_bb_ranks();
+pub const BB_SQUARES: [Bitboard; NrOf::SQUARES] = init_bb_squares();
 
 // Piece location: (file, rank)
 pub type Location = (u8, u8);
@@ -170,4 +127,50 @@ pub enum Direction {
     UpRight,
     DownRight,
     DownLeft,
+}
+
+// ===== const fn functions ===== //
+
+// Initializes a constant array of bitboards, with each bitboard
+// representing a file.
+const fn init_bb_files() -> [Bitboard; NrOf::FILES] {
+    const BB_FILE_A: Bitboard = 0x0101_0101_0101_0101;
+    let mut bb_files = [0; NrOf::FILES];
+    let mut i = 0;
+
+    while i < (NrOf::FILES) {
+        bb_files[i] = BB_FILE_A << i;
+        i += 1;
+    }
+
+    bb_files
+}
+
+// Initializes a constant array of bitboards, with each bitboard
+// representing a rank.
+const fn init_bb_ranks() -> [Bitboard; NrOf::RANKS] {
+    pub const BB_RANK_1: Bitboard = 0xFF;
+    let mut bb_ranks = [0; NrOf::RANKS as usize];
+    let mut i = 0;
+
+    while i < (NrOf::RANKS as usize) {
+        bb_ranks[i] = BB_RANK_1 << (i * 8);
+        i += 1;
+    }
+
+    bb_ranks
+}
+
+// Initializes a constant array of bitboards, with each bitboard
+// representing a single square.
+const fn init_bb_squares() -> [Bitboard; NrOf::SQUARES] {
+    let mut bb_squares = [0; NrOf::SQUARES];
+    let mut i = 0;
+
+    while i < NrOf::SQUARES {
+        bb_squares[i] = 1u64 << i;
+        i += 1;
+    }
+
+    bb_squares
 }
