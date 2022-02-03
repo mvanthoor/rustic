@@ -763,7 +763,7 @@ impl XBoard {
             score,
             (s.time as f64 / 10.0).round(),
             s.nodes,
-            s.pv
+            s.pv_to_string()
         );
     }
 

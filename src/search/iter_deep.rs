@@ -71,7 +71,7 @@ impl Search {
             // Create summary if search was not interrupted.
             if !refs.search_info.interrupted() {
                 // Save the best move until now.
-                best_move = root_pv.first_move();
+                best_move = root_pv[0];
 
                 if refs.search_params.verbosity != Verbosity::Silent {
                     // Create search summary for this depth.

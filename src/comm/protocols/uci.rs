@@ -514,7 +514,13 @@ impl Uci {
 
         let info = format!(
             "info score {} {} time {} nodes {} nps {}{}pv {}",
-            score, depth, s.time, s.nodes, s.nps, hash_full, s.pv,
+            score,
+            depth,
+            s.time,
+            s.nodes,
+            s.nps,
+            hash_full,
+            s.pv_to_string(),
         );
 
         println!("{}", info);
