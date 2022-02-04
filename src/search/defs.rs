@@ -187,9 +187,9 @@ impl SearchSummary {
     pub fn pv_to_string(&self) -> String {
         let mut pvstr = String::from("");
 
-        for next_move in self.pv.iter() {
-            pvstr.push_str(format!(" {}", next_move).as_str());
-        }
+        self.pv
+            .iter()
+            .for_each(|next_move| pvstr.push_str(format!(" {}", next_move).as_str()));
 
         pvstr
     }
