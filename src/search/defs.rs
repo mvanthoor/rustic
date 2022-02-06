@@ -191,7 +191,7 @@ impl SearchSummary {
             .iter()
             .for_each(|next_move| pvstr.push_str(format!(" {}", next_move).as_str()));
 
-        pvstr
+        pvstr.trim().to_string()
     }
 }
 
