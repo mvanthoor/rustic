@@ -264,6 +264,8 @@ impl Engine {
                         if self.is_thinking() {
                             self.search.send(SearchControl::Abandon);
                         }
+
+                        // TODO: replace by new send GameResult command
                         self.comm.send(CommOut::Message(format!(
                             "{}: result {}, reason {}",
                             Messages::ACCEPTED,
