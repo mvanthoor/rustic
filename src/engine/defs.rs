@@ -34,7 +34,7 @@ pub enum GameResultReason {
     Insufficient,
     FiftyMoves,
     ThreeFold,
-    NotEnded,
+    GameNotOver,
 }
 
 impl Display for GameResultReason {
@@ -45,7 +45,7 @@ impl Display for GameResultReason {
             GameResultReason::Insufficient => write!(f, "insufficient material"),
             GameResultReason::FiftyMoves => write!(f, "fifty move rule"),
             GameResultReason::ThreeFold => write!(f, "threefold repetition"),
-            GameResultReason::NotEnded => write!(f, "running..."),
+            GameResultReason::GameNotOver => write!(f, "game not over"),
         }
     }
 }

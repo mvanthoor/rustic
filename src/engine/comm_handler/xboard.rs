@@ -174,7 +174,7 @@ impl Engine {
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                if self.send_game_result() == GameResultReason::NotEnded {
+                                if self.send_game_result() == GameResultReason::GameNotOver {
                                     Engine::set_time_control(&mut search_params, tc);
                                     self.search.send(SearchControl::Start(search_params));
                                     self.set_thinking();
@@ -197,7 +197,7 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            if self.send_game_result() == GameResultReason::NotEnded {
+                            if self.send_game_result() == GameResultReason::GameNotOver {
                                 search_params.search_mode = SearchMode::Infinite;
                                 self.search.send(SearchControl::Start(search_params));
                             } else {

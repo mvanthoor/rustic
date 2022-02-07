@@ -113,7 +113,7 @@ impl Board {
                 _ if self.draw_by_insufficient_material_rule() => GameResultReason::Insufficient,
                 _ if self.draw_by_fifty_move_rule() => GameResultReason::FiftyMoves,
                 _ if self.draw_by_repetition_rule() >= 2 => GameResultReason::ThreeFold,
-                _ => GameResultReason::NotEnded,
+                _ => GameResultReason::GameNotOver,
             }
         }
     }

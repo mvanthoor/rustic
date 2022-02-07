@@ -115,7 +115,7 @@ impl Engine {
 
         match game_end_reason {
             // The game is still going. We don't send anything.
-            GameResultReason::NotEnded => (),
+            GameResultReason::GameNotOver => (),
 
             // Side to move is checkmated.
             GameResultReason::Checkmate => {
