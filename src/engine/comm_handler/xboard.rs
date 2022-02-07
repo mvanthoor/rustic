@@ -141,8 +141,9 @@ impl Engine {
                         .send(CommOut::Error(ErrNormal::INCORRECT_FEN, fen.to_string()));
                 }
 
-                // Restart analysis on the new position. (If the FEN-setup
-                // failed, we restart on the old position.)
+                // If we were analyzing then restart analysis on the new
+                // position. (If the FEN-setup failed, we restart on the
+                // old position because it wasn't replaced.)
                 if self.is_analyzing() {
                     search_params.search_mode = SearchMode::Infinite;
                     self.search.send(SearchControl::Start(search_params));
