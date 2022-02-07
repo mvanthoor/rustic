@@ -25,7 +25,7 @@ use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
-    engine::defs::GameOverReason,
+    engine::defs::GameResultReason,
     evaluation::defs::FLIP,
     movegen::{
         defs::{MoveList, MoveType},
@@ -97,23 +97,23 @@ impl Board {
     }
 
     // This function determines if, and how, the game was ended.
-    pub fn is_game_end(&mut self, mg: &MoveGenerator) -> GameOverReason {
+    pub fn is_game_end(&mut self, mg: &MoveGenerator) -> GameResultReason {
         // If we don't have a legal move, we see if we are in check or not. If
         // in check, it's checkmate; if not, the result is stalemate.
         if !self.moves_available(mg) {
             // If we're in check, the opponent is attacking our king square.
             if self.we_are_in_check(mg) {
-                GameOverReason::Checkmate
+                GameResultReason::Checkmate
             } else {
-                GameOverReason::Stalemate
+                GameResultReason::Stalemate
             }
         } else {
             // If we do have legal moves, the game could still be a draw.
             match () {
-                _ if self.draw_by_insufficient_material_rule() => GameOverReason::Insufficient,
-                _ if self.draw_by_fifty_move_rule() => GameOverReason::FiftyMoves,
-                _ if self.draw_by_repetition_rule() >= 2 => GameOverReason::ThreeFold,
-                _ => GameOverReason::NotEnded,
+                _ if self.draw_by_insufficient_material_rule() => GameResultReason::Insufficient,
+                _ if self.draw_by_fifty_move_rule() => GameResultReason::FiftyMoves,
+                _ if self.draw_by_repetition_rule() >= 2 => GameResultReason::ThreeFold,
+                _ => GameResultReason::NotEnded,
             }
         }
     }

@@ -30,7 +30,9 @@ use crate::{
         shared::Shared,
     },
     defs::{About, Sides},
-    engine::defs::{EngineOption, EngineState, ErrFatal, GameOverReason, GameResult, Information},
+    engine::defs::{
+        EngineOption, EngineState, ErrFatal, GameResult, GameResultReason, Information,
+    },
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -796,7 +798,7 @@ impl XBoard {
         }
     }
 
-    fn result(score: GameResult, reason: GameOverReason) {
+    fn result(score: GameResult, reason: GameResultReason) {
         println!("{} {{{}}}", score, reason);
     }
 
