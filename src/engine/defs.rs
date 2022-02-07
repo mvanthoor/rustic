@@ -28,7 +28,7 @@ pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchDat
 
 // Lists all possible game results.
 #[derive(PartialEq, Clone, Copy)]
-pub enum GameEndReason {
+pub enum GameOverReason {
     Checkmate,
     Stalemate,
     Insufficient,
@@ -37,15 +37,15 @@ pub enum GameEndReason {
     NotEnded,
 }
 
-impl Display for GameEndReason {
+impl Display for GameOverReason {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            GameEndReason::Checkmate => write!(f, "checkmate"),
-            GameEndReason::Stalemate => write!(f, "stalemate"),
-            GameEndReason::Insufficient => write!(f, "insufficient material"),
-            GameEndReason::FiftyMoves => write!(f, "fifty move rule"),
-            GameEndReason::ThreeFold => write!(f, "threefold repetition"),
-            GameEndReason::NotEnded => write!(f, "running..."),
+            GameOverReason::Checkmate => write!(f, "checkmate"),
+            GameOverReason::Stalemate => write!(f, "stalemate"),
+            GameOverReason::Insufficient => write!(f, "insufficient material"),
+            GameOverReason::FiftyMoves => write!(f, "fifty move rule"),
+            GameOverReason::ThreeFold => write!(f, "threefold repetition"),
+            GameOverReason::NotEnded => write!(f, "running..."),
         }
     }
 }

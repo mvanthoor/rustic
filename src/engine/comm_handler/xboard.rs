@@ -25,7 +25,9 @@ use crate::{
     comm::defs::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{EngineState, ErrFatal, ErrNormal, GameEndReason, Information, Messages, Verbosity},
+        defs::{
+            EngineState, ErrFatal, ErrNormal, GameOverReason, Information, Messages, Verbosity,
+        },
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams, SearchReport},
@@ -172,7 +174,7 @@ impl Engine {
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                if self.send_game_result() == GameEndReason::NotEnded {
+                                if self.send_game_result() == GameOverReason::NotEnded {
                                     Engine::set_time_control(&mut search_params, tc);
                                     self.search.send(SearchControl::Start(search_params));
                                     self.set_thinking();
@@ -195,7 +197,7 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            if self.send_game_result() == GameEndReason::NotEnded {
+                            if self.send_game_result() == GameOverReason::NotEnded {
                                 search_params.search_mode = SearchMode::Infinite;
                                 self.search.send(SearchControl::Start(search_params));
                             } else {

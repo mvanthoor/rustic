@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineState, GameEndReason, GameResult, Information},
+    engine::defs::{EngineOption, EngineState, GameOverReason, GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -137,15 +137,15 @@ pub enum CommOut {
     XBoard(XBoardOut),
 
     // Common output for all protocols
-    BestMove(Move),                    // Transmit the engine's best move.
-    Result(GameResult, GameEndReason), // Notify GUI of game result and end reason.
-    OfferDraw,                         // Offer a draw to the opponent
-    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
-    SearchSummary(SearchSummary),      // Transmit search information.
-    SearchStats(SearchStats),          // Transmit search Statistics.
-    Message(String),                   // Transmits a message to the GUI.
-    Error(&'static str, String),       // Transmits an error message.
-    Quit,                              // Terminates the output thread.
+    BestMove(Move),                     // Transmit the engine's best move.
+    Result(GameResult, GameOverReason), // Notify GUI of game result and end reason.
+    OfferDraw,                          // Offer a draw to the opponent
+    SearchCurrMove(SearchCurrentMove),  // Transmit currently considered move.
+    SearchSummary(SearchSummary),       // Transmit search information.
+    SearchStats(SearchStats),           // Transmit search Statistics.
+    Message(String),                    // Transmits a message to the GUI.
+    Error(&'static str, String),        // Transmits an error message.
+    Quit,                               // Terminates the output thread.
 
     // Output to screen when running in a terminal window.
     PrintBoard,
