@@ -28,20 +28,11 @@ impl Engine {
     pub fn search_handler(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
-                self.comm.send(CommOut::BestMove(*m));
-                self.set_waiting();
-
-                // If we are using a protocol that expects the engine to
-                // maintain game state at all times, we execute the move
-                // and send the game result.
-                if self.comm.info().stateful() {
-                    if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
-                        self.send_game_result();
-                    } else {
-                        // This should never happen. The search came up
-                        // with an illegal move.
-                        panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
-                    }
+                if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
+                    self.comm.send(CommOut::BestMove(*m));
+                    self.set_waiting();
+                } else {
+                    panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
                 }
             }
 

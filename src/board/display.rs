@@ -113,8 +113,11 @@ impl Board {
     fn metadata_to_string(&self) -> String {
         let mut meta = String::from("");
         let zk = self.game_state.zobrist_key;
-        let is_white = (self.game_state.active_color as usize) == Sides::WHITE;
-        let active_color = if is_white { "White" } else { "Black" };
+        let active_color = if self.is_white_to_move() {
+            "White"
+        } else {
+            "Black"
+        };
         let castling = self.game_state.castling_to_string();
         let en_passant = match self.game_state.en_passant {
             Some(ep) => SQUARE_NAME[ep as usize],

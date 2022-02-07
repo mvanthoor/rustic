@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineState, GameResult, GameResultReason, Information},
+    engine::defs::{EngineOption, EngineState, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -48,15 +48,9 @@ pub enum FancyAbout {
     No,
 }
 
-pub enum Stateful {
-    Yes,
-    No,
-}
-
 pub struct CommInfo {
     protocol_name: &'static str,
     fancy_about: FancyAbout,
-    stateful: Stateful,
     entry_state: EngineState,
 }
 
@@ -64,13 +58,11 @@ impl CommInfo {
     pub fn new(
         protocol_name: &'static str,
         fancy_about: FancyAbout,
-        stateful: Stateful,
         entry_state: EngineState,
     ) -> Self {
         Self {
             protocol_name,
             fancy_about,
-            stateful,
             entry_state,
         }
     }
@@ -83,13 +75,6 @@ impl CommInfo {
         match self.fancy_about {
             FancyAbout::Yes => true,
             FancyAbout::No => false,
-        }
-    }
-
-    pub fn stateful(&self) -> bool {
-        match self.stateful {
-            Stateful::Yes => true,
-            Stateful::No => false,
         }
     }
 
@@ -137,14 +122,13 @@ pub enum CommOut {
     XBoard(XBoardOut),
 
     // Common output for all protocols
-    BestMove(Move),                       // Transmit the engine's best move.
-    Result(GameResult, GameResultReason), // Notify GUI of game result and end reason.
-    SearchCurrMove(SearchCurrentMove),    // Transmit currently considered move.
-    SearchSummary(SearchSummary),         // Transmit search information.
-    SearchStats(SearchStats),             // Transmit search Statistics.
-    Message(String),                      // Transmits a message to the GUI.
-    Error(&'static str, String),          // Transmits an error message.
-    Quit,                                 // Terminates the output thread.
+    BestMove(Move),                    // Transmit the engine's best move.
+    SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
+    SearchSummary(SearchSummary),      // Transmit search information.
+    SearchStats(SearchStats),          // Transmit search Statistics.
+    Message(String),                   // Transmits a message to the GUI.
+    Error(&'static str, String),       // Transmits an error message.
+    Quit,                              // Terminates the output thread.
 
     // Output to screen when running in a terminal window.
     PrintBoard,

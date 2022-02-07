@@ -26,13 +26,11 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::Board,
     comm::{
-        defs::{CommIn, CommInfo, CommOut, CommType, FancyAbout, IComm, Stateful},
+        defs::{CommIn, CommInfo, CommOut, CommType, FancyAbout, IComm},
         shared::Shared,
     },
     defs::{About, Sides},
-    engine::defs::{
-        EngineOption, EngineState, ErrFatal, GameResult, GameResultReason, Information,
-    },
+    engine::defs::{EngineOption, EngineState, ErrFatal, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -269,12 +267,7 @@ impl XBoard {
             input_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(
-                CommType::XBOARD,
-                FancyAbout::No,
-                Stateful::Yes,
-                EngineState::Observing,
-            ),
+            info: CommInfo::new(CommType::XBOARD, FancyAbout::No, EngineState::Observing),
         }
     }
 }
@@ -671,7 +664,6 @@ impl XBoard {
 
                     // Common outputs available to all protocols
                     CommOut::BestMove(m) => XBoard::best_move(&m),
-                    CommOut::Result(score, reason) => XBoard::result(score, reason),
                     CommOut::SearchSummary(summary) => {
                         XBoard::search_summary(&mut buf_stat01, &summary)
                     }
@@ -795,9 +787,5 @@ impl XBoard {
                 s.curr_move
             );
         }
-    }
-
-    fn result(score: GameResult, reason: GameResultReason) {
-        println!("{} {{{}}}", score, reason);
     }
 }

@@ -25,7 +25,7 @@ use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
-    engine::defs::GameResultReason,
+    engine::defs::{GameResult, GameResultPoints, GameResultReason},
     evaluation::defs::FLIP,
     movegen::{
         defs::{MoveList, MoveType},
@@ -92,29 +92,54 @@ impl Board {
         }
     }
 
-    pub fn is_white(&self) -> bool {
+    pub fn is_white_to_move(&self) -> bool {
         self.us() == Sides::WHITE
     }
 
-    // This function determines if, and how, the game was ended.
-    pub fn is_game_end(&mut self, mg: &MoveGenerator) -> GameResultReason {
-        // If we don't have a legal move, we see if we are in check or not. If
-        // in check, it's checkmate; if not, the result is stalemate.
-        if !self.moves_available(mg) {
-            // If we're in check, the opponent is attacking our king square.
+    pub fn is_game_over(&mut self, mg: &MoveGenerator) -> Option<GameResult> {
+        let mut reason = GameResultReason::Nothing;
+        let mut points = GameResultPoints::Nothing;
+        let moves_available = self.moves_available(mg);
+
+        // Without moves available, it's either checkmate or stalemate.
+        if !moves_available {
             if self.we_are_in_check(mg) {
-                GameResultReason::Checkmate
+                reason = GameResultReason::Checkmate;
+                points = if self.is_white_to_move() {
+                    GameResultPoints::BlackWins
+                } else {
+                    GameResultPoints::WhiteWins
+                }
             } else {
-                GameResultReason::Stalemate
+                reason = GameResultReason::Stalemate;
+                points = GameResultPoints::Draw;
             }
-        } else {
-            // If we do have legal moves, the game could still be a draw.
+        }
+
+        // Even with moves available, we could still have a draw.
+        if moves_available {
             match () {
-                _ if self.draw_by_insufficient_material_rule() => GameResultReason::Insufficient,
-                _ if self.draw_by_fifty_move_rule() => GameResultReason::FiftyMoves,
-                _ if self.draw_by_repetition_rule() >= 2 => GameResultReason::ThreeFold,
-                _ => GameResultReason::GameNotOver,
+                _ if self.draw_by_insufficient_material_rule() => {
+                    reason = GameResultReason::Insufficient;
+                    points = GameResultPoints::Draw;
+                }
+                _ if self.draw_by_fifty_move_rule() => {
+                    reason = GameResultReason::FiftyMoves;
+                    points = GameResultPoints::Draw;
+                }
+                _ if self.draw_by_repetition_rule() >= 2 => {
+                    reason = GameResultReason::ThreeFold;
+                    points = GameResultPoints::Draw;
+                }
+                _ => (),
             }
+        };
+
+        // Return the result if the game is ended.
+        if (reason != GameResultReason::Nothing) && (points != GameResultPoints::Nothing) {
+            Some(GameResult { points, reason })
+        } else {
+            None
         }
     }
 

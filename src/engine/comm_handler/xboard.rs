@@ -25,9 +25,7 @@ use crate::{
     comm::defs::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
     engine::{
-        defs::{
-            EngineState, ErrFatal, ErrNormal, GameResultReason, Information, Messages, Verbosity,
-        },
+        defs::{EngineState, ErrFatal, ErrNormal, Information, Messages, Verbosity},
         Engine,
     },
     search::defs::{SearchControl, SearchMode, SearchParams, SearchReport},
@@ -161,10 +159,17 @@ impl Engine {
                     // move and send the game result (if any).
                     EngineState::Observing => {
                         if self.execute_move(m.clone()) {
-                            self.send_game_result();
+                            if let Some(_game_result) = self
+                                .board
+                                .lock()
+                                .expect(ErrFatal::LOCK)
+                                .is_game_over(&self.mg)
+                            {
+                                // TODO: Send Game Result
+                            }
                         } else {
-                            let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
-                            self.comm.send(im);
+                            let illega_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
+                            self.comm.send(illega_move);
                         }
                     }
 
@@ -174,10 +179,18 @@ impl Engine {
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                if self.send_game_result() == GameResultReason::GameNotOver {
+                                if self
+                                    .board
+                                    .lock()
+                                    .expect(ErrFatal::LOCK)
+                                    .is_game_over(&self.mg)
+                                    .is_none()
+                                {
                                     Engine::set_time_control(&mut search_params, tc);
                                     self.search.send(SearchControl::Start(search_params));
                                     self.set_thinking();
+                                } else {
+                                    // TODO: Send game result
                                 }
                             } else {
                                 let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
@@ -197,10 +210,17 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            if self.send_game_result() == GameResultReason::GameNotOver {
+                            if self
+                                .board
+                                .lock()
+                                .expect(ErrFatal::LOCK)
+                                .is_game_over(&self.mg)
+                                .is_none()
+                            {
                                 search_params.search_mode = SearchMode::Infinite;
                                 self.search.send(SearchControl::Start(search_params));
                             } else {
+                                // TODO: Send game result
                                 self.set_observing();
                             }
                         } else {

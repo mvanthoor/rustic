@@ -26,15 +26,34 @@ use std::fmt::{Display, Formatter, Result};
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 
+#[derive(PartialEq)]
+pub enum GameResultPoints {
+    WhiteWins,
+    BlackWins,
+    Draw,
+    Nothing,
+}
+
+impl Display for GameResultPoints {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            GameResultPoints::WhiteWins => write!(f, "1-0"),
+            GameResultPoints::BlackWins => write!(f, "0-1"),
+            GameResultPoints::Draw => write!(f, "1/2-1/2"),
+            GameResultPoints::Nothing => write!(f, "-"),
+        }
+    }
+}
+
 // Lists all possible game results.
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq)]
 pub enum GameResultReason {
     Checkmate,
     Stalemate,
     Insufficient,
     FiftyMoves,
     ThreeFold,
-    GameNotOver,
+    Nothing,
 }
 
 impl Display for GameResultReason {
@@ -45,24 +64,20 @@ impl Display for GameResultReason {
             GameResultReason::Insufficient => write!(f, "insufficient material"),
             GameResultReason::FiftyMoves => write!(f, "fifty move rule"),
             GameResultReason::ThreeFold => write!(f, "threefold repetition"),
-            GameResultReason::GameNotOver => write!(f, "game not over"),
+            GameResultReason::Nothing => write!(f, "-"),
         }
     }
 }
 
-pub enum GameResult {
-    WhiteWins,
-    BlackWins,
-    Draw,
+#[derive(PartialEq)]
+pub struct GameResult {
+    pub points: GameResultPoints,
+    pub reason: GameResultReason,
 }
 
 impl Display for GameResult {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        match *self {
-            GameResult::WhiteWins => write!(f, "1-0"),
-            GameResult::BlackWins => write!(f, "0-1"),
-            GameResult::Draw => write!(f, "1/2-1/2"),
-        }
+        write!(f, "{} {{{}}}", self.points, self.reason)
     }
 }
 

@@ -21,13 +21,9 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{
-    defs::{ErrFatal, GameResult, GameResultReason},
-    Engine,
-};
+use super::{defs::ErrFatal, Engine};
 use crate::{
     board::Board,
-    comm::defs::CommOut,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     misc::parse,
     misc::parse::PotentialMove,
@@ -103,43 +99,5 @@ impl Engine {
             }
         }
         result
-    }
-
-    // This function sends the game result (and the reason for that result)
-    //  to the output thread. If the current protocol requires it, the
-    //  result will be sent to the GUI.
-    pub fn send_game_result(&mut self) -> GameResultReason {
-        // Lock the board and determine the game's end result and reason.
-        let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-        let game_end_reason = mtx_board.is_game_end(&self.mg);
-
-        match game_end_reason {
-            // The game is still going. We don't send anything.
-            GameResultReason::GameNotOver => (),
-
-            // Side to move is checkmated.
-            GameResultReason::Checkmate => {
-                // If checkmated and we are white, then black wins.
-                if mtx_board.is_white() {
-                    self.comm
-                        .send(CommOut::Result(GameResult::BlackWins, game_end_reason));
-                } else {
-                    // And the other way around, obviously.
-                    self.comm
-                        .send(CommOut::Result(GameResult::WhiteWins, game_end_reason));
-                }
-            }
-
-            // A draw is a draw, irrespective of side to move.
-            GameResultReason::Stalemate
-            | GameResultReason::Insufficient
-            | GameResultReason::FiftyMoves
-            | GameResultReason::ThreeFold => {
-                self.comm
-                    .send(CommOut::Result(GameResult::Draw, game_end_reason));
-            }
-        }
-
-        game_end_reason
     }
 }
