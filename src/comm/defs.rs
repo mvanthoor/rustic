@@ -139,6 +139,7 @@ pub enum CommOut {
     // Common output for all protocols
     BestMove(Move),                    // Transmit the engine's best move.
     Result(GameResult, GameEndReason), // Notify GUI of game result and end reason.
+    OfferDraw,                         // Offer a draw to the opponent
     SearchCurrMove(SearchCurrentMove), // Transmit currently considered move.
     SearchSummary(SearchSummary),      // Transmit search information.
     SearchStats(SearchStats),          // Transmit search Statistics.

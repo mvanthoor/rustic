@@ -670,6 +670,7 @@ impl XBoard {
                     // Common outputs available to all protocols
                     CommOut::BestMove(m) => XBoard::best_move(&m),
                     CommOut::Result(score, reason) => XBoard::result(score, reason),
+                    CommOut::OfferDraw => XBoard::offer_draw(),
                     CommOut::SearchSummary(summary) => {
                         XBoard::search_summary(&mut buf_stat01, &summary)
                     }
@@ -797,5 +798,9 @@ impl XBoard {
 
     fn result(score: GameResult, reason: GameEndReason) {
         println!("{} {{{}}}", score, reason);
+    }
+
+    fn offer_draw() {
+        println!("offer draw");
     }
 }
