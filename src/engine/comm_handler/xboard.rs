@@ -174,24 +174,25 @@ impl Engine {
                         }
                     }
 
-                    // When we're waiting, we execute the incoming move and
-                    // then we start thinking if the game is not over. We
-                    // only do this if we have a time control available.
+                    // If a time control has been set, we execute the
+                    // received move on the board. If the game happens to
+                    // be over because if this, we report that. If the game
+                    // is not over, we start thinking.
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                if self
+                                let result = self
                                     .board
                                     .lock()
                                     .expect(ErrFatal::LOCK)
-                                    .is_game_over(&self.mg)
-                                    .is_none()
-                                {
+                                    .is_game_over(&self.mg);
+
+                                if let Some(r) = result {
+                                    self.comm.send(CommOut::XBoard(XBoardOut::Result(r)));
+                                } else {
                                     Engine::set_time_control(&mut search_params, tc);
                                     self.search.send(SearchControl::Start(search_params));
                                     self.set_thinking();
-                                } else {
-                                    // TODO: Send game result
                                 }
                             } else {
                                 let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
