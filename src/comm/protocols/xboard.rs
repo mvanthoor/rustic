@@ -523,10 +523,6 @@ impl XBoard {
         let mut points = GameResultPoints::Nothing;
         let mut comm_in = CommIn::Unknown(cmd.to_string());
 
-        for x in parts.iter() {
-            println!("{}", x);
-        }
-
         for p in parts.iter() {
             match p {
                 x if x.starts_with("result") => continue,
@@ -534,8 +530,9 @@ impl XBoard {
                 x if x.starts_with("0-1") => points = GameResultPoints::BlackWins,
                 x if x.starts_with("1/2-1/2") => points = GameResultPoints::Draw,
                 x if x.starts_with('*') => points = GameResultPoints::Asterisk,
-                _ if points != GameResultPoints::Nothing => reason = format!("{} {}", reason, *p),
-
+                _ if points != GameResultPoints::Nothing && !p.is_empty() => {
+                    reason = format!("{} {}", reason, *p)
+                }
                 _ => (),
             }
         }
