@@ -212,18 +212,18 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            if self
+                            let result = self
                                 .board
                                 .lock()
                                 .expect(ErrFatal::LOCK)
-                                .is_game_over(&self.mg)
-                                .is_none()
-                            {
+                                .is_game_over(&self.mg);
+
+                            if let Some(r) = result {
+                                self.comm.send(CommOut::XBoard(XBoardOut::Result(r)));
+                                self.set_observing();
+                            } else {
                                 search_params.search_mode = SearchMode::Infinite;
                                 self.search.send(SearchControl::Start(search_params));
-                            } else {
-                                // TODO: Send game result
-                                self.set_observing();
                             }
                         } else {
                             let im = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
