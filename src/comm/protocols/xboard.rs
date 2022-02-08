@@ -519,10 +519,13 @@ impl XBoard {
     fn parse_result(cmd: &str) -> CommIn {
         const WHITESPACE_AND_BRACKETS: &[char; 3] = &[' ', '{', '}'];
         let parts: Vec<&str> = cmd.split_terminator(WHITESPACE_AND_BRACKETS).collect();
-        let mut reason_get = false;
         let mut reason = String::from("");
         let mut points = GameResultPoints::Nothing;
         let mut comm_in = CommIn::Unknown(cmd.to_string());
+
+        for x in parts.iter() {
+            println!("{}", x);
+        }
 
         for p in parts.iter() {
             match p {
@@ -531,9 +534,8 @@ impl XBoard {
                 x if x.starts_with("0-1") => points = GameResultPoints::BlackWins,
                 x if x.starts_with("1/2-1/2") => points = GameResultPoints::Draw,
                 x if x.starts_with('*') => points = GameResultPoints::Asterisk,
-                x if x.starts_with('{') => reason_get = true,
-                x if x.starts_with('}') => reason_get = false,
-                _ if reason_get => reason = format!("{} {}", reason, *p),
+                _ if points != GameResultPoints::Nothing => reason = format!("{} {}", reason, *p),
+
                 _ => (),
             }
         }
