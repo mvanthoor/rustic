@@ -30,7 +30,7 @@ use crate::{
         shared::Shared,
     },
     defs::{About, Sides},
-    engine::defs::{EngineOption, EngineState, ErrFatal, Information},
+    engine::defs::{EngineOption, EngineState, ErrFatal, GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -245,6 +245,7 @@ pub enum XBoardOut {
     Stat01,
     IllegalMove(String),
     Pong(i8),
+    Result(GameResult),
 }
 
 // ---------------------------------------------------------------------
@@ -661,6 +662,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&buf_stat01),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),
+                    CommOut::XBoard(XBoardOut::Result(r)) => XBoard::result(&r),
 
                     // Common outputs available to all protocols
                     CommOut::BestMove(m) => XBoard::best_move(&m),
@@ -727,6 +729,10 @@ impl XBoard {
 
     fn error(err_type: &str, cmd: &str) {
         println!("Error ({}): {}", err_type, cmd);
+    }
+
+    fn result(r: &GameResult) {
+        println!("{} {{{}}}", r.points, r.reason);
     }
 
     fn best_move(m: &Move) {
