@@ -160,13 +160,13 @@ impl Engine {
                     // move and send the game result (if any).
                     EngineState::Observing => {
                         if self.execute_move(m.clone()) {
-                            if let Some(_game_result) = self
+                            if let Some(result) = self
                                 .board
                                 .lock()
                                 .expect(ErrFatal::LOCK)
                                 .is_game_over(&self.mg)
                             {
-                                // TODO: Send Game Result
+                                self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                             }
                         } else {
                             let illega_move = CommOut::XBoard(XBoardOut::IllegalMove(m.clone()));
