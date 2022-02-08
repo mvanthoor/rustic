@@ -260,20 +260,14 @@ impl Engine {
                 self.set_waiting();
             }
 
-            XBoardIn::Result(result, reason) => {
+            XBoardIn::Result(result) => {
                 match self.state {
                     EngineState::Observing | EngineState::Waiting | EngineState::Thinking => {
                         if self.is_thinking() {
                             self.search.send(SearchControl::Abandon);
                         }
-
-                        // TODO: replace by new send GameResult command
-                        self.comm.send(CommOut::Message(format!(
-                            "{}: result {}, reason {}",
-                            Messages::ACCEPTED,
-                            result,
-                            reason
-                        )))
+                        self.comm
+                            .send(CommOut::XBoard(XBoardOut::Result(result.clone())));
                     }
                     _ => {
                         self.comm.send(CommOut::Error(

@@ -30,7 +30,10 @@ use crate::{
         shared::Shared,
     },
     defs::{About, Sides},
-    engine::defs::{EngineOption, EngineState, ErrFatal, GameResult, Information},
+    engine::defs::{
+        EngineOption, EngineState, ErrFatal, GameResult, GameResultPoints, GameResultReason,
+        Information,
+    },
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -172,7 +175,7 @@ pub enum XBoardIn {
     UserMove(String, TimeControl),
     Undo,
     Remove,
-    Result(String, String),
+    Result(GameResult),
     Ping(i8),
     Post,
     NoPost,
@@ -198,7 +201,7 @@ impl Display for XBoardIn {
             XBoardIn::UserMove(mv, tc) => write!(f, "usermove {} {}", mv, tc),
             XBoardIn::Undo => write!(f, "undo"),
             XBoardIn::Remove => write!(f, "remove"),
-            XBoardIn::Result(result, reason) => write!(f, "result {} {{{}}}", result, reason),
+            XBoardIn::Result(r) => write!(f, "result {} {{{}}}", r.points, r.reason),
             XBoardIn::Ping(count) => write!(f, "ping {}", count),
             XBoardIn::Post => write!(f, "post"),
             XBoardIn::NoPost => write!(f, "nopost"),
@@ -514,34 +517,33 @@ impl XBoard {
     }
 
     fn parse_result(cmd: &str) -> CommIn {
-        const VALID_RESULTS: [&str; 4] = ["1-0", "0-1", "1/2-1/2", "*"];
-
-        let parts: Vec<&str> = cmd.split_whitespace().collect();
-        let length = parts.len();
-        let space_and_brackets: &[_] = &[' ', '{', '}'];
+        const WHITESPACE_AND_BRACKETS: &[char; 3] = &[' ', '{', '}'];
+        let parts: Vec<&str> = cmd.split_terminator(WHITESPACE_AND_BRACKETS).collect();
+        let mut reason_get = false;
         let mut reason = String::from("");
-        let mut result = String::from("");
+        let mut points = GameResultPoints::Nothing;
         let mut comm_in = CommIn::Unknown(cmd.to_string());
 
-        if length >= 2 {
-            for (i, p) in parts.iter().enumerate() {
-                match i {
-                    0 => continue,
-                    1 if VALID_RESULTS.contains(p) => result = p.to_string(),
-                    _ if length > 2 => reason = format!("{} {}", reason, p),
-                    _ => (),
-                }
+        for p in parts.iter() {
+            match p {
+                x if x.starts_with("result") => continue,
+                x if x.starts_with("1-0") => points = GameResultPoints::WhiteWins,
+                x if x.starts_with("0-1") => points = GameResultPoints::BlackWins,
+                x if x.starts_with("1/2-1/2") => points = GameResultPoints::Draw,
+                x if x.starts_with('*') => points = GameResultPoints::Asterisk,
+                x if x.starts_with('{') => reason_get = true,
+                x if x.starts_with('}') => reason_get = false,
+                _ if reason_get => reason = format!("{} {}", reason, *p),
+                _ => (),
             }
+        }
 
-            reason = reason.trim_matches(space_and_brackets).to_string();
-            if reason.is_empty() {
-                reason = String::from("(empty)");
-            };
-
-            if !result.is_empty() {
-                comm_in = CommIn::XBoard(XBoardIn::Result(result, reason));
-            }
-        };
+        if points != GameResultPoints::Nothing {
+            comm_in = CommIn::XBoard(XBoardIn::Result(GameResult {
+                points,
+                reason: GameResultReason::Other(reason.trim().to_string()),
+            }));
+        }
 
         comm_in
     }

@@ -26,11 +26,12 @@ use std::fmt::{Display, Formatter, Result};
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum GameResultPoints {
     WhiteWins,
     BlackWins,
     Draw,
+    Asterisk,
     Nothing,
 }
 
@@ -40,36 +41,39 @@ impl Display for GameResultPoints {
             GameResultPoints::WhiteWins => write!(f, "1-0"),
             GameResultPoints::BlackWins => write!(f, "0-1"),
             GameResultPoints::Draw => write!(f, "1/2-1/2"),
+            GameResultPoints::Asterisk => write!(f, "*"),
             GameResultPoints::Nothing => write!(f, "-"),
         }
     }
 }
 
 // Lists all possible game results.
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum GameResultReason {
     Checkmate,
     Stalemate,
     Insufficient,
     FiftyMoves,
     ThreeFold,
+    Other(String),
     Nothing,
 }
 
 impl Display for GameResultReason {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        match *self {
+        match self {
             GameResultReason::Checkmate => write!(f, "checkmate"),
             GameResultReason::Stalemate => write!(f, "stalemate"),
             GameResultReason::Insufficient => write!(f, "insufficient material"),
             GameResultReason::FiftyMoves => write!(f, "fifty move rule"),
             GameResultReason::ThreeFold => write!(f, "threefold repetition"),
-            GameResultReason::Nothing => write!(f, "-"),
+            GameResultReason::Other(reason) => write!(f, "{}", reason),
+            GameResultReason::Nothing => write!(f, ""),
         }
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct GameResult {
     pub points: GameResultPoints,
     pub reason: GameResultReason,
@@ -113,7 +117,6 @@ impl Messages {
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
     pub const CLEARED_TT: &'static str = "Cleared the transposition table";
-    pub const ACCEPTED: &'static str = "Accepted";
 }
 
 #[derive(PartialEq, Copy, Clone)]
