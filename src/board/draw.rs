@@ -41,12 +41,12 @@ impl Board {
         self.game_state.halfmove_clock >= MAX_MOVE_RULE
     }
 
-    // This function returns true if the amount of material on the board is
-    // not sufficient to deliver checkmate using any sequence of legal
+    // This function returns true if the amount of material on the board
+    // isn't sufficient to deliver checkmate using any sequence of legal
     // moves, even if the losing side is trying to assist in getting
     // checkmated. In such a position a draw can officially be claimed
     // under FIDE rules. Note that this is different from
-    // sufficient_material_to_force_checkmate().
+    // sufficient_material_to_force_checkmate() returning false.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
         false
     }
@@ -81,11 +81,13 @@ impl Board {
         count
     }
 
-    // This function determines if there is enough material available for
-    // one of the sides to force a checkmate, even with best play from the
-    // losing side. If mate cannot be forced (even though it is
-    // theoretically still possible if the losing side plays poorly, or
-    // even assists in getting mated), then this function returns false.
+    // This function returns true if there is enough material available for
+    // at least one of the sides to force a checkmate, even with best play
+    // from the losing side. If mate cannot be forced then this function
+    // returns false. (In some situations it may be possible to achieve a
+    // mate if the losing side plays very poorly or even assists in getting
+    // mated, but this function will still return false if mate can not be
+    // forced.)
     pub fn sufficient_material_to_force_checkmate(&self) -> bool {
         self.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
             || self.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0

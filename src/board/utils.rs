@@ -97,22 +97,23 @@ impl Board {
     }
 
     pub fn is_game_over(&mut self, mg: &MoveGenerator) -> Option<GameResult> {
-        let mut reason = GameResultReason::Nothing;
         let mut points = GameResultPoints::Nothing;
+        let mut reason = GameResultReason::Nothing;
         let moves_available = self.moves_available(mg);
 
         // Without moves available, it's either checkmate or stalemate.
         if !moves_available {
             if self.we_are_in_check(mg) {
-                reason = GameResultReason::Checkmate;
-                points = if self.is_white_to_move() {
-                    GameResultPoints::BlackWins
+                if self.is_white_to_move() {
+                    points = GameResultPoints::BlackWins;
+                    reason = GameResultReason::BlackMates;
                 } else {
-                    GameResultPoints::WhiteWins
+                    points = GameResultPoints::WhiteWins;
+                    reason = GameResultReason::WhiteMates;
                 }
             } else {
-                reason = GameResultReason::Stalemate;
                 points = GameResultPoints::Draw;
+                reason = GameResultReason::Stalemate;
             }
         }
 
@@ -120,23 +121,23 @@ impl Board {
         if moves_available {
             match () {
                 _ if self.draw_by_insufficient_material_rule() => {
-                    reason = GameResultReason::Insufficient;
                     points = GameResultPoints::Draw;
+                    reason = GameResultReason::Insufficient;
                 }
                 _ if self.draw_by_fifty_move_rule() => {
-                    reason = GameResultReason::FiftyMoves;
                     points = GameResultPoints::Draw;
+                    reason = GameResultReason::FiftyMoves;
                 }
                 _ if self.draw_by_repetition_rule() >= 2 => {
-                    reason = GameResultReason::ThreeFold;
                     points = GameResultPoints::Draw;
+                    reason = GameResultReason::ThreeFold;
                 }
                 _ => (),
             }
         };
 
         // Return the result if the game is ended.
-        if (reason != GameResultReason::Nothing) && (points != GameResultPoints::Nothing) {
+        if (points != GameResultPoints::Nothing) && (reason != GameResultReason::Nothing) {
             Some(GameResult { points, reason })
         } else {
             None

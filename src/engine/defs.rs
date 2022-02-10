@@ -50,7 +50,8 @@ impl Display for GameResultPoints {
 // Lists all possible game results.
 #[derive(PartialEq, Clone)]
 pub enum GameResultReason {
-    Checkmate,
+    WhiteMates,
+    BlackMates,
     Stalemate,
     Insufficient,
     FiftyMoves,
@@ -62,11 +63,12 @@ pub enum GameResultReason {
 impl Display for GameResultReason {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            GameResultReason::Checkmate => write!(f, "checkmate"),
-            GameResultReason::Stalemate => write!(f, "stalemate"),
-            GameResultReason::Insufficient => write!(f, "insufficient material"),
-            GameResultReason::FiftyMoves => write!(f, "fifty move rule"),
-            GameResultReason::ThreeFold => write!(f, "threefold repetition"),
+            GameResultReason::WhiteMates => write!(f, "White mates"),
+            GameResultReason::BlackMates => write!(f, "Black mates"),
+            GameResultReason::Stalemate => write!(f, "Stalemate"),
+            GameResultReason::ThreeFold => write!(f, "Draw by repetition"),
+            GameResultReason::Insufficient => write!(f, "Insufficient material"),
+            GameResultReason::FiftyMoves => write!(f, "Ffifty move rule"),
             GameResultReason::Other(reason) => write!(f, "{}", reason),
             GameResultReason::Nothing => write!(f, "-"),
         }
