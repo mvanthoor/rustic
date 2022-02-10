@@ -68,7 +68,7 @@ impl Display for GameResultReason {
             GameResultReason::FiftyMoves => write!(f, "fifty move rule"),
             GameResultReason::ThreeFold => write!(f, "threefold repetition"),
             GameResultReason::Other(reason) => write!(f, "{}", reason),
-            GameResultReason::Nothing => write!(f, ""),
+            GameResultReason::Nothing => write!(f, "-"),
         }
     }
 }
@@ -117,6 +117,7 @@ impl Messages {
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
     pub const CLEARED_TT: &'static str = "Cleared the transposition table";
+    pub const GAME_OVER: &'static str = "Game over. Result received";
 }
 
 #[derive(PartialEq, Copy, Clone)]

@@ -266,8 +266,11 @@ impl Engine {
                         if self.is_thinking() {
                             self.search.send(SearchControl::Abandon);
                         }
-                        self.comm
-                            .send(CommOut::XBoard(XBoardOut::Result(result.clone())));
+                        self.comm.send(CommOut::Message(format!(
+                            "{}: {}",
+                            Messages::GAME_OVER,
+                            result
+                        )));
                     }
                     _ => {
                         self.comm.send(CommOut::Error(
