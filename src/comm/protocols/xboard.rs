@@ -283,12 +283,12 @@ impl XBoard {
 impl IComm for XBoard {
     fn init(
         &mut self,
-        receiving_tx: Sender<Information>,
+        input_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<EngineOption>>,
     ) {
         // Start threads
-        self.input_thread(receiving_tx);
+        self.input_thread(input_tx);
         self.output_thread(board, options);
     }
 
