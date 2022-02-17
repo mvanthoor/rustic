@@ -25,12 +25,7 @@ use super::{defs::Location, Board};
 use crate::{
     board::defs::Ranks,
     defs::{Side, Sides, Square},
-    engine::defs::{GameResult, GameResultPoints, GameResultReason},
     evaluation::defs::FLIP,
-    movegen::{
-        defs::{MoveList, MoveType},
-        MoveGenerator,
-    },
 };
 
 impl Board {
@@ -94,79 +89,5 @@ impl Board {
 
     pub fn is_white_to_move(&self) -> bool {
         self.us() == Sides::WHITE
-    }
-
-    pub fn is_game_over(&mut self, mg: &MoveGenerator) -> Option<GameResult> {
-        let mut points = GameResultPoints::Nothing;
-        let mut reason = GameResultReason::Nothing;
-        let moves_available = self.moves_available(mg);
-
-        // Without moves available, it's either checkmate or stalemate.
-        if !moves_available {
-            if self.we_are_in_check(mg) {
-                if self.is_white_to_move() {
-                    points = GameResultPoints::BlackWins;
-                    reason = GameResultReason::BlackMates;
-                } else {
-                    points = GameResultPoints::WhiteWins;
-                    reason = GameResultReason::WhiteMates;
-                }
-            } else {
-                points = GameResultPoints::Draw;
-                reason = GameResultReason::Stalemate;
-            }
-        }
-
-        // Even with moves available, we could still have a draw.
-        if moves_available {
-            match () {
-                _ if self.draw_by_insufficient_material_rule() => {
-                    points = GameResultPoints::Draw;
-                    reason = GameResultReason::Insufficient;
-                }
-                _ if self.draw_by_fifty_move_rule() => {
-                    points = GameResultPoints::Draw;
-                    reason = GameResultReason::FiftyMoves;
-                }
-                _ if self.draw_by_repetition_rule() >= 2 => {
-                    points = GameResultPoints::Draw;
-                    reason = GameResultReason::ThreeFold;
-                }
-                _ => (),
-            }
-        };
-
-        // Return the result if the game is ended.
-        if (points != GameResultPoints::Nothing) && (reason != GameResultReason::Nothing) {
-            Some(GameResult { points, reason })
-        } else {
-            None
-        }
-    }
-
-    // Determines if the side to move has at least one legal move.
-    pub fn moves_available(&mut self, mg: &MoveGenerator) -> bool {
-        let mut move_list = MoveList::new();
-
-        // Generate pseudo-legal moves.
-        mg.generate_moves(self, &mut move_list, MoveType::All);
-
-        // We can break as soon as we find a legal move.
-        for i in 0..move_list.len() {
-            let m = move_list.get_move(i);
-            if self.make(m, mg) {
-                // Unmake the move we just made.
-                self.unmake();
-                // Return true, as we have at least one move.
-                return true;
-            }
-        }
-
-        // No legal moves available.
-        false
-    }
-
-    pub fn we_are_in_check(&self, mg: &MoveGenerator) -> bool {
-        mg.square_attacked(self, self.opponent(), self.king_square(self.us()))
     }
 }

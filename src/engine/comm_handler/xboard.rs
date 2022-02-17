@@ -160,12 +160,7 @@ impl Engine {
                     // move and send the game result (if any).
                     EngineState::Observing => {
                         if self.execute_move(m.clone()) {
-                            if let Some(result) = self
-                                .board
-                                .lock()
-                                .expect(ErrFatal::LOCK)
-                                .is_game_over(&self.mg)
-                            {
+                            if let Some(result) = self.is_game_over() {
                                 self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                             }
                         } else {
@@ -181,14 +176,8 @@ impl Engine {
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                let result = self
-                                    .board
-                                    .lock()
-                                    .expect(ErrFatal::LOCK)
-                                    .is_game_over(&self.mg);
-
-                                if let Some(r) = result {
-                                    self.comm.send(CommOut::XBoard(XBoardOut::Result(r)));
+                                if let Some(result) = self.is_game_over() {
+                                    self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 } else {
                                     Engine::set_time_control(&mut search_params, tc);
                                     self.search.send(SearchControl::Start(search_params));
@@ -212,14 +201,8 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            let result = self
-                                .board
-                                .lock()
-                                .expect(ErrFatal::LOCK)
-                                .is_game_over(&self.mg);
-
-                            if let Some(r) = result {
-                                self.comm.send(CommOut::XBoard(XBoardOut::Result(r)));
+                            if let Some(result) = self.is_game_over() {
+                                self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 self.set_observing();
                             } else {
                                 search_params.search_mode = SearchMode::Infinite;
