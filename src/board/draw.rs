@@ -48,6 +48,38 @@ impl Board {
     // under FIDE rules. Note that this is different from
     // sufficient_material_to_force_checkmate() returning false.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
+        let white = &self.bb_pieces[Sides::WHITE];
+        let black = &self.bb_pieces[Sides::BLACK];
+
+        // Determine if a side has either a Queen, a Rook or a pawn. If is
+        // the case, a draw by rule is not possible.
+        let white_qrp = white[Pieces::QUEEN].count_ones() >= 1
+            || white[Pieces::ROOK].count_ones() >= 1
+            || white[Pieces::PAWN].count_ones() >= 1;
+        let black_qrp = black[Pieces::QUEEN].count_ones() >= 1
+            || black[Pieces::ROOK].count_ones() >= 1
+            || black[Pieces::PAWN].count_ones() >= 1;
+
+        // There's at least one queen, rook or pawn on the board, so we
+        // cannot claim draw by insufficient material.
+        if white_qrp || black_qrp {
+            return false;
+        }
+
+        // Determine if the two kings are the only pieces on the board.
+        let bare_kings = white[Pieces::BISHOP].count_ones() == 0
+            && white[Pieces::KNIGHT] == 0
+            && !white_qrp
+            && black[Pieces::BISHOP].count_ones() == 0
+            && black[Pieces::KNIGHT] == 0
+            && !black_qrp;
+
+        // If so, we can claim a draw.
+        if bare_kings {
+            return true;
+        }
+
+        // All other cases cannot be claimed as a draw.
         false
     }
 
