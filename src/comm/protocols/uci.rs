@@ -377,7 +377,7 @@ impl Uci {
 impl Uci {
     // The control thread receives commands from the engine thread.
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
-        // Create an incoming channel for the control thread.
+        // Create an incoming channel for the output thread.
         let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOut>();
 
         // Create the output thread.
