@@ -59,24 +59,18 @@ impl Board {
         let black_qrp = black[Pieces::QUEEN].count_ones() >= 1
             || black[Pieces::ROOK].count_ones() >= 1
             || black[Pieces::PAWN].count_ones() >= 1;
+        let qrp = white_qrp || black_qrp;
 
-        // There's at least one queen, rook or pawn on the board, so we
-        // cannot claim draw by insufficient material.
-        if white_qrp || black_qrp {
-            return false;
-        }
+        // No queens, rooks or pawns. We may have a draw.
+        if !qrp {
+            let k_vs_k = white[Pieces::BISHOP].count_ones() == 0
+                && white[Pieces::KNIGHT] == 0
+                && black[Pieces::BISHOP].count_ones() == 0
+                && black[Pieces::KNIGHT] == 0;
 
-        // Determine if the two kings are the only pieces on the board.
-        let bare_kings = white[Pieces::BISHOP].count_ones() == 0
-            && white[Pieces::KNIGHT] == 0
-            && !white_qrp
-            && black[Pieces::BISHOP].count_ones() == 0
-            && black[Pieces::KNIGHT] == 0
-            && !black_qrp;
-
-        // If so, we can claim a draw.
-        if bare_kings {
-            return true;
+            if k_vs_k {
+                return true;
+            }
         }
 
         // All other cases cannot be claimed as a draw.
