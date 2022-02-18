@@ -26,7 +26,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use crate::{
     board::Board,
     comm::{
-        defs::{CommIn, CommInfo, CommOut, CommType, FancyAbout, IComm},
+        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
         shared::Shared,
     },
     defs::{About, Sides},
@@ -271,7 +271,7 @@ impl XBoard {
             input_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::XBOARD, FancyAbout::No, EngineState::Observing),
+            info: CommInfo::new(CommType::XBOARD, false, EngineState::Observing),
         }
     }
 }

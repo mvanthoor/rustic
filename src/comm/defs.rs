@@ -43,23 +43,14 @@ impl CommType {
     pub const UCI: &'static str = "uci";
 }
 
-pub enum FancyAbout {
-    Yes,
-    No,
-}
-
 pub struct CommInfo {
     protocol_name: &'static str,
-    fancy_about: FancyAbout,
+    fancy_about: bool,
     entry_state: EngineState,
 }
 
 impl CommInfo {
-    pub fn new(
-        protocol_name: &'static str,
-        fancy_about: FancyAbout,
-        entry_state: EngineState,
-    ) -> Self {
+    pub fn new(protocol_name: &'static str, fancy_about: bool, entry_state: EngineState) -> Self {
         Self {
             protocol_name,
             fancy_about,
@@ -72,10 +63,7 @@ impl CommInfo {
     }
 
     pub fn fancy_about(&self) -> bool {
-        match self.fancy_about {
-            FancyAbout::Yes => true,
-            FancyAbout::No => false,
-        }
+        self.fancy_about
     }
 
     pub fn entry_state(&self) -> EngineState {
