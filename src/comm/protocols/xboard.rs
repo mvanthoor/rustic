@@ -737,7 +737,20 @@ impl XBoard {
     }
 
     fn best_move(m: &Move, result: &Option<GameResult>) {
+        if let Some(r) = result {
+            match r.reason {
+                GameResultReason::ThreeFold
+                | GameResultReason::FiftyMoves
+                | GameResultReason::Insufficient => {
+                    println!("offer draw");
+                }
+                _ => (),
+            }
+        }
         println!("move {}", m);
+        if let Some(r) = result {
+            XBoard::result(r);
+        }
     }
 
     fn search_summary(stat01: &mut Stat01, s: &SearchSummary) {
