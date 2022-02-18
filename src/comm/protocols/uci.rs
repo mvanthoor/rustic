@@ -543,9 +543,10 @@ impl Uci {
         );
     }
 
-    // Sends the best move to the GUI. "result" is not used by the
-    // UCI-protocol, so this parameter is ignored.
-    fn best_move(m: &Move, _result: &Option<GameResult>) {
+    // Sends the best move to the GUI. GameResult is not used by the
+    // UCI-protocol because it depends on the GUI to determine this.
+    // Therefore this parameter is ignored.
+    fn best_move(m: &Move, _: &Option<GameResult>) {
         println!("bestmove {}", m);
     }
 
