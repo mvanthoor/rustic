@@ -666,7 +666,7 @@ impl XBoard {
                     CommOut::XBoard(XBoardOut::Result(r)) => XBoard::result(&r),
 
                     // Common outputs available to all protocols
-                    CommOut::BestMove(m) => XBoard::best_move(&m),
+                    CommOut::BestMove(m, result) => XBoard::best_move(&m, &result),
                     CommOut::SearchSummary(summary) => {
                         XBoard::search_summary(&mut buf_stat01, &summary)
                     }
@@ -736,7 +736,7 @@ impl XBoard {
         println!("{} {{{}}}", r.points, r.reason);
     }
 
-    fn best_move(m: &Move) {
+    fn best_move(m: &Move, result: &Option<GameResult>) {
         println!("move {}", m);
     }
 

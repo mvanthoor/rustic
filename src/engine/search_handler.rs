@@ -29,7 +29,8 @@ impl Engine {
         match search_report {
             SearchReport::Finished(m) => {
                 if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
-                    self.comm.send(CommOut::BestMove(*m));
+                    let result = self.is_game_over();
+                    self.comm.send(CommOut::BestMove(*m, result));
                     self.set_waiting();
                 } else {
                     panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);

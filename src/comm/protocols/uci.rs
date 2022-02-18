@@ -30,7 +30,9 @@ use crate::{
         shared::Shared,
     },
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, EngineSetOption, EngineState, ErrFatal, Information, UiElement},
+    engine::defs::{
+        EngineOption, EngineSetOption, EngineState, ErrFatal, GameResult, Information, UiElement,
+    },
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -404,7 +406,7 @@ impl Uci {
                     CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
                     CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
                     CommOut::SearchStats(stats) => Uci::search_stats(&stats),
-                    CommOut::BestMove(bm) => Uci::best_move(&bm),
+                    CommOut::BestMove(bm, result) => Uci::best_move(&bm, &result),
                     CommOut::Error(err_type, cmd) => Uci::error(err_type, &cmd),
 
                     // Custom commands
@@ -541,7 +543,9 @@ impl Uci {
         );
     }
 
-    fn best_move(m: &Move) {
+    // Sends the best move to the GUI. "result" is not used by the
+    // UCI-protocol, so this parameter is ignored.
+    fn best_move(m: &Move, _result: &Option<GameResult>) {
         println!("bestmove {}", m);
     }
 
