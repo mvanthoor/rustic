@@ -48,27 +48,48 @@ impl Board {
     // under FIDE rules. Note that this is different from
     // sufficient_material_to_force_checkmate() returning false.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
-        let white = &self.bb_pieces[Sides::WHITE];
-        let black = &self.bb_pieces[Sides::BLACK];
+        // Get the piece bitboards for white and black.
+        let w = &self.bb_pieces[Sides::WHITE];
+        let b = &self.bb_pieces[Sides::BLACK];
 
-        // Determine if a side has either a Queen, a Rook or a pawn. If is
-        // the case, a draw by rule is not possible.
-        let white_qrp = white[Pieces::QUEEN].count_ones() >= 1
-            || white[Pieces::ROOK].count_ones() >= 1
-            || white[Pieces::PAWN].count_ones() >= 1;
-        let black_qrp = black[Pieces::QUEEN].count_ones() >= 1
-            || black[Pieces::ROOK].count_ones() >= 1
-            || black[Pieces::PAWN].count_ones() >= 1;
-        let qrp = white_qrp || black_qrp;
+        // Determine if at least one side has either a Queen, a Rook or a
+        // pawn (qrp). If is the case, a draw by rule is not possible.
+        let qrp = w[Pieces::QUEEN] != 0
+            || w[Pieces::ROOK] != 0
+            || w[Pieces::PAWN] != 0
+            || b[Pieces::QUEEN] != 0
+            || b[Pieces::ROOK] != 0
+            || b[Pieces::PAWN] != 0;
 
         // No queens, rooks or pawns. We may have a draw.
         if !qrp {
-            let k_vs_k = white[Pieces::BISHOP].count_ones() == 0
-                && white[Pieces::KNIGHT] == 0
-                && black[Pieces::BISHOP].count_ones() == 0
-                && black[Pieces::KNIGHT] == 0;
+            // King vs. King
+            let kk = w[Pieces::BISHOP] == 0
+                && w[Pieces::KNIGHT] == 0
+                && b[Pieces::BISHOP] == 0
+                && b[Pieces::KNIGHT] == 0;
+            // King/Bishop vs. King
+            let kbk = w[Pieces::BISHOP].count_ones() == 1
+                && w[Pieces::KNIGHT] == 0
+                && b[Pieces::BISHOP] == 0
+                && b[Pieces::KNIGHT] == 0;
+            // King/Knight vs. King
+            let knk = w[Pieces::BISHOP] == 0
+                && w[Pieces::KNIGHT].count_ones() == 1
+                && b[Pieces::BISHOP] == 0
+                && b[Pieces::KNIGHT] == 0;
+            // King vs. King/Bishop
+            let kkb = w[Pieces::BISHOP] == 0
+                && w[Pieces::KNIGHT] == 0
+                && b[Pieces::BISHOP].count_ones() == 1
+                && b[Pieces::KNIGHT] == 0;
+            // King vs. King/Knight
+            let kkn = w[Pieces::BISHOP] == 0
+                && w[Pieces::KNIGHT] == 0
+                && b[Pieces::BISHOP] == 0
+                && b[Pieces::KNIGHT].count_ones() == 1;
 
-            if k_vs_k {
+            if kk || knk || kbk || kkb || kkn {
                 return true;
             }
         }
