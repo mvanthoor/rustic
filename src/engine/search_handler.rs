@@ -21,20 +21,30 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::{defs::ErrFatal, Engine};
+use super::{
+    defs::{ErrFatal, GameResult},
+    Engine,
+};
 use crate::{comm::defs::CommOut, search::defs::SearchReport};
 
 impl Engine {
     pub fn search_handler(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
-                if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
-                    let result = self.is_game_over();
-                    self.comm.send(CommOut::BestMove(*m, result));
-                    self.set_waiting();
-                } else {
-                    panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
-                }
+                let mut result: Option<GameResult> = None;
+
+                if self.comm.info().requires_stateful_mode() {
+                    if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
+                        if self.comm.info().requires_game_result() {
+                            result = self.is_game_over();
+                        }
+                    } else {
+                        panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);
+                    }
+                };
+
+                self.comm.send(CommOut::BestMove(*m, result));
+                self.set_waiting();
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {

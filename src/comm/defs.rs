@@ -76,6 +76,14 @@ impl CommInfo {
         self.supports_fancy_about
     }
 
+    pub fn requires_stateful_mode(&self) -> bool {
+        self.requires_stateful_mode
+    }
+
+    pub fn requires_game_result(&self) -> bool {
+        self.requires_game_result
+    }
+
     pub fn startup_state(&self) -> EngineState {
         self.startup_state
     }
