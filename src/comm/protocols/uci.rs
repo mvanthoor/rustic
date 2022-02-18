@@ -88,7 +88,7 @@ impl Uci {
             input_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::UCI, true, EngineState::Waiting),
+            info: CommInfo::new(CommType::UCI, true, false, false, EngineState::Waiting),
         }
     }
 }

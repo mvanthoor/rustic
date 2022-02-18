@@ -153,10 +153,10 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        if self.comm.info().fancy_about() {
-            self.print_fancy_about(&self.settings, self.comm.info().name());
+        if self.comm.info().supports_fancy_about() {
+            self.print_fancy_about(&self.settings, self.comm.info().protocol_name());
         } else {
-            self.print_simple_about(&self.settings, self.comm.info().name());
+            self.print_simple_about(&self.settings, self.comm.info().protocol_name());
         }
 
         // Setup position and abort if this fails.

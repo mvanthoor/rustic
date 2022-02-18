@@ -45,25 +45,35 @@ impl CommType {
 
 pub struct CommInfo {
     protocol_name: &'static str,
-    fancy_about: bool,
+    supports_fancy_about: bool,
+    requires_stateful_mode: bool,
+    requires_game_result: bool,
     startup_state: EngineState,
 }
 
 impl CommInfo {
-    pub fn new(protocol_name: &'static str, fancy_about: bool, startup_state: EngineState) -> Self {
+    pub fn new(
+        protocol_name: &'static str,
+        supports_fancy_about: bool,
+        requires_stateful_mode: bool,
+        requires_game_result: bool,
+        startup_state: EngineState,
+    ) -> Self {
         Self {
             protocol_name,
-            fancy_about,
+            supports_fancy_about,
+            requires_stateful_mode,
+            requires_game_result,
             startup_state,
         }
     }
 
-    pub fn name(&self) -> &str {
+    pub fn protocol_name(&self) -> &str {
         self.protocol_name
     }
 
-    pub fn fancy_about(&self) -> bool {
-        self.fancy_about
+    pub fn supports_fancy_about(&self) -> bool {
+        self.supports_fancy_about
     }
 
     pub fn startup_state(&self) -> EngineState {

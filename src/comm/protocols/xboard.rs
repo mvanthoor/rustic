@@ -271,7 +271,7 @@ impl XBoard {
             input_handle: None,
             output_handle: None,
             output_tx: None,
-            info: CommInfo::new(CommType::XBOARD, false, EngineState::Observing),
+            info: CommInfo::new(CommType::XBOARD, false, true, true, EngineState::Observing),
         }
     }
 }
