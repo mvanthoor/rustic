@@ -96,8 +96,8 @@ impl Board {
             // Both bishops have to be on the same colored square for a
             // draw to be claimable.
             let same_color_sq = if kbkb {
-                let wb_sq = w[Pieces::BISHOP].trailing_ones() as usize;
-                let bb_sq = b[Pieces::BISHOP].trailing_ones() as usize;
+                let wb_sq = w[Pieces::BISHOP].trailing_zeros() as usize;
+                let bb_sq = b[Pieces::BISHOP].trailing_zeros() as usize;
 
                 Board::is_white_square(wb_sq) == Board::is_white_square(bb_sq)
             } else {
