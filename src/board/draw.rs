@@ -88,8 +88,23 @@ impl Board {
                 && w[Pieces::KNIGHT] == 0
                 && b[Pieces::BISHOP] == 0
                 && b[Pieces::KNIGHT].count_ones() == 1;
+            // King/Bishop vs. King/Bishop
+            let kbkb = w[Pieces::BISHOP].count_ones() == 1
+                && w[Pieces::KNIGHT] == 0
+                && b[Pieces::BISHOP].count_ones() == 1
+                && b[Pieces::KNIGHT] == 0;
+            // Both bishops have to be on the same colored square for a
+            // draw to be claimable.
+            let same_color_sq = if kbkb {
+                let wb_sq = w[Pieces::BISHOP].trailing_ones() as usize;
+                let bb_sq = b[Pieces::BISHOP].trailing_ones() as usize;
 
-            if kk || knk || kbk || kkb || kkn {
+                Board::is_white_square(wb_sq) == Board::is_white_square(bb_sq)
+            } else {
+                false
+            };
+
+            if kk || kbk || knk || kkb || kkn || (kbkb && same_color_sq) {
                 return true;
             }
         }
