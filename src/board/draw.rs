@@ -151,19 +151,19 @@ impl Board {
     // mated, but this function will still return false if mate can not be
     // forced.)
     pub fn sufficient_material_to_force_checkmate(&self) -> bool {
-        self.get_pieces(Pieces::PAWN, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::PAWN, Sides::BLACK).count_ones() > 0
-            || self.get_pieces(Pieces::QUEEN, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::QUEEN, Sides::BLACK).count_ones() > 0
-            || self.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0
-            || self.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0
+        self.get_pieces(Sides::WHITE, Pieces::PAWN).count_ones() > 0
+            || self.get_pieces(Sides::BLACK, Pieces::PAWN).count_ones() > 0
+            || self.get_pieces(Sides::WHITE, Pieces::QUEEN).count_ones() > 0
+            || self.get_pieces(Sides::BLACK, Pieces::QUEEN).count_ones() > 0
+            || self.get_pieces(Sides::WHITE, Pieces::ROOK).count_ones() > 0
+            || self.get_pieces(Sides::BLACK, Pieces::ROOK).count_ones() > 0
             || self.has_bishop_pair(Sides::WHITE)
             || self.has_bishop_pair(Sides::BLACK)
-            || (self.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() >= 1
-                && self.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 1)
-            || (self.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() >= 1
-                && self.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 1)
-            || self.get_pieces(Pieces::KNIGHT, Sides::WHITE).count_ones() >= 3
-            || self.get_pieces(Pieces::KNIGHT, Sides::BLACK).count_ones() >= 3
+            || (self.get_pieces(Sides::WHITE, Pieces::BISHOP).count_ones() >= 1
+                && self.get_pieces(Sides::WHITE, Pieces::KNIGHT).count_ones() >= 1)
+            || (self.get_pieces(Sides::BLACK, Pieces::BISHOP).count_ones() >= 1
+                && self.get_pieces(Sides::BLACK, Pieces::KNIGHT).count_ones() >= 1)
+            || self.get_pieces(Sides::WHITE, Pieces::KNIGHT).count_ones() >= 3
+            || self.get_pieces(Sides::BLACK, Pieces::KNIGHT).count_ones() >= 3
     }
 }

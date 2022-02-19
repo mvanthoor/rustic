@@ -149,7 +149,7 @@ impl MoveGenerator {
         let bb_own_pieces = board.bb_side[us];
         let bb_opponent_pieces = board.bb_side[board.opponent()];
 
-        let mut bb_pieces = board.get_pieces(piece, us);
+        let mut bb_pieces = board.get_pieces(us, piece);
 
         // Generate moves for each piece of the type passed into the function.
         while bb_pieces > 0 {
@@ -181,7 +181,7 @@ impl MoveGenerator {
         let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
         let direction = Board::pawn_direction(us);
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
-        let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
+        let mut bb_pawns = board.get_pieces(us, Pieces::PAWN);
 
         // As long as there are pawns, generate moves for each of them.
         while bb_pawns > 0 {
@@ -219,7 +219,7 @@ impl MoveGenerator {
         let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
         let castle_perms_black = (board.game_state.castling & (Castling::BK | Castling::BQ)) > 0;
         let bb_occupancy = board.occupancy();
-        let mut bb_king = board.get_pieces(Pieces::KING, us);
+        let mut bb_king = board.get_pieces(us, Pieces::KING);
         let from = bits::next(&mut bb_king);
 
         // Generate castling moves for white.

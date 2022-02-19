@@ -72,7 +72,7 @@ impl Board {
     }
 
     // Return a bitboard with locations of a certain piece type for one of the sides.
-    pub fn get_pieces(&self, piece: Piece, side: Side) -> Bitboard {
+    pub fn get_pieces(&self, side: Side, piece: Piece) -> Bitboard {
         self.bb_pieces[side][piece]
     }
 
@@ -167,7 +167,7 @@ impl Board {
     }
 
     pub fn has_bishop_pair(&self, side: Side) -> bool {
-        let mut bishops = self.get_pieces(Pieces::BISHOP, side);
+        let mut bishops = self.get_pieces(side, Pieces::BISHOP);
         let mut white_square = 0;
         let mut black_square = 0;
 
