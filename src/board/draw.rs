@@ -49,8 +49,8 @@ impl Board {
     // sufficient_material_to_force_checkmate() returning false.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
         // Get the piece bitboards for white and black.
-        let w = &self.bb_pieces[Sides::WHITE];
-        let b = &self.bb_pieces[Sides::BLACK];
+        let w = self.get_bitboards(Sides::WHITE);
+        let b = self.get_bitboards(Sides::BLACK);
 
         // Determine if at least one side has either a Queen, a Rook or a
         // pawn (qrp). If is the case, a draw by rule is not possible.

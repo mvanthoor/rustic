@@ -76,6 +76,10 @@ impl Board {
         self.bb_pieces[side][piece]
     }
 
+    pub fn get_bitboards(&self, side: Side) -> &[u64; NrOf::PIECE_TYPES] {
+        &self.bb_pieces[side]
+    }
+
     // Return a bitboard containing all the pieces on the board.
     pub fn occupancy(&self) -> Bitboard {
         self.bb_side[Sides::WHITE] | self.bb_side[Sides::BLACK]
