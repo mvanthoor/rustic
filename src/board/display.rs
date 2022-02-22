@@ -144,6 +144,7 @@ fn ascii_board_to_pretty_string(ascii_board: &AsciiBoard) -> String {
     let mut coordinate_digit = NrOf::FILES;
 
     pretty += "\n";
+
     for current_rank in RangeOf::RANKS.rev() {
         pretty.push_str(format!("{}   ", coordinate_digit).as_str());
         for current_file in RangeOf::FILES {
@@ -154,11 +155,14 @@ fn ascii_board_to_pretty_string(ascii_board: &AsciiBoard) -> String {
         pretty += "\n";
         coordinate_digit -= 1;
     }
+
     pretty += "\n";
     pretty += str::repeat(" ", 4).as_str();
+
     for c in coordinate_alpha.chars() {
         pretty.push_str(format!("{} ", c).as_str());
     }
+
     pretty += "\n\n";
 
     pretty
