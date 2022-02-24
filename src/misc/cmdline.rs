@@ -25,7 +25,7 @@ use crate::{
     defs::{About, FEN_START_POSITION},
     engine::defs::EngineOptionDefaults,
 };
-use clap::{App, Arg, ArgMatches};
+use clap::{Arg, ArgMatches, Command};
 
 // Consts for command line options, flags and arguments
 
@@ -149,7 +149,7 @@ impl CmdLine {
     }
 
     fn get() -> ArgMatches {
-        let mut app = App::new(About::ENGINE)
+        let mut app = Command::new(About::ENGINE)
             .version(About::VERSION)
             .author(About::AUTHOR)
             .about(About::WEBSITE)

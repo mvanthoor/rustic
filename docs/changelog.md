@@ -45,9 +45,9 @@ implemented.
   - Implemented Display for many structs, removing custom functions.
   - Dropped the "misc::print" module (no code left after refactoring).
 - Update:
-  - "rand" crate to 0.8.4.
+  - "rand" crate to 0.8.5.
   - "rand_chacha" crate to 0.3.1.
-  - "clap" crate to 3.0.13.
+  - "clap" crate to 3.1.1.
   - "if_chain" crate to 1.0.2.
   - "crossbeam_channel" crate to 0.5.2.
 

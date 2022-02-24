@@ -152,7 +152,7 @@ const fn init_bb_files() -> [Bitboard; NrOf::FILES] {
 // Initializes a constant array of bitboards, with each bitboard
 // representing a rank.
 const fn init_bb_ranks() -> [Bitboard; NrOf::RANKS] {
-    pub const BB_RANK_1: Bitboard = 0xFF;
+    const BB_RANK_1: Bitboard = 0xFF;
     let mut bb_ranks = [0; NrOf::RANKS as usize];
     let mut i = 0;
 

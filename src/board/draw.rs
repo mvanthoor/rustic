@@ -151,19 +151,20 @@ impl Board {
     // mated, but this function will still return false if mate can not be
     // forced.)
     pub fn sufficient_material_to_force_checkmate(&self) -> bool {
-        self.get_pieces(Sides::WHITE, Pieces::PAWN).count_ones() > 0
-            || self.get_pieces(Sides::BLACK, Pieces::PAWN).count_ones() > 0
-            || self.get_pieces(Sides::WHITE, Pieces::QUEEN).count_ones() > 0
-            || self.get_pieces(Sides::BLACK, Pieces::QUEEN).count_ones() > 0
-            || self.get_pieces(Sides::WHITE, Pieces::ROOK).count_ones() > 0
-            || self.get_pieces(Sides::BLACK, Pieces::ROOK).count_ones() > 0
+        let w = self.get_bitboards(Sides::WHITE);
+        let b = self.get_bitboards(Sides::BLACK);
+
+        w[Pieces::QUEEN] > 0
+            || b[Pieces::QUEEN] > 0
+            || w[Pieces::ROOK] > 0
+            || b[Pieces::ROOK] > 0
+            || w[Pieces::PAWN] > 0
+            || b[Pieces::PAWN] > 0
             || self.has_bishop_pair(Sides::WHITE)
             || self.has_bishop_pair(Sides::BLACK)
-            || (self.get_pieces(Sides::WHITE, Pieces::BISHOP).count_ones() >= 1
-                && self.get_pieces(Sides::WHITE, Pieces::KNIGHT).count_ones() >= 1)
-            || (self.get_pieces(Sides::BLACK, Pieces::BISHOP).count_ones() >= 1
-                && self.get_pieces(Sides::BLACK, Pieces::KNIGHT).count_ones() >= 1)
-            || self.get_pieces(Sides::WHITE, Pieces::KNIGHT).count_ones() >= 3
-            || self.get_pieces(Sides::BLACK, Pieces::KNIGHT).count_ones() >= 3
+            || (w[Pieces::BISHOP] > 0 && w[Pieces::KNIGHT] > 0)
+            || (b[Pieces::BISHOP] > 0 && b[Pieces::KNIGHT] > 0)
+            || w[Pieces::KNIGHT].count_ones() >= 3
+            || b[Pieces::KNIGHT].count_ones() >= 3
     }
 }
