@@ -26,26 +26,18 @@ use crate::{
     defs::{Bitboard, NrOf, Sides},
 };
 
-use super::{defs::Pieces, Board};
+use super::Board;
 use std::fmt::{self, Display};
 
 type AsciiBoard = [char; NrOf::SQUARES];
 
 const CHAR_ZERO: char = '0';
 const CHAR_ONE: char = '1';
-const CHAR_ES: char = '.';
-const CHAR_WK: char = 'K';
-const CHAR_WQ: char = 'Q';
-const CHAR_WR: char = 'R';
-const CHAR_WB: char = 'B';
-const CHAR_WN: char = 'N';
-const CHAR_WP: char = 'I';
-const CHAR_BK: char = 'k';
-const CHAR_BQ: char = 'q';
-const CHAR_BR: char = 'r';
-const CHAR_BB: char = 'b';
-const CHAR_BN: char = 'n';
-const CHAR_BP: char = 'i';
+const CHAR_EMPTY_SQUARE: char = '.';
+const PIECE_CHARS: [[char; NrOf::PIECE_TYPES]; Sides::BOTH] = [
+    ['K', 'Q', 'R', 'B', 'N', 'I'],
+    ['k', 'q', 'r', 'b', 'n', 'i'],
+];
 
 impl Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -66,38 +58,14 @@ impl Board {
 
     // Create a printable ASCII-board out of bitboards.
     fn bitboards_to_ascii(&self) -> AsciiBoard {
-        let mut ascii_board: AsciiBoard = [CHAR_ES; NrOf::SQUARES];
-        let bb_w = self.bb_pieces[Sides::WHITE];
-        let bb_b = self.bb_pieces[Sides::BLACK];
+        let mut ascii_board: AsciiBoard = [CHAR_EMPTY_SQUARE; NrOf::SQUARES];
 
-        for (piece, (w, b)) in bb_w.iter().zip(bb_b.iter()).enumerate() {
-            match piece {
-                Pieces::KING => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WK);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BK);
-                }
-                Pieces::QUEEN => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WQ);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BQ);
-                }
-                Pieces::ROOK => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WR);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BR);
-                }
-                Pieces::BISHOP => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WB);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BB);
-                }
-                Pieces::KNIGHT => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WN);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BN);
-                }
-                Pieces::PAWN => {
-                    self.put_character_on_square(*w, &mut ascii_board, CHAR_WP);
-                    self.put_character_on_square(*b, &mut ascii_board, CHAR_BP);
-                }
-                _ => (),
-            }
+        for (piece, bb) in self.bb_pieces[Sides::WHITE].iter().enumerate() {
+            self.put_character_on_square(*bb, &mut ascii_board, PIECE_CHARS[Sides::WHITE][piece]);
+        }
+
+        for (piece, bb) in self.bb_pieces[Sides::BLACK].iter().enumerate() {
+            self.put_character_on_square(*bb, &mut ascii_board, PIECE_CHARS[Sides::BLACK][piece]);
         }
 
         ascii_board
