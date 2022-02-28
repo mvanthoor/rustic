@@ -49,13 +49,19 @@ impl Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ascii = self.bitboards_to_ascii();
         let pretty = ascii_board_to_pretty_string(&ascii);
-        let meta = self.metadata_to_string();
+        let meta = self.metadata_to_pretty_string();
 
         write!(f, "{}{}", pretty, meta)
     }
 }
 
 impl Board {
+    pub fn bitboard_to_pretty_string(&self, b: Bitboard) -> String {
+        let mut ascii_board: AsciiBoard = ['0'; NrOf::SQUARES];
+        self.put_character_on_square(b, &mut ascii_board, '1');
+        ascii_board_to_pretty_string(&ascii_board)
+    }
+
     // Create a printable ASCII-board out of bitboards.
     fn bitboards_to_ascii(&self) -> AsciiBoard {
         let mut ascii_board: AsciiBoard = [CHAR_ES; NrOf::SQUARES];
@@ -110,7 +116,7 @@ impl Board {
     }
 
     // This function prints all of the metadata about the position.
-    fn metadata_to_string(&self) -> String {
+    fn metadata_to_pretty_string(&self) -> String {
         let mut meta = String::from("");
         let zk = self.game_state.zobrist_key;
         let active_color = if self.is_white_to_move() {

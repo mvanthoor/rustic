@@ -112,9 +112,10 @@ impl Engine {
                     _ => panic!("Not a piece."),
                 };
                 let bitboard = attacks & !own_pieces;
+                let x = mtx_board.bitboard_to_pretty_string(bitboard);
 
                 println!("Found: {color} {}", PIECE_NAME[piece]);
-                println!("Bitboard: {bitboard}");
+                print!("Bitboard: \n{x}\nvalue: {bitboard}");
             } else {
                 println!("Square is empty.");
             }
