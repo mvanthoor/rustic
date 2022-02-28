@@ -42,10 +42,13 @@ impl Engine {
     pub fn comm_handler(&mut self, input: &CommIn) {
         match input {
             CommIn::Uci(command) => self.uci_handler(command),
+
             CommIn::XBoard(command) => self.xboard_handler(command),
 
             CommIn::Quit => self.quit(),
+
             CommIn::Board => self.comm.send(CommOut::PrintBoard),
+
             CommIn::History => self.comm.send(CommOut::PrintHistory),
 
             CommIn::Eval => {
@@ -63,45 +66,7 @@ impl Engine {
                     .send(CommOut::Message(Messages::CLEARED_TT.to_string()));
             }
 
-            CommIn::Bitboards(algebraic_square) => {
-                let square = parse::algebraic_square_to_number(algebraic_square);
-                if let Some(square) = square {
-                    let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
-                    let piece = mtx_board.piece_list[square];
-
-                    if piece != Pieces::NONE {
-                        let white = (mtx_board.bb_side[Sides::WHITE] & BB_SQUARES[square]) > 0;
-                        let side = if white { Sides::WHITE } else { Sides::BLACK };
-                        let color = if white { "White" } else { "Black" };
-                        let own_pieces = if white {
-                            mtx_board.bb_side[Sides::WHITE]
-                        } else {
-                            mtx_board.bb_side[Sides::BLACK]
-                        };
-                        let attacks = match piece {
-                            Pieces::KING | Pieces::KNIGHT => {
-                                self.mg.get_non_slider_attacks(piece, square)
-                            }
-                            Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => self
-                                .mg
-                                .get_slider_attacks(piece, square, mtx_board.occupancy()),
-                            Pieces::PAWN => self.mg.get_pawn_attacks(side, square),
-                            _ => panic!("Not a piece."),
-                        };
-                        let bitboard = attacks & !own_pieces;
-
-                        println!("Found: {color} {}", PIECE_NAME[piece]);
-                        println!("Bitboard: {bitboard}");
-                    } else {
-                        println!("Square is empty.");
-                    }
-                } else {
-                    self.comm.send(CommOut::Error(
-                        ErrNormal::PARAMETER_INVALID,
-                        algebraic_square.to_string(),
-                    ));
-                }
-            }
+            CommIn::Bitboards(algebraic_square) => self.print_bitboards(algebraic_square),
 
             CommIn::Help => self.comm.send(CommOut::PrintHelp),
 
@@ -116,6 +81,48 @@ impl Engine {
             CommIn::Unknown(cmd) => self
                 .comm
                 .send(CommOut::Error(ErrNormal::UNKNOWN_COMMAND, cmd.to_string())),
+        }
+    }
+}
+
+// Private functions
+impl Engine {
+    fn print_bitboards(&self, algebraic_square: &str) {
+        let square = parse::algebraic_square_to_number(algebraic_square);
+        if let Some(square) = square {
+            let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+            let piece = mtx_board.piece_list[square];
+
+            if piece != Pieces::NONE {
+                let white = (mtx_board.bb_side[Sides::WHITE] & BB_SQUARES[square]) > 0;
+                let side = if white { Sides::WHITE } else { Sides::BLACK };
+                let color = if white { "White" } else { "Black" };
+                let own_pieces = if white {
+                    mtx_board.bb_side[Sides::WHITE]
+                } else {
+                    mtx_board.bb_side[Sides::BLACK]
+                };
+                let attacks = match piece {
+                    Pieces::KING | Pieces::KNIGHT => self.mg.get_non_slider_attacks(piece, square),
+                    Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
+                        self.mg
+                            .get_slider_attacks(piece, square, mtx_board.occupancy())
+                    }
+                    Pieces::PAWN => self.mg.get_pawn_attacks(side, square),
+                    _ => panic!("Not a piece."),
+                };
+                let bitboard = attacks & !own_pieces;
+
+                println!("Found: {color} {}", PIECE_NAME[piece]);
+                println!("Bitboard: {bitboard}");
+            } else {
+                println!("Square is empty.");
+            }
+        } else {
+            self.comm.send(CommOut::Error(
+                ErrNormal::PARAMETER_INVALID,
+                algebraic_square.to_string(),
+            ));
         }
     }
 }
