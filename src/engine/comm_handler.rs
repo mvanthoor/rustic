@@ -25,8 +25,9 @@ mod uci;
 mod xboard;
 
 use crate::{
-    board::defs::Pieces,
+    board::defs::{Pieces, BB_SQUARES, PIECE_NAME},
     comm::defs::{CommIn, CommOut},
+    defs::Sides,
     engine::{
         defs::{ErrFatal, ErrNormal, Messages},
         Engine,
@@ -63,9 +64,19 @@ impl Engine {
             }
 
             CommIn::Bitboards(algebraic_square) => {
-                let ag = parse::algebraic_square_to_number(algebraic_square);
-                if let Some(ag) = ag {
-                    println!("Testing: {ag}");
+                let square = parse::algebraic_square_to_number(algebraic_square);
+                if let Some(square) = square {
+                    println!("Testing: {square}");
+                    let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
+                    let piece = mtx_board.piece_list[square];
+
+                    if piece != Pieces::NONE {
+                        let white = (mtx_board.bb_side[Sides::WHITE] & BB_SQUARES[square]) > 0;
+                        let color = if white { "White" } else { "Black" };
+                        println!("Found: {color} {}", PIECE_NAME[piece]);
+                    } else {
+                        println!("Square is empty.");
+                    }
                 } else {
                     self.comm.send(CommOut::Error(
                         ErrNormal::PARAMETER_INVALID,
