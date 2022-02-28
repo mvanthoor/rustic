@@ -66,14 +66,32 @@ impl Engine {
             CommIn::Bitboards(algebraic_square) => {
                 let square = parse::algebraic_square_to_number(algebraic_square);
                 if let Some(square) = square {
-                    println!("Testing: {square}");
                     let mtx_board = self.board.lock().expect(ErrFatal::LOCK);
                     let piece = mtx_board.piece_list[square];
 
                     if piece != Pieces::NONE {
                         let white = (mtx_board.bb_side[Sides::WHITE] & BB_SQUARES[square]) > 0;
+                        let side = if white { Sides::WHITE } else { Sides::BLACK };
                         let color = if white { "White" } else { "Black" };
+                        let own_pieces = if white {
+                            mtx_board.bb_side[Sides::WHITE]
+                        } else {
+                            mtx_board.bb_side[Sides::BLACK]
+                        };
+                        let attacks = match piece {
+                            Pieces::KING | Pieces::KNIGHT => {
+                                self.mg.get_non_slider_attacks(piece, square)
+                            }
+                            Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => self
+                                .mg
+                                .get_slider_attacks(piece, square, mtx_board.occupancy()),
+                            Pieces::PAWN => self.mg.get_pawn_attacks(side, square),
+                            _ => panic!("Not a piece."),
+                        };
+                        let bitboard = attacks & !own_pieces;
+
                         println!("Found: {color} {}", PIECE_NAME[piece]);
+                        println!("Bitboard: {bitboard}");
                     } else {
                         println!("Square is empty.");
                     }
