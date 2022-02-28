@@ -83,12 +83,13 @@ impl Shared {
         println!();
         println!("Custom commands");
         println!("================================================================");
-        println!("help      :   This help information.");
-        println!("board     :   Print the current board state.");
-        println!("history   :   Print a list of past board states.");
-        println!("eval      :   Print evaluation for side to move.");
-        println!("state     :   Print current state of the engine.");
-        println!("cleartt   :   Clear the transposition table.");
+        println!("help           : This help information.");
+        println!("board          : Print the current board state.");
+        println!("history        : Print a list of past board states.");
+        println!("eval           : Print evaluation for side to move.");
+        println!("state          : Print current state of the engine.");
+        println!("bitboards <sq> : Print bitboard information about square.");
+        println!("cleartt        : Clear the transposition table.");
         println!();
     }
 }

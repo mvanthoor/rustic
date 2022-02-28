@@ -117,6 +117,7 @@ pub enum CommIn {
     Eval,
     State,
     ClearTt,
+    Bitboards(String),
     Help,
 
     // Ignore an incoming command on purpose

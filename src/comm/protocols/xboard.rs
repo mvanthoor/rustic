@@ -454,6 +454,7 @@ impl XBoard {
             cmd if cmd.starts_with("level") => XBoard::parse_level(&cmd),
 
             // Custom commands
+            cmd if cmd.starts_with("bitboards") => XBoard::parse_key_value_pair(&cmd),
             cmd if cmd == "board" => CommIn::Board,
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
@@ -507,6 +508,11 @@ impl XBoard {
 
                     // Convert to milliseconds
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(value * 1000)))
+                }
+
+                "bitboards" => {
+                    let value = parts[VALUE].to_string();
+                    CommIn::Bitboards(value)
                 }
 
                 _ => CommIn::Unknown(cmd.to_string()),

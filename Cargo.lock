@@ -174,7 +174,7 @@ dependencies = [
 
 [[package]]
 name = "rustic-alpha-xb"
-version = "3.46.100"
+version = "3.46.101"
 dependencies = [
  "clap",
  "crossbeam-channel",
