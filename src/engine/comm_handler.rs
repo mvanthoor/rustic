@@ -25,12 +25,14 @@ mod uci;
 mod xboard;
 
 use crate::{
+    board::defs::Pieces,
     comm::defs::{CommIn, CommOut},
     engine::{
         defs::{ErrFatal, ErrNormal, Messages},
         Engine,
     },
     evaluation::Evaluation,
+    misc::parse,
 };
 
 // This block implements handling of incoming information, which will be in
@@ -61,7 +63,15 @@ impl Engine {
             }
 
             CommIn::Bitboards(algebraic_square) => {
-                println!("Testing... {algebraic_square}");
+                let ag = parse::algebraic_square_to_number(algebraic_square);
+                if let Some(ag) = ag {
+                    println!("Testing: {ag}");
+                } else {
+                    self.comm.send(CommOut::Error(
+                        ErrNormal::PARAMETER_INVALID,
+                        algebraic_square.to_string(),
+                    ));
+                }
             }
 
             CommIn::Help => self.comm.send(CommOut::PrintHelp),

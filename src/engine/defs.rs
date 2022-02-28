@@ -111,6 +111,7 @@ impl ErrNormal {
     pub const UNKNOWN_COMMAND: &'static str = "Unknown command";
     pub const COMMAND_INVALID: &'static str = "Command invalid in current engine state";
     pub const INCORRECT_FEN: &'static str = "Incorrect FEN-string";
+    pub const PARAMETER_INVALID: &'static str = "Parameter for this command is invalid";
     pub const TIME_CONTROL_NOT_SET: &'static str = "Time control not set";
 }
 
