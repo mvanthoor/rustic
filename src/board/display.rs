@@ -31,6 +31,8 @@ use std::fmt::{self, Display};
 
 type AsciiBoard = [char; NrOf::SQUARES];
 
+const CHAR_ZERO: char = '0';
+const CHAR_ONE: char = '1';
 const CHAR_ES: char = '.';
 const CHAR_WK: char = 'K';
 const CHAR_WQ: char = 'Q';
@@ -57,8 +59,8 @@ impl Display for Board {
 
 impl Board {
     pub fn bitboard_to_pretty_string(&self, b: Bitboard) -> String {
-        let mut ascii_board: AsciiBoard = ['0'; NrOf::SQUARES];
-        self.put_character_on_square(b, &mut ascii_board, '1');
+        let mut ascii_board: AsciiBoard = [CHAR_ZERO; NrOf::SQUARES];
+        self.put_character_on_square(b, &mut ascii_board, CHAR_ONE);
         ascii_board_to_pretty_string(&ascii_board)
     }
 
