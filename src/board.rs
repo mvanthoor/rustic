@@ -28,7 +28,7 @@ mod gamestate;
 mod history;
 mod init;
 mod playmove;
-mod to_fen;
+mod read_fen;
 mod utils;
 mod zobrist;
 
