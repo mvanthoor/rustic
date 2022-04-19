@@ -29,7 +29,7 @@ use super::{
 };
 
 impl Engine {
-    pub fn is_game_over(&mut self) -> Option<GameResult> {
+    pub fn is_game_over(&self) -> Option<GameResult> {
         let mut points = GameResultPoints::Nothing;
         let mut reason = GameResultReason::Nothing;
         let moves_available = self.moves_available();
@@ -77,7 +77,7 @@ impl Engine {
     }
 
     // Determines if the side to move has at least one legal move.
-    pub fn moves_available(&mut self) -> bool {
+    pub fn moves_available(&self) -> bool {
         let mut move_list = MoveList::new();
         let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
 
