@@ -36,7 +36,7 @@ impl Engine {
                 if self.comm.info().requires_stateful_mode() {
                     if self.board.lock().expect(ErrFatal::LOCK).make(*m, &self.mg) {
                         if self.comm.info().requires_game_result() {
-                            result = self.is_game_over();
+                            result = self.game_over();
                         }
                     } else {
                         panic!("{}", ErrFatal::GENERATED_ILLEGAL_MOVE);

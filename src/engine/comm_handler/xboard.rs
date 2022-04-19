@@ -160,7 +160,7 @@ impl Engine {
                     // move and send the game result (if any).
                     EngineState::Observing => {
                         if self.execute_move(m.clone()) {
-                            if let Some(result) = self.is_game_over() {
+                            if let Some(result) = self.game_over() {
                                 self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                             }
                         } else {
@@ -176,7 +176,7 @@ impl Engine {
                     EngineState::Waiting => {
                         if tc.is_set() {
                             if self.execute_move(m.clone()) {
-                                if let Some(result) = self.is_game_over() {
+                                if let Some(result) = self.game_over() {
                                     self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 } else {
                                     Engine::set_time_control(&mut search_params, tc);
@@ -201,7 +201,7 @@ impl Engine {
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
                         if self.execute_move(m.clone()) {
-                            if let Some(result) = self.is_game_over() {
+                            if let Some(result) = self.game_over() {
                                 self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 self.set_observing();
                             } else {
