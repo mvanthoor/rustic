@@ -66,7 +66,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
         let fen = &test_data[0];
 
         // Set up the position according to the provided FEN-string.
-        let setup_result = board.from_fen(Some(fen));
+        let setup_result = board.read_fen(Some(fen));
         println!("Test {} from {}", test_nr + 1, number_of_tests);
         println!("FEN: {}", fen);
 
