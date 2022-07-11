@@ -31,10 +31,10 @@ use crate::{
     misc::bits,
 };
 
-type PSQT = [i8; NrOf::SQUARES];
+type Psqt = [i8; NrOf::SQUARES];
 
 #[rustfmt::skip]
-const KING_MG: PSQT = [
+const KING_MG: Psqt = [
     0,    0,     0,     0,    0,    0,    0,    0,
     0,    0,     0,     0,    0,    0,    0,    0,
     0,    0,     0,     0,    0,    0,    0,    0,
@@ -46,7 +46,7 @@ const KING_MG: PSQT = [
 ];
 
 #[rustfmt::skip]
-const QUEEN_MG: PSQT = [
+const QUEEN_MG: Psqt = [
     -30,  -20,  -10,  -10,  -10,  -10,  -20,  -30,
     -20,  -10,   -5,   -5,   -5,   -5,  -10,  -20,
     -10,   -5,   10,   10,   10,   10,   -5,  -10,
@@ -58,7 +58,7 @@ const QUEEN_MG: PSQT = [
 ];
 
 #[rustfmt::skip]
-const ROOK_MG: PSQT = [
+const ROOK_MG: Psqt = [
     0,   0,   0,   0,   0,   0,   0,   0,
    15,  15,  15,  20,  20,  15,  15,  15,
     0,   0,   0,   0,   0,   0,   0,   0,
@@ -70,7 +70,7 @@ const ROOK_MG: PSQT = [
 ];
 
 #[rustfmt::skip]
-const BISHOP_MG: PSQT = [
+const BISHOP_MG: Psqt = [
     -20,    0,    0,    0,    0,    0,    0,  -20,
     -15,    0,    0,    0,    0,    0,    0,  -15,
     -10,    0,    0,    5,    5,    0,    0,  -10,
@@ -82,7 +82,7 @@ const BISHOP_MG: PSQT = [
 ];
 
 #[rustfmt::skip]
-const KNIGHT_MG: PSQT = [
+const KNIGHT_MG: Psqt = [
     -20, -10,  -10,  -10,  -10,  -10,  -10,  -20,
     -10,  -5,   -5,   -5,   -5,   -5,   -5,  -10,
     -10,  -5,   15,   15,   15,   15,   -5,  -10,
@@ -94,7 +94,7 @@ const KNIGHT_MG: PSQT = [
 ];
 
 #[rustfmt::skip]
-const PAWN_MG: PSQT = [
+const PAWN_MG: Psqt = [
      0,   0,   0,   0,   0,   0,   0,   0,
     60,  60,  60,  60,  70,  60,  60,  60,
     40,  40,  40,  50,  60,  40,  40,  40,
@@ -105,13 +105,13 @@ const PAWN_MG: PSQT = [
      0,   0,   0,   0,   0,   0,   0,   0
 ];
 
-pub const PSQT_MG: [PSQT; NrOf::PIECE_TYPES] =
+pub const PSQT_MG: [Psqt; NrOf::PIECE_TYPES] =
     [KING_MG, QUEEN_MG, ROOK_MG, BISHOP_MG, KNIGHT_MG, PAWN_MG];
 
 // When one side has a bare king, this PSQT is used to drive that king to
 // the edge of the board and mate it there.
 #[rustfmt::skip]
-pub const KING_EDGE: PSQT = [
+pub const KING_EDGE: Psqt = [
     -95,  -95,  -90,  -90,  -90,  -90,  -95,  -95,  
     -95,  -50,  -50,  -50,  -50,  -50,  -50,  -95,  
     -90,  -50,  -20,  -20,  -20,  -20,  -50,  -90,  

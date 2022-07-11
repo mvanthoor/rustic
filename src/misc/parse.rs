@@ -74,11 +74,11 @@ pub fn algebraic_move_to_number(m: &str) -> ParseMoveResult {
 }
 
 pub fn algebraic_square_to_number(algebraic_square: &str) -> Option<Square> {
-    // Convert String to &str.
-    let a = &algebraic_square[..];
     // Get the index, which is also the square number.
     // If the square is not found, None is returned.
-    SQUARE_NAME.iter().position(|&element| element == a)
+    SQUARE_NAME
+        .iter()
+        .position(|&element| element == algebraic_square)
 }
 
 #[allow(dead_code)]

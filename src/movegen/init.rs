@@ -198,6 +198,6 @@ impl MoveGenerator {
         let expectation = if is_rook { r_ts } else { b_ts };
         const ERROR: &str = "Initializing magics failed. Check magic numbers.";
 
-        assert!(offset == expectation, ERROR);
+        assert!(offset == expectation, "{}", ERROR);
     }
 }
