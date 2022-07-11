@@ -11,6 +11,8 @@ version. For normal playing and testing, the existing binaries can be used.
 - Upgrade 'if_chain' to 1.0.2
 - Upgrade 'clap' to 3.2.8
 - Upgrade 'crossbeam-channel' to 0.5.5
+- Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
+- Upgrade 'rand_core' to 0.6.3 (security fix)
 
 ## March 17, 2021 - Rustic Alpha 2
 
