@@ -33,56 +33,56 @@ struct CmdLineArgs {}
 impl CmdLineArgs {
     // FEN
     const FEN_LONG: &'static str = "fen";
-    const FEN_SHORT: &'static str = "f";
+    const FEN_SHORT: char = 'f';
     const FEN_HELP: &'static str = "Set up the given position";
 
     // Perft
     const PERFT_LONG: &'static str = "perft";
-    const PERFT_SHORT: &'static str = "p";
+    const PERFT_SHORT: char = 'p';
     const PERFT_HELP: &'static str = "Run perft to the given depth";
     const PERFT_DEFAULT: &'static str = "0";
 
     // Interface
     const COMM_LONG: &'static str = "comm";
-    const COMM_SHORT: &'static str = "c";
+    const COMM_SHORT: char = 'c';
     const COMM_HELP: &'static str = "Select communication protocol to use";
     const COMM_VALUES: [&'static str; 2] = ["uci", "xboard"];
     const COMM_DEFAULT: &'static str = "uci";
 
     // Threads
     const THREADS_LONG: &'static str = "threads";
-    const THREADS_SHORT: &'static str = "t";
+    const THREADS_SHORT: char = 't';
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: &'static str = "1";
 
     const HASH_LONG: &'static str = "hash";
-    const HASH_SHORT: &'static str = "h";
+    const HASH_SHORT: char = 'h';
     const HASH_HELP: &'static str = "Transposition Table size in MB";
     const HASH_DEFAULT: &'static str = EngineOptionDefaults::HASH_DEFAULT;
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
-    const QUIET_SHORT: &'static str = "q";
+    const QUIET_SHORT: char = 'q';
     const QUIET_HELP: &'static str = "No intermediate search stats updates";
 
     // Kiwipete
     const KIWI_LONG: &'static str = "kiwipete";
-    const KIWI_SHORT: &'static str = "k";
+    const KIWI_SHORT: char = 'k';
     const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
 
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";
-    const WIZARDRY_SHORT: &'static str = "w";
+    const WIZARDRY_SHORT: char = 'w';
     const WIZARDRY_HELP: &'static str = "Generate magic numbers";
 
     // Test
     const EPD_TEST_LONG: &'static str = "epdtest";
-    const EPD_TEST_SHORT: &'static str = "e";
+    const EPD_TEST_SHORT: char = 'e';
     const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
 }
 
 pub struct CmdLine {
-    arguments: ArgMatches<'static>,
+    arguments: ArgMatches,
 }
 
 impl CmdLine {
@@ -148,7 +148,7 @@ impl CmdLine {
         self.arguments.is_present(CmdLineArgs::EPD_TEST_LONG)
     }
 
-    fn get() -> ArgMatches<'static> {
+    fn get() -> ArgMatches {
         let mut app = App::new(About::ENGINE)
             .version(About::VERSION)
             .author(About::AUTHOR)

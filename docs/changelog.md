@@ -13,14 +13,26 @@
 <!-- /code_chunk_output -->
 # Changelog
 
+## Rustic Alpha 3.0.2 / 2.1 / 1.2 (2022, June 11)
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade to Rust Edition 2021
+- Upgrade 'rand' to 0.8.5
+- Upgrade 'rand_chacha' to 0.3.1
+- Upgrade 'if_chain' to 1.0.2
+- Upgrade 'clap' to 3.2.8
+- Upgrade 'crossbeam-channel' to 0.5.5
+
 ## Rustic Alpha 3.0.1 (2021, November 6)
+
+Bugfix upgrade. There is no functional difference to the previous version.
+For normal playing and testing, the binary of version 3.0.0 can be used.
 
 - Fixed a variable having the wrong type. This caused the "extra" module
   failing to compile.
-
-NB: For normal chess engine usage nothing has changed. You can just keep
-using the binaries for Alpha 3.0.0. A default compile does not include the
-"extra" module.
 
 ## Rustic Alpha 3.0.0 (2021, June 18)
 
