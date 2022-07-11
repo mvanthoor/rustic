@@ -149,7 +149,7 @@ impl Move {
         )
     }
 
-    pub fn to_hash_move(&self) -> TTMove {
+    pub fn to_hash_move(self) -> TTMove {
         TTMove::new((self.data & MOVE_ONLY) as u32)
     }
 
