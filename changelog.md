@@ -1,5 +1,18 @@
 # Changelog
 
+## June 11, 2021 - Rustic Alpha 1.2
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade to Rust Edition 2021
+- Upgrade 'rand' to 0.8.5
+- Upgrade 'rand_chacha' to 0.3.1
+- Upgrade 'if_chain' to 1.0.2
+- Upgrade 'clap' to 3.2.8
+- Upgrade 'crossbeam-channel' to 0.5.5
+
 ## March 15, 2021 - Rustic Alpha 1.1
 
 This is a bugfix release. Alpha 1 lost all of its games on time forfeit
