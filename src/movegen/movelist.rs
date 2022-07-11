@@ -45,6 +45,7 @@ impl MoveList {
     // store them in the list beginning at index 0, which would overwrite the
     // initialization. Therefore, doing memory initialization slows the program
     // down. (Tests show this slowdown to be around 50%-60%.)
+    #[allow(clippy::uninit_assumed_init)]
     pub fn new() -> Self {
         Self {
             list: unsafe { mem::MaybeUninit::uninit().assume_init() },

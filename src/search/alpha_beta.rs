@@ -128,7 +128,7 @@ impl Search {
         let mut best_eval_score = -INF;
 
         // Set the initial TT flag type. Assume we do not beat Alpha.
-        let mut hash_flag = HashFlag::ALPHA;
+        let mut hash_flag = HashFlag::Alpha;
 
         // Holds the best move in the move loop, for storing into the TT.
         let mut best_move: TTMove = TTMove::new(0);
@@ -192,7 +192,7 @@ impl Search {
                     SearchData::create(
                         depth,
                         refs.search_info.ply,
-                        HashFlag::BETA,
+                        HashFlag::Beta,
                         beta,
                         best_move,
                     ),
@@ -206,7 +206,7 @@ impl Search {
                 alpha = eval_score;
 
                 // This is an exact move score.
-                hash_flag = HashFlag::EXACT;
+                hash_flag = HashFlag::Exact;
 
                 // Update the Principal Variation.
                 pv.clear();

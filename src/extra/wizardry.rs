@@ -137,7 +137,7 @@ pub fn find_magics(piece: Piece) {
     let expected = if is_rook { r_ts } else { b_ts };
     const ERROR: &str = "Creating magics failed. Permutations were skipped.";
 
-    assert!(offset == expected, ERROR);
+    assert!(offset == expected, "{}", ERROR);
 }
 
 // Print the magic number.
