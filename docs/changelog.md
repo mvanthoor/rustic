@@ -25,6 +25,8 @@ used.
 - Upgrade 'if_chain' to 1.0.2
 - Upgrade 'clap' to 3.2.8
 - Upgrade 'crossbeam-channel' to 0.5.5
+- Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
+- Upgrade 'rand_core' to 0.6.3 (security fix)
 
 ## Rustic Alpha 3.0.1 (2021, November 6)
 
