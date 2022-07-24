@@ -93,9 +93,9 @@ pub enum CommIn {
     History,
     Eval,
     State,
-    ClearTt,
     Bitboards(String),
     Help,
+    ClearTt,
 
     // Ignore an incoming command on purpose
     Ignore(String),
@@ -117,7 +117,7 @@ pub enum CommOut {
     // Output to screen when running in a terminal window.
     PrintBoard,
     PrintHistory,
-    PrintHelp,
-    PrintState(EngineState),
     PrintEval(i16, i16),
+    PrintState(EngineState),
+    PrintHelp,
 }
