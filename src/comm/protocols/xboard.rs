@@ -487,11 +487,6 @@ impl XBoard {
                     CommIn::XBoard(XBoardIn::Buffered(XBoardInBuffered::St(value * 1000)))
                 }
 
-                "bitboards" => {
-                    let value = parts[VALUE].to_string();
-                    CommIn::Bitboards(value)
-                }
-
                 _ => CommIn::Unknown(cmd.to_string()),
             }
         } else {

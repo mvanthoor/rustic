@@ -93,7 +93,6 @@ pub enum CommIn {
     History,
     Eval,
     State,
-    Bitboards(String),
     Help,
     ClearTt,
 

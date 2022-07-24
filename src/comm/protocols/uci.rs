@@ -183,7 +183,6 @@ impl Uci {
             cmd if cmd.starts_with("go") => Uci::parse_go(&cmd),
 
             // Custom commands
-            cmd if cmd.starts_with("bitboards") => Uci::parse_bitboards(&cmd),
             cmd if cmd == "board" => CommIn::Board,
             cmd if cmd == "history" => CommIn::History,
             cmd if cmd == "eval" => CommIn::Eval,
@@ -346,16 +345,6 @@ impl Uci {
 
         // Send the engine option name with value to the engine thread.
         CommIn::Uci(UciIn::SetOption(eon))
-    }
-
-    fn parse_bitboards(cmd: &str) -> CommIn {
-        let parts: Vec<&str> = cmd.split_whitespace().collect();
-
-        if parts.len() >= 2 {
-            CommIn::Bitboards(parts[1].to_string())
-        } else {
-            CommIn::Unknown(cmd.to_string())
-        }
     }
 }
 
