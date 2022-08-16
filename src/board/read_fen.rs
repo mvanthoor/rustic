@@ -58,7 +58,14 @@ impl Board {
 
         if nr_of_parts_ok {
             // Create an array of function pointers; one parsing function per part.
-            let fen_parsers: [FenPartParser; 6] = [pieces, color, castling, ep, hmc, fmn];
+            let fen_parsers: [FenPartParser; 6] = [
+                pieces,
+                color,
+                castling,
+                en_passant,
+                half_move_clock,
+                full_move_number,
+            ];
 
             // Create a new board so we don't destroy the original.
             let mut new_board = Board::new();
@@ -193,7 +200,7 @@ fn castling(board: &mut Board, part: &str) -> bool {
 }
 
 // Part 4: Parse the en passant square
-fn ep(board: &mut Board, part: &str) -> bool {
+fn en_passant(board: &mut Board, part: &str) -> bool {
     let length = part.len();
     let mut char_ok = 0;
 
@@ -226,7 +233,7 @@ fn ep(board: &mut Board, part: &str) -> bool {
 }
 
 // Part 5: Half-move clock: parse number of moves since last capture or pawn push.
-fn hmc(board: &mut Board, part: &str) -> bool {
+fn half_move_clock(board: &mut Board, part: &str) -> bool {
     let length = part.len();
     let mut result = false;
 
@@ -244,7 +251,7 @@ fn hmc(board: &mut Board, part: &str) -> bool {
 }
 
 // Part 6: Parse full move number.
-fn fmn(board: &mut Board, part: &str) -> bool {
+fn full_move_number(board: &mut Board, part: &str) -> bool {
     let length = part.len();
     let mut result = false;
 
