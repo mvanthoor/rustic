@@ -79,7 +79,7 @@ pub trait IComm {
     fn info(&self) -> &CommInfo;
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum CommIn {
     Uci(UciIn),
     XBoard(XBoardIn),

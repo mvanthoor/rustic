@@ -134,7 +134,7 @@ pub struct Settings {
 
 // This enum provides information to the engine, with regard to incoming
 // messages and search results.
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Information {
     Comm(CommIn),
     Search(SearchReport),
