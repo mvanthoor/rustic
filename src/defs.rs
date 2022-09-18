@@ -16,7 +16,7 @@ pub type Piece = usize;
 pub type Side = usize;
 pub type Square = usize;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Sides;
 impl Sides {
     pub const WHITE: Side = 0;

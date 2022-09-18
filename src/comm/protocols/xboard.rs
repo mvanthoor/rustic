@@ -79,7 +79,7 @@ impl Stat01 {
 // at the beginning of the game and expects the engine to know when it is
 // its move, and how much time is left. This struct stores the time control
 // informatin as sent by the GUI at the beginning of the game.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct TimeControl {
     move_depth: i8,
     move_time: u128,
@@ -140,7 +140,7 @@ impl Display for TimeControl {
 }
 
 // This is a list of supported incoming XBoard commands.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum XBoardIn {
     XBoard,
     ProtoVer(u8),
@@ -197,7 +197,7 @@ impl Display for XBoardIn {
 // implementation details. An "XBoardInBuffered::sd" command is sent to the
 // engine, so it knows (and prints) that an incoming command was received
 // and buffered.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum XBoardInBuffered {
     Sd(i8),
     St(u128),

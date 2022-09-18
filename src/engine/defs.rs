@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 
 pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum GameResultPoints {
     WhiteWins,
     BlackWins,
@@ -25,7 +25,7 @@ impl Display for GameResultPoints {
 }
 
 // Lists all possible game results.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum GameResultReason {
     WhiteMates,
     BlackMates,
@@ -52,7 +52,7 @@ impl Display for GameResultReason {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct GameResult {
     pub points: GameResultPoints,
     pub reason: GameResultReason,
@@ -99,14 +99,14 @@ impl Messages {
     pub const GAME_OVER: &'static str = "Game over. Result received";
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum Verbosity {
     Full,
     Quiet,
     Silent,
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum EngineState {
     Observing,
     Waiting,
@@ -171,7 +171,7 @@ impl EngineOption {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum EngineSetOption {
     Hash(String),
     ClearHash,

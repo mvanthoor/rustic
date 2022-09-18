@@ -29,7 +29,7 @@ pub type SearchResult = (Move, SearchTerminated);
 pub type PrincipalVariation = Vec<Move>;
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 // These commands can be used by the engine thread to control the search.
 pub enum SearchControl {
     Start(SearchParams),
@@ -40,7 +40,7 @@ pub enum SearchControl {
 }
 
 // Ways to terminate a search.
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum SearchTerminated {
     Stopped,   // Search is stopped with a best move.
     Abandoned, // Search is stopped, best move abandoned.
@@ -50,7 +50,7 @@ pub enum SearchTerminated {
 
 // SearchMode lists how the search termination criteria will be evaluated,
 // to see if the search has to be stopped.
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum SearchMode {
     Depth,    // Run until requested depth is reached.
     MoveTime, // Run until 'time per move' is used up.
@@ -60,7 +60,7 @@ pub enum SearchMode {
     Nothing,  // No search mode has been defined.
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub struct GameTime {
     pub wtime: u128,                // White time on the clock in milliseconds
     pub btime: u128,                // Black time on the clock in milliseconds
@@ -90,7 +90,7 @@ impl GameTime {
 // This struct holds all the search parameters as set by the engine thread.
 // (These parameters are either default, or provided by the user interface
 // before the game starts.)
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub struct SearchParams {
     pub depth: i8,               // Maximum depth to search to
     pub move_time: u128,         // Maximum time per move to search
@@ -119,7 +119,7 @@ impl SearchParams {
 
 // The search function will put all findings collected during the running
 // search into this struct.
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub struct SearchInfo {
     start_time: Option<Instant>,     // Time the search started
     pub depth: i8,                   // Depth currently being searched
@@ -170,7 +170,7 @@ impl SearchInfo {
 // search results within this struct before sending it to the engine
 // thread. The engine thread will send it to Comm, which will transform the
 // information into UCI/XBoard/Console output and print it to STDOUT.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct SearchSummary {
     pub depth: i8,              // depth reached during search
     pub seldepth: i8,           // Maximum selective depth reached
@@ -195,7 +195,7 @@ impl SearchSummary {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 // This struct holds the currently searched move, and its move number in
 // the list of legal moves. This struct is sent through the engine thread
 // to Comm, to be transmitted to the (G)UI.
@@ -217,7 +217,7 @@ impl SearchCurrentMove {
 
 // This struct holds search statistics. These will be sent through the
 // engine thread to Comm, to be transmitted to the (G)UI.
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub struct SearchStats {
     pub time: u128,     // Time spent searching
     pub nodes: usize,   // Number of nodes searched
@@ -254,7 +254,7 @@ pub struct SearchRefs<'a> {
 }
 
 // This struct holds all the reports a search can send to the engine.
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum SearchReport {
     Finished(Move),                       // Search done. Contains the best move.
     SearchSummary(SearchSummary),         // Periodic intermediate results.

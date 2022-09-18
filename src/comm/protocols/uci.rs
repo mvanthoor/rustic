@@ -24,7 +24,7 @@ use std::{
 // UCI Type definitions
 // ---------------------------------------------------------------------
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum UciIn {
     Uci,
     UciNewGame,
@@ -39,7 +39,7 @@ pub enum UciIn {
     Stop,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum UciOut {
     Identify, // Transmit Uci of the engine.
     Ready,    // Transmit that the engine is ready.

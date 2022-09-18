@@ -45,7 +45,7 @@ impl PerftData {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum HashFlag {
     Nothing,
     Exact,

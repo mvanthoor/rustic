@@ -65,7 +65,7 @@ impl Shift {
     pub const SORTSCORE: usize = 24;
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum MoveType {
     Quiet,
     Capture,
@@ -74,7 +74,7 @@ pub enum MoveType {
 
 /* This struct contains the move data. It's a struct so it can be instantiated, and then
  * it can provide all of the methods associated with it to easily decode the move data. */
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Move {
     data: usize,
 }
@@ -148,7 +148,7 @@ impl Display for Move {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct ShortMove {
     data: u32,
 }
