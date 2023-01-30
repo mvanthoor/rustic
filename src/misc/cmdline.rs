@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::defs::{About, FEN_START_POSITION};
-use clap::{self, value_parser, Arg, ArgMatches};
+use clap::{self, value_parser, Arg, ArgAction, ArgMatches};
 
 // Consts for command line options, flags and arguments
 
@@ -121,21 +121,21 @@ impl CmdLine {
     }
 
     pub fn has_kiwipete(&self) -> bool {
-        self.arguments.contains_id(CmdLineArgs::KIWI_LONG)
+        self.arguments.get_flag(CmdLineArgs::KIWI_LONG)
     }
 
     pub fn has_quiet(&self) -> bool {
-        self.arguments.contains_id(CmdLineArgs::QUIET_LONG)
+        self.arguments.get_flag(CmdLineArgs::QUIET_LONG)
     }
 
     #[cfg(feature = "extra")]
     pub fn has_wizardry(&self) -> bool {
-        self.arguments.contains_id(CmdLineArgs::WIZARDRY_LONG)
+        self.arguments.get_flag(CmdLineArgs::WIZARDRY_LONG)
     }
 
     #[cfg(feature = "extra")]
     pub fn has_test(&self) -> bool {
-        self.arguments.contains_id(CmdLineArgs::EPD_TEST_LONG)
+        self.arguments.get_flag(CmdLineArgs::EPD_TEST_LONG)
     }
 
     fn get() -> ArgMatches {
@@ -182,14 +182,14 @@ impl CmdLine {
                     .long(CmdLineArgs::KIWI_LONG)
                     .short(CmdLineArgs::KIWI_SHORT)
                     .help(CmdLineArgs::KIWI_HELP)
-                    .num_args(0),
+                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(CmdLineArgs::QUIET_LONG)
                     .long(CmdLineArgs::QUIET_LONG)
                     .short(CmdLineArgs::QUIET_SHORT)
                     .help(CmdLineArgs::QUIET_HELP)
-                    .num_args(0),
+                    .action(ArgAction::SetTrue),
             );
 
         if cfg!(feature = "extra") {
@@ -199,14 +199,14 @@ impl CmdLine {
                         .short(CmdLineArgs::WIZARDRY_SHORT)
                         .long(CmdLineArgs::WIZARDRY_LONG)
                         .help(CmdLineArgs::WIZARDRY_HELP)
-                        .num_args(0),
+                        .action(ArgAction::SetTrue),
                 )
                 .arg(
                     Arg::new(CmdLineArgs::EPD_TEST_LONG)
                         .short(CmdLineArgs::EPD_TEST_SHORT)
                         .long(CmdLineArgs::EPD_TEST_LONG)
                         .help(CmdLineArgs::EPD_TEST_HELP)
-                        .num_args(0),
+                        .action(ArgAction::SetTrue),
                 );
         }
 
