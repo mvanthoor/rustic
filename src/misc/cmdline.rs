@@ -115,21 +115,21 @@ impl CmdLine {
     }
 
     pub fn has_kiwipete(&self) -> bool {
-        self.arguments.is_present(CmdLineArgs::KIWI_LONG)
+        self.arguments.contains_id(CmdLineArgs::KIWI_LONG)
     }
 
     pub fn has_quiet(&self) -> bool {
-        self.arguments.is_present(CmdLineArgs::QUIET_LONG)
+        self.arguments.contains_id(CmdLineArgs::QUIET_LONG)
     }
 
     #[cfg(feature = "extra")]
     pub fn has_wizardry(&self) -> bool {
-        self.arguments.is_present(CmdLineArgs::WIZARDRY_LONG)
+        self.arguments.contains_id(CmdLineArgs::WIZARDRY_LONG)
     }
 
     #[cfg(feature = "extra")]
     pub fn has_test(&self) -> bool {
-        self.arguments.is_present(CmdLineArgs::EPD_TEST_LONG)
+        self.arguments.contains_id(CmdLineArgs::EPD_TEST_LONG)
     }
 
     fn get() -> ArgMatches {
@@ -138,68 +138,68 @@ impl CmdLine {
             .author(About::AUTHOR)
             .about(About::WEBSITE)
             .arg(
-                Arg::with_name(CmdLineArgs::COMM_LONG)
+                Arg::new(CmdLineArgs::COMM_LONG)
                     .short(CmdLineArgs::COMM_SHORT)
                     .long(CmdLineArgs::COMM_LONG)
                     .help(CmdLineArgs::COMM_HELP)
-                    .takes_value(true)
+                    .num_args(1)
                     .default_value(CmdLineArgs::COMM_DEFAULT)
                     .possible_values(&CmdLineArgs::COMM_VALUES),
             )
             .arg(
-                Arg::with_name(CmdLineArgs::FEN_LONG)
+                Arg::new(CmdLineArgs::FEN_LONG)
                     .short(CmdLineArgs::FEN_SHORT)
                     .long(CmdLineArgs::FEN_LONG)
                     .help(CmdLineArgs::FEN_HELP)
-                    .takes_value(true)
+                    .num_args(1)
                     .default_value(FEN_START_POSITION),
             )
             .arg(
-                Arg::with_name(CmdLineArgs::PERFT_LONG)
+                Arg::new(CmdLineArgs::PERFT_LONG)
                     .short(CmdLineArgs::PERFT_SHORT)
                     .long(CmdLineArgs::PERFT_LONG)
                     .help(CmdLineArgs::PERFT_HELP)
-                    .takes_value(true)
+                    .num_args(1)
                     .default_value(CmdLineArgs::PERFT_DEFAULT),
             )
             .arg(
-                Arg::with_name(CmdLineArgs::THREADS_LONG)
+                Arg::new(CmdLineArgs::THREADS_LONG)
                     .short(CmdLineArgs::THREADS_SHORT)
                     .long(CmdLineArgs::THREADS_LONG)
                     .help(CmdLineArgs::THREADS_HELP)
-                    .takes_value(true)
+                    .num_args(1)
                     .default_value(CmdLineArgs::THREADS_DEFAULT),
             )
             .arg(
-                Arg::with_name(CmdLineArgs::KIWI_LONG)
+                Arg::new(CmdLineArgs::KIWI_LONG)
                     .long(CmdLineArgs::KIWI_LONG)
                     .short(CmdLineArgs::KIWI_SHORT)
                     .help(CmdLineArgs::KIWI_HELP)
-                    .takes_value(false),
+                    .num_args(0),
             )
             .arg(
-                Arg::with_name(CmdLineArgs::QUIET_LONG)
+                Arg::new(CmdLineArgs::QUIET_LONG)
                     .long(CmdLineArgs::QUIET_LONG)
                     .short(CmdLineArgs::QUIET_SHORT)
                     .help(CmdLineArgs::QUIET_HELP)
-                    .takes_value(false),
+                    .num_args(0),
             );
 
         if cfg!(feature = "extra") {
             app = app
                 .arg(
-                    Arg::with_name(CmdLineArgs::WIZARDRY_LONG)
+                    Arg::new(CmdLineArgs::WIZARDRY_LONG)
                         .short(CmdLineArgs::WIZARDRY_SHORT)
                         .long(CmdLineArgs::WIZARDRY_LONG)
                         .help(CmdLineArgs::WIZARDRY_HELP)
-                        .takes_value(false),
+                        .num_args(0),
                 )
                 .arg(
-                    Arg::with_name(CmdLineArgs::EPD_TEST_LONG)
+                    Arg::new(CmdLineArgs::EPD_TEST_LONG)
                         .short(CmdLineArgs::EPD_TEST_SHORT)
                         .long(CmdLineArgs::EPD_TEST_LONG)
                         .help(CmdLineArgs::EPD_TEST_HELP)
-                        .takes_value(false),
+                        .num_args(0),
                 );
         }
 
