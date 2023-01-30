@@ -52,7 +52,7 @@ impl Engine {
 
     pub fn print_settings(&self, threads: usize, protocol: &str) {
         println!("Protocol: {}", protocol);
-        println!("Threads: {}", threads);
+        println!("Threads: {} (unused - always 1)", threads);
         #[cfg(debug_assertions)]
         println!("{}", NOTICE_DEBUG_MODE);
     }
