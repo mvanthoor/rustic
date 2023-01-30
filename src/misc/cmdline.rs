@@ -144,7 +144,7 @@ impl CmdLine {
                     .help(CmdLineArgs::COMM_HELP)
                     .num_args(1)
                     .default_value(CmdLineArgs::COMM_DEFAULT)
-                    .possible_values(&CmdLineArgs::COMM_VALUES),
+                    .value_parser(CmdLineArgs::COMM_VALUES),
             )
             .arg(
                 Arg::new(CmdLineArgs::FEN_LONG)
