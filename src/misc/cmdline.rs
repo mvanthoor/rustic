@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::defs::{About, FEN_START_POSITION};
-use clap::{self, Arg, ArgMatches};
+use clap::{self, value_parser, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
 
@@ -37,7 +37,7 @@ impl CmdLineArgs {
     const PERFT_LONG: &'static str = "perft";
     const PERFT_SHORT: char = 'p';
     const PERFT_HELP: &'static str = "Run perft to the given depth";
-    const PERFT_DEFAULT: &'static str = "0";
+    const PERFT_DEFAULT: u8 = 0;
 
     // Interface
     const COMM_LONG: &'static str = "comm";
@@ -50,7 +50,7 @@ impl CmdLineArgs {
     const THREADS_LONG: &'static str = "threads";
     const THREADS_SHORT: char = 't';
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
-    const THREADS_DEFAULT: &'static str = "1";
+    const THREADS_DEFAULT: usize = 1;
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
@@ -99,17 +99,25 @@ impl CmdLine {
     }
 
     pub fn perft(&self) -> u8 {
-        *self
-            .arguments
-            .get_one::<u8>(CmdLineArgs::PERFT_LONG)
-            .unwrap_or(&CmdLineArgs::PERFT_DEFAULT.parse::<u8>().unwrap_or(0))
+        if self.arguments.contains_id(CmdLineArgs::THREADS_LONG) {
+            *self
+                .arguments
+                .get_one::<u8>(CmdLineArgs::PERFT_LONG)
+                .unwrap_or(&CmdLineArgs::PERFT_DEFAULT)
+        } else {
+            CmdLineArgs::PERFT_DEFAULT
+        }
     }
 
     pub fn threads(&self) -> usize {
-        *self
-            .arguments
-            .get_one::<usize>(CmdLineArgs::THREADS_LONG)
-            .unwrap_or(&CmdLineArgs::THREADS_DEFAULT.parse::<usize>().unwrap_or(1))
+        if self.arguments.contains_id(CmdLineArgs::THREADS_LONG) {
+            *self
+                .arguments
+                .get_one::<usize>(CmdLineArgs::THREADS_LONG)
+                .unwrap_or(&CmdLineArgs::THREADS_DEFAULT)
+        } else {
+            CmdLineArgs::THREADS_DEFAULT
+        }
     }
 
     pub fn has_kiwipete(&self) -> bool {
@@ -131,7 +139,7 @@ impl CmdLine {
     }
 
     fn get() -> ArgMatches {
-        let mut app = clap::Command::new(About::ENGINE)
+        let mut cmd_line = clap::Command::new(About::ENGINE)
             .version(About::VERSION)
             .author(About::AUTHOR)
             .about(About::WEBSITE)
@@ -150,23 +158,24 @@ impl CmdLine {
                     .long(CmdLineArgs::FEN_LONG)
                     .help(CmdLineArgs::FEN_HELP)
                     .num_args(1)
-                    .default_value(FEN_START_POSITION),
+                    .default_value(FEN_START_POSITION)
+                    .value_parser(value_parser!(String)),
             )
             .arg(
                 Arg::new(CmdLineArgs::PERFT_LONG)
                     .short(CmdLineArgs::PERFT_SHORT)
                     .long(CmdLineArgs::PERFT_LONG)
                     .help(CmdLineArgs::PERFT_HELP)
-                    .num_args(1)
-                    .default_value(CmdLineArgs::PERFT_DEFAULT),
+                    .value_parser(value_parser!(u8))
+                    .num_args(1),
             )
             .arg(
                 Arg::new(CmdLineArgs::THREADS_LONG)
                     .short(CmdLineArgs::THREADS_SHORT)
                     .long(CmdLineArgs::THREADS_LONG)
                     .help(CmdLineArgs::THREADS_HELP)
-                    .num_args(1)
-                    .default_value(CmdLineArgs::THREADS_DEFAULT),
+                    .value_parser(value_parser!(usize))
+                    .num_args(1),
             )
             .arg(
                 Arg::new(CmdLineArgs::KIWI_LONG)
@@ -184,7 +193,7 @@ impl CmdLine {
             );
 
         if cfg!(feature = "extra") {
-            app = app
+            cmd_line = cmd_line
                 .arg(
                     Arg::new(CmdLineArgs::WIZARDRY_LONG)
                         .short(CmdLineArgs::WIZARDRY_SHORT)
@@ -201,6 +210,6 @@ impl CmdLine {
                 );
         }
 
-        app.get_matches()
+        cmd_line.get_matches()
     }
 }
