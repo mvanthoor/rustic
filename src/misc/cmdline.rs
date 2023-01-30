@@ -99,7 +99,7 @@ impl CmdLine {
     }
 
     pub fn perft(&self) -> u8 {
-        if self.arguments.contains_id(CmdLineArgs::THREADS_LONG) {
+        if self.arguments.contains_id(CmdLineArgs::PERFT_LONG) {
             *self
                 .arguments
                 .get_one::<u8>(CmdLineArgs::PERFT_LONG)
