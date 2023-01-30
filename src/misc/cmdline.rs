@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::defs::{About, FEN_START_POSITION};
-use clap::{Arg, ArgMatches};
+use clap::{self, Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
 
@@ -85,17 +85,17 @@ impl CmdLine {
     }
 
     pub fn comm(&self) -> String {
-        *self
-            .arguments
+        self.arguments
             .get_one::<String>(CmdLineArgs::COMM_LONG)
             .unwrap_or(&CmdLineArgs::COMM_DEFAULT.to_string())
+            .clone()
     }
 
     pub fn fen(&self) -> String {
-        *self
-            .arguments
+        self.arguments
             .get_one::<String>(CmdLineArgs::FEN_LONG)
             .unwrap_or(&FEN_START_POSITION.to_string())
+            .clone()
     }
 
     pub fn perft(&self) -> u8 {
@@ -131,7 +131,7 @@ impl CmdLine {
     }
 
     fn get() -> ArgMatches {
-        let mut app = App::new(About::ENGINE)
+        let mut app = clap::Command::new(About::ENGINE)
             .version(About::VERSION)
             .author(About::AUTHOR)
             .about(About::WEBSITE)
