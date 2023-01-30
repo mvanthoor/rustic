@@ -86,15 +86,15 @@ impl CmdLine {
 
     pub fn comm(&self) -> String {
         self.arguments
-            .value_of(CmdLineArgs::COMM_LONG)
-            .unwrap_or(CmdLineArgs::COMM_DEFAULT)
+            .get_one::<&'static str>(CmdLineArgs::COMM_LONG)
+            .unwrap_or(&CmdLineArgs::COMM_DEFAULT)
             .to_string()
     }
 
     pub fn fen(&self) -> String {
         self.arguments
-            .value_of(CmdLineArgs::FEN_LONG)
-            .unwrap_or(FEN_START_POSITION)
+            .get_one::<&'static str>(CmdLineArgs::FEN_LONG)
+            .unwrap_or(&FEN_START_POSITION)
             .to_string()
     }
 
