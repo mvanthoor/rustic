@@ -51,9 +51,9 @@ impl Engine {
     }
 
     pub fn print_settings(&self, threads: usize, protocol: &str) {
-        println!("Protocol: {}", protocol);
-        println!("Threads: {} (unused - always 1)", threads);
+        println!("Protocol: {protocol}");
+        println!("Threads: {threads} (unused - always 1)");
         #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
+        println!("{NOTICE_DEBUG_MODE}");
     }
 }

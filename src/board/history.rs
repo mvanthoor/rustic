@@ -37,7 +37,7 @@ use crate::defs::MAX_GAME_MOVES;
 
 #[derive(Clone)]
 pub struct History {
-    list: [GameState; MAX_GAME_MOVES as usize],
+    list: [GameState; MAX_GAME_MOVES],
     count: usize,
 }
 
@@ -45,14 +45,14 @@ impl History {
     // Create a new history array containing game states.
     pub fn new() -> Self {
         Self {
-            list: [GameState::new(); MAX_GAME_MOVES as usize],
+            list: [GameState::new(); MAX_GAME_MOVES],
             count: 0,
         }
     }
 
     // Wipe the entire array.
     pub fn clear(&mut self) {
-        self.list = [GameState::new(); MAX_GAME_MOVES as usize];
+        self.list = [GameState::new(); MAX_GAME_MOVES];
         self.count = 0;
     }
 

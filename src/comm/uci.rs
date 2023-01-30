@@ -403,7 +403,7 @@ impl Uci {
             score, depth, s.time, s.nodes, s.nps, pv,
         );
 
-        println!("{}", info);
+        println!("{info}");
     }
 
     fn search_currmove(c: &SearchCurrentMove) {
@@ -419,7 +419,7 @@ impl Uci {
     }
 
     fn info_string(msg: &str) {
-        println!("info string {}", msg);
+        println!("info string {msg}");
     }
 
     fn best_move(m: &Move) {
