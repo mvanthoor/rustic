@@ -50,7 +50,7 @@ impl CmdLineArgs {
     const THREADS_LONG: &'static str = "threads";
     const THREADS_SHORT: char = 't';
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
-    const THREADS_DEFAULT: usize = 1;
+    const THREADS_DEFAULT: &'static str = "1";
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
