@@ -22,7 +22,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use crate::defs::{About, FEN_START_POSITION};
-use clap::{App, Arg, ArgMatches};
+use clap::{Arg, ArgMatches};
 
 // Consts for command line options, flags and arguments
 
@@ -85,32 +85,31 @@ impl CmdLine {
     }
 
     pub fn comm(&self) -> String {
-        self.arguments
-            .get_one::<&'static str>(CmdLineArgs::COMM_LONG)
-            .unwrap_or(&CmdLineArgs::COMM_DEFAULT)
-            .to_string()
+        *self
+            .arguments
+            .get_one::<String>(CmdLineArgs::COMM_LONG)
+            .unwrap_or(&CmdLineArgs::COMM_DEFAULT.to_string())
     }
 
     pub fn fen(&self) -> String {
-        self.arguments
-            .get_one::<&'static str>(CmdLineArgs::FEN_LONG)
-            .unwrap_or(&FEN_START_POSITION)
-            .to_string()
+        *self
+            .arguments
+            .get_one::<String>(CmdLineArgs::FEN_LONG)
+            .unwrap_or(&FEN_START_POSITION.to_string())
     }
 
     pub fn perft(&self) -> u8 {
-        self.arguments
-            .value_of(CmdLineArgs::PERFT_LONG)
-            .unwrap_or(CmdLineArgs::PERFT_DEFAULT)
-            .parse()
-            .unwrap_or(0)
+        *self
+            .arguments
+            .get_one::<u8>(CmdLineArgs::PERFT_LONG)
+            .unwrap_or(&CmdLineArgs::PERFT_DEFAULT.parse::<u8>().unwrap_or(0))
     }
 
     pub fn threads(&self) -> usize {
         *self
             .arguments
             .get_one::<usize>(CmdLineArgs::THREADS_LONG)
-            .unwrap_or(&CmdLineArgs::THREADS_DEFAULT)
+            .unwrap_or(&CmdLineArgs::THREADS_DEFAULT.parse::<usize>().unwrap_or(1))
     }
 
     pub fn has_kiwipete(&self) -> bool {
