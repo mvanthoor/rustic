@@ -160,7 +160,7 @@ impl CmdLine {
                     .help(CmdLineArgs::COMM_HELP)
                     .takes_value(true)
                     .default_value(CmdLineArgs::COMM_DEFAULT)
-                    .possible_values(&CmdLineArgs::COMM_VALUES),
+                    .possible_values(CmdLineArgs::COMM_VALUES),
             )
             .arg(
                 Arg::with_name(CmdLineArgs::FEN_LONG)
