@@ -99,25 +99,17 @@ impl CmdLine {
     }
 
     pub fn perft(&self) -> u8 {
-        if self.arguments.contains_id(CmdLineArgs::PERFT_LONG) {
-            *self
-                .arguments
-                .get_one::<u8>(CmdLineArgs::PERFT_LONG)
-                .unwrap_or(&CmdLineArgs::PERFT_DEFAULT)
-        } else {
-            CmdLineArgs::PERFT_DEFAULT
-        }
+        *self
+            .arguments
+            .get_one::<u8>(CmdLineArgs::PERFT_LONG)
+            .unwrap_or(&CmdLineArgs::PERFT_DEFAULT)
     }
 
     pub fn threads(&self) -> usize {
-        if self.arguments.contains_id(CmdLineArgs::THREADS_LONG) {
-            *self
-                .arguments
-                .get_one::<usize>(CmdLineArgs::THREADS_LONG)
-                .unwrap_or(&CmdLineArgs::THREADS_DEFAULT)
-        } else {
-            CmdLineArgs::THREADS_DEFAULT
-        }
+        *self
+            .arguments
+            .get_one::<usize>(CmdLineArgs::THREADS_LONG)
+            .unwrap_or(&CmdLineArgs::THREADS_DEFAULT)
     }
 
     pub fn has_kiwipete(&self) -> bool {
