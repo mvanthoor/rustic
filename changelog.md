@@ -1,5 +1,16 @@
 # Changelog
 
+## February 1, 2023 - Rustic Alpha 1.3
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade 'rand_core' to 0.6.4
+- Upgrade 'clap' to 4.1.4
+- Upgrade 'crossbeam-channel' to 0.5.6
+- Upgrade 'crossbeam-utils' to 0.8.14
+
 ## June 11, 2022 - Rustic Alpha 2.1
 
 Maintenance upgrade. There is no functional difference to the previous
