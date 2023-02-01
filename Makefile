@@ -213,32 +213,27 @@ native: create-dir rm-target
 	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
-bmi2: export RUSTFLAGS = -C target-cpu=haswell
+bmi2: export RUSTFLAGS = -C target-feature=+bmi2,+popcnt,+sse4.2,+sse4.1,+sse3,+sse2,+sse
 bmi2: create-dir rm-target
 	$(eval cpu_level = bmi2)
 	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
-popcnt: export RUSTFLAGS = -C target-cpu=nehalem
+popcnt: export RUSTFLAGS = -C target-feature=-bmi2,+popcnt,+sse4.2,+sse4.1,+sse3,+sse2,+sse
 popcnt: create-dir rm-target
 	$(eval cpu_level = popcnt)
 	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
-old: export RUSTFLAGS = -C target-cpu=core2
+old: export RUSTFLAGS = -C target-feature=-bmi2,-popcnt,-sse4.2,+sse4.1,+sse3,+sse2,+sse
 old: create-dir rm-target
 	$(eval cpu_level = old)
 	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
-ancient: export RUSTFLAGS = -C target-cpu=athlon64
+ancient: export RUSTFLAGS = -C target-feature=-bmi2,-popcnt,-sse4.2,-sse4.1,+sse3,+sse2,+sse
 ancient: create-dir rm-target
 	$(eval cpu_level = ancient)
-	$(eval cargo_command = cargo build --release)
-	$(call compile)
-
-arm32bit: create-dir rm-target
-	$(eval cpu_level = arm)
 	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
@@ -248,6 +243,11 @@ i686: create-dir rm-target
 	$(eval compiler_target = i686-pc-windows-gnu)
 	$(eval cargo_command = cargo build --release --target=$(compiler_target))
 	$(eval rel_file = ./target/$(compiler_target)/release/$(eng_name))
+	$(call compile)
+
+arm32bit: create-dir rm-target
+	$(eval cpu_level = arm)
+	$(eval cargo_command = cargo build --release)
 	$(call compile)
 
 # ===== Custom functions ===== #
