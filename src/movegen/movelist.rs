@@ -40,17 +40,21 @@ pub struct MoveList {
 }
 
 impl MoveList {
-    // Creates a new move list. Memory is not initialized. This is not
-    // necessary, because the next step will always be to generate moves, and
-    // store them in the list beginning at index 0, which would overwrite the
-    // initialization. Therefore, doing memory initialization slows the program
-    // down. (Tests show this slowdown to be around 50%-60%.)
+    // Creates a new move list. YES, I know that the use of MaybeUninit
+    // directly followed by assume_init() is, officially speaking,
+    // incorrect because it DOES create a memory block with uninitialized
+    // variables. The memory doesn't need to be initialized, because the
+    // next step after creating the move list will always be to generate
+    // moves and store them in the list beginning at index 0. This would
+    // overwrite the initialization and make it useless. Initializing the
+    // move list with 0's massively slows down the program. Maybe in the
+    // future, I'll rewrite the move generator function to create and fill
+    // in the list by itself, without taking a reference to an empty list.
     pub fn new() -> Self {
         Self {
             list: unsafe {
-                // FIXME: Look inut MaybeUnit changes for Rustic 4.
-                #[allow(clippy::uninit_assumed_init)]
-                mem::MaybeUninit::uninit().assume_init()
+                let block = mem::MaybeUninit::uninit();
+                block.assume_init()
             },
             count: 0,
         }
