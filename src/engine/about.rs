@@ -21,8 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-use super::Engine;
-use crate::defs::About;
+use crate::{defs::About, engine::defs::Settings, Engine};
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)
@@ -43,13 +42,26 @@ impl Engine {
     }
 
     // Print information about the engine.
-    pub fn print_about(&self) {
+    pub fn print_about(&self, s: &Settings) {
         let bits = std::mem::size_of::<usize>() * 8;
+        let hash = if s.tt_size <= 0 {
+            String::from("off")
+        } else {
+            format!("{} MB", s.tt_size.to_string())
+        };
+        let threads = if s.threads == 1 {
+            String::from("1")
+        } else {
+            format!("{} (unused, always 1)", s.threads)
+        };
+
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
-        println!("{:<10} {}-bit", "Type:", bits);
         println!("{:<10} {}", "Author:", About::AUTHOR);
         println!("{:<10} {}", "EMail:", About::EMAIL);
         println!("{:<10} {}", "Website:", About::WEBSITE);
+        println!("{:<10} {bits}-bit", "Type:");
+        println!("{:<10} {hash}", "Hash:");
+        println!("{:<10} {threads}", "Threads:");
 
         #[cfg(debug_assertions)]
         println!("{NOTICE_DEBUG_MODE}");

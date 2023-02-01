@@ -1,11 +1,14 @@
 # Changelog
 
-## February 1, 2023 - Rustic Alpha 1.3
+## February 1, 2023 - Rustic Alpha 2.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
-used.
+used. (Unless you run the engine on the command-line and REALLY want to see
+the settings in the About banner. Then you will need to compile a new
+version.)
 
+- Update About banner with Hash and Threads settings
 - Upgrade 'rand_core' to 0.6.4
 - Upgrade 'clap' to 4.1.4
 - Upgrade 'crossbeam-channel' to 0.5.6
