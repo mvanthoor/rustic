@@ -112,7 +112,7 @@ impl RangeOf {
 
 // Initialize arrays with bitboards for each file, rank and square.
 type TBBFiles = [Bitboard; NrOf::FILES];
-type TBBRanks = [Bitboard; NrOf::RANKS as usize];
+type TBBRanks = [Bitboard; NrOf::RANKS];
 type TBBSquares = [Bitboard; NrOf::SQUARES];
 
 const fn init_bb_files() -> TBBFiles {
@@ -130,10 +130,10 @@ const fn init_bb_files() -> TBBFiles {
 
 const fn init_bb_ranks() -> TBBRanks {
     pub const BB_RANK_1: Bitboard = 0xFF;
-    let mut bb_ranks = [0; NrOf::RANKS as usize];
+    let mut bb_ranks = [0; NrOf::RANKS];
     let mut i = 0;
 
-    while i < (NrOf::RANKS as usize) {
+    while i < NrOf::RANKS {
         bb_ranks[i] = BB_RANK_1 << (i * 8);
         i += 1;
     }

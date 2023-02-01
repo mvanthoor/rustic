@@ -139,7 +139,7 @@ impl Engine {
             UciReport::History => self.comm.send(CommControl::PrintHistory),
             UciReport::Eval => {
                 let e = evaluate_position(&self.board.lock().expect(ErrFatal::LOCK));
-                let msg = format!("Evaluation: {} centipawns", e);
+                let msg = format!("Evaluation: {e} centipawns");
                 self.comm.send(CommControl::InfoString(msg));
             }
             UciReport::Help => self.comm.send(CommControl::PrintHelp),

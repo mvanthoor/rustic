@@ -59,6 +59,6 @@ impl Engine {
         };
 
         #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
+        println!("{NOTICE_DEBUG_MODE}");
     }
 }

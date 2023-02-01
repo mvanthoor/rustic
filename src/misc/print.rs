@@ -107,19 +107,19 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
 
     println!();
     for current_rank in RangeOf::RANKS.rev() {
-        print!("{}   ", coordinate_digit);
+        print!("{coordinate_digit}   ");
         for current_file in RangeOf::FILES {
             let square = (current_rank as usize * NrOf::FILES) + current_file as usize;
             let character = ascii_board[square];
             if let Some(m) = mark_square {
                 if m == (square as u8) {
                     // \x1b[0;35m is magenta
-                    print!("\x1b[0;35m{} \x1b[0m", character);
+                    print!("\x1b[0;35m{character} \x1b[0m");
                 } else {
-                    print!("{} ", character);
+                    print!("{character} ");
                 }
             } else {
-                print!("{} ", character);
+                print!("{character} ");
             }
         }
         println!();
@@ -128,7 +128,7 @@ fn to_console(ascii_board: &AsciiBoard, mark_square: Option<u8>) {
     println!();
     print!("    ");
     for c in coordinate_alpha.chars() {
-        print!("{} ", c);
+        print!("{c} ");
     }
     println!();
     println!();

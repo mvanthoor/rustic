@@ -61,7 +61,7 @@ pub fn run(
     // necessary to keep the lock until perft runs out.
     std::mem::drop(mtx_board);
 
-    println!("Benchmarking perft 1-{}:", depth);
+    println!("Benchmarking perft 1-{depth}:");
 
     print::position(&local_board, None);
 
@@ -92,15 +92,14 @@ pub fn run(
 
         // Print the results.
         println!(
-            "Perft {}: {} ({} ms, {} leaves/sec{})",
-            d, leaf_nodes, elapsed, leaves_per_second, hash_full
+            "Perft {d}: {leaf_nodes} ({elapsed} ms, {leaves_per_second} leaves/sec{hash_full})"
         );
     }
 
     // Final calculation of the entire time taken, and average speed of leaves/second.
     let final_lnps = ((total_nodes * 1000) as f64 / total_time as f64).floor();
-    println!("Total time spent: {} ms", total_time);
-    println!("Execution speed: {} leaves/second", final_lnps);
+    println!("Total time spent: {total_time} ms");
+    println!("Execution speed: {final_lnps} leaves/second");
 }
 
 // This is the actual Perft function. It is public, because it is used by

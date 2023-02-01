@@ -382,7 +382,7 @@ impl Uci {
                 t if t == "name" => token = Tokens::Name,
                 t if t == "value" => token = Tokens::Value,
                 _ => match token {
-                    Tokens::Name => name = format!("{} {}", name, p),
+                    Tokens::Name => name = format!("{name} {p}"),
                     Tokens::Value => value = p.to_lowercase(),
                     Tokens::Nothing => (),
                 },
@@ -439,13 +439,12 @@ impl Uci {
             };
 
             let option = format!(
-                "{} {} {} {} {}",
-                name, ui_element, value_default, value_min, value_max
+                "{name} {ui_element} {value_default} {value_min} {value_max}"
             )
             .trim()
             .to_string();
 
-            println!("{}", option);
+            println!("{option}");
         }
     }
 
@@ -500,7 +499,7 @@ impl Uci {
             score, depth, s.time, s.nodes, s.nps, hash_full, pv,
         );
 
-        println!("{}", info);
+        println!("{info}");
     }
 
     fn search_currmove(c: &SearchCurrentMove) {
@@ -525,7 +524,7 @@ impl Uci {
     }
 
     fn info_string(msg: &str) {
-        println!("info string {}", msg);
+        println!("info string {msg}");
     }
 
     fn best_move(m: &Move) {

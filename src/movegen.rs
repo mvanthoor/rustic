@@ -101,7 +101,7 @@ impl MoveGenerator {
         match piece {
             Pieces::KING => self.king[square],
             Pieces::KNIGHT => self.knight[square],
-            _ => panic!("Not a king or a knight: {}", piece),
+            _ => panic!("Not a king or a knight: {piece}"),
         }
     }
 
@@ -126,7 +126,7 @@ impl MoveGenerator {
                 let b_index = self.bishop_magics[square].get_index(occupancy);
                 self.rook[r_index] ^ self.bishop[b_index]
             }
-            _ => panic!("Not a sliding piece: {}", piece),
+            _ => panic!("Not a sliding piece: {piece}"),
         }
     }
 
@@ -159,7 +159,7 @@ impl MoveGenerator {
                 Pieces::QUEEN | Pieces::ROOK | Pieces::BISHOP => {
                     self.get_slider_attacks(piece, from, bb_occupancy)
                 }
-                _ => panic!("Not a piece: {}", piece),
+                _ => panic!("Not a piece: {piece}"),
             };
 
             // Generate moves according to requested move type.

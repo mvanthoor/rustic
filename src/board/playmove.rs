@@ -91,7 +91,7 @@ impl Board {
         self.game_state.halfmove_clock += 1;
 
         // Every move except double_step unsets the up-square.
-        if self.game_state.en_passant != None {
+        if self.game_state.en_passant.is_some() {
             self.clear_ep_square();
         }
 
