@@ -13,7 +13,19 @@
 <!-- /code_chunk_output -->
 # Changelog
 
-## Rustic Alpha 3.0.2 / 2.1 / 1.2 (2022, June 11)
+## February 1, 2023 - Rustic Alpha 3.0.3 / 2.2 / 1.3
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Update About banner layout
+- Upgrade 'rand_core' to 0.6.4
+- Upgrade 'clap' to 4.1.4
+- Upgrade 'crossbeam-channel' to 0.5.6
+- Upgrade 'crossbeam-utils' to 0.8.14
+
+## June 11, 2022 - Rustic Alpha 3.0.2 / 2.1 / 1.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -28,7 +40,7 @@ used.
 - Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
 - Upgrade 'rand_core' to 0.6.3 (security fix)
 
-## Rustic Alpha 3.0.1 (2021, November 6)
+## November 6, 2021 - Rustic Alpha 3.0.1
 
 Bugfix upgrade. There is no functional difference to the previous version.
 For normal playing and testing, the binary of version 3.0.0 can be used.
@@ -36,7 +48,7 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
 - Fixed a variable having the wrong type. This caused the "extra" module
   failing to compile.
 
-## Rustic Alpha 3.0.0 (2021, June 18)
+## June 18, 2021 - Rustic Alpha 3.0.0
 
 - New features:
   - Killer Moves
@@ -57,7 +69,7 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
   - Re-add showing the size of the TT and number of threads in About.
   - Fairly large update of the book on https://rustic-chess.org/.
 
-## Rustic Alpha 2 (2021, March 17)
+## March 17, 2021 - Rustic Alpha 2
 
 [CCRL Blitz rating: +/- 1815 Elo](https://ccrl.chessdom.com/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Rustic%20Alpha%202%2064-bit#Rustic_Alpha_2_64-bit)
 
@@ -80,7 +92,7 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
   - Add rand_chacha and remove SmallRng number generators.
   - Update Rand library to 0.8.3.
 
-## Rustic Alpha 1.1 (2021, March 15)
+## March 15, 2021 - Rustic Alpha 1.1
 
 This is a bugfix release. Alpha 1 lost all of its games on time forfeit
 when playing in MoveTime mode (for example, when playing seconds/move).
@@ -88,7 +100,7 @@ when playing in MoveTime mode (for example, when playing seconds/move).
 Bugfixes:
 - Do not exceed alotted time in MoveTime mode.
 
-## Rustic Alpha 1 (2021, January 24)
+## January 24, 2021 - Rustic Alpha 1
 
 This is the initial release.
 
