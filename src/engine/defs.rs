@@ -195,8 +195,8 @@ impl Display for EngineSetOption {
 
 pub struct EngineOptionDefaults;
 impl EngineOptionDefaults {
-    pub const HASH_DEFAULT: &'static str = "32";
-    pub const HASH_MIN: &'static str = "0";
-    pub const HASH_MAX_64_BIT: &'static str = "65536";
-    pub const HASH_MAX_32_BIT: &'static str = "2048";
+    pub const HASH_DEFAULT: usize = 32;
+    pub const HASH_MIN: usize = 0;
+    pub const HASH_MAX_64_BIT: usize = 65536;
+    pub const HASH_MAX_32_BIT: usize = 2048;
 }

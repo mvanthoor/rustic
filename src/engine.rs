@@ -83,9 +83,9 @@ impl Engine {
             EngineOption::new(
                 EngineSetOption::HASH,
                 UiElement::Spin,
-                Some(String::from(EngineOptionDefaults::HASH_DEFAULT)),
-                Some(String::from(EngineOptionDefaults::HASH_MIN)),
-                Some(String::from(tt_max)),
+                Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
+                Some(EngineOptionDefaults::HASH_MIN.to_string()),
+                Some(tt_max.to_string()),
             ),
             EngineOption::new(
                 EngineSetOption::CLEAR_HASH,
