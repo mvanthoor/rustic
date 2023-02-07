@@ -319,7 +319,7 @@ impl Uci {
         let mut token = Tokens::Nothing;
         let mut name = String::from(""); // Option name provided by the UCI command.
         let mut value = String::from(""); // Option value provided by the UCI command.
-        let mut eon = EngineSetOption::Nothing; // Engine Option Name to send to the engine.
+        let mut engine_option_name = EngineSetOption::Nothing; // Name for Engine thread.
 
         for p in parts {
             match p {
@@ -337,14 +337,14 @@ impl Uci {
         // Determine which engine option name to send.
         if !name.is_empty() {
             match name.to_lowercase().trim() {
-                "hash" => eon = EngineSetOption::Hash(value),
-                "clear hash" => eon = EngineSetOption::ClearHash,
+                "hash" => engine_option_name = EngineSetOption::Hash(value),
+                "clear hash" => engine_option_name = EngineSetOption::ClearHash,
                 _ => (),
             }
         }
 
         // Send the engine option name with value to the engine thread.
-        CommIn::Uci(UciIn::SetOption(eon))
+        CommIn::Uci(UciIn::SetOption(engine_option_name))
     }
 }
 
@@ -443,11 +443,9 @@ impl Uci {
                 String::from("")
             };
 
-            let uci_option = format!(
-                "{name} {ui_element} {value_default} {value_min} {value_max}"
-            )
-            .trim()
-            .to_string();
+            let uci_option = format!("{name} {ui_element} {value_default} {value_min} {value_max}")
+                .trim()
+                .to_string();
 
             println!("{uci_option}");
         }
