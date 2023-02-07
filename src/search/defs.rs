@@ -189,7 +189,7 @@ impl SearchSummary {
 
         self.pv
             .iter()
-            .for_each(|next_move| pvstr.push_str(format!(" {}", next_move).as_str()));
+            .for_each(|next_move| pvstr.push_str(format!(" {next_move}").as_str()));
 
         pvstr.trim().to_string()
     }

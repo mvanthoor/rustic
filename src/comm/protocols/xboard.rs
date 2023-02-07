@@ -169,24 +169,24 @@ impl Display for XBoardIn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             XBoardIn::XBoard => write!(f, "xboard"),
-            XBoardIn::ProtoVer(version) => write!(f, "protover {}", version),
+            XBoardIn::ProtoVer(version) => write!(f, "protover {version}"),
             XBoardIn::New => write!(f, "new"),
             XBoardIn::Force => write!(f, "force"),
-            XBoardIn::Go(tc) => write!(f, "go {}", tc),
+            XBoardIn::Go(tc) => write!(f, "go {tc}"),
             XBoardIn::QuestionMark => write!(f, "?"),
-            XBoardIn::SetBoard(fen) => write!(f, "setboard {}", fen),
-            XBoardIn::UserMove(mv, tc) => write!(f, "usermove {} {}", mv, tc),
+            XBoardIn::SetBoard(fen) => write!(f, "setboard {fen}"),
+            XBoardIn::UserMove(mv, tc) => write!(f, "usermove {mv} {tc}"),
             XBoardIn::Undo => write!(f, "undo"),
             XBoardIn::Remove => write!(f, "remove"),
             XBoardIn::Result(r) => write!(f, "result {} {{{}}}", r.points, r.reason),
-            XBoardIn::Ping(count) => write!(f, "ping {}", count),
+            XBoardIn::Ping(count) => write!(f, "ping {count}"),
             XBoardIn::Post => write!(f, "post"),
             XBoardIn::NoPost => write!(f, "nopost"),
-            XBoardIn::Memory(mb) => write!(f, "memory {}", mb),
+            XBoardIn::Memory(mb) => write!(f, "memory {mb}"),
             XBoardIn::Analyze => write!(f, "analyze"),
             XBoardIn::Dot => write!(f, "."),
             XBoardIn::Exit => write!(f, "exit"),
-            XBoardIn::Buffered(cmd) => write!(f, "{}", cmd),
+            XBoardIn::Buffered(cmd) => write!(f, "{cmd}"),
         }
     }
 }
@@ -208,10 +208,10 @@ pub enum XBoardInBuffered {
 impl Display for XBoardInBuffered {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            XBoardInBuffered::Sd(depth) => write!(f, "sd {}", depth),
-            XBoardInBuffered::St(time) => write!(f, "st {}", time),
+            XBoardInBuffered::Sd(depth) => write!(f, "sd {depth}"),
+            XBoardInBuffered::St(time) => write!(f, "st {time}"),
             XBoardInBuffered::Level(moves_per_session, base_time, increment) => {
-                write!(f, "level {} {} {}", moves_per_session, base_time, increment)
+                write!(f, "level {moves_per_session} {base_time} {increment}")
             }
         }
     }
@@ -690,24 +690,24 @@ impl XBoard {
 
         for f in FEATURES {
             let value = f.to_string().replace("myname=x", myname.as_str());
-            println!("feature {}", value);
+            println!("feature {value}");
         }
     }
 
     fn pong(value: i8) {
-        println!("pong {}", value)
+        println!("pong {value}")
     }
 
     fn message(msg: &str) {
-        println!("# {}", msg);
+        println!("# {msg}");
     }
 
     fn illegal_move(m: &str) {
-        println!("Illegal move: {}", m);
+        println!("Illegal move: {m}");
     }
 
     fn error(err_type: &str, cmd: &str) {
-        println!("Error ({}): {}", err_type, cmd);
+        println!("Error ({err_type}): {cmd}");
     }
 
     fn result(r: &GameResult) {
@@ -725,7 +725,7 @@ impl XBoard {
                 _ => (),
             }
         }
-        println!("move {}", m);
+        println!("move {m}");
         if let Some(r) = result {
             XBoard::result(r);
         }

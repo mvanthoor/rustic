@@ -46,7 +46,7 @@ impl Display for GameResultReason {
             GameResultReason::ThreeFold => write!(f, "Draw by repetition"),
             GameResultReason::Insufficient => write!(f, "Insufficient material"),
             GameResultReason::FiftyMoves => write!(f, "Ffifty move rule"),
-            GameResultReason::Other(reason) => write!(f, "{}", reason),
+            GameResultReason::Other(reason) => write!(f, "{reason}"),
             GameResultReason::Nothing => write!(f, "-"),
         }
     }
@@ -186,7 +186,7 @@ impl EngineSetOption {
 impl Display for EngineSetOption {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            EngineSetOption::Hash(mb) => write!(f, "Hash {}", mb),
+            EngineSetOption::Hash(mb) => write!(f, "Hash {mb}"),
             EngineSetOption::ClearHash => write!(f, "Clear Hash"),
             EngineSetOption::Nothing => write!(f, ""),
         }

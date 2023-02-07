@@ -327,7 +327,7 @@ impl Uci {
                 t if t == "name" => token = Tokens::Name,
                 t if t == "value" => token = Tokens::Value,
                 _ => match token {
-                    Tokens::Name => name = format!("{} {}", name, p),
+                    Tokens::Name => name = format!("{name} {p}"),
                     Tokens::Value => value = p.to_lowercase(),
                     Tokens::Nothing => (),
                 },
@@ -444,13 +444,12 @@ impl Uci {
             };
 
             let uci_option = format!(
-                "{} {} {} {} {}",
-                name, ui_element, value_default, value_min, value_max
+                "{name} {ui_element} {value_default} {value_min} {value_max}"
             )
             .trim()
             .to_string();
 
-            println!("{}", uci_option);
+            println!("{uci_option}");
         }
     }
 
@@ -497,7 +496,7 @@ impl Uci {
             s.pv_to_string(),
         );
 
-        println!("{}", info);
+        println!("{info}");
     }
 
     fn search_currmove(c: &SearchCurrentMove) {
@@ -524,14 +523,14 @@ impl Uci {
     // UCI-protocol because it depends on the GUI to determine this.
     // Therefore this parameter is ignored.
     fn best_move(m: &Move, _: &Option<GameResult>) {
-        println!("bestmove {}", m);
+        println!("bestmove {m}");
     }
 
     fn message(msg: &str) {
-        println!("info string {}", msg);
+        println!("info string {msg}");
     }
 
     fn error(err_type: &str, cmd: &str) {
-        println!("info string ERROR {}: {}", err_type, cmd);
+        println!("info string ERROR {err_type}: {cmd}");
     }
 }

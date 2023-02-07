@@ -112,7 +112,7 @@ impl Search {
         if first_killer.get_move() != current_move.get_move() {
             // Shift all the moves one index upward...
             for i in (1..MAX_KILLER_MOVES).rev() {
-                let n = i as usize;
+                let n = i;
                 let previous = refs.search_info.killer_moves[ply][n - 1];
                 refs.search_info.killer_moves[ply][n] = previous;
             }

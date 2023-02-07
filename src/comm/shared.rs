@@ -40,21 +40,19 @@ impl Shared {
     }
 
     pub fn print_eval(eval: i16, phase: i16) {
-        println!("Evaluation: {}, Phase: {}", eval, phase);
+        println!("Evaluation: {eval}, Phase: {phase}");
     }
 
     pub fn print_state(state: &EngineState) {
-        println!("State: {}", state);
+        println!("State: {state}");
     }
 
     pub fn print_help(protocol: &str) {
         println!(
-            "The engine is in {} communication mode. It supports some custom",
-            protocol
+            "The engine is in {protocol} communication mode. It supports some custom"
         );
         println!(
-            "non-{} commands to make use through a terminal window easier.",
-            protocol
+            "non-{protocol} commands to make use through a terminal window easier."
         );
         println!("These commands can also be very useful for debugging purposes.");
         println!();

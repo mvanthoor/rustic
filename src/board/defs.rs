@@ -130,10 +130,10 @@ const fn init_bb_files() -> [Bitboard; NrOf::FILES] {
 // representing a rank.
 const fn init_bb_ranks() -> [Bitboard; NrOf::RANKS] {
     const BB_RANK_1: Bitboard = 0xFF;
-    let mut bb_ranks = [0; NrOf::RANKS as usize];
+    let mut bb_ranks = [0; NrOf::RANKS];
     let mut i = 0;
 
-    while i < (NrOf::RANKS as usize) {
+    while i < NrOf::RANKS {
         bb_ranks[i] = BB_RANK_1 << (i * 8);
         i += 1;
     }

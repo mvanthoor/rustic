@@ -28,7 +28,7 @@ impl Engine {
         };
 
         #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
+        println!("{NOTICE_DEBUG_MODE}");
         println!();
     }
 
@@ -44,7 +44,7 @@ impl Engine {
         );
 
         #[cfg(debug_assertions)]
-        println!("{}", NOTICE_DEBUG_MODE);
+        println!("{NOTICE_DEBUG_MODE}");
     }
 
     fn print_ascii_logo() {

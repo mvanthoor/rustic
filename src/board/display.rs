@@ -20,7 +20,7 @@ impl Display for Board {
         let pretty = ascii_board_to_pretty_string(&ascii);
         let meta = self.metadata_to_pretty_string();
 
-        write!(f, "{}{}", pretty, meta)
+        write!(f, "{pretty}{meta}")
     }
 }
 
@@ -91,11 +91,11 @@ fn ascii_board_to_pretty_string(ascii_board: &AsciiBoard) -> String {
     pretty += "\n";
 
     for current_rank in RangeOf::RANKS.rev() {
-        pretty.push_str(format!("{}   ", coordinate_digit).as_str());
+        pretty.push_str(format!("{coordinate_digit}   ").as_str());
         for current_file in RangeOf::FILES {
             let square = (current_rank as usize * NrOf::FILES) + current_file as usize;
             let character = ascii_board[square];
-            pretty.push_str(format!("{} ", character).as_str());
+            pretty.push_str(format!("{character} ").as_str());
         }
         pretty += "\n";
         coordinate_digit -= 1;
@@ -105,7 +105,7 @@ fn ascii_board_to_pretty_string(ascii_board: &AsciiBoard) -> String {
     pretty += str::repeat(" ", 4).as_str();
 
     for c in coordinate_alpha.chars() {
-        pretty.push_str(format!("{} ", c).as_str());
+        pretty.push_str(format!("{c} ").as_str());
     }
 
     pretty += "\n\n";

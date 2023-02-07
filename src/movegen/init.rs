@@ -29,7 +29,7 @@ impl MoveGenerator {
             | (bb_square & !BB_RANKS[Ranks::R1]) >> 8
             | (bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R1]) >> 9
             | (bb_square & !BB_FILES[Files::A]) >> 1;
-            self.king[sq as usize] = bb_moves;
+            self.king[sq] = bb_moves;
         }
     }
 
@@ -52,7 +52,7 @@ impl MoveGenerator {
             | (bb_square & !BB_RANKS[Ranks::R1] & !BB_RANKS[Ranks::R2] & !BB_FILES[Files::H]) >> 15
             | (bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !BB_RANKS[Ranks::R1]) >> 10
             | (bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R1]) >> 6;
-        self.knight[sq as usize] = bb_moves;
+        self.knight[sq] = bb_moves;
     }
 }
 
@@ -66,8 +66,8 @@ impl MoveGenerator {
             let bb_square = BB_SQUARES[sq];
             let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
             let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
-            self.pawns[Sides::WHITE][sq as usize] = w;
-            self.pawns[Sides::BLACK][sq as usize] = b;
+            self.pawns[Sides::WHITE][sq] = w;
+            self.pawns[Sides::BLACK][sq] = b;
         }
     }
 
@@ -113,7 +113,7 @@ impl MoveGenerator {
      */
     pub fn init_magics(&mut self, piece: Piece) {
         let ok = piece == Pieces::ROOK || piece == Pieces::BISHOP;
-        assert!(ok, "Illegal piece: {}", piece);
+        assert!(ok, "Illegal piece: {piece}");
 
         let is_rook = piece == Pieces::ROOK;
         let mut offset = 0;
@@ -133,8 +133,8 @@ impl MoveGenerator {
             let attack_boards = if is_rook { r_ab } else { b_ab };
 
             let mut magic: Magic = Default::default();
-            let r_magic_nr = ROOK_MAGIC_NRS[sq as usize];
-            let b_magic_nr = BISHOP_MAGIC_NRS[sq as usize];
+            let r_magic_nr = ROOK_MAGIC_NRS[sq];
+            let b_magic_nr = BISHOP_MAGIC_NRS[sq];
 
             magic.mask = mask;
             magic.shift = (64 - bits) as u8;
@@ -160,9 +160,9 @@ impl MoveGenerator {
 
             // No failures  during indexing. Store this magic.
             if is_rook {
-                self.rook_magics[sq as usize] = magic;
+                self.rook_magics[sq] = magic;
             } else {
-                self.bishop_magics[sq as usize] = magic;
+                self.bishop_magics[sq] = magic;
             }
 
             // Do the next magic.

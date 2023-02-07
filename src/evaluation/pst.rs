@@ -259,13 +259,13 @@ impl Evaluation {
             // Iterate over pieces of the current piece_type for white.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                pst_w += pst_collection[piece_type][FLIP[square]] as i16;
+                pst_w += pst_collection[piece_type][FLIP[square]];
             }
 
             // Iterate over pieces of the current piece_type for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                pst_b += pst_collection[piece_type][square] as i16;
+                pst_b += pst_collection[piece_type][square];
             }
         }
 
