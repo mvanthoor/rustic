@@ -15,7 +15,7 @@ use crate::{
 };
 use crossbeam_channel::{self, Sender};
 use std::{
-    io::{self},
+    io,
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
