@@ -199,4 +199,14 @@ impl EngineOptionDefaults {
     pub const HASH_MIN: usize = 0;
     pub const HASH_MAX_64_BIT: usize = 65536;
     pub const HASH_MAX_32_BIT: usize = 2048;
+
+    pub fn max_hash() -> usize {
+        let is_64_bit = (std::mem::size_of::<usize>() * 8) == 64;
+
+        if is_64_bit {
+            Self::HASH_MAX_64_BIT
+        } else {
+            Self::HASH_MAX_32_BIT
+        }
+    }
 }

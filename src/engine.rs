@@ -51,9 +51,6 @@ pub struct Engine {
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
-        // Determine if the compiled engine is 32 or 64-bit
-        let is_64_bit = std::mem::size_of::<usize>() == 8;
-
         // Create the command-line object.
         let cmdline = CmdLine::new();
 
@@ -72,11 +69,7 @@ impl Engine {
             Verbosity::Full
         };
         let tt_size = cmdline.hash();
-        let tt_max = if is_64_bit {
-            EngineOptionDefaults::HASH_MAX_64_BIT
-        } else {
-            EngineOptionDefaults::HASH_MAX_32_BIT
-        };
+        let tt_max = EngineOptionDefaults::max_hash();
 
         // List of options that should be announced to the GUI.
         let options = vec![
