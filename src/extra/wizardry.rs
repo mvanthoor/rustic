@@ -38,7 +38,7 @@ use rand_chacha::ChaChaRng;
 pub fn find_magics(piece: Piece) {
     // First check if we're actually dealing with a rook or a bishop.
     let ok = piece == Pieces::ROOK || piece == Pieces::BISHOP;
-    assert!(ok, "Illegal piece: {}", piece);
+    assert!(ok, "Illegal piece: {piece}");
 
     // Create working variables.
     let is_rook = piece == Pieces::ROOK;

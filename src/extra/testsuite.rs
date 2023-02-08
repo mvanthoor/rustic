@@ -71,7 +71,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
         // Set up the position according to the provided FEN-string.
         let setup_result = board.fen_read(Some(fen));
         println!("Test {} from {}", test_nr + 1, number_of_tests);
-        println!("FEN: {}", fen);
+        println!("FEN: {fen}");
 
         // If setup ok, then print position. Else, print error and continue to the next test.
         match setup_result {
@@ -99,7 +99,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
             result = if expected_ln == 0 { ERR_EXPECT } else { result };
 
             if result == 0 {
-                print!("Expect for depth {}: {}", depth, expected_ln);
+                print!("Expect for depth {depth}: {expected_ln}");
 
                 // This is the actual perft run for this test and depth.
                 let now = Instant::now();
@@ -109,9 +109,9 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
                 let is_ok = expected_ln == found_ln;
 
                 // Print the results
-                print!(" - Found: {}", found_ln);
+                print!(" - Found: {found_ln}");
                 print!(" - Result: {}", if is_ok { "OK" } else { "Fail" });
-                println!(" ({} ms, {} leaves/sec)", elapsed, moves_per_second);
+                println!(" ({elapsed} ms, {moves_per_second} leaves/sec)");
 
                 result = if !is_ok { ERR_FAIL } else { result };
             }
