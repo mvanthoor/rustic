@@ -237,7 +237,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // of type D, where D has to implement IHashData, and must be cloneable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
-        let (total_entries, total_buckets) = Self::calculate_init_values(megabytes);
+        let (total_entries, total_buckets) = Self::init_values(megabytes);
 
         Self {
             tt: vec![Entry::<D>::new(); total_entries],
@@ -252,7 +252,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // one; otherwise just clear the TT.
     pub fn resize(&mut self, megabytes: usize) {
         if self.megabytes != megabytes {
-            let (total_entries, total_buckets) = TT::<D>::calculate_init_values(megabytes);
+            let (total_entries, total_buckets) = TT::<D>::init_values(megabytes);
 
             self.tt = vec![Entry::<D>::new(); total_entries];
             self.megabytes = megabytes;
@@ -268,8 +268,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // index's bucket.
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
         if self.megabytes > 0 {
-            let index = self.calculate_index(zobrist_key);
-            let verification = self.calculate_verification(zobrist_key);
+            let index = self.index_from(zobrist_key);
+            let verification = self.verification_from(zobrist_key);
             self.tt[index].store(verification, data, &mut self.used_buckets);
         }
     }
@@ -278,8 +278,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // match for the position to be the correct one we're looking for.
     pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
         if self.megabytes > 0 {
-            let index = self.calculate_index(zobrist_key);
-            let verification = self.calculate_verification(zobrist_key);
+            let index = self.index_from(zobrist_key);
+            let verification = self.verification_from(zobrist_key);
 
             self.tt[index].find(verification)
         } else {
@@ -311,7 +311,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
-    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
+    fn index_from(&self, zobrist_key: ZobristKey) -> usize {
         let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
 
         (key % (self.total_entries as u64)) as usize
@@ -320,13 +320,13 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Many positions will end up at the same index, and thus in the same
     // bucket. Calculate a verification for the position so it can later be
     // found in the bucket. Use the other half of the Zobrist key for this.
-    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
+    fn verification_from(&self, zobrist_key: ZobristKey) -> u32 {
         (zobrist_key & LOW_FOUR_BYTES) as u32
     }
 
     // This function calculates the values for total_entries and
     // total_buckets. These depend on the requested TT size.
-    fn calculate_init_values(megabytes: usize) -> (usize, usize) {
+    fn init_values(megabytes: usize) -> (usize, usize) {
         let bucket_size = std::mem::size_of::<Bucket<D>>();
         let entry_size = bucket_size * NR_OF_BUCKETS;
         let total_entries = MEGABYTE / entry_size * megabytes;
