@@ -6,6 +6,7 @@ use crate::{
         MoveGenerator,
     },
 };
+use if_chain::if_chain;
 use std::{
     sync::{Arc, Mutex},
     time::Instant,
@@ -97,16 +98,16 @@ pub fn perft(
 
     // See if the current position is in the TT, and if so, get the
     // number of leaf nodes that were previously calculated for it.
-    if tt_enabled {
+    if_chain! {
+        if tt_enabled;
         if let Some(data) = tt
             .lock()
             .expect(ErrFatal::LOCK)
-            .probe(board.game_state.zobrist_key)
-        {
-            if let Some(leaf_nodes) = data.get(depth) {
-                return leaf_nodes;
-            }
-        };
+            .probe(board.game_state.zobrist_key);
+        if let Some(leaf_nodes) = data.get(depth);
+        then {
+            return leaf_nodes;
+        }
     }
 
     mg.generate_moves(board, &mut move_list, MoveType::All);
