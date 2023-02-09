@@ -97,20 +97,16 @@ pub fn perft(
 
     // See if the current position is in the TT, and if so, get the
     // number of leaf nodes that were previously calculated for it.
-    let mut leaf_nodes_tt: Option<u64> = None;
     if tt_enabled {
         if let Some(data) = tt
             .lock()
             .expect(ErrFatal::LOCK)
             .probe(board.game_state.zobrist_key)
         {
-            leaf_nodes_tt = data.get(depth);
+            if let Some(leaf_nodes) = data.get(depth) {
+                return leaf_nodes;
+            }
         };
-    }
-
-    // If we found a leaf node count, return it immediately.
-    if let Some(leaf_nodes) = leaf_nodes_tt {
-        return leaf_nodes;
     }
 
     mg.generate_moves(board, &mut move_list, MoveType::All);
