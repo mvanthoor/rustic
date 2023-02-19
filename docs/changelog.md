@@ -1,19 +1,23 @@
 
+
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Changelog](#changelog)
-  - [Rustic Alpha 3.0.1 (2021, November 6)](#rustic-alpha-301-2021-november-6)
-  - [Rustic Alpha 3.0.0 (2021, June 18)](#rustic-alpha-300-2021-june-18)
-  - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
-  - [Rustic Alpha 1.1 (2021, March 15)](#rustic-alpha-11-2021-march-15)
-  - [Rustic Alpha 1 (2021, January 24)](#rustic-alpha-1-2021-january-24)
+- [Changelog](#-changelog)
+  - [February 1, 2023 - Rustic Alpha 3.0.3](#-february-1-2023---rustic-alpha-303)
+  - [June 11, 2022 - Rustic Alpha 3.0.2](#-june-11-2022---rustic-alpha-302)
+  - [November 6, 2021 - Rustic Alpha 3.0.1](#-november-6-2021---rustic-alpha-301)
+  - [June 18, 2021 - Rustic Alpha 3.0.0](#-june-18-2021---rustic-alpha-300)
+  - [March 17, 2021 - Rustic Alpha 2](#-march-17-2021---rustic-alpha-2)
+  - [March 15, 2021 - Rustic Alpha 1.1](#-march-15-2021---rustic-alpha-11)
+  - [January 24, 2021 - Rustic Alpha 1](#-january-24-2021---rustic-alpha-1)
 
 <!-- /code_chunk_output -->
+
 # Changelog
 
-## February 1, 2023 - Rustic Alpha 3.0.3 / 2.2 / 1.3
+## February 1, 2023 - Rustic Alpha 3.0.3
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -21,11 +25,11 @@ used.
 
 - Update About banner layout
 - Upgrade 'rand_core' to 0.6.4
-- Upgrade 'clap' to 4.1.4
+- Upgrade 'clap' to 4.1.6
 - Upgrade 'crossbeam-channel' to 0.5.6
 - Upgrade 'crossbeam-utils' to 0.8.14
 
-## June 11, 2022 - Rustic Alpha 3.0.2 / 2.1 / 1.2
+## June 11, 2022 - Rustic Alpha 3.0.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
