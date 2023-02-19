@@ -4,7 +4,7 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
-  - [Rustic 4.0.0 (2021, TBA)](#rustic-400-2021-tba)
+  - [Rustic 4.0.0 (TBA)](#rustic-400-tba)
   - [Rustic Alpha 3.0.1 (2021, November 6)](#rustic-alpha-301-2021-november-6)
   - [Rustic Alpha 3.0.0 (2021, June 18)](#rustic-alpha-300-2021-june-18)
   - [Rustic Alpha 2 (2021, March 17)](#rustic-alpha-2-2021-march-17)
@@ -14,7 +14,7 @@
 <!-- /code_chunk_output -->
 # Changelog
 
-## Rustic 4.0.0 (2021, TBA)
+## Rustic 4.0.0 (TBA)
 
 This version has two main new features: Tapered and tuned evaluation, and
 support for the XBoard-protocol. The engine dropped the "Alpha" part from
@@ -46,12 +46,12 @@ implemented.
   - Dropped the "misc::print" module (no code left after refactoring).
 - Update:
   - "rand" crate to 0.8.5.
+  - "rand_core" crate to 0.6.4.
   - "rand_chacha" crate to 0.3.1.
-  - "rand_core" crate to 0.6.3 (security fix).
-  - "clap" crate to 3.2.8.
   - "if_chain" crate to 1.0.2.
-  - "crossbeam_channel" crate to 0.5.5.
-  - "crossbeam-utils" crate to 0.8.10 (security fix).
+  - "clap" crate to 4.1.6.
+  - "crossbeam_channel" crate to 0.5.6.
+  - "crossbeam-utils" crate to 0.8.14.
 
 > <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
 > the UCI-protocol will remain the default. It is recommended to use UCI
@@ -60,9 +60,9 @@ implemented.
 > others who may wish to build a multi-protocol engine.
 > 
 > If you wish to run Rustic using the XBoard-protocol, you can do so by
-> indicating this by appending "**-c xboard**" (without quotes) to the engine's
-> startup command. (How this is done depends on the user interface you are
-> using.) For example:
+> indicating this by appending "**-c xboard**" (without quotes) to the
+> engine's startup command. (How this is done depends on the user interface
+> you are using.) For example:
 > 
 > ```
 > ./rustic-4.0.0-bmi2 -c xboard
