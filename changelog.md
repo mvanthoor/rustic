@@ -7,7 +7,7 @@ versions. For normal playing and testing, the existing binaries can be
 used.
 
 - Upgrade 'rand_core' to 0.6.4
-- Upgrade 'clap' to 4.1.4
+- Upgrade 'clap' to 4.1.6
 - Upgrade 'crossbeam-channel' to 0.5.6
 - Upgrade 'crossbeam-utils' to 0.8.14
 
