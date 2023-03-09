@@ -49,9 +49,9 @@ implemented.
   - "rand_core" crate to 0.6.4.
   - "rand_chacha" crate to 0.3.1.
   - "if_chain" crate to 1.0.2.
-  - "clap" crate to 4.1.6.
-  - "crossbeam_channel" crate to 0.5.6.
-  - "crossbeam-utils" crate to 0.8.14.
+  - "clap" crate to 4.1.8.
+  - "crossbeam_channel" crate to 0.5.7.
+  - "crossbeam-utils" crate to 0.8.15.
 
 > <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
 > the UCI-protocol will remain the default. It is recommended to use UCI
