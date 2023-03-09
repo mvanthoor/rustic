@@ -1,15 +1,11 @@
 // playmove.rs contains make() and unmake() for move execution and reversal.
 
-use super::{
-    defs::{Pieces, Squares, BB_SQUARES},
-    Board,
-};
 use crate::{
+    board::defs::{Pieces, Squares, BB_SQUARES},
+    board::Board,
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::{
-        defs::{PST_EG, PST_MG},
-        Evaluation,
-    },
+    evaluation::defs::{PST_EG, PST_MG},
+    evaluation::Evaluation,
     movegen::{defs::Move, MoveGenerator},
 };
 

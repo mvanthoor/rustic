@@ -1,9 +1,8 @@
 use crate::{
     board::defs::{RangeOf, SQUARE_NAME},
+    board::Board,
     defs::{Bitboard, NrOf, Sides},
 };
-
-use super::Board;
 use std::fmt::{self, Display};
 
 type AsciiBoard = [char; NrOf::SQUARES];

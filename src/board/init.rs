@@ -1,13 +1,10 @@
 use crate::{
+    board::{defs::Pieces, zobrist::ZobristKey, Board},
     defs::{Bitboard, NrOf, Piece, Sides},
-    evaluation::{
-        defs::{PST_EG, PST_MG},
-        Evaluation,
-    },
+    evaluation::defs::{PST_EG, PST_MG},
+    evaluation::Evaluation,
     misc::bits,
 };
-
-use super::{defs::Pieces, zobrist::ZobristKey, Board};
 
 // Initialization functions
 impl Board {

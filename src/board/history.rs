@@ -1,5 +1,4 @@
-use super::gamestate::GameState;
-use crate::defs::MAX_GAME_MOVES;
+use crate::{board::gamestate::GameState, defs::MAX_GAME_MOVES};
 
 // The history struct is basically an array holding the values of the game
 // states at each move. If a move is made in make(), this function pushes the

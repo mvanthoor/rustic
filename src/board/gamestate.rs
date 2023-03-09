@@ -1,10 +1,9 @@
-use std::fmt::{self, Display};
-
 use crate::{
     board::defs::{Pieces, PIECE_NAME, SQUARE_NAME},
     defs::{Castling, Sides},
     movegen::defs::Move,
 };
+use std::fmt::{self, Display};
 
 // This is simply a struct that collects all the variables holding the game sate.
 // It makes it very easy to make a backup of the game state during make(), and

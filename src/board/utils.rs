@@ -1,6 +1,6 @@
-use super::{defs::Location, Board};
 use crate::{
-    board::defs::Ranks,
+    board::defs::{Location, Ranks},
+    board::Board,
     defs::{Side, Sides, Square},
     evaluation::defs::FLIP,
 };

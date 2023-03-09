@@ -5,11 +5,9 @@
 // kings in check at the same time, or with black in check but white to
 // move.
 
-use super::{
-    defs::{Files, Pieces, Ranks, Squares, BB_SQUARES},
-    Board,
-};
 use crate::{
+    board::defs::{Files, Pieces, Ranks, Squares, BB_SQUARES},
+    board::Board,
     defs::{Castling, Sides, Square, FEN_START_POSITION, MAX_GAME_MOVES, MAX_MOVE_RULE},
     misc::parse,
 };

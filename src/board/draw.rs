@@ -1,9 +1,7 @@
 use crate::{
-    board::Board,
+    board::{Board, Pieces},
     defs::{Sides, MAX_MOVE_RULE},
 };
-
-use super::defs::Pieces;
 
 impl Board {
     // Returns true if the position should be evaluated as a draw.
