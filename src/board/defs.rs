@@ -1,8 +1,7 @@
 use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
-// Exports
-pub use super::zobrist::{ZobristKey, ZobristRandoms};
+pub use crate::board::zobrist::{ZobristKey, ZobristRandoms};
 
 #[rustfmt::skip]
 pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [
