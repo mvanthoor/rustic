@@ -1,7 +1,7 @@
-use crate::movegen::MoveGenerator;
 use crate::{
     board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
     defs::{Bitboard, Piece, Square, EMPTY},
+    movegen::MoveGenerator,
     movegen::{defs::Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::{Rng, SeedableRng};
