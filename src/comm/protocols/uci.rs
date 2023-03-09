@@ -2,14 +2,11 @@
 
 use crate::{
     board::Board,
-    comm::{
-        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
-        shared::Shared,
-    },
+    comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+    comm::shared::Shared,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{
-        EngineOption, EngineSetOption, EngineState, ErrFatal, GameResult, Information, UiElement,
-    },
+    engine::defs::{EngineOption, EngineSetOption, EngineState},
+    engine::defs::{ErrFatal, GameResult, Information, UiElement},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };

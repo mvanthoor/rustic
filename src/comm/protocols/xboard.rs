@@ -2,22 +2,19 @@
 
 use crate::{
     board::Board,
-    comm::{
-        defs::{CommIn, CommInfo, CommOut, CommType, IComm},
-        shared::Shared,
-    },
+    comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+    comm::shared::Shared,
     defs::{About, Sides},
-    engine::defs::{
-        EngineOption, EngineState, ErrFatal, GameResult, GameResultPoints, GameResultReason,
-        Information,
-    },
+    engine::defs::{EngineOption, EngineState},
+    engine::defs::{ErrFatal, Information},
+    engine::defs::{GameResult, GameResultPoints, GameResultReason},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 use crossbeam_channel::{self, Sender};
 use std::{
     fmt::{self, Display},
-    io::{self},
+    io,
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
