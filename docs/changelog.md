@@ -42,6 +42,7 @@ implemented.
     way around, to be more in line with other engines.
   - Renamed some variables for more consistency.
   - Moved lots of functions between modules for more consistency.
+  - Redid nesting for all use-clauses for better readability.
   - Implemented Display for many structs, removing custom functions.
   - Dropped the "misc::print" module (no code left after refactoring).
 - Update:
