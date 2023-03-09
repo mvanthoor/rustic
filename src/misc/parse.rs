@@ -1,5 +1,7 @@
-use crate::board::defs::{Pieces, SQUARE_NAME};
-use crate::defs::{Piece, Square};
+use crate::{
+    board::defs::{Pieces, SQUARE_NAME},
+    defs::{Piece, Square},
+};
 use if_chain::if_chain;
 
 pub type PotentialMove = (Square, Square, Piece);
