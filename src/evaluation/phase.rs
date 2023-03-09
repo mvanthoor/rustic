@@ -1,5 +1,9 @@
-use super::{defs::PHASE_VALUES, Evaluation};
-use crate::{board::Board, defs::Sides, misc::bits};
+use crate::{
+    board::Board,
+    defs::Sides,
+    evaluation::{defs::PHASE_VALUES, Evaluation},
+    misc::bits,
+};
 
 impl Evaluation {
     // Counts all the phase values for white and black and returns the

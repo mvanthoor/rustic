@@ -2,13 +2,11 @@
 // PST's are written from White's point of view, as if looking at a chess
 // diagram, with A1 on the lower left corner.
 
-use super::{
-    defs::{PHASE_MAX, PHASE_MIN},
-    Evaluation,
-};
 use crate::{
     board::Board,
     defs::{NrOf, Sides},
+    evaluation::defs::{PHASE_MAX, PHASE_MIN},
+    evaluation::Evaluation,
     misc::bits,
 };
 
