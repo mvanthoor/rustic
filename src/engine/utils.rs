@@ -1,13 +1,11 @@
-use super::{defs::ErrFatal, Engine};
 use crate::{
     board::Board,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
+    engine::{defs::ErrFatal, Engine},
     misc::parse,
     misc::parse::PotentialMove,
-    movegen::{
-        defs::{Move, MoveList, MoveType},
-        MoveGenerator,
-    },
+    movegen::defs::{Move, MoveList, MoveType},
+    movegen::MoveGenerator,
 };
 use if_chain::if_chain;
 use std::sync::Mutex;

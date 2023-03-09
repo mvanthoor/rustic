@@ -1,10 +1,8 @@
 use crate::{
     comm::defs::{CommOut, UciIn, UciOut},
     defs::FEN_START_POSITION,
-    engine::{
-        defs::{EngineSetOption, ErrFatal, ErrNormal},
-        Engine,
-    },
+    engine::defs::{EngineSetOption, ErrFatal, ErrNormal},
+    engine::Engine,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
 

@@ -1,5 +1,4 @@
-use super::Engine;
-use crate::{defs::About, engine::defs::Settings};
+use crate::{defs::About, engine::defs::Settings, engine::Engine};
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)

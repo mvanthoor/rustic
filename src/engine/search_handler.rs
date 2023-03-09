@@ -1,8 +1,9 @@
-use super::{
-    defs::{ErrFatal, GameResult},
-    Engine,
+use crate::{
+    comm::defs::CommOut,
+    engine::defs::{ErrFatal, GameResult},
+    engine::Engine,
+    search::defs::SearchReport,
 };
-use crate::{comm::defs::CommOut, search::defs::SearchReport};
 
 impl Engine {
     pub fn search_handler(&mut self, search_report: &SearchReport) {

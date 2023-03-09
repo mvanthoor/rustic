@@ -3,10 +3,8 @@ mod xboard;
 
 use crate::{
     comm::defs::{CommIn, CommOut},
-    engine::{
-        defs::{ErrFatal, ErrNormal, Messages},
-        Engine,
-    },
+    engine::defs::{ErrFatal, ErrNormal, Messages},
+    engine::Engine,
     evaluation::Evaluation,
 };
 

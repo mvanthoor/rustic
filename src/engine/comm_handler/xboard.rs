@@ -1,10 +1,8 @@
 use crate::{
     comm::defs::{CommOut, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
-    engine::{
-        defs::{EngineState, ErrFatal, ErrNormal, Information, Messages, Verbosity},
-        Engine,
-    },
+    engine::defs::{EngineState, ErrFatal, ErrNormal, Information, Messages, Verbosity},
+    engine::Engine,
     search::defs::{SearchControl, SearchMode, SearchParams, SearchReport},
 };
 

@@ -1,7 +1,7 @@
-use crate::movegen::defs::{MoveList, MoveType};
-
-use super::{
-    defs::{ErrFatal, GameResult, GameResultPoints, GameResultReason},
+use crate::{
+    engine::defs::ErrFatal,
+    engine::defs::{GameResult, GameResultPoints, GameResultReason},
+    movegen::defs::{MoveList, MoveType},
     Engine,
 };
 
