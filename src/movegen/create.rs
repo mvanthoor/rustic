@@ -1,10 +1,8 @@
-use super::MoveGenerator;
 use crate::{
-    board::{
-        defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS, BB_SQUARES},
-        Board,
-    },
+    board::defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS, BB_SQUARES},
+    board::Board,
     defs::{Bitboard, Square},
+    movegen::MoveGenerator,
 };
 
 pub type BlockerBoards = Vec<Bitboard>;

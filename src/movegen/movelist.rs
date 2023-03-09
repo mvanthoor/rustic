@@ -5,8 +5,7 @@
 // implemented. There is error checking or bounds checking. If the array is
 // mis-addressed due to a bug, the program panics.
 
-use super::defs::Move;
-use crate::defs::MAX_LEGAL_MOVES;
+use crate::{defs::MAX_LEGAL_MOVES, movegen::defs::Move};
 use std::mem::MaybeUninit;
 
 type TMoveList = [Move; MAX_LEGAL_MOVES as usize];
