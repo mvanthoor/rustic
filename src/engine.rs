@@ -11,10 +11,8 @@ use crate::{
     board::Board,
     comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
-    engine::defs::{
-        EngineOption, EngineOptionDefaults, EngineSetOption, ErrFatal, Information, Settings,
-        UiElement, Verbosity,
-    },
+    engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption},
+    engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
