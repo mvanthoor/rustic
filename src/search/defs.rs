@@ -1,12 +1,11 @@
-pub use super::time::SAFEGUARD;
+pub use crate::search::time::SAFEGUARD;
+
 use crate::{
     board::Board,
     defs::MAX_PLY,
     engine::defs::{Information, SearchData, Verbosity, TT},
-    movegen::{
-        defs::{Move, ShortMove},
-        MoveGenerator,
-    },
+    movegen::defs::{Move, ShortMove},
+    movegen::MoveGenerator,
 };
 use crossbeam_channel::{Receiver, Sender};
 use std::{

@@ -1,8 +1,10 @@
-use super::{
-    defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, INF},
-    ErrFatal, Information, Search, SearchReport, SearchSummary,
+use crate::{
+    defs::MAX_PLY,
+    engine::defs::Verbosity,
+    movegen::defs::Move,
+    search::defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, INF},
+    search::{ErrFatal, Information, Search, SearchReport, SearchSummary},
 };
-use crate::{defs::MAX_PLY, engine::defs::Verbosity, movegen::defs::Move};
 
 // Actual search routines.
 impl Search {

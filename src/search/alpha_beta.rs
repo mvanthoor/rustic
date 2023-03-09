@@ -1,16 +1,12 @@
-use super::{
-    defs::{
-        PrincipalVariation, SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS,
-        STALEMATE,
-    },
-    Search, SearchRefs,
-};
 use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData, Verbosity},
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
+    search::defs::{PrincipalVariation, SearchTerminated},
+    search::defs::{CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
+    search::{Search, SearchRefs},
 };
 
 impl Search {

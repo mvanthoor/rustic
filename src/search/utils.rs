@@ -1,13 +1,12 @@
-use super::{
-    defs::{
-        SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
-        SearchTerminated, MAX_KILLER_MOVES, MIN_TIME_CURR_MOVE, MIN_TIME_STATS,
-    },
-    Search,
-};
 use crate::{
     engine::defs::{ErrFatal, Information},
     movegen::defs::Move,
+    search::defs::{
+        SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
+        SearchTerminated,
+    },
+    search::defs::{MAX_KILLER_MOVES, MIN_TIME_CURR_MOVE, MIN_TIME_STATS},
+    search::Search,
 };
 
 impl Search {

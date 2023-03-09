@@ -1,5 +1,7 @@
-use super::{defs::SearchRefs, Search};
-use crate::defs::Sides;
+use crate::{
+    defs::Sides,
+    search::{defs::SearchRefs, Search},
+};
 
 pub const SAFEGUARD: f64 = 100.0; // msecs
 const GAME_LENGTH: usize = 30; // moves

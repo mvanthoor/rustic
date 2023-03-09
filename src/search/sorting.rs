@@ -1,10 +1,12 @@
 // Move sorting routines.
-
-use super::{
-    defs::{SearchRefs, MAX_KILLER_MOVES},
-    Search,
+use crate::{
+    board::defs::Pieces,
+    defs::NrOf,
+    movegen::defs::MoveList,
+    movegen::defs::ShortMove,
+    search::defs::{SearchRefs, MAX_KILLER_MOVES},
+    search::Search,
 };
-use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::defs::ShortMove};
 
 const MVV_LVA_OFFSET: u32 = u32::MAX - 256;
 const TTMOVE_SORT_VALUE: u32 = 60;
