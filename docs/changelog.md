@@ -5,7 +5,7 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#-changelog)
-  - [February 1, 2023 - Rustic Alpha 3.0.3](#-february-1-2023---rustic-alpha-303)
+  - [March 28, 2023 - Rustic Alpha 3.0.3](#-march-28-2023---rustic-alpha-303)
   - [June 11, 2022 - Rustic Alpha 3.0.2](#-june-11-2022---rustic-alpha-302)
   - [November 6, 2021 - Rustic Alpha 3.0.1](#-november-6-2021---rustic-alpha-301)
   - [June 18, 2021 - Rustic Alpha 3.0.0](#-june-18-2021---rustic-alpha-300)
@@ -17,7 +17,7 @@
 
 # Changelog
 
-## February 1, 2023 - Rustic Alpha 3.0.3
+## March 28, 2023 - Rustic Alpha 3.0.3
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -25,9 +25,9 @@ used.
 
 - Update About banner layout
 - Upgrade 'rand_core' to 0.6.4
-- Upgrade 'clap' to 4.1.6
-- Upgrade 'crossbeam-channel' to 0.5.6
-- Upgrade 'crossbeam-utils' to 0.8.14
+- Upgrade 'clap' to 4.1.14
+- Upgrade 'crossbeam-channel' to 0.5.7
+- Upgrade 'crossbeam-utils' to 0.8.15
 
 ## June 11, 2022 - Rustic Alpha 3.0.2
 
