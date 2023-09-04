@@ -102,24 +102,10 @@ endif
 
 # Linux
 ifeq ($(findstring linux,$(uname)),linux)
-# Determine if Linux on Raspberry
-model = $(shell dmesg | $(to_lowercase) | $(rm_nl) | $(grep_machine))
-
-# Linux on Raspberry
-ifeq ($(findstring raspberry,$(model)),raspberry)
-	os = raspberry
-	bits = 32-bit
-	ext =
-	strip = strip -s
-endif
-
-# Linux on Intel/AMD
-ifneq ($(findstring raspberry,$(model)),raspberry)
 	os = linux
 	bits = 64-bit
 	ext =
 	strip = strip -s
-endif
 endif
 
 # Create the output directory if it doesn't exist
