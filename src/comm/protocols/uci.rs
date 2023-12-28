@@ -207,10 +207,14 @@ impl Uci {
 
         for p in parts {
             match p {
-                t if t == "position" => (), // Skip. We know we're parsing "position".
-                t if t == "startpos" => skip_fen = true, // "fen" is now invalidated.
-                t if t == "fen" && !skip_fen => token = Tokens::Fen,
-                t if t == "moves" => token = Tokens::Moves,
+                "position" => (),              // Skip. We know we're parsing "position".
+                "startpos" => skip_fen = true, // "fen" is now invalidated.
+                "moves" => token = Tokens::Moves,
+                "fen" => {
+                    if !skip_fen {
+                        token = Tokens::Fen;
+                    }
+                }
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Fen => {
@@ -249,16 +253,16 @@ impl Uci {
 
         for p in parts {
             match p {
-                t if t == "go" => comm_received = CommIn::Uci(UciIn::GoInfinite),
-                t if t == "infinite" => break, // Already Infinite; nothing more to do.
-                t if t == "depth" => token = Tokens::Depth,
-                t if t == "movetime" => token = Tokens::MoveTime,
-                t if t == "nodes" => token = Tokens::Nodes,
-                t if t == "wtime" => token = Tokens::WTime,
-                t if t == "btime" => token = Tokens::BTime,
-                t if t == "winc" => token = Tokens::WInc,
-                t if t == "binc" => token = Tokens::BInc,
-                t if t == "movestogo" => token = Tokens::MovesToGo,
+                "go" => comm_received = CommIn::Uci(UciIn::GoInfinite),
+                "infinite" => break, // Already Infinite; nothing more to do.
+                "depth" => token = Tokens::Depth,
+                "movetime" => token = Tokens::MoveTime,
+                "nodes" => token = Tokens::Nodes,
+                "wtime" => token = Tokens::WTime,
+                "btime" => token = Tokens::BTime,
+                "winc" => token = Tokens::WInc,
+                "binc" => token = Tokens::BInc,
+                "movestogo" => token = Tokens::MovesToGo,
                 _ => match token {
                     Tokens::Nothing => (),
                     Tokens::Depth => {
@@ -320,9 +324,9 @@ impl Uci {
 
         for p in parts {
             match p {
-                t if t == "setoption" => (),
-                t if t == "name" => token = Tokens::Name,
-                t if t == "value" => token = Tokens::Value,
+                "setoption" => (),
+                "name" => token = Tokens::Name,
+                "value" => token = Tokens::Value,
                 _ => match token {
                     Tokens::Name => name = format!("{name} {p}"),
                     Tokens::Value => value = p.to_lowercase(),
