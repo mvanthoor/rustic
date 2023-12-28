@@ -6,7 +6,7 @@ use crate::{
 impl Board {
     // Returns true if the position should be evaluated as a draw.
     pub fn is_draw(&self) -> bool {
-        (!self.sufficient_material_to_force_checkmate())
+        (!self.can_force_checkmate())
             || self.draw_by_repetition_rule() > 0
             || self.draw_by_fifty_move_rule()
     }
@@ -16,12 +16,11 @@ impl Board {
         self.game_state.halfmove_clock >= MAX_MOVE_RULE
     }
 
-    // This function returns true if the amount of material on the board
-    // isn't sufficient to deliver checkmate using any sequence of legal
-    // moves, even if the losing side is trying to assist in getting
-    // checkmated. In such a position a draw can officially be claimed
-    // under FIDE rules. Note that this is different from
-    // sufficient_material_to_force_checkmate() returning false.
+    // This function returns true if the amount of material on the board is
+    // not sufficient to deliver checkmate, in ANY position, using ANY
+    // sequence of legal moves, EVEN if the losing side is trying to ASSIST
+    // in getting checkmated. In such a position a draw can officially be
+    // claimed under FIDE rules.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
         // Get the piece bitboards for white and black.
         let w = self.get_bitboards(Sides::WHITE);
@@ -125,7 +124,7 @@ impl Board {
     // mate if the losing side plays very poorly or even assists in getting
     // mated, but this function will still return false if mate can not be
     // forced.)
-    pub fn sufficient_material_to_force_checkmate(&self) -> bool {
+    pub fn can_force_checkmate(&self) -> bool {
         let w = self.get_bitboards(Sides::WHITE);
         let b = self.get_bitboards(Sides::BLACK);
 
