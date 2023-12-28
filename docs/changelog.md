@@ -7,15 +7,18 @@
   - [Series 4](#series-4)
     - [Rustic 4.0.0 (TBA)](#rustic-400-tba)
   - [Series Alpha 3](#series-alpha-3)
+    - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
     - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
     - [June 11, 2022 - Rustic Alpha 3.0.2](#june-11-2022---rustic-alpha-302)
     - [November 6, 2021 - Rustic Alpha 3.0.1](#november-6-2021---rustic-alpha-301)
     - [June 18, 2021 - Rustic Alpha 3.0.0](#june-18-2021---rustic-alpha-300)
   - [Series Alpha 2](#series-alpha-2)
+    - [December 28, 2023 - Rustic Alpha 2.3](#december-28-2023---rustic-alpha-23)
     - [March 28, 2023 - Rustic Alpha 2.2](#march-28-2023---rustic-alpha-22)
     - [June 11, 2022 - Rustic Alpha 2.1](#june-11-2022---rustic-alpha-21)
     - [March 17, 2021 - Rustic Alpha 2](#march-17-2021---rustic-alpha-2)
   - [Series Alpha 1](#series-alpha-1)
+    - [December 28, 2023 - Rustic Alpha 1.4](#december-28-2023---rustic-alpha-14)
     - [March 28, 2023 - Rustic Alpha 1.3](#march-28-2023---rustic-alpha-13)
     - [June 11, 2021 - Rustic Alpha 1.2](#june-11-2021---rustic-alpha-12)
     - [March 15, 2021 - Rustic Alpha 1.1](#march-15-2021---rustic-alpha-11)
@@ -87,6 +90,16 @@ implemented.
 
 ## Series Alpha 3
 
+### December 28, 2023 - Rustic Alpha 3.0.4
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade 'clap' to 4.4.11
+- Upgrade 'crossbeam-channel' to 0.5.10
+- Upgrade 'crossbeam-utils' to 0.8.18
+
 ### March 28, 2023 - Rustic Alpha 3.0.3
 
 Maintenance upgrades. There is no functional difference to the previous
@@ -147,6 +160,16 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
 
 ## Series Alpha 2
 
+### December 28, 2023 - Rustic Alpha 2.3
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade 'clap' to 4.4.11
+- Upgrade 'crossbeam-channel' to 0.5.10
+- Upgrade 'crossbeam-utils' to 0.8.18
+
 ### March 28, 2023 - Rustic Alpha 2.2
 
 Maintenance upgrades. There is no functional difference to the previous
@@ -199,6 +222,16 @@ version. For normal playing and testing, the existing binaries can be used.
 <hr />
 
 ## Series Alpha 1
+
+### December 28, 2023 - Rustic Alpha 1.4
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade 'clap' to 4.4.11
+- Upgrade 'crossbeam-channel' to 0.5.10
+- Upgrade 'crossbeam-utils' to 0.8.18
 
 ### March 28, 2023 - Rustic Alpha 1.3
 
