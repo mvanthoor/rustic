@@ -1,5 +1,16 @@
 # Changelog
 
+## December 28, 2023 - Rustic Alpha 1.4
+
+Maintenance upgrades. There is no functional difference to the previous
+versions. For normal playing and testing, the existing binaries can be
+used.
+
+- Upgrade 'clap' to 4.4.11
+- Upgrade 'crossbeam-channel' to 0.5.10
+- Upgrade 'crossbeam-utils' to 0.8.18
+
+
 ## March 28, 2023 - Rustic Alpha 1.3
 
 Maintenance upgrades. There is no functional difference to the previous

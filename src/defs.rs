@@ -1,6 +1,6 @@
 /* =======================================================================
 Rustic is a chess playing engine.
-Copyright (C) 2019-2021, Marcel Vanthoor
+Copyright (C) 2019-2024, Marcel Vanthoor
 https://rustic-chess.org/
 
 Rustic is written in the Rust programming language. It is an original
@@ -28,7 +28,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 pub struct About;
 impl About {
     pub const ENGINE: &'static str = "Rustic";
-    pub const VERSION: &'static str = "Alpha 1.3";
+    pub const VERSION: &'static str = "Alpha 1.4";
     pub const AUTHOR: &'static str = "Marcel Vanthoor";
     pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
     pub const WEBSITE: &'static str = "https://rustic-chess.org/";

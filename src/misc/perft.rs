@@ -1,6 +1,6 @@
 /* =======================================================================
 Rustic is a chess playing engine.
-Copyright (C) 2019-2021, Marcel Vanthoor
+Copyright (C) 2019-2024, Marcel Vanthoor
 https://rustic-chess.org/
 
 Rustic is written in the Rust programming language. It is an original
@@ -81,9 +81,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: u8, mg: Arc<MoveGenerator>) {
         total_nodes += leaf_nodes;
 
         // Print the results.
-        println!(
-            "Perft {d}: {leaf_nodes} ({elapsed} ms, {leaves_per_second} leaves/sec)"
-        );
+        println!("Perft {d}: {leaf_nodes} ({elapsed} ms, {leaves_per_second} leaves/sec)");
     }
 
     // Final calculation of the entire time taken, and average speed of leaves/second.
