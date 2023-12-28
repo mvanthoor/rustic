@@ -1,6 +1,6 @@
 /* =======================================================================
 Rustic is a chess playing engine.
-Copyright (C) 2019-2021, Marcel Vanthoor
+Copyright (C) 2019-2024, Marcel Vanthoor
 https://rustic-chess.org/
 
 Rustic is written in the Rust programming language. It is an original
@@ -438,11 +438,9 @@ impl Uci {
                 String::from("")
             };
 
-            let option = format!(
-                "{name} {ui_element} {value_default} {value_min} {value_max}"
-            )
-            .trim()
-            .to_string();
+            let option = format!("{name} {ui_element} {value_default} {value_min} {value_max}")
+                .trim()
+                .to_string();
 
             println!("{option}");
         }
