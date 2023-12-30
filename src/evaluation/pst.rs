@@ -163,9 +163,11 @@ pub const FLIP: [usize; 64] = [
 impl Evaluation {
     // Apply the PST's to the current position. These are the initial
     // values. The engine will update them incrementally during play.
-    pub fn pst_apply(board: &Board, pst_collection: &PstCollection) -> (i16, i16) {
-        let mut pst_w: i16 = 0;
-        let mut pst_b: i16 = 0;
+    pub fn pst_apply(board: &Board, pst_collection: &PstCollection) -> (W, W) {
+        let mut pst_w_mg: i16 = 0;
+        let mut pst_w_eg: i16 = 0;
+        let mut pst_b_mg: i16 = 0;
+        let mut pst_b_eg: i16 = 0;
         let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
         let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
@@ -177,17 +179,19 @@ impl Evaluation {
             // Iterate over pieces of the current piece_type for white.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                pst_w += pst_collection[piece_type][FLIP[square]];
+                pst_w_mg += pst_collection[piece_type][FLIP[square]].mg();
+                pst_w_eg += pst_collection[piece_type][FLIP[square]].eg();
             }
 
             // Iterate over pieces of the current piece_type for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                pst_b += pst_collection[piece_type][square];
+                pst_b_mg += pst_collection[piece_type][square].mg();
+                pst_b_eg += pst_collection[piece_type][square].eg()
             }
         }
 
-        (pst_w, pst_b)
+        (W(pst_w_mg, pst_w_eg), W(pst_b_mg, pst_b_eg))
     }
 
     // Interpolate PST values between midgame and endgame tables. This

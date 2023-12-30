@@ -4,7 +4,7 @@ use crate::{
     board::defs::{Pieces, Squares, BB_SQUARES},
     board::Board,
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::defs::{PST_EG, PST_MG},
+    evaluation::defs::PST_COLLECTION,
     evaluation::Evaluation,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -245,8 +245,7 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_phase_value = Evaluation::count_phase(board);
-    let from_scratch_pst_mg = Evaluation::pst_apply(board, &PST_MG);
-    let from_scratch_pst_eg = Evaluation::pst_apply(board, &PST_EG);
+    let from_scratch_pst = Evaluation::pst_apply(board, &PST_COLLECTION);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
@@ -260,22 +259,22 @@ fn check_incrementals(board: &Board) -> bool {
         result = false;
     };
 
-    if result && from_scratch_pst_mg.0 != board.game_state.pst_mg[Sides::WHITE] {
+    if result && from_scratch_pst.0.mg() != board.game_state.pst_mg[Sides::WHITE] {
         println!("Check Incrementals: Error in PST_MG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst_mg.1 != board.game_state.pst_mg[Sides::BLACK] {
+    if result && from_scratch_pst.1.mg() != board.game_state.pst_mg[Sides::BLACK] {
         println!("Check Incrementals: Error in PST_MG for black.");
         result = false;
     };
 
-    if result && from_scratch_pst_eg.0 != board.game_state.pst_eg[Sides::WHITE] {
+    if result && from_scratch_pst.0.eg() != board.game_state.pst_eg[Sides::WHITE] {
         println!("Check Incrementals: Error in PST_EG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst_eg.1 != board.game_state.pst_eg[Sides::BLACK] {
+    if result && from_scratch_pst.1.eg() != board.game_state.pst_eg[Sides::BLACK] {
         println!("Check Incrementals: Error in PST_EG for black.");
         result = false;
     };

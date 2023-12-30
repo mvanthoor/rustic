@@ -1,7 +1,7 @@
 use crate::{
     board::{defs::Pieces, zobrist::ZobristKey, Board},
     defs::{Bitboard, NrOf, Piece, Sides},
-    evaluation::defs::{PST_EG, PST_MG},
+    evaluation::defs::PST_COLLECTION,
     evaluation::Evaluation,
     misc::bits,
 };
@@ -25,15 +25,12 @@ impl Board {
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
 
-        // Set initial PST_MG values
-        let pst_mg = Evaluation::pst_apply(self, &PST_MG);
-        self.game_state.pst_mg[Sides::WHITE] = pst_mg.0;
-        self.game_state.pst_mg[Sides::BLACK] = pst_mg.1;
-
-        // Set initial PST_EG values
-        let pst_eg = Evaluation::pst_apply(self, &PST_EG);
-        self.game_state.pst_eg[Sides::WHITE] = pst_eg.0;
-        self.game_state.pst_eg[Sides::BLACK] = pst_eg.1;
+        // Set initial PST values
+        let pst_values = Evaluation::pst_apply(self, &PST_COLLECTION);
+        self.game_state.pst_mg[Sides::WHITE] = pst_values.0.mg();
+        self.game_state.pst_mg[Sides::BLACK] = pst_values.1.mg();
+        self.game_state.pst_eg[Sides::WHITE] = pst_values.0.eg();
+        self.game_state.pst_eg[Sides::BLACK] = pst_values.1.eg();
     }
 
     // Gather the pieces for each side into their own bitboard.

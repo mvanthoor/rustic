@@ -17,7 +17,7 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
-    evaluation::defs::{PHASE_VALUES, PST_EG, PST_MG},
+    evaluation::defs::{PHASE_VALUES, PST_COLLECTION},
     misc::bits,
 };
 use std::sync::Arc;
@@ -89,8 +89,8 @@ impl Board {
         self.game_state.phase_value -= PHASE_VALUES[piece];
 
         let s = Board::flip(side, square);
-        self.game_state.pst_mg[side] -= PST_MG[piece][s];
-        self.game_state.pst_eg[side] -= PST_EG[piece][s];
+        self.game_state.pst_mg[side] -= PST_COLLECTION[piece][s].mg();
+        self.game_state.pst_eg[side] -= PST_COLLECTION[piece][s].eg();
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -105,8 +105,8 @@ impl Board {
         self.game_state.phase_value += PHASE_VALUES[piece];
 
         let s = Board::flip(side, square);
-        self.game_state.pst_mg[side] += PST_MG[piece][s];
-        self.game_state.pst_eg[side] += PST_EG[piece][s];
+        self.game_state.pst_mg[side] += PST_COLLECTION[piece][s].mg();
+        self.game_state.pst_eg[side] += PST_COLLECTION[piece][s].eg();
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
