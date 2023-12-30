@@ -70,6 +70,9 @@ implemented.
   - "clap" crate to 4.1.8.
   - "crossbeam_channel" crate to 0.5.7.
   - "crossbeam-utils" crate to 0.8.15.
+- Fixes
+  - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
+    avoid conflicts with Claps's "-h" / "--help" option
 
 > <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
 > the UCI-protocol will remain the default. It is recommended to use UCI
