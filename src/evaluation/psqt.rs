@@ -11,11 +11,11 @@ use crate::{
     misc::bits,
 };
 
-type Pst = [W; NrOf::SQUARES];
-type PstCollection = [Pst; NrOf::PIECE_TYPES];
+type Psqt = [W; NrOf::SQUARES];
+type PsqtCollection = [Psqt; NrOf::PIECE_TYPES];
 
 #[rustfmt::skip]
-const PST_KING: Pst =
+const PSQT_KING: Psqt = 
 [
     W(-11,-74), W(70,-43), W( 55,-23), W( 31,-25), W(-37,-11), W(-16,10), W( 22,  1), W( 22,-12),
     W( 37,-18), W(24,  6), W( 25,  4), W( 36,  9), W( 16,  7), W(  8,26), W(-12, 14), W(-31,  8),
@@ -28,7 +28,7 @@ const PST_KING: Pst =
 ];
 
 #[rustfmt::skip]
-const PST_QUEEN: Pst =
+const PSQT_QUEEN: Psqt = 
 [
     W(865,918), W(902,937), W(922,943), W(911,945), W(964,934), W(948,926), W(933,924), W(928,942),
     W(886,907), W(865,945), W(903,946), W(921,951), W(888,982), W(951,933), W(923,928), W(940,912),
@@ -41,7 +41,7 @@ const PST_QUEEN: Pst =
 ];
 
 #[rustfmt::skip]
-const PST_ROOK: Pst =
+const PSQT_ROOK: Psqt = 
 [
     W(493,506), W(511,500), W(487,508), W(515,502), W(514,504), W(483,507), W(485,505), W(495,503),
     W(493,505), W(498,506), W(529,502), W(534,502), W(546,491), W(544,497), W(483,506), W(508,501),
@@ -54,7 +54,7 @@ const PST_ROOK: Pst =
 ];
 
 #[rustfmt::skip]
-const PST_BISHOP: Pst =
+const PSQT_BISHOP: Psqt = 
 [
     W(292,288), W(338,278), W(254,287), W(283,292), W(299,293), W(294,290), W(337,287), W(323,277),
     W(316,289), W(342,294), W(319,301), W(319,288), W(360,296), W(385,289), W(343,294), W(295,281),
@@ -67,7 +67,7 @@ const PST_BISHOP: Pst =
 ];
 
 #[rustfmt::skip]
-const PST_KNIGHT: Pst =    
+const PSQT_KNIGHT: Psqt =     
 [
     W(116,229), W(228,236), W(271,269), W(270,250), W(338,257), W(213,249), W(278,219), W(191,188),
     W(225,252), W(247,274), W(353,263), W(331,281), W(321,273), W(360,258), W(300,260), W(281,229),
@@ -80,7 +80,7 @@ const PST_KNIGHT: Pst =
 ];
 
 #[rustfmt::skip]
-const PST_PAWN: Pst =
+const PSQT_PAWN: Psqt = 
 [
     W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100),
     W(176,277), W(214,270), W(147,252), W(194,229), W(189,240), W(214,233), W(132,264), W(77, 285),
@@ -92,8 +92,13 @@ const PST_PAWN: Pst =
     W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100),
 ];
 
-pub const PST_COLLECTION: PstCollection = [
-    PST_KING, PST_QUEEN, PST_ROOK, PST_BISHOP, PST_KNIGHT, PST_PAWN,
+pub const PSQT_COLLECTION: PsqtCollection = [
+    PSQT_KING,
+    PSQT_QUEEN,
+    PSQT_ROOK,
+    PSQT_BISHOP,
+    PSQT_KNIGHT,
+    PSQT_PAWN,
 ];
 
 // To make the Piece Square tables easier to relate to, and easier to
@@ -163,11 +168,11 @@ pub const FLIP: [usize; 64] = [
 impl Evaluation {
     // Apply the PST's to the current position. These are the initial
     // values. The engine will update them incrementally during play.
-    pub fn pst_apply(board: &Board, pst_collection: &PstCollection) -> (W, W) {
-        let mut pst_w_mg: i16 = 0;
-        let mut pst_w_eg: i16 = 0;
-        let mut pst_b_mg: i16 = 0;
-        let mut pst_b_eg: i16 = 0;
+    pub fn psqt_apply(board: &Board, psqt_collection: &PsqtCollection) -> (W, W) {
+        let mut psqt_w_mg: i16 = 0;
+        let mut psqt_w_eg: i16 = 0;
+        let mut psqt_b_mg: i16 = 0;
+        let mut psqt_b_eg: i16 = 0;
         let bb_white = board.bb_pieces[Sides::WHITE]; // Array of white piece bitboards
         let bb_black = board.bb_pieces[Sides::BLACK]; // Array of black piece bitboards
 
@@ -179,39 +184,39 @@ impl Evaluation {
             // Iterate over pieces of the current piece_type for white.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                pst_w_mg += pst_collection[piece_type][FLIP[square]].mg();
-                pst_w_eg += pst_collection[piece_type][FLIP[square]].eg();
+                psqt_w_mg += psqt_collection[piece_type][FLIP[square]].mg();
+                psqt_w_eg += psqt_collection[piece_type][FLIP[square]].eg();
             }
 
             // Iterate over pieces of the current piece_type for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                pst_b_mg += pst_collection[piece_type][square].mg();
-                pst_b_eg += pst_collection[piece_type][square].eg()
+                psqt_b_mg += psqt_collection[piece_type][square].mg();
+                psqt_b_eg += psqt_collection[piece_type][square].eg()
             }
         }
 
-        (W(pst_w_mg, pst_w_eg), W(pst_b_mg, pst_b_eg))
+        (W(psqt_w_mg, psqt_w_eg), W(psqt_b_mg, psqt_b_eg))
     }
 
     // Interpolate PST values between midgame and endgame tables. This
     // makes the engine much stronger, because it can now take into account
     // that piece values and locations are different in the opening/midgame
     // and endgame.
-    pub fn pst_score(board: &Board) -> i16 {
+    pub fn psqt_score(board: &Board) -> i16 {
         // Get current PST values. These are kept incrementally during play.
-        let pst_w_mg = board.game_state.pst_mg[Sides::WHITE] as f32;
-        let pst_b_mg = board.game_state.pst_mg[Sides::BLACK] as f32;
-        let pst_w_eg = board.game_state.pst_eg[Sides::WHITE] as f32;
-        let pst_b_eg = board.game_state.pst_eg[Sides::BLACK] as f32;
+        let psqt_w_mg = board.game_state.psqt_mg[Sides::WHITE] as f32;
+        let psqt_b_mg = board.game_state.psqt_mg[Sides::BLACK] as f32;
+        let psqt_w_eg = board.game_state.psqt_eg[Sides::WHITE] as f32;
+        let psqt_b_eg = board.game_state.psqt_eg[Sides::BLACK] as f32;
 
         // Get the game phase, from 1 (opening/midgame) to 0 (endgame)
         let v = board.game_state.phase_value;
         let phase = Evaluation::determine_phase(PHASE_MIN, PHASE_MAX, v);
 
         // Mix the tables by taking parts of both mg and eg.
-        let score_w = (pst_w_mg * phase) + (pst_w_eg * (1.0 - phase));
-        let score_b = (pst_b_mg * phase) + (pst_b_eg * (1.0 - phase));
+        let score_w = (psqt_w_mg * phase) + (psqt_w_eg * (1.0 - phase));
+        let score_b = (psqt_b_mg * phase) + (psqt_b_eg * (1.0 - phase));
 
         // Return final PST score.
         (score_w - score_b).round() as i16

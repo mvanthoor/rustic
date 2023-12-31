@@ -4,7 +4,7 @@ use crate::{
     board::defs::{Pieces, Squares, BB_SQUARES},
     board::Board,
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::defs::PST_COLLECTION,
+    evaluation::defs::PSQT_COLLECTION,
     evaluation::Evaluation,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -246,7 +246,7 @@ fn check_incrementals(board: &Board) -> bool {
     const CHECK_INCREMENTALS: &str = "Check Incrementals";
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_phase_value = Evaluation::count_phase(board);
-    let from_scratch_pst = Evaluation::pst_apply(board, &PST_COLLECTION);
+    let from_scratch_pst = Evaluation::psqt_apply(board, &PSQT_COLLECTION);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
@@ -260,22 +260,22 @@ fn check_incrementals(board: &Board) -> bool {
         result = false;
     };
 
-    if result && from_scratch_pst.0.mg() != board.game_state.pst_mg[Sides::WHITE] {
+    if result && from_scratch_pst.0.mg() != board.game_state.psqt_mg[Sides::WHITE] {
         println!("{CHECK_INCREMENTALS}: Error in PST MG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst.1.mg() != board.game_state.pst_mg[Sides::BLACK] {
+    if result && from_scratch_pst.1.mg() != board.game_state.psqt_mg[Sides::BLACK] {
         println!("{CHECK_INCREMENTALS}: Error in PST MG for black.");
         result = false;
     };
 
-    if result && from_scratch_pst.0.eg() != board.game_state.pst_eg[Sides::WHITE] {
+    if result && from_scratch_pst.0.eg() != board.game_state.psqt_eg[Sides::WHITE] {
         println!("{CHECK_INCREMENTALS}: Error in PST EG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst.1.eg() != board.game_state.pst_eg[Sides::BLACK] {
+    if result && from_scratch_pst.1.eg() != board.game_state.psqt_eg[Sides::BLACK] {
         println!("{CHECK_INCREMENTALS}: Error in PST EG for black.");
         result = false;
     };

@@ -19,8 +19,8 @@ pub struct GameState {
     pub fullmove_number: u16,
     pub zobrist_key: u64,
     pub phase_value: i16,
-    pub pst_mg: [i16; Sides::BOTH],
-    pub pst_eg: [i16; Sides::BOTH],
+    pub psqt_mg: [i16; Sides::BOTH],
+    pub psqt_eg: [i16; Sides::BOTH],
     pub next_move: Move,
 }
 
@@ -34,8 +34,8 @@ impl GameState {
             fullmove_number: 0,
             zobrist_key: 0,
             phase_value: 0,
-            pst_mg: [0; Sides::BOTH],
-            pst_eg: [0; Sides::BOTH],
+            psqt_mg: [0; Sides::BOTH],
+            psqt_eg: [0; Sides::BOTH],
             next_move: Move::new(0),
         }
     }
@@ -80,10 +80,10 @@ impl Display for GameState {
             ep,
             self.halfmove_clock,
             self.fullmove_number,
-            self.pst_mg[Sides::WHITE],
-            self.pst_mg[Sides::BLACK],
-            self.pst_eg[Sides::WHITE],
-            self.pst_eg[Sides::BLACK],
+            self.psqt_mg[Sides::WHITE],
+            self.psqt_mg[Sides::BLACK],
+            self.psqt_eg[Sides::WHITE],
+            self.psqt_eg[Sides::BLACK],
             SQUARE_NAME[self.next_move.from()],
             SQUARE_NAME[self.next_move.to()],
             promotion

@@ -1,6 +1,6 @@
 pub mod defs;
 mod phase;
-mod pst;
+mod psqt;
 
 use crate::{board::Board, defs::Sides};
 
@@ -11,7 +11,7 @@ impl Evaluation {
         let side = board.game_state.active_color as usize;
 
         // Establish base evaluation value by PST score.
-        let mut value = Evaluation::pst_score(board);
+        let mut value = Evaluation::psqt_score(board);
 
         // Flip point of view if black is evaluating.
         value = if side == Sides::BLACK { -value } else { value };
