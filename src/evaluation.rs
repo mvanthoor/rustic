@@ -1,6 +1,7 @@
 pub mod defs;
 mod phase;
 mod psqt;
+mod weights;
 
 use crate::{board::Board, defs::Sides};
 
