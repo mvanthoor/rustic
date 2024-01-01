@@ -260,22 +260,22 @@ fn check_incrementals(board: &Board) -> bool {
         result = false;
     };
 
-    if result && from_scratch_pst.0.mg() != board.game_state.psqt_mg[Sides::WHITE] {
+    if result && from_scratch_pst.0.mg() != board.game_state.psqt_value[Sides::WHITE].mg() {
         println!("{CHECK_INCREMENTALS}: Error in PST MG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst.1.mg() != board.game_state.psqt_mg[Sides::BLACK] {
+    if result && from_scratch_pst.1.mg() != board.game_state.psqt_value[Sides::BLACK].mg() {
         println!("{CHECK_INCREMENTALS}: Error in PST MG for black.");
         result = false;
     };
 
-    if result && from_scratch_pst.0.eg() != board.game_state.psqt_eg[Sides::WHITE] {
+    if result && from_scratch_pst.0.eg() != board.game_state.psqt_value[Sides::WHITE].eg() {
         println!("{CHECK_INCREMENTALS}: Error in PST EG for white.");
         result = false;
     };
 
-    if result && from_scratch_pst.1.eg() != board.game_state.psqt_eg[Sides::BLACK] {
+    if result && from_scratch_pst.1.eg() != board.game_state.psqt_value[Sides::BLACK].eg() {
         println!("{CHECK_INCREMENTALS}: Error in PST EG for black.");
         result = false;
     };

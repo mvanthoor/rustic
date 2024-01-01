@@ -87,10 +87,8 @@ impl Board {
         // Incremental updates
         // =============================================================
         self.game_state.phase_value -= PHASE_VALUES[piece];
-
-        let s = Board::flip(side, square);
-        self.game_state.psqt_mg[side] -= PSQT_COLLECTION[piece][s].mg();
-        self.game_state.psqt_eg[side] -= PSQT_COLLECTION[piece][s].eg();
+        let square = Board::flip(side, square);
+        self.game_state.psqt_value[side].sub(PSQT_COLLECTION[piece][square]);
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -103,10 +101,8 @@ impl Board {
         // Incremental updates
         // =============================================================
         self.game_state.phase_value += PHASE_VALUES[piece];
-
-        let s = Board::flip(side, square);
-        self.game_state.psqt_mg[side] += PSQT_COLLECTION[piece][s].mg();
-        self.game_state.psqt_eg[side] += PSQT_COLLECTION[piece][s].eg();
+        let square = Board::flip(side, square);
+        self.game_state.psqt_value[side].add(PSQT_COLLECTION[piece][square]);
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.

@@ -1,6 +1,7 @@
 use crate::{
     board::defs::{Pieces, PIECE_NAME, SQUARE_NAME},
     defs::{Castling, Sides},
+    evaluation::defs::W,
     movegen::defs::Move,
 };
 use std::fmt::{self, Display};
@@ -19,8 +20,7 @@ pub struct GameState {
     pub fullmove_number: u16,
     pub zobrist_key: u64,
     pub phase_value: i16,
-    pub psqt_mg: [i16; Sides::BOTH],
-    pub psqt_eg: [i16; Sides::BOTH],
+    pub psqt_value: [W; Sides::BOTH],
     pub next_move: Move,
 }
 
@@ -34,8 +34,7 @@ impl GameState {
             fullmove_number: 0,
             zobrist_key: 0,
             phase_value: 0,
-            psqt_mg: [0; Sides::BOTH],
-            psqt_eg: [0; Sides::BOTH],
+            psqt_value: [W(0, 0); Sides::BOTH],
             next_move: Move::new(0),
         }
     }
@@ -80,10 +79,10 @@ impl Display for GameState {
             ep,
             self.halfmove_clock,
             self.fullmove_number,
-            self.psqt_mg[Sides::WHITE],
-            self.psqt_mg[Sides::BLACK],
-            self.psqt_eg[Sides::WHITE],
-            self.psqt_eg[Sides::BLACK],
+            self.psqt_value[Sides::WHITE].mg(),
+            self.psqt_value[Sides::BLACK].mg(),
+            self.psqt_value[Sides::WHITE].eg(),
+            self.psqt_value[Sides::BLACK].eg(),
             SQUARE_NAME[self.next_move.from()],
             SQUARE_NAME[self.next_move.to()],
             promotion

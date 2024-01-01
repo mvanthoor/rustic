@@ -27,10 +27,8 @@ impl Board {
 
         // Set initial PST values
         let pst_values = Evaluation::psqt_apply(self, &PSQT_COLLECTION);
-        self.game_state.psqt_mg[Sides::WHITE] = pst_values.0.mg();
-        self.game_state.psqt_mg[Sides::BLACK] = pst_values.1.mg();
-        self.game_state.psqt_eg[Sides::WHITE] = pst_values.0.eg();
-        self.game_state.psqt_eg[Sides::BLACK] = pst_values.1.eg();
+        self.game_state.psqt_value[Sides::WHITE] = pst_values.0;
+        self.game_state.psqt_value[Sides::BLACK] = pst_values.1;
     }
 
     // Gather the pieces for each side into their own bitboard.

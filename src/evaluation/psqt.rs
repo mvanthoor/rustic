@@ -205,10 +205,10 @@ impl Evaluation {
     // and endgame.
     pub fn psqt_score(board: &Board) -> i16 {
         // Get current PST values. These are kept incrementally during play.
-        let psqt_w_mg = board.game_state.psqt_mg[Sides::WHITE] as f32;
-        let psqt_b_mg = board.game_state.psqt_mg[Sides::BLACK] as f32;
-        let psqt_w_eg = board.game_state.psqt_eg[Sides::WHITE] as f32;
-        let psqt_b_eg = board.game_state.psqt_eg[Sides::BLACK] as f32;
+        let psqt_w_mg = board.game_state.psqt_value[Sides::WHITE].mg() as f32;
+        let psqt_b_mg = board.game_state.psqt_value[Sides::BLACK].mg() as f32;
+        let psqt_w_eg = board.game_state.psqt_value[Sides::WHITE].eg() as f32;
+        let psqt_b_eg = board.game_state.psqt_value[Sides::BLACK].eg() as f32;
 
         // Get the game phase, from 1 (opening/midgame) to 0 (endgame)
         let v = board.game_state.phase_value;
