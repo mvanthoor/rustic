@@ -107,20 +107,22 @@ impl Board {
             // square/piece combination into the zobrist key.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                key ^= self.zr.piece(Sides::WHITE, piece_type, square);
+                key ^= self.zobrist_randoms.piece(Sides::WHITE, piece_type, square);
             }
 
             // Same for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                key ^= self.zr.piece(Sides::BLACK, piece_type, square);
+                key ^= self.zobrist_randoms.piece(Sides::BLACK, piece_type, square);
             }
         }
 
-        // Hash the castling, active color, and en-passant state into the key.
-        key ^= self.zr.castling(self.game_state.castling);
-        key ^= self.zr.side(self.game_state.active_color as usize);
-        key ^= self.zr.en_passant(self.game_state.en_passant);
+        // Hash the castling, active color, and en-passant state.
+        key ^= self.zobrist_randoms.castling(self.game_state.castling);
+        key ^= self
+            .zobrist_randoms
+            .side(self.game_state.active_color as usize);
+        key ^= self.zobrist_randoms.en_passant(self.game_state.en_passant);
 
         // Done; return the key.
         key
