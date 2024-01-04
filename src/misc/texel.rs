@@ -58,8 +58,8 @@ impl Tuner {
                 Ok(data_point) => data_point,
                 Err(error) => {
                     match error {
-                        ErrorInFenString => println!("a"),
-                        ErrorInGameResult => println!("b"),
+                        ErrorInFenString => println!("{}", ErrorInFenString),
+                        ErrorInGameResult => println!("{}", ErrorInGameResult),
                     }
                     continue;
                 }
