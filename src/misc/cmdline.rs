@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     defs::{About, FEN_START_POSITION},
     engine::defs::EngineOptionDefaults,
@@ -18,6 +20,7 @@ impl CmdLineArgs {
     const PERFT_SHORT: char = 'p';
     const PERFT_HELP: &'static str = "Run perft to the given depth";
     const PERFT_DEFAULT: i8 = 0;
+    const PERFT_VALUE_NAME: &'static str = "depth";
 
     // Interface
     const COMM_LONG: &'static str = "comm";
@@ -25,17 +28,20 @@ impl CmdLineArgs {
     const COMM_HELP: &'static str = "Select communication protocol to use";
     const COMM_VALUES: [&'static str; 2] = ["uci", "xboard"];
     const COMM_DEFAULT: &'static str = "uci";
+    const COMM_VALUE_NAME: &'static str = "interface";
 
     // Threads
     const THREADS_LONG: &'static str = "threads";
     const THREADS_SHORT: char = 't';
     const THREADS_HELP: &'static str = "Number of CPU-threads to use";
     const THREADS_DEFAULT: usize = 1;
+    const THREADS_VALUE_NAME: &'static str = "number";
 
     const HASH_LONG: &'static str = "memory";
     const HASH_SHORT: char = 'm';
     const HASH_HELP: &'static str = "Transposition Table size in MB";
     const HASH_DEFAULT: usize = EngineOptionDefaults::HASH_DEFAULT;
+    const HASH_VALUE_NAME: &'static str = "megabytes";
 
     // Quiet (no search stats updates except on depth change)
     const QUIET_LONG: &'static str = "quiet";
@@ -56,6 +62,11 @@ impl CmdLineArgs {
     const EPD_TEST_LONG: &'static str = "epdtest";
     const EPD_TEST_SHORT: char = 'e';
     const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
+
+    // Texel tuner
+    const TEXEL_LONG: &'static str = "texel";
+    const TEXEL_VALUE_NAME: &'static str = "dataset.pgn";
+    const TEXEL_HELP: &'static str = "Texel-tune the engine on a given dataset";
 }
 
 pub struct CmdLine {
@@ -132,6 +143,7 @@ impl CmdLine {
                     .short(CmdLineArgs::COMM_SHORT)
                     .long(CmdLineArgs::COMM_LONG)
                     .help(CmdLineArgs::COMM_HELP)
+                    .value_name(CmdLineArgs::COMM_VALUE_NAME)
                     .num_args(1)
                     .default_value(CmdLineArgs::COMM_DEFAULT)
                     .value_parser(CmdLineArgs::COMM_VALUES),
@@ -150,6 +162,7 @@ impl CmdLine {
                     .short(CmdLineArgs::PERFT_SHORT)
                     .long(CmdLineArgs::PERFT_LONG)
                     .help(CmdLineArgs::PERFT_HELP)
+                    .value_name(CmdLineArgs::PERFT_VALUE_NAME)
                     .value_parser(value_parser!(i8))
                     .num_args(1),
             )
@@ -158,6 +171,7 @@ impl CmdLine {
                     .short(CmdLineArgs::THREADS_SHORT)
                     .long(CmdLineArgs::THREADS_LONG)
                     .help(CmdLineArgs::THREADS_HELP)
+                    .value_name(CmdLineArgs::THREADS_VALUE_NAME)
                     .value_parser(value_parser!(usize))
                     .num_args(1),
             )
@@ -166,6 +180,7 @@ impl CmdLine {
                     .short(CmdLineArgs::HASH_SHORT)
                     .long(CmdLineArgs::HASH_LONG)
                     .help(CmdLineArgs::HASH_HELP)
+                    .value_name(CmdLineArgs::HASH_VALUE_NAME)
                     .value_parser(value_parser!(usize))
                     .num_args(1),
             )
@@ -199,6 +214,14 @@ impl CmdLine {
                         .long(CmdLineArgs::EPD_TEST_LONG)
                         .help(CmdLineArgs::EPD_TEST_HELP)
                         .action(ArgAction::SetTrue),
+                )
+                .arg(
+                    Arg::new(CmdLineArgs::TEXEL_LONG)
+                        .long(CmdLineArgs::TEXEL_LONG)
+                        .help(CmdLineArgs::TEXEL_HELP)
+                        .value_name(CmdLineArgs::TEXEL_VALUE_NAME)
+                        .value_parser(value_parser!(PathBuf))
+                        .num_args(1),
                 );
         }
 
