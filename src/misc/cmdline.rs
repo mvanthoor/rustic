@@ -63,7 +63,7 @@ impl CmdLineArgs {
     // Texel tuner
     const TEXEL_LONG: &'static str = "texel";
     const TEXEL_VALUE_NAME: &'static str = "dataset.pgn";
-    const TEXEL_HELP: &'static str = "Texel-tune the engine on a given dataset";
+    const TEXEL_HELP: &'static str = "Create new evaluation weights by Texel Tuning";
 }
 
 pub struct CmdLine {
