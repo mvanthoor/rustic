@@ -13,7 +13,7 @@ use crate::{
     defs::EngineRunResult,
     engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption},
     engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
-    misc::{cmdline::CmdLine, perft},
+    misc::{cmdline::CmdLine, perft, texel::Tuner},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
 };
@@ -173,10 +173,9 @@ impl Engine {
         }
 
         #[cfg(feature = "extra")]
-        if self.settings.texel.is_some() {
-            let exists = self.settings.texel.clone().unwrap().exists();
-            println!("Yes! Tuning! File exists: {exists}");
+        if let Some(data_file) = self.settings.texel.clone() {
             action_requested = true;
+            Tuner::new(data_file).run();
         }
         // =====================================================
 
