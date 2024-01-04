@@ -54,12 +54,10 @@ impl CmdLineArgs {
 
     // Wizardry
     const WIZARDRY_LONG: &'static str = "wizardry";
-    const WIZARDRY_SHORT: char = 'w';
     const WIZARDRY_HELP: &'static str = "Generate magic numbers";
 
     // Test
     const EPD_TEST_LONG: &'static str = "epdtest";
-    const EPD_TEST_SHORT: char = 'e';
     const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
 
     // Texel tuner
@@ -212,14 +210,12 @@ impl CmdLine {
             cmd_line = cmd_line
                 .arg(
                     Arg::new(CmdLineArgs::WIZARDRY_LONG)
-                        .short(CmdLineArgs::WIZARDRY_SHORT)
                         .long(CmdLineArgs::WIZARDRY_LONG)
                         .help(CmdLineArgs::WIZARDRY_HELP)
                         .action(ArgAction::SetTrue),
                 )
                 .arg(
                     Arg::new(CmdLineArgs::EPD_TEST_LONG)
-                        .short(CmdLineArgs::EPD_TEST_SHORT)
                         .long(CmdLineArgs::EPD_TEST_LONG)
                         .help(CmdLineArgs::EPD_TEST_HELP)
                         .action(ArgAction::SetTrue),
