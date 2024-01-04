@@ -17,6 +17,7 @@ pub enum DataPointParseError {
 
 pub type DataFileLoadResult = Result<(), ()>;
 pub type DataPointParseResult = Result<(), DataPointParseError>;
+pub type TunerRunResult = Result<(), ()>;
 
 pub struct TunerMessages;
 impl TunerMessages {

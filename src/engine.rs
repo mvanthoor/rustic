@@ -174,8 +174,15 @@ impl Engine {
 
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.clone() {
+            const OK: &str = "Tuning run finished.";
+            const ERR: &str = "Tuning run failed.";
+
             action_requested = true;
-            Tuner::new(data_file).run();
+            if Tuner::new(data_file).run().is_ok() {
+                println!("{}", OK)
+            } else {
+                println!("{}", ERR);
+            }
         }
         // =====================================================
 
