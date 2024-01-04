@@ -1,7 +1,7 @@
 use crate::{comm::defs::CommIn, search::defs::SearchReport};
 use std::fmt::{Display, Formatter, Result};
 
-pub use crate::engine::transposition::{HashFlag, IHashData, PerftData, SearchData, TT};
+pub use crate::engine::transposition::{HashFlag, PerftData, SearchData, TT};
 
 #[derive(PartialEq, Eq, Clone)]
 pub enum GameResultPoints {
