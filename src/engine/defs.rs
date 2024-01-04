@@ -1,5 +1,8 @@
 use crate::{comm::defs::CommIn, search::defs::SearchReport};
-use std::fmt::{Display, Formatter, Result};
+use std::{
+    fmt::{Display, Formatter, Result},
+    path::PathBuf,
+};
 
 pub use crate::engine::transposition::{HashFlag, PerftData, SearchData, TT};
 
@@ -130,6 +133,7 @@ pub struct Settings {
     pub threads: usize,
     pub verbosity: Verbosity,
     pub tt_size: usize,
+    pub texel: Option<PathBuf>,
 }
 
 // This enum provides information to the engine, with regard to incoming

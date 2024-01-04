@@ -67,7 +67,7 @@ impl Engine {
             Verbosity::Full
         };
         let tt_size = cmdline.hash();
-        let tt_max = EngineOptionDefaults::max_hash();
+        let texel = cmdline.texel();
 
         // List of options that should be announced to the GUI.
         let options = vec![
@@ -76,7 +76,7 @@ impl Engine {
                 UiElement::Spin,
                 Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
                 Some(EngineOptionDefaults::HASH_MIN.to_string()),
-                Some(tt_max.to_string()),
+                Some(EngineOptionDefaults::max_hash().to_string()),
             ),
             EngineOption::new(
                 EngineSetOption::CLEAR_HASH,
@@ -106,6 +106,7 @@ impl Engine {
                 threads,
                 verbosity,
                 tt_size,
+                texel,
             },
             options: Arc::new(options),
             cmdline,
@@ -169,6 +170,13 @@ impl Engine {
                 .resize(self.settings.tt_size);
             self.tt_search.lock().expect(ErrFatal::LOCK).resize(0);
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
+        }
+
+        #[cfg(feature = "extra")]
+        if self.settings.texel.is_some() {
+            let exists = self.settings.texel.clone().unwrap().exists();
+            println!("Yes! Tuning! File exists: {exists}");
+            action_requested = true;
         }
         // =====================================================
 

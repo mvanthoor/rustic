@@ -133,6 +133,16 @@ impl CmdLine {
         self.arguments.get_flag(CmdLineArgs::EPD_TEST_LONG)
     }
 
+    #[cfg(feature = "extra")]
+    pub fn texel(&self) -> Option<PathBuf> {
+        let value = self.arguments.get_one::<PathBuf>(CmdLineArgs::TEXEL_LONG);
+        if value.is_some() {
+            value.cloned()
+        } else {
+            None
+        }
+    }
+
     fn get() -> ArgMatches {
         let mut cmd_line = clap::Command::new(About::ENGINE)
             .version(About::VERSION)
