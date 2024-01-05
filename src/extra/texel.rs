@@ -1,10 +1,11 @@
+mod data_file;
 mod data_point;
 pub mod defs;
 mod result_types;
 
 use data_point::DataPoint;
+use data_point::DataPointParseError::{ErrorInFenString, ErrorInGameResult};
 use defs::TunerMessages;
-use result_types::DataPointParseError::{ErrorInFenString, ErrorInGameResult};
 use result_types::{DataFileLoadResult, DataPointParseResult, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
