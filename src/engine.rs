@@ -13,6 +13,7 @@ use crate::{
     defs::EngineRunResult,
     engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption},
     engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
+    extra::texel::defs::TunerRunError,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
@@ -176,14 +177,15 @@ impl Engine {
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.clone() {
             const OK: &str = "Tuning run finished.";
-            const ERR: &str = "Tuning run failed.";
+            const NO_FILE: &str = "Data file cannot be opened.";
 
             action_requested = true;
-            if Tuner::new(data_file).run().is_ok() {
-                println!("{}", OK)
-            } else {
-                println!("{}", ERR);
-            }
+            match Tuner::new(data_file).run() {
+                Ok(()) => println!("{}", OK),
+                Err(e) => match e {
+                    TunerRunError::DataFileReadError => println!("{}", NO_FILE),
+                },
+            };
         }
         // =====================================================
 

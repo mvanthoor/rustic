@@ -5,11 +5,13 @@ mod result_types;
 
 use data_point::DataPoint;
 use data_point::DataPointParseError::{ErrorInFenString, ErrorInGameResult};
-use defs::TunerMessages;
 use result_types::{DataFileLoadResult, DataPointParseResult, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
-use std::{io, io::BufRead, io::BufReader};
+use std::{io::BufRead, io::BufReader};
+
+use self::data_file::{DataFile, DataFileLine};
+use self::result_types::TunerRunError;
 
 pub struct Tuner {
     data_file_name: PathBuf,
@@ -28,46 +30,37 @@ impl Tuner {
 
     pub fn run(&mut self) -> TunerRunResult {
         if self.data_file_load().is_err() {
-            println!("{}", TunerMessages::DATA_FILE_NOT_FOUND);
-            return Err(());
+            return Err(TunerRunError::DataFileReadError);
         }
 
-        println!("{}", TunerMessages::DATA_FILE_LOADED);
         Ok(())
     }
 
     fn data_file_load(&mut self) -> DataFileLoadResult {
         if !self.data_file_name.exists() {
-            return Err(io::Error::from(io::ErrorKind::NotFound));
+            return Err(());
         }
 
         let path = self.data_file_name.as_path();
-        let file = File::open(path)?;
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(_) => return Err(()),
+        };
         let reader = BufReader::new(file);
+        let mut data_file = DataFile::new();
 
         for (i, line_result) in reader.lines().enumerate() {
+            let i = i + 1;
             if line_result.is_err() {
-                println!("{i} - {}", TunerMessages::ERROR_CANT_READ_LINE);
+                data_file.failed(i);
                 continue;
             }
 
             let line = line_result.unwrap_or(String::from(""));
-            let parse_result = self.parse_epd_line_to_data_point(line);
-            let data_point = match parse_result {
-                Ok(data_point) => data_point,
-                Err(error) => {
-                    match error {
-                        ErrorInFenString => println!("{}", ErrorInFenString),
-                        ErrorInGameResult => println!("{}", ErrorInGameResult),
-                    }
-                    continue;
-                }
-            };
-
-            self.data_points.push(data_point);
+            data_file.success(DataFileLine::new(i, line));
         }
 
-        Ok(())
+        Ok(data_file)
     }
 
     fn parse_epd_line_to_data_point(&mut self, line: String) -> DataPointParseResult {

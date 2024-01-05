@@ -1,9 +1,4 @@
-use crate::extra::texel::data_point::DataPoint;
-use crate::extra::texel::data_point::DataPointParseError;
-use std::{
-    fmt::{self, Display},
-    io,
-};
+use std::fmt::{self, Display};
 
 // Represents one line from the Texel tuning data file.
 pub struct DataFileLine {
@@ -34,17 +29,32 @@ impl Display for DataFileLine {
 
 // This struct holds the lines that where successfully read and which
 // failed to read from the Texel data file.
-pub struct DataFileLineInfo {
+pub struct DataFile {
     success: Vec<DataFileLine>,
-    failed: Vec<DataFileLine>,
+    failed: Vec<usize>,
 }
 
-impl DataFileLineInfo {
+impl DataFile {
+    pub fn new() -> Self {
+        Self {
+            success: vec![],
+            failed: vec![],
+        }
+    }
+
+    pub fn success(&mut self, line: DataFileLine) {
+        self.success.push(line);
+    }
+
+    pub fn failed(&mut self, line_nr: usize) {
+        self.failed.push(line_nr);
+    }
+
     pub fn get_success(&self) -> &Vec<DataFileLine> {
         &self.success
     }
 
-    pub fn get_failed(&self) -> &Vec<DataFileLine> {
+    pub fn get_failed(&self) -> &Vec<usize> {
         &self.failed
     }
 }
