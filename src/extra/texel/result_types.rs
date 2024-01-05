@@ -1,4 +1,4 @@
-use crate::misc::texel::data_point::DataPoint;
+use crate::extra::texel::data_point::DataPoint;
 use std::{
     fmt::{self, Display},
     io,

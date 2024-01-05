@@ -13,7 +13,7 @@ use crate::{
     defs::EngineRunResult,
     engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption},
     engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
-    misc::{cmdline::CmdLine, perft, texel::Tuner},
+    misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
 };
@@ -24,6 +24,7 @@ use transposition::{PerftData, SearchData, TT};
 #[cfg(feature = "extra")]
 use crate::{
     board::defs::Pieces,
+    extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
 
