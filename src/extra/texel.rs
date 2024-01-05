@@ -10,7 +10,7 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::{io::BufRead, io::BufReader};
 
-use self::data_file::{DataFile, DataFileLine};
+use self::data_file::{DataFileInfo, DataFileLine};
 use self::result_types::TunerRunError;
 
 pub struct Tuner {
@@ -29,12 +29,12 @@ impl Tuner {
     }
 
     pub fn run(&mut self) -> TunerRunResult {
-        let data_file = match self.data_file_load() {
-            Ok(data_file) => data_file,
+        let data_file_info = match self.data_file_load() {
+            Ok(data_file_info) => data_file_info,
             Err(_) => return Err(TunerRunError::DataFileReadError),
         };
 
-        self.print_data_file_read_result(&data_file);
+        self.print_data_file_read_result(&data_file_info);
 
         Ok(())
     }
@@ -50,7 +50,7 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut data_file = DataFile::new();
+        let mut data_file = DataFileInfo::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
@@ -66,7 +66,7 @@ impl Tuner {
         Ok(data_file)
     }
 
-    fn print_data_file_read_result(&self, data_file: &DataFile) {
+    fn print_data_file_read_result(&self, data_file_info: &DataFileInfo) {
         println!(
             "Results reading data file: {}",
             self.data_file_name
@@ -75,11 +75,11 @@ impl Tuner {
                 .into_string()
                 .unwrap_or_default()
         );
-        println!("Lines read: {}", data_file.count_all());
-        println!("Lines success: {}", data_file.count_success());
-        println!("Lines failed: {}", data_file.count_failed());
+        println!("Lines read: {}", data_file_info.count_all());
+        println!("Lines success: {}", data_file_info.count_success());
+        println!("Lines failed: {}", data_file_info.count_failed());
 
-        for line in data_file.get_failed() {
+        for line in data_file_info.get_failed() {
             println!("\tLine number: {line}");
         }
     }

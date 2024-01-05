@@ -29,12 +29,12 @@ impl Display for DataFileLine {
 
 // This struct holds the lines that where successfully read and which
 // failed to read from the Texel data file.
-pub struct DataFile {
+pub struct DataFileInfo {
     success: Vec<DataFileLine>,
     failed: Vec<usize>,
 }
 
-impl DataFile {
+impl DataFileInfo {
     pub fn new() -> Self {
         Self {
             success: vec![],

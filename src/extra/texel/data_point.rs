@@ -12,6 +12,11 @@ impl DataPoint {
     }
 }
 
+pub struct DataPointInfo {
+    success: Vec<DataPoint>,
+    failed: Vec<String>,
+}
+
 pub enum DataPointParseError {
     ErrorInFenString,
     ErrorInGameResult,
