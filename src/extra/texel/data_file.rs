@@ -42,11 +42,23 @@ impl DataFile {
         }
     }
 
-    pub fn success(&mut self, line: DataFileLine) {
+    pub fn count_success(&self) -> usize {
+        self.success.len()
+    }
+
+    pub fn count_failed(&self) -> usize {
+        self.failed.len()
+    }
+
+    pub fn count_all(&self) -> usize {
+        self.success.len() + self.failed.len()
+    }
+
+    pub fn insert_success(&mut self, line: DataFileLine) {
         self.success.push(line);
     }
 
-    pub fn failed(&mut self, line_nr: usize) {
+    pub fn insert_failed(&mut self, line_nr: usize) {
         self.failed.push(line_nr);
     }
 

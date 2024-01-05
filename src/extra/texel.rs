@@ -29,9 +29,12 @@ impl Tuner {
     }
 
     pub fn run(&mut self) -> TunerRunResult {
-        if self.data_file_load().is_err() {
-            return Err(TunerRunError::DataFileReadError);
-        }
+        let data_file = match self.data_file_load() {
+            Ok(data_file) => data_file,
+            Err(_) => return Err(TunerRunError::DataFileReadError),
+        };
+
+        self.print_data_file_read_result(&data_file);
 
         Ok(())
     }
@@ -52,15 +55,33 @@ impl Tuner {
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
             if line_result.is_err() {
-                data_file.failed(i);
+                data_file.insert_failed(i);
                 continue;
             }
 
             let line = line_result.unwrap_or(String::from(""));
-            data_file.success(DataFileLine::new(i, line));
+            data_file.insert_success(DataFileLine::new(i, line));
         }
 
         Ok(data_file)
+    }
+
+    fn print_data_file_read_result(&self, data_file: &DataFile) {
+        println!(
+            "Results reading data file: {}",
+            self.data_file_name
+                .clone()
+                .into_os_string()
+                .into_string()
+                .unwrap_or_default()
+        );
+        println!("Lines read: {}", data_file.count_all());
+        println!("Lines success: {}", data_file.count_success());
+        println!("Lines failed: {}", data_file.count_failed());
+
+        for line in data_file.get_failed() {
+            println!("\tLine number: {line}");
+        }
     }
 
     fn parse_epd_line_to_data_point(&mut self, line: String) -> DataPointParseResult {
