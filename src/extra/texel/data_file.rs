@@ -1,5 +1,21 @@
 use std::fmt::{self, Display};
 
+pub enum DataFileLineParseError {
+    ErrorInFenString,
+    ErrorInGameResult,
+}
+
+impl Display for DataFileLineParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let m = match self {
+            Self::ErrorInFenString => "Error in FEN string. Skipped.",
+            Self::ErrorInGameResult => "Error in game result. Skipped.",
+        };
+
+        write!(f, "{m}")
+    }
+}
+
 // Represents one line from the Texel tuning data file.
 pub struct DataFileLine {
     nr: usize,
@@ -29,44 +45,44 @@ impl Display for DataFileLine {
 
 // This struct holds the lines that where successfully read and which
 // failed to read from the Texel data file.
-pub struct DataFileInfo {
-    success: Vec<DataFileLine>,
-    failed: Vec<usize>,
+pub struct DataFileStore {
+    successful: Vec<DataFileLine>,
+    failed: Vec<DataFileLine>,
 }
 
-impl DataFileInfo {
+impl DataFileStore {
     pub fn new() -> Self {
         Self {
-            success: vec![],
+            successful: vec![],
             failed: vec![],
         }
     }
 
-    pub fn count_success(&self) -> usize {
-        self.success.len()
+    pub fn count_successful_lines(&self) -> usize {
+        self.successful.len()
     }
 
-    pub fn count_failed(&self) -> usize {
+    pub fn count_failed_lines(&self) -> usize {
         self.failed.len()
     }
 
-    pub fn count_all(&self) -> usize {
-        self.success.len() + self.failed.len()
+    pub fn count_all_lines(&self) -> usize {
+        self.successful.len() + self.failed.len()
     }
 
-    pub fn insert_success(&mut self, line: DataFileLine) {
-        self.success.push(line);
+    pub fn insert_successful_line(&mut self, line: DataFileLine) {
+        self.successful.push(line);
     }
 
-    pub fn insert_failed(&mut self, line_nr: usize) {
-        self.failed.push(line_nr);
+    pub fn insert_failed_line(&mut self, line: DataFileLine) {
+        self.failed.push(line);
     }
 
-    pub fn get_success(&self) -> &Vec<DataFileLine> {
-        &self.success
+    pub fn get_successful_lines(&self) -> &Vec<DataFileLine> {
+        &self.successful
     }
 
-    pub fn get_failed(&self) -> &Vec<usize> {
+    pub fn get_failed_lines(&self) -> &Vec<DataFileLine> {
         &self.failed
     }
 }

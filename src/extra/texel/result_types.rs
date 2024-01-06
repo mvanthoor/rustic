@@ -1,10 +1,10 @@
-use crate::extra::texel::data_file::DataFileInfo;
-use crate::extra::texel::data_point::{DataPoint, DataPointParseError};
+use crate::extra::texel::data_file::DataFileStore;
+use crate::extra::texel::data_point::{DataFileLineParseError, DataPoint};
 
 pub enum TunerRunError {
     DataFileReadError,
 }
 
-pub type DataFileLoadResult = Result<DataFileInfo, ()>;
-pub type DataPointParseResult = Result<DataPoint, DataPointParseError>;
+pub type DataFileLoadResult = Result<DataFileStore, ()>;
+pub type DataPointParseResult = Result<DataPoint, DataFileLineParseError>;
 pub type TunerRunResult = Result<(), TunerRunError>;

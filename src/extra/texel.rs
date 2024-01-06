@@ -3,14 +3,14 @@ mod data_point;
 pub mod defs;
 mod result_types;
 
+use data_file::DataFileLineParseError::{ErrorInFenString, ErrorInGameResult};
 use data_point::DataPoint;
-use data_point::DataPointParseError::{ErrorInFenString, ErrorInGameResult};
 use result_types::{DataFileLoadResult, DataPointParseResult, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
 use std::{io::BufRead, io::BufReader};
 
-use self::data_file::{DataFileInfo, DataFileLine};
+use self::data_file::{DataFileLine, DataFileStore};
 use self::result_types::TunerRunError;
 
 pub struct Tuner {
@@ -29,12 +29,12 @@ impl Tuner {
     }
 
     pub fn run(&mut self) -> TunerRunResult {
-        let data_file_info = match self.data_file_load() {
-            Ok(data_file_info) => data_file_info,
+        let store = match self.data_file_load() {
+            Ok(store) => store,
             Err(_) => return Err(TunerRunError::DataFileReadError),
         };
 
-        self.print_data_file_read_result(&data_file_info);
+        self.print_data_file_read_result(&store);
 
         Ok(())
     }
@@ -50,23 +50,23 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut data_file = DataFileInfo::new();
+        let mut data_file = DataFileStore::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
             if line_result.is_err() {
-                data_file.insert_failed(i);
+                data_file.insert_failed_line(DataFileLine::new(i, String::from("")));
                 continue;
             }
 
             let line = line_result.unwrap_or(String::from(""));
-            data_file.insert_success(DataFileLine::new(i, line));
+            data_file.insert_successful_line(DataFileLine::new(i, line));
         }
 
         Ok(data_file)
     }
 
-    fn print_data_file_read_result(&self, data_file_info: &DataFileInfo) {
+    fn print_data_file_read_result(&self, store: &DataFileStore) {
         println!(
             "Results reading data file: {}",
             self.data_file_name
@@ -75,11 +75,11 @@ impl Tuner {
                 .into_string()
                 .unwrap_or_default()
         );
-        println!("Lines read: {}", data_file_info.count_all());
-        println!("Lines success: {}", data_file_info.count_success());
-        println!("Lines failed: {}", data_file_info.count_failed());
+        println!("Lines read: {}", store.count_all_lines());
+        println!("Lines success: {}", store.count_successful_lines());
+        println!("Lines failed: {}", store.count_failed_lines());
 
-        for line in data_file_info.get_failed() {
+        for line in store.get_failed_lines() {
             println!("\tLine number: {line}");
         }
     }
