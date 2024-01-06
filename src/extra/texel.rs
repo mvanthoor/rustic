@@ -14,6 +14,7 @@ use std::time::Instant;
 use std::{io::BufRead, io::BufReader};
 
 pub struct Tuner {
+    board: Board,
     data_file_name: PathBuf,
     data_points: Vec<DataPoint>,
     lowest_mean_squared_error: f32,
@@ -22,6 +23,7 @@ pub struct Tuner {
 impl Tuner {
     pub fn new(data_file_name: PathBuf) -> Self {
         Tuner {
+            board: Board::new(),
             data_file_name,
             data_points: vec![],
             lowest_mean_squared_error: 0.0,
@@ -78,7 +80,7 @@ impl Tuner {
         Ok(data_file_store)
     }
 
-    fn convert_lines_to_data_points(&self, lines: &Vec<DataFileLine>) -> DataPointStore {
+    fn convert_lines_to_data_points(&mut self, lines: &Vec<DataFileLine>) -> DataPointStore {
         let mut data_point_store = DataPointStore::new();
 
         for line in lines {
@@ -91,7 +93,7 @@ impl Tuner {
         data_point_store
     }
 
-    fn parse_line_to_data_point(&self, line: &DataFileLine) -> DataFileLineParseResult {
+    fn parse_line_to_data_point(&mut self, line: &DataFileLine) -> DataFileLineParseResult {
         const DASH: char = '-';
         const EM_DASH: char = '–';
         const SEMICOLON: char = ';';
@@ -113,10 +115,9 @@ impl Tuner {
         // Create working variables.
         let fen = parts[0].clone();
         let result = parts[1].clone();
-        let mut board = Board::new();
 
         // Validate the FEN-string by setting it up on a board.
-        if board.read_fen(Some(fen.trim())).is_err() {
+        if self.board.read_fen(Some(fen.trim())).is_err() {
             return Err(DataFileLineParseError::FenString);
         };
 
