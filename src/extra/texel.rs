@@ -10,6 +10,7 @@ use data_point::{DataPoint, DataPointStore};
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerRunError, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
+use std::time::Instant;
 use std::{io::BufRead, io::BufReader};
 
 pub struct Tuner {
@@ -28,6 +29,7 @@ impl Tuner {
     }
 
     pub fn run(&mut self) -> TunerRunResult {
+        let now = Instant::now();
         let data_file_store = match self.data_file_load() {
             Ok(store) => store,
             Err(_) => return Err(TunerRunError::DataFileReadError),
@@ -40,6 +42,9 @@ impl Tuner {
         self.data_points = data_point_store.get_successful_data_points().clone();
 
         self.print_data_point_conversion_result(&data_point_store);
+
+        let elapsed = now.elapsed().as_secs();
+        println!("Time taken: {elapsed} seconds");
 
         Ok(())
     }
