@@ -4,6 +4,7 @@ use crate::{
     evaluation::defs::PSQT_COLLECTION,
     evaluation::Evaluation,
     misc::bits,
+    movegen::defs::Move,
 };
 
 // Initialization functions
@@ -17,18 +18,18 @@ impl Board {
         self.bb_side[Sides::WHITE] = pieces_per_side_bitboards.0;
         self.bb_side[Sides::BLACK] = pieces_per_side_bitboards.1;
 
-        // Set initial phase value
-        self.game_state.phase_value = Evaluation::count_phase(self);
-
-        // Initialize the piece list, zobrist key, and material count. These will
-        // later be updated incrementally.
+        // Initialize incrementally updated values.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
+        self.game_state.phase_value = Evaluation::count_phase(self);
+        self.game_state.next_move = Move::new(0);
 
         // Set initial PST values
         let pst_values = Evaluation::psqt_apply(self, &PSQT_COLLECTION);
         self.game_state.psqt_value[Sides::WHITE] = pst_values.0;
         self.game_state.psqt_value[Sides::BLACK] = pst_values.1;
+
+        self.history.clear();
     }
 
     // Gather the pieces for each side into their own bitboard.

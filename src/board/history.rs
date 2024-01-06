@@ -51,4 +51,8 @@ impl History {
     pub fn len(&self) -> usize {
         self.count
     }
+
+    pub fn clear(&mut self) {
+        self.count = 0;
+    }
 }
