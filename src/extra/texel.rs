@@ -36,7 +36,11 @@ impl Tuner {
         };
 
         self.print_data_file_read_result(&data_file_store);
-        self.convert_lines_to_data_points(data_file_store.get_successful_lines());
+
+        let lines = data_file_store.get_successful_lines();
+        let data_point_store = self.convert_lines_to_data_points(lines);
+
+        self.print_data_point_conversion_result(&data_point_store);
 
         Ok(())
     }
@@ -98,8 +102,8 @@ impl Tuner {
 
         for line in lines {
             match self.parse_line_to_data_point(line) {
-                Ok(data_point) => data_point_store.add_successful_data_point(data_point),
-                Err(error) => data_point_store.add_failed_data(format!("{} - {}", line, error)),
+                Ok(data_point) => data_point_store.insert_successful_data_point(data_point),
+                Err(error) => data_point_store.insert_failed_data(format!("{} - {}", line, error)),
             };
         }
 
@@ -109,4 +113,6 @@ impl Tuner {
     fn parse_line_to_data_point(&self, line: &DataFileLine) -> DataFileLineParseResult {
         Ok(DataPoint::new(1, String::from(""), 0.0, 0.0))
     }
+
+    fn print_data_point_conversion_result(&self, data_point_store: &DataPointStore) {}
 }

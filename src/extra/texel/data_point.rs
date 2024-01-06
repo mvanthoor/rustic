@@ -41,11 +41,23 @@ impl DataPointStore {
         }
     }
 
-    pub fn add_successful_data_point(&mut self, data_point: DataPoint) {
+    pub fn count_all(&self) -> usize {
+        self.successful.len() + self.failed.len()
+    }
+
+    pub fn count_successful_data_points(&self) -> usize {
+        self.successful.len()
+    }
+
+    pub fn count_failed_data(&self) -> usize {
+        self.failed.len()
+    }
+
+    pub fn insert_successful_data_point(&mut self, data_point: DataPoint) {
         self.successful.push(data_point);
     }
 
-    pub fn add_failed_data(&mut self, s: String) {
+    pub fn insert_failed_data(&mut self, s: String) {
         self.failed.push(s);
     }
 }
