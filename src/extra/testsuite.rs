@@ -40,7 +40,7 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
     while (test_nr < number_of_tests) && (result == 0) {
         // Split the test's data string into multiple parts.
         let test_data: Vec<&str> = LARGE_TEST_EPDS[test_nr].split(SEMI_COLON).collect();
-        let fen = &test_data[0];
+        let fen = test_data[0].trim();
 
         // Set up the position according to the provided FEN-string.
         let setup_result = board.read_fen(Some(fen));
