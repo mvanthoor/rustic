@@ -78,11 +78,13 @@ impl Tuner {
                 .unwrap_or_default()
         );
         println!("Lines read: {}", store.count_all_lines());
-        println!("Lines success: {}", store.count_successful_lines());
-        println!("Lines failed: {}", store.count_failed_lines());
+        println!("Lines successful: {}", store.count_successful_lines());
 
-        for line in store.get_failed_lines() {
-            println!("\tLine number: {}", line.get_nr());
+        if store.count_failed_lines() > 0 {
+            println!("Lines failed: {}", store.count_failed_lines());
+            for line in store.get_failed_lines() {
+                println!("\tLine number: {}", line.get_nr());
+            }
         }
     }
 
