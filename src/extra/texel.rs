@@ -5,7 +5,7 @@ mod result_types;
 
 use data_file::DataFileLineParseError::{ErrorInFenString, ErrorInGameResult};
 use data_point::DataPoint;
-use result_types::{DataFileLoadResult, DataPointParseResult, TunerRunResult};
+use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
 use std::{io::BufRead, io::BufReader};
@@ -54,7 +54,7 @@ impl Tuner {
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
-            if line_result.is_err() {
+            if line_result.is_err() || i == 3 || i == 7 {
                 data_file.insert_failed_line(DataFileLine::new(i, String::from("")));
                 continue;
             }
@@ -80,11 +80,11 @@ impl Tuner {
         println!("Lines failed: {}", store.count_failed_lines());
 
         for line in store.get_failed_lines() {
-            println!("\tLine number: {line}");
+            println!("\tLine number: {}", line.get_nr());
         }
     }
 
-    fn parse_epd_line_to_data_point(&mut self, line: String) -> DataPointParseResult {
+    fn parse_epd_line_to_data_point(&mut self, line: String) -> DataFileLineParseResult {
         Ok(DataPoint::new(String::from(""), 0.0, 0.0))
     }
 }
