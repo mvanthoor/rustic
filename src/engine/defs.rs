@@ -1,8 +1,8 @@
 use crate::{comm::defs::CommIn, search::defs::SearchReport};
-use std::{
-    fmt::{Display, Formatter, Result},
-    path::PathBuf,
-};
+use std::fmt::{Display, Formatter, Result};
+
+#[cfg(feature = "extra")]
+use std::path::PathBuf;
 
 pub use crate::engine::transposition::{HashFlag, PerftData, SearchData, TT};
 
@@ -129,11 +129,17 @@ impl Display for EngineState {
 }
 
 // This struct holds the engine's settings.
+#[cfg(feature = "extra")]
+pub struct TexelSettings {
+    pub file_name: Option<PathBuf>,
+}
 pub struct Settings {
     pub threads: usize,
     pub verbosity: Verbosity,
     pub tt_size: usize,
-    pub texel: Option<PathBuf>,
+
+    #[cfg(feature = "extra")]
+    pub texel: TexelSettings,
 }
 
 // This enum provides information to the engine, with regard to incoming

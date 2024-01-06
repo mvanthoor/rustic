@@ -39,13 +39,14 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
+#[cfg(feature = "extra")]
+pub use crate::movegen::magics::Magic;
+pub use crate::movegen::movelist::MoveList;
 use crate::{
     board::defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
     defs::{Piece, Square},
 };
 use std::fmt::{self, Display};
-
-pub use crate::movegen::{magics::Magic, movelist::MoveList};
 
 const MOVE_ONLY: usize = 0x00_00_00_00_00_FF_FF_FF;
 

@@ -11,9 +11,8 @@ use crate::{
     board::Board,
     comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
-    engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption},
+    engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption, EngineState},
     engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
-    extra::texel::defs::TunerRunError,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
@@ -25,11 +24,11 @@ use transposition::{PerftData, SearchData, TT};
 #[cfg(feature = "extra")]
 use crate::{
     board::defs::Pieces,
+    engine::defs::TexelSettings,
+    extra::texel::defs::TunerRunError,
     extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
-
-use self::defs::EngineState;
 
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
@@ -69,7 +68,6 @@ impl Engine {
             Verbosity::Full
         };
         let tt_size = cmdline.hash();
-        let texel = cmdline.texel();
 
         // List of options that should be announced to the GUI.
         let options = vec![
@@ -100,6 +98,11 @@ impl Engine {
             tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
         };
 
+        #[cfg(feature = "extra")]
+        let texel = TexelSettings {
+            file_name: cmdline.texel(),
+        };
+
         // Create the engine itself.
         Self {
             quit: false,
@@ -108,6 +111,8 @@ impl Engine {
                 threads,
                 verbosity,
                 tt_size,
+
+                #[cfg(feature = "extra")]
                 texel,
             },
             options: Arc::new(options),
@@ -175,7 +180,7 @@ impl Engine {
         }
 
         #[cfg(feature = "extra")]
-        if let Some(data_file) = self.settings.texel.clone() {
+        if let Some(data_file) = self.settings.texel.file_name.clone() {
             const OK: &str = "Tuning run finished.";
             const NO_FILE: &str = "Data file cannot be opened.";
 
