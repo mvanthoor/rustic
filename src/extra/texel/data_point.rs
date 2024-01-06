@@ -1,5 +1,6 @@
 use std::fmt::{self, Display};
 
+#[derive(Clone)]
 pub struct DataPoint {
     line_nr: usize,
     fen: String,
@@ -59,5 +60,9 @@ impl DataPointStore {
 
     pub fn insert_failed_data(&mut self, s: String) {
         self.failed.push(s);
+    }
+
+    pub fn get_successful_data_points(&self) -> &Vec<DataPoint> {
+        &self.successful
     }
 }
