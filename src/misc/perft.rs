@@ -24,20 +24,11 @@ pub fn run(
     let mut total_nodes: u64 = 0;
     let mut hash_full = String::from("");
 
-    // Create a mutex guard for the board, so it can be safely cloned.
-    // Panic if the guard can't be created, because something is wrong with
-    // the main engine thread.
-    let mtx_board = board.lock().expect(ErrFatal::LOCK);
-
-    // Clone the locked board for local use.
-    let mut local_board = mtx_board.clone();
-
-    // The function now has its own local board. Drop the guard. It is not
-    // necessary to keep the lock until perft runs out.
-    std::mem::drop(mtx_board);
+    // Clone the engine's board for local use. (The engine's board needs to
+    // be locked when changing it to be thread safe.)
+    let mut local_board = board.lock().expect(ErrFatal::LOCK).clone();
 
     println!("Benchmarking perft 1-{depth}:");
-
     println!("{local_board}");
 
     // Perform all perfts for depths 1 up to and including "depth"

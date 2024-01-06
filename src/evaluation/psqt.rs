@@ -166,8 +166,11 @@ pub const FLIP: [usize; 64] = [
 ];
 
 impl Evaluation {
-    // Apply the PST's to the current position. These are the initial
-    // values. The engine will update them incrementally during play.
+    // Apply the PSQT's to the current position. This will only be done
+    // during board initialization, after a position has been loaded by the
+    // FEN-reader. The outcome will be placed in the board's game state, so
+    // the engine can update the values incrementally very time a piece is
+    // moved.
     pub fn psqt_apply(board: &Board, psqt_collection: &PsqtCollection) -> (W, W) {
         let mut psqt_w_mg: i16 = 0;
         let mut psqt_w_eg: i16 = 0;
