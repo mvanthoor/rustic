@@ -39,7 +39,7 @@ impl Tuner {
 
         let lines = data_file_store.get_successful_lines();
         let data_point_store = self.convert_lines_to_data_points(lines);
-        self.data_points = (*data_point_store.get_successful_data_points()).clone();
+        let x = data_point_store.get_successful_data_points();
 
         self.print_data_point_conversion_result(&data_point_store);
 
@@ -103,7 +103,7 @@ impl Tuner {
 
         for line in lines {
             match self.parse_line_to_data_point(line) {
-                Ok(data_point) => data_point_store.insert_successful_data_point(data_point),
+                Ok(data_point) => data_point_store.insert_successful(data_point),
                 Err(error) => data_point_store.insert_failed_data(format!("{} - {}", line, error)),
             };
         }
@@ -112,8 +112,23 @@ impl Tuner {
     }
 
     fn parse_line_to_data_point(&self, line: &DataFileLine) -> DataFileLineParseResult {
-        Ok(DataPoint::new(1, String::from(""), 0.0, 0.0))
+        Err(DataFileLineParseError::ErrorInGameResult)
+        // Ok(DataPoint::new(1, String::from(""), 0.0, 0.0))
     }
 
-    fn print_data_point_conversion_result(&self, data_point_store: &DataPointStore) {}
+    fn print_data_point_conversion_result(&self, data_point_store: &DataPointStore) {
+        const CONVERSIONS: &str = "Line to Data Point conversions";
+        const SUCCESS: &str = "Line to Data Point success";
+        const FAILURES: &str = "Line to Data Point failures";
+
+        println!("{CONVERSIONS}: {}", data_point_store.count_all());
+        println!("{SUCCESS}: {}", data_point_store.count_successful());
+
+        if data_point_store.count_failed() > 0 {
+            println!("{FAILURES}: {}", data_point_store.count_failed());
+            for data in data_point_store.get_failed_data() {
+                println!("\t{data}");
+            }
+        }
+    }
 }

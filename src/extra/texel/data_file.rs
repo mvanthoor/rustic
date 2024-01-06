@@ -8,8 +8,8 @@ pub enum DataFileLineParseError {
 impl Display for DataFileLineParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let m = match self {
-            Self::ErrorInFenString => "Error in FEN string. Skipped.",
-            Self::ErrorInGameResult => "Error in game result. Skipped.",
+            Self::ErrorInFenString => "Error in FEN string.",
+            Self::ErrorInGameResult => "Error in game result.",
         };
 
         write!(f, "{m}")

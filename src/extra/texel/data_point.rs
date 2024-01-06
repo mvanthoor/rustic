@@ -46,15 +46,15 @@ impl DataPointStore {
         self.successful.len() + self.failed.len()
     }
 
-    pub fn count_successful_data_points(&self) -> usize {
+    pub fn count_successful(&self) -> usize {
         self.successful.len()
     }
 
-    pub fn count_failed_data(&self) -> usize {
+    pub fn count_failed(&self) -> usize {
         self.failed.len()
     }
 
-    pub fn insert_successful_data_point(&mut self, data_point: DataPoint) {
+    pub fn insert_successful(&mut self, data_point: DataPoint) {
         self.successful.push(data_point);
     }
 
@@ -62,7 +62,11 @@ impl DataPointStore {
         self.failed.push(s);
     }
 
-    pub fn get_successful_data_points(&self) -> &Vec<DataPoint> {
+    pub fn get_successful_data_points(&self) -> &[DataPoint] {
         &self.successful
+    }
+
+    pub fn get_failed_data(&self) -> &[String] {
+        &self.failed
     }
 }
