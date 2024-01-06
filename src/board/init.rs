@@ -24,7 +24,7 @@ impl Board {
         self.game_state.phase_value = Evaluation::count_phase(self);
         self.game_state.next_move = Move::new(0);
 
-        // Set initial PST values
+        // Set initial PST values: also incrementally updated.
         let pst_values = Evaluation::psqt_apply(self, &PSQT_COLLECTION);
         self.game_state.psqt_value[Sides::WHITE] = pst_values.0;
         self.game_state.psqt_value[Sides::BLACK] = pst_values.1;
