@@ -50,20 +50,22 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut data_file = DataFileStore::new();
+        let mut store = DataFileStore::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
-            if line_result.is_err() || i == 3 || i == 7 {
-                data_file.insert_failed_line(DataFileLine::new(i, String::from("")));
-                continue;
-            }
+            let line = match line_result {
+                Ok(line) => line,
+                Err(_) => {
+                    store.insert_failed_line(DataFileLine::new(i, String::from("")));
+                    continue;
+                }
+            };
 
-            let line = line_result.unwrap_or(String::from(""));
-            data_file.insert_successful_line(DataFileLine::new(i, line));
+            store.insert_successful_line(DataFileLine::new(i, line));
         }
 
-        Ok(data_file)
+        Ok(store)
     }
 
     fn print_data_file_read_result(&self, store: &DataFileStore) {
