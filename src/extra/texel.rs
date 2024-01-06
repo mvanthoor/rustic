@@ -10,7 +10,8 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::{io::BufRead, io::BufReader};
 
-use self::data_file::{DataFileLine, DataFileStore};
+use self::data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
+use self::data_point::DataPointStore;
 use self::result_types::TunerRunError;
 
 pub struct Tuner {
@@ -29,12 +30,13 @@ impl Tuner {
     }
 
     pub fn run(&mut self) -> TunerRunResult {
-        let store = match self.data_file_load() {
+        let data_file_store = match self.data_file_load() {
             Ok(store) => store,
             Err(_) => return Err(TunerRunError::DataFileReadError),
         };
 
-        self.print_data_file_read_result(&store);
+        self.print_data_file_read_result(&data_file_store);
+        self.convert_lines_to_data_points(data_file_store.get_successful_lines());
 
         Ok(())
     }
@@ -68,7 +70,7 @@ impl Tuner {
         Ok(store)
     }
 
-    fn print_data_file_read_result(&self, store: &DataFileStore) {
+    fn print_data_file_read_result(&self, data_file_store: &DataFileStore) {
         println!(
             "Results reading data file: {}",
             self.data_file_name
@@ -77,18 +79,34 @@ impl Tuner {
                 .into_string()
                 .unwrap_or_default()
         );
-        println!("Lines read: {}", store.count_all_lines());
-        println!("Lines successful: {}", store.count_successful_lines());
+        println!("Lines read: {}", data_file_store.count_all_lines());
+        println!(
+            "Lines successful: {}",
+            data_file_store.count_successful_lines()
+        );
 
-        if store.count_failed_lines() > 0 {
-            println!("Lines failed: {}", store.count_failed_lines());
-            for line in store.get_failed_lines() {
+        if data_file_store.count_failed_lines() > 0 {
+            println!("Lines failed: {}", data_file_store.count_failed_lines());
+            for line in data_file_store.get_failed_lines() {
                 println!("\tLine number: {}", line.get_nr());
             }
         }
     }
 
-    fn parse_epd_line_to_data_point(&mut self, line: String) -> DataFileLineParseResult {
-        Ok(DataPoint::new(String::from(""), 0.0, 0.0))
+    fn convert_lines_to_data_points(&self, lines: &[DataFileLine]) -> DataPointStore {
+        let mut data_point_store = DataPointStore::new();
+
+        for line in lines {
+            match self.parse_line_to_data_point(line) {
+                Ok(data_point) => data_point_store.add_successful_data_point(data_point),
+                Err(error) => data_point_store.add_failed_data(format!("{} - {}", line, error)),
+            };
+        }
+
+        data_point_store
+    }
+
+    fn parse_line_to_data_point(&self, line: &DataFileLine) -> DataFileLineParseResult {
+        Ok(DataPoint::new(1, String::from(""), 0.0, 0.0))
     }
 }
