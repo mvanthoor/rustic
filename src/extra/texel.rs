@@ -1,18 +1,16 @@
 mod data_file;
 mod data_point;
 pub mod defs;
+mod display;
 mod result_types;
 
-use data_file::DataFileLineParseError::{ErrorInFenString, ErrorInGameResult};
-use data_point::DataPoint;
-use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerRunResult};
+use crate::board::Board;
+use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
+use data_point::{DataPoint, DataPointStore};
+use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerRunError, TunerRunResult};
 use std::fs::File;
 use std::path::PathBuf;
 use std::{io::BufRead, io::BufReader};
-
-use self::data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
-use self::data_point::DataPointStore;
-use self::result_types::TunerRunError;
 
 pub struct Tuner {
     data_file_name: PathBuf,
@@ -39,7 +37,7 @@ impl Tuner {
 
         let lines = data_file_store.get_successful_lines();
         let data_point_store = self.convert_lines_to_data_points(lines);
-        let x = data_point_store.get_successful_data_points();
+        self.data_points = data_point_store.get_successful_data_points().clone();
 
         self.print_data_point_conversion_result(&data_point_store);
 
@@ -57,48 +55,25 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut store = DataFileStore::new();
+        let mut data_file_store = DataFileStore::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
             let line = match line_result {
                 Ok(line) => line,
                 Err(_) => {
-                    store.insert_failed_line(DataFileLine::new(i, String::from("")));
+                    data_file_store.insert_failed_line(DataFileLine::new(i, String::from("")));
                     continue;
                 }
             };
 
-            store.insert_successful_line(DataFileLine::new(i, line));
+            data_file_store.insert_successful_line(DataFileLine::new(i, line));
         }
 
-        Ok(store)
+        Ok(data_file_store)
     }
 
-    fn print_data_file_read_result(&self, data_file_store: &DataFileStore) {
-        println!(
-            "Results reading data file: {}",
-            self.data_file_name
-                .clone()
-                .into_os_string()
-                .into_string()
-                .unwrap_or_default()
-        );
-        println!("Lines read: {}", data_file_store.count_all_lines());
-        println!(
-            "Lines successful: {}",
-            data_file_store.count_successful_lines()
-        );
-
-        if data_file_store.count_failed_lines() > 0 {
-            println!("Lines failed: {}", data_file_store.count_failed_lines());
-            for line in data_file_store.get_failed_lines() {
-                println!("\tLine number: {}", line.get_nr());
-            }
-        }
-    }
-
-    fn convert_lines_to_data_points(&self, lines: &[DataFileLine]) -> DataPointStore {
+    fn convert_lines_to_data_points(&self, lines: &Vec<DataFileLine>) -> DataPointStore {
         let mut data_point_store = DataPointStore::new();
 
         for line in lines {
@@ -112,23 +87,43 @@ impl Tuner {
     }
 
     fn parse_line_to_data_point(&self, line: &DataFileLine) -> DataFileLineParseResult {
-        Err(DataFileLineParseError::ErrorInGameResult)
-        // Ok(DataPoint::new(1, String::from(""), 0.0, 0.0))
-    }
+        const DASH: char = '-';
+        const EM_DASH: char = '–';
+        const SEMICOLON: char = ';';
 
-    fn print_data_point_conversion_result(&self, data_point_store: &DataPointStore) {
-        const CONVERSIONS: &str = "Line to Data Point conversions";
-        const SUCCESS: &str = "Line to Data Point success";
-        const FAILURES: &str = "Line to Data Point failures";
+        // Split the incoming line into multiple parts.
+        let parts: Vec<String> = line
+            .get_line()
+            .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
+            .split(SEMICOLON)
+            .map(String::from)
+            .collect();
 
-        println!("{CONVERSIONS}: {}", data_point_store.count_all());
-        println!("{SUCCESS}: {}", data_point_store.count_successful());
-
-        if data_point_store.count_failed() > 0 {
-            println!("{FAILURES}: {}", data_point_store.count_failed());
-            for data in data_point_store.get_failed_data() {
-                println!("\t{data}");
-            }
+        // It should have exactly two parts. If not, something is wrong
+        // with the data formatting.
+        if parts.len() != 2 {
+            return Err(DataFileLineParseError::DataLine);
         }
+
+        // Create working variables.
+        let fen = parts[0].clone();
+        let result = parts[1].clone();
+        let mut board = Board::new();
+
+        // Validate the FEN-string by setting it up on a board.
+        if board.read_fen(Some(fen.trim())).is_err() {
+            return Err(DataFileLineParseError::FenString);
+        };
+
+        // Try to parse the game result into an f32.
+        let result = match result.trim() {
+            "1-0" => 1.0,
+            "1/2-1/2" => 0.5,
+            "0-1" => 0.0,
+            _ => return Err(DataFileLineParseError::GameResult),
+        };
+
+        // No errors? Return the data point.
+        Ok(DataPoint::new(*line.get_nr(), fen, result, 0.0))
     }
 }

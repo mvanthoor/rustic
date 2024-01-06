@@ -22,7 +22,7 @@ impl DataPoint {
 impl Display for DataPoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let line = format!(
-            "Line: {} FEN: {} Result: {} EvalError: {}",
+            "LineNr: {}, FEN: {}, Result: {}, EvalError: {}",
             self.line_nr, self.fen, self.result, self.eval_error
         );
         write!(f, "{line}")
@@ -62,11 +62,11 @@ impl DataPointStore {
         self.failed.push(s);
     }
 
-    pub fn get_successful_data_points(&self) -> &[DataPoint] {
+    pub fn get_successful_data_points(&self) -> &Vec<DataPoint> {
         &self.successful
     }
 
-    pub fn get_failed_data(&self) -> &[String] {
+    pub fn get_failed_data(&self) -> &Vec<String> {
         &self.failed
     }
 }

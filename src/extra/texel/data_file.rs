@@ -1,15 +1,17 @@
 use std::fmt::{self, Display};
 
 pub enum DataFileLineParseError {
-    ErrorInFenString,
-    ErrorInGameResult,
+    DataLine,
+    FenString,
+    GameResult,
 }
 
 impl Display for DataFileLineParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let m = match self {
-            Self::ErrorInFenString => "Error in FEN string.",
-            Self::ErrorInGameResult => "Error in game result.",
+            Self::DataLine => "Error splitting line.",
+            Self::FenString => "Error in FEN string.",
+            Self::GameResult => "Error in game result.",
         };
 
         write!(f, "{m}")
