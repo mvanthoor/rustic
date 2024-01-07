@@ -59,7 +59,9 @@ pub type FenResult = Result<(), FenError>;
 type FenPartParser = fn(board: &mut Board, part: &str) -> FenResult;
 
 impl Board {
-    // This function reads a provided FEN-string or uses the default position.
+    // This function reads a provided FEN-string or uses the default
+    // position. It sets up the position on the board if parsing
+    // succeeds. If parsing fails, the board is not changed.
     pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
         // Split the string into parts. There should be 6 parts.
         let mut fen_parts = split_fen_string(fen_string);
@@ -92,6 +94,33 @@ impl Board {
 
         Ok(())
     }
+}
+
+// This function verifies if a FEN-string is correct and can be set up on
+// the board. Note: if this function exists with an error, the provided
+// board will be in an underfined state and cannot be used to play games.
+pub fn fen_verify(board: &mut Board, fen_string: Option<&str>) -> FenResult {
+    board.reset();
+
+    let mut fen_parts = split_fen_string(fen_string);
+
+    if fen_parts.len() == SHORT_FEN_LENGTH {
+        fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
+    }
+
+    if fen_parts.len() != CORRECT_FEN_LENGTH {
+        return Err(FenError::IncorrectLength);
+    }
+
+    let fen_parsers = create_part_parsers();
+
+    for (parser, part) in fen_parsers.iter().zip(fen_parts.iter()) {
+        parser(board, part)?;
+    }
+
+    board.init();
+
+    Ok(())
 }
 
 // ===== Private functions =====

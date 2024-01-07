@@ -4,6 +4,7 @@ pub mod defs;
 mod display;
 mod result_types;
 
+use crate::board::defs::fen_verify;
 use crate::board::Board;
 use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
 use data_point::{DataPoint, DataPointStore};
@@ -45,8 +46,8 @@ impl Tuner {
 
         self.print_data_point_conversion_result(&data_point_store);
 
-        let elapsed = now.elapsed().as_secs();
-        println!("Time taken: {elapsed} seconds");
+        let elapsed = now.elapsed().as_millis();
+        println!("Time taken: {elapsed} ms");
 
         Ok(())
     }
@@ -117,7 +118,7 @@ impl Tuner {
         let result = parts[1].clone();
 
         // Validate the FEN-string by setting it up on a board.
-        if self.board.fen_setup(Some(fen.trim())).is_err() {
+        if fen_verify(&mut self.board, Some(fen.trim())).is_err() {
             return Err(DataFileLineParseError::FenString);
         };
 
