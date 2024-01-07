@@ -117,7 +117,7 @@ impl Tuner {
         let result = parts[1].clone();
 
         // Validate the FEN-string by setting it up on a board.
-        if self.board.read_fen(Some(fen.trim())).is_err() {
+        if self.board.fen_setup(Some(fen.trim())).is_err() {
             return Err(DataFileLineParseError::FenString);
         };
 

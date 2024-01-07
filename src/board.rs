@@ -1,11 +1,11 @@
 pub mod defs;
 mod display;
 mod draw;
+mod fen;
 mod gamestate;
 mod history;
 mod init;
 mod playmove;
-mod read_fen;
 mod utils;
 mod zobrist;
 

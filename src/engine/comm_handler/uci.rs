@@ -19,7 +19,7 @@ impl Engine {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
-                    .read_fen(Some(FEN_START_POSITION))
+                    .fen_setup(Some(FEN_START_POSITION))
                     .expect(ErrFatal::NEW_GAME);
                 self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             }
@@ -46,7 +46,11 @@ impl Engine {
             }
 
             UciIn::Position(fen, moves) => {
-                let fen_result = self.board.lock().expect(ErrFatal::LOCK).read_fen(Some(fen));
+                let fen_result = self
+                    .board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_setup(Some(fen));
 
                 if fen_result.is_ok() {
                     for m in moves.iter() {

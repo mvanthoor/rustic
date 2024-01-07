@@ -32,7 +32,7 @@ type FenResult = Result<(), u8>;
 
 impl Board {
     // This function reads a provided FEN-string or uses the default position.
-    pub fn read_fen(&mut self, fen_string: Option<&str>) -> FenResult {
+    pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
         // Split the string into parts. There should be 6 parts.
         let mut fen_parts: Vec<String> = match fen_string {
             Some(f) => f,
