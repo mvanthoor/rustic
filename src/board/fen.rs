@@ -62,14 +62,7 @@ impl Board {
     // This function reads a provided FEN-string or uses the default position.
     pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
         // Split the string into parts. There should be 6 parts.
-        let mut fen_parts: Vec<String> = match fen_string {
-            Some(fen) => fen,
-            None => FEN_START_POSITION,
-        }
-        .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
-        .split(SPACE)
-        .map(String::from)
-        .collect();
+        let mut fen_parts = split_fen_string(fen_string);
 
         // However, if its a short fen, extend it with the missing two parts.
         if fen_parts.len() == SHORT_FEN_LENGTH {
@@ -80,18 +73,12 @@ impl Board {
             return Err(FenError::IncorrectLength);
         }
 
-        // Create an array of function pointers; one parsing function per part.
-        let fen_parsers: [FenPartParser; CORRECT_FEN_LENGTH] = [
-            pieces,
-            color,
-            castling,
-            en_passant,
-            half_move_clock,
-            full_move_number,
-        ];
+        let fen_parsers = create_part_parsers();
 
-        // Create a new board so we don't destroy the original.
-        let mut new_board = Board::new();
+        // Create a new board so we don't destroy the original if the
+        // fen-string happens to be incorrect.
+        let mut new_board = self.clone();
+        new_board.reset();
 
         // Parse all the parts and check if each one succeeds. If not,
         // immediately return with the error of the offending part.
@@ -108,6 +95,28 @@ impl Board {
 }
 
 // ===== Private functions =====
+
+fn split_fen_string(fen_string: Option<&str>) -> Vec<String> {
+    match fen_string {
+        Some(fen) => fen,
+        None => FEN_START_POSITION,
+    }
+    .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
+    .split(SPACE)
+    .map(String::from)
+    .collect()
+}
+
+fn create_part_parsers() -> [FenPartParser; CORRECT_FEN_LENGTH] {
+    [
+        pieces,
+        color,
+        castling,
+        en_passant,
+        half_move_clock,
+        full_move_number,
+    ]
+}
 
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
 fn pieces(board: &mut Board, part: &str) -> FenResult {

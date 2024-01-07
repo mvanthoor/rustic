@@ -48,6 +48,14 @@ impl Board {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.bb_pieces = [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH];
+        self.bb_side = [EMPTY; Sides::BOTH];
+        self.game_state.clear();
+        self.history.clear();
+        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
+    }
+
     // Return a bitboard with locations of a certain piece type for one of the sides.
     pub fn get_pieces(&self, side: Side, piece: Piece) -> Bitboard {
         self.bb_pieces[side][piece]

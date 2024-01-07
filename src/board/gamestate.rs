@@ -39,6 +39,18 @@ impl GameState {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.active_color = 0;
+        self.castling = 0;
+        self.en_passant = None;
+        self.halfmove_clock = 0;
+        self.fullmove_number = 0;
+        self.zobrist_key = 0;
+        self.phase_value = 0;
+        self.psqt_value = [W(0, 0); Sides::BOTH];
+        self.next_move = Move::new(0);
+    }
+
     pub fn castling_to_string(&self) -> String {
         let mut s: String = String::from("");
         let c = self.castling;
