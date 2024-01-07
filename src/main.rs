@@ -32,7 +32,6 @@ mod search;
 mod extra;
 
 // use interface::console;
-use defs::ENGINE_RUN_ERRORS;
 use engine::Engine;
 
 fn main() {
@@ -41,6 +40,6 @@ fn main() {
 
     match result {
         Ok(()) => (),
-        Err(e) => println!("Error code {}: {}", e, ENGINE_RUN_ERRORS[e as usize]),
+        Err(error) => println!("{error}"),
     };
 }

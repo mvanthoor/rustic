@@ -2,6 +2,8 @@
 // within specific modules, are defined in defs.rs in the directory for
 // that module.
 
+use crate::board::defs::FenError;
+
 pub struct About;
 impl About {
     pub const ENGINE: &'static str = "Rustic Alpha";
@@ -53,14 +55,4 @@ pub const MAX_PLY: i8 = 125;
 pub const MAX_MOVE_RULE: u8 = 100; // 50/75 move rule
 
 // Define errors
-pub type EngineRunResult = Result<(), u8>;
-pub const ENGINE_RUN_ERRORS: [&str; 8] = [
-    "FEN: Must have six parts",
-    "FEN: Pieces and squares incorrect",
-    "FEN: Color selection incorrect",
-    "FEN: Castling permissions incorrect",
-    "FEN: En-passant square incorrect",
-    "FEN: Half-move clock incorrect",
-    "FEN: Full-move number incorrect",
-    "XBoard not yet implemented.",
-];
+pub type EngineRunResult = Result<(), FenError>;

@@ -54,14 +54,15 @@ implemented.
   - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
     fully fail-soft. No Elo improvement, but the code is cleaner and more
     readable.
-  - Better privacy and name spacing for several modules.
+  - Better privacy and name spacing for all modules.
   - Made "Entry" the TT index, containing "Buckets" instead of the other
     way around, to be more in line with other engines.
-  - Renamed some variables for more consistency.
+  - Renamed lots of stuff for more consistency.
   - Moved lots of functions between modules for more consistency.
   - Redid nesting for all use-clauses for better readability.
   - Implemented Display for many structs, removing custom functions.
   - Dropped the "misc::print" module (no code left after refactoring).
+  - Huge cleanup of FEN-reader error handling code.
 - Update:
   - "rand" crate to 0.8.5.
   - "rand_core" crate to 0.6.4.
@@ -72,7 +73,7 @@ implemented.
   - "crossbeam-utils" crate to 0.8.15.
 - Fixes
   - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
-    avoid conflicts with Claps's "-h" / "--help" option
+    avoid conflicts with CLAP's automatic "-h" / "--help" option
 
 > <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
 > the UCI-protocol will remain the default. It is recommended to use UCI

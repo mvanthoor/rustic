@@ -12,30 +12,58 @@ use crate::{
     misc::parse,
 };
 use if_chain::if_chain;
-use std::ops::RangeInclusive;
+use std::{
+    fmt::{self, Display},
+    ops::RangeInclusive,
+};
 
 /** Definitions used by the FEN-reader */
-const NR_OF_FEN_PARTS: usize = 6;
-const SHORT_FEN_PARTS: usize = 4;
+const CORRECT_FEN_LENGTH: usize = 6;
+const SHORT_FEN_LENGTH: usize = 4;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
 const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
 const WHITE_OR_BLACK: &str = "wb";
-const CASTLING_RIGHTS: &str = "KQkq-";
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const EM_DASH: char = '–';
 const SPACE: char = ' ';
 
-type FenPartParser = fn(board: &mut Board, part: &str) -> bool;
-type FenResult = Result<(), u8>;
+#[derive(Debug)]
+pub enum FenError {
+    IncorrectLength,
+    Part1,
+    Part2,
+    Part3,
+    Part4,
+    Part5,
+    Part6,
+}
+
+impl Display for FenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let error = match self {
+            Self::IncorrectLength => "Error in FEN string: Must be 6 parts",
+            Self::Part1 => "Error in FEN Part 1: Pieces or squares",
+            Self::Part2 => "Error in FEN Part 2: Colors",
+            Self::Part3 => "Error in FEN Part 3: Castling rights",
+            Self::Part4 => "Error in FEN Part 4: En passant field",
+            Self::Part5 => "Error in FEN Part 5: Half-move clock",
+            Self::Part6 => "Error in FEN Part 6: Full-move number",
+        };
+        write!(f, "{error}")
+    }
+}
+
+pub type FenResult = Result<(), FenError>;
+type FenPartParser = fn(board: &mut Board, part: &str) -> FenResult;
 
 impl Board {
     // This function reads a provided FEN-string or uses the default position.
     pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
         // Split the string into parts. There should be 6 parts.
         let mut fen_parts: Vec<String> = match fen_string {
-            Some(f) => f,
+            Some(fen) => fen,
             None => FEN_START_POSITION,
         }
         .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
@@ -44,60 +72,47 @@ impl Board {
         .collect();
 
         // However, if its a short fen, extend it with the missing two parts.
-        if fen_parts.len() == SHORT_FEN_PARTS {
+        if fen_parts.len() == SHORT_FEN_LENGTH {
             fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
         }
 
-        // Check the number of fen parts.
-        let nr_of_parts_ok = fen_parts.len() == NR_OF_FEN_PARTS;
-
-        // Set the initial result.
-        let mut result: FenResult = if nr_of_parts_ok { Ok(()) } else { Err(0) };
-
-        if nr_of_parts_ok {
-            // Create an array of function pointers; one parsing function per part.
-            let fen_parsers: [FenPartParser; 6] = [
-                pieces,
-                color,
-                castling,
-                en_passant,
-                half_move_clock,
-                full_move_number,
-            ];
-
-            // Create a new board so we don't destroy the original.
-            let mut new_board = Board::new();
-
-            // Parse all the parts and check if each one succeeds.
-            let mut i: usize = 0;
-            while i < NR_OF_FEN_PARTS && result == Ok(()) {
-                let parser = &fen_parsers[i];
-                let part = &fen_parts[i];
-                let part_ok = parser(&mut new_board, part);
-                result = if part_ok { Ok(()) } else { Err(i as u8 + 1) };
-                i += 1;
-            }
-
-            // Replace original board with new one if setup was successful.
-            if result == Ok(()) {
-                new_board.init();
-                *self = new_board;
-            }
+        if fen_parts.len() != CORRECT_FEN_LENGTH {
+            return Err(FenError::IncorrectLength);
         }
 
-        result
+        // Create an array of function pointers; one parsing function per part.
+        let fen_parsers: [FenPartParser; CORRECT_FEN_LENGTH] = [
+            pieces,
+            color,
+            castling,
+            en_passant,
+            half_move_clock,
+            full_move_number,
+        ];
+
+        // Create a new board so we don't destroy the original.
+        let mut new_board = Board::new();
+
+        // Parse all the parts and check if each one succeeds. If not,
+        // immediately return with the error of the offending part.
+        for (parser, part) in fen_parsers.iter().zip(fen_parts.iter()) {
+            parser(&mut new_board, part)?;
+        }
+
+        // Replace original board with new one if setup was successful.
+        new_board.init();
+        *self = new_board;
+
+        Ok(())
     }
 }
 
 // ===== Private functions =====
 
 // Part 1: Parsing piece setup. Put each piece into its respective bitboard.
-fn pieces(board: &mut Board, part: &str) -> bool {
+fn pieces(board: &mut Board, part: &str) -> FenResult {
     let mut rank = Ranks::R8 as u8;
     let mut file = Files::A as u8;
-
-    // Assume parsing succeeds.
-    let mut result = true;
 
     // Parse each character; it should be a piece, square count, or splitter.
     for c in part.chars() {
@@ -121,147 +136,120 @@ fn pieces(board: &mut Board, part: &str) -> bool {
                 }
             }
             SPLITTER => {
-                result = file == 8;
+                if file != 8 {
+                    return Err(FenError::Part1);
+                }
                 rank -= 1;
                 file = 0;
             }
-            // Unknown character: result becomes false.
-            _ => result = false,
+            _ => return Err(FenError::Part1),
         }
 
-        // If piece found, advance to the next file.
+        // If a piece found, advance to the next file. (So we don't need to
+        // do this in each piece's match arm above.)
         if LIST_OF_PIECES.contains(c) {
             file += 1;
         }
-
-        // As soon as something is wrong, stop parsing.
-        if !result {
-            break;
-        }
     }
 
-    result
+    Ok(())
 }
 
 // Part 2: Parse color to move: White or Black
-fn color(board: &mut Board, part: &str) -> bool {
-    // Assume parsing fails.
-    let mut result = false;
-
-    // Length should be 1, and the character should be 'w' or 'b'.
+fn color(board: &mut Board, part: &str) -> FenResult {
     if_chain! {
         if part.len() == 1;
-        if let Some(x) = part.chars().next();
-        if WHITE_OR_BLACK.contains(x);
+        if let Some(c) = part.chars().next();
+        if WHITE_OR_BLACK.contains(c);
         then {
-            match x {
+            match c {
                 'w' => board.game_state.active_color = Sides::WHITE as u8,
                 'b' => board.game_state.active_color = Sides::BLACK as u8,
                 _ => (),
             }
-
-            // If everything is correct, set the result to true;
-            result = true;
+            return Ok(());
         }
     }
 
-    result
+    Err(FenError::Part2)
 }
 
 // Part 3: Parse castling rights.
-fn castling(board: &mut Board, part: &str) -> bool {
-    let length = part.len();
-    let mut char_ok = 0;
-
+fn castling(board: &mut Board, part: &str) -> FenResult {
     // There should be 1 to 4 castling rights. If no player has castling
     // rights, the character is '-'.
-    if (1..=4).contains(&length) {
+    if (1..=4).contains(&part.len()) {
         // Accepts "-" for no castling rights in addition to leaving out letters.
         for c in part.chars() {
-            if CASTLING_RIGHTS.contains(c) {
-                // Count correct characters
-                char_ok += 1;
-                match c {
-                    'K' => board.game_state.castling |= Castling::WK,
-                    'Q' => board.game_state.castling |= Castling::WQ,
-                    'k' => board.game_state.castling |= Castling::BK,
-                    'q' => board.game_state.castling |= Castling::BQ,
-                    _ => (),
-                }
+            match c {
+                'K' => board.game_state.castling |= Castling::WK,
+                'Q' => board.game_state.castling |= Castling::WQ,
+                'k' => board.game_state.castling |= Castling::BK,
+                'q' => board.game_state.castling |= Castling::BQ,
+                '-' => (),
+                _ => return Err(FenError::Part3),
             }
         }
+        return Ok(());
     }
 
-    // Counted correct characters should be at least 1, and equal to the
-    // length of the part.
-    (length >= 1) && (char_ok == length)
+    Err(FenError::Part3)
 }
 
 // Part 4: Parse the en passant square
-fn en_passant(board: &mut Board, part: &str) -> bool {
-    let length = part.len();
-    let mut char_ok = 0;
-
+fn en_passant(board: &mut Board, part: &str) -> FenResult {
     // No en-passant square if length is 1. The character should be a DASH.
     if_chain! {
-        if length == 1;
+        if part.len() == 1;
         if let Some(x) = part.chars().next();
         if x == DASH;
         then {
-            char_ok += 1
+            return Ok(());
         }
     }
 
     // If length is 2, try to parse the part to a square number.
-    if length == 2 {
+    if part.len() == 2 {
         let square = parse::algebraic_square_to_number(part);
 
         match square {
-            Some(s) if EP_SQUARES_WHITE.contains(&s) || EP_SQUARES_BLACK.contains(&s) => {
-                board.game_state.en_passant = Some(s as u8);
-                char_ok += 2;
+            Some(sq) if EP_SQUARES_WHITE.contains(&sq) || EP_SQUARES_BLACK.contains(&sq) => {
+                board.game_state.en_passant = Some(sq as u8);
+                return Ok(());
             }
-            Some(_) | None => (),
-        }
+            _ => return Err(FenError::Part4),
+        };
     }
 
-    // The length of this part should either be 1 or 2, and the counted
-    // correct characters should be equal to the part length.
-    (length == 1 || length == 2) && (length == char_ok)
+    Err(FenError::Part4)
 }
 
 // Part 5: Half-move clock: parse number of moves since last capture or pawn push.
-fn half_move_clock(board: &mut Board, part: &str) -> bool {
-    let length = part.len();
-    let mut result = false;
-
+fn half_move_clock(board: &mut Board, part: &str) -> FenResult {
     if_chain! {
-        if length == 1 || length == 2;
+        if part.len() == 1 || part.len() == 2;
         if let Ok(x) = part.parse::<u8>();
         if x <= MAX_MOVE_RULE;
         then {
             board.game_state.halfmove_clock = x;
-            result = true;
+            return Ok(());
         }
     }
 
-    result
+    Err(FenError::Part5)
 }
 
 // Part 6: Parse full move number.
-fn full_move_number(board: &mut Board, part: &str) -> bool {
-    let length = part.len();
-    let mut result = false;
-
+fn full_move_number(board: &mut Board, part: &str) -> FenResult {
     if_chain! {
-        if length >= 1 || length <= 4;
+        if !part.is_empty() && part.len() <= 4;
         if let Ok(x) = part.parse::<u16>();
         if x <= (MAX_GAME_MOVES as u16);
         then {
             board.game_state.fullmove_number = x;
-            result = true;
+            return Ok(());
         }
     }
 
-    result
+    Err(FenError::Part6)
 }
