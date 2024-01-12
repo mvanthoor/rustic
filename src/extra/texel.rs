@@ -42,7 +42,7 @@ impl Tuner {
 
         let lines = data_file_store.get_successful_lines();
         let data_point_store = self.convert_lines_to_data_points(lines);
-        self.data_points = data_point_store.get_successful_data_points().clone();
+        self.data_points = data_point_store.get_successful_data_points().to_vec();
 
         self.print_data_point_conversion_result(&data_point_store);
 
