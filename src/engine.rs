@@ -177,7 +177,7 @@ impl Engine {
         }
 
         #[cfg(feature = "extra")]
-        if let Some(data_file) = self.settings.texel.file_name.clone() {
+        if let Some(data_file) = self.settings.texel.file_name.to_owned() {
             const OK: &str = "Tuning run finished.";
 
             match Tuner::new(data_file).load() {
