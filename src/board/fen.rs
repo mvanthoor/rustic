@@ -18,8 +18,7 @@ use std::{
 };
 
 /** Definitions used by the FEN-reader */
-const CORRECT_FEN_LENGTH: usize = 6;
-const SHORT_FEN_LENGTH: usize = 4;
+const FEN_NR_OF_PARTS: usize = 6;
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const EP_SQUARES_WHITE: RangeInclusive<Square> = Squares::A3..=Squares::H3;
 const EP_SQUARES_BLACK: RangeInclusive<Square> = Squares::A6..=Squares::H6;
@@ -56,62 +55,45 @@ impl Display for FenError {
 }
 
 pub type FenResult = Result<(), FenError>;
+pub type SplitResult = Result<Vec<String>, FenError>;
 type FenPartParser = fn(board: &mut Board, part: &str) -> FenResult;
 
 impl Board {
     // This function reads a provided FEN-string or uses the default
-    // position. It sets up the position on the board if parsing
+    // position. It sets up the position on the engine's board if parsing
     // succeeds. If parsing fails, the board is not changed.
     pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
-        // Split the string into parts. There should be 6 parts.
-        let mut fen_parts = split_fen_string(fen_string);
-
-        // However, if its a short fen, extend it with the missing two parts.
-        if fen_parts.len() == SHORT_FEN_LENGTH {
-            fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
-        }
-
-        if fen_parts.len() != CORRECT_FEN_LENGTH {
-            return Err(FenError::IncorrectLength);
-        }
-
+        let fen_parts = split_fen_string(fen_string)?;
         let fen_parsers = create_part_parsers();
 
-        // Create a new board so we don't destroy the original if the
+        // Create a temporary board so we don't destroy the original if the
         // fen-string happens to be incorrect.
-        let mut new_board = self.clone();
-        new_board.reset();
+        let mut temp_board = self.clone();
+        temp_board.reset();
 
         // Parse all the parts and check if each one succeeds. If not,
         // immediately return with the error of the offending part.
         for (parser, part) in fen_parsers.iter().zip(fen_parts.iter()) {
-            parser(&mut new_board, part)?;
+            parser(&mut temp_board, part)?;
         }
 
-        // Replace original board with new one if setup was successful.
-        new_board.init();
-        *self = new_board;
+        // Put the temporary board in the original one's place if setting
+        // up the position is succesful.
+        temp_board.init();
+        *self = temp_board;
 
         Ok(())
     }
 }
 
-// This function verifies if a FEN-string is correct and can be set up on
-// the board. Note: if this function exists with an error, the provided
-// board will be in an underfined state and cannot be used to play games.
-pub fn fen_verify(board: &mut Board, fen_string: Option<&str>) -> FenResult {
+// This function is primarily used by the tuner, because it is much faster
+// than fen_setup() in verifying if a FEN-string is correct. In contrast to
+// fen_setup() though, it does not protect the incoming board from
+// corruption. If the function fails, the incoming board is useless.
+pub fn fen_setup_fast(board: &mut Board, fen_string: Option<&str>) -> FenResult {
     board.reset();
 
-    let mut fen_parts = split_fen_string(fen_string);
-
-    if fen_parts.len() == SHORT_FEN_LENGTH {
-        fen_parts.append(&mut vec![String::from("0"), String::from("1")]);
-    }
-
-    if fen_parts.len() != CORRECT_FEN_LENGTH {
-        return Err(FenError::IncorrectLength);
-    }
-
+    let fen_parts = split_fen_string(fen_string)?;
     let fen_parsers = create_part_parsers();
 
     for (parser, part) in fen_parsers.iter().zip(fen_parts.iter()) {
@@ -125,18 +107,30 @@ pub fn fen_verify(board: &mut Board, fen_string: Option<&str>) -> FenResult {
 
 // ===== Private functions =====
 
-fn split_fen_string(fen_string: Option<&str>) -> Vec<String> {
-    match fen_string {
+fn split_fen_string(fen_string: Option<&str>) -> SplitResult {
+    const SHORT_FEN_LENGTH: usize = 4;
+
+    let mut fen_string: Vec<String> = match fen_string {
         Some(fen) => fen,
         None => FEN_START_POSITION,
     }
     .replace(EM_DASH, DASH.encode_utf8(&mut [0; 4]))
     .split(SPACE)
     .map(String::from)
-    .collect()
+    .collect();
+
+    if fen_string.len() == SHORT_FEN_LENGTH {
+        fen_string.append(&mut vec![String::from("0"), String::from("1")]);
+    }
+
+    if fen_string.len() != FEN_NR_OF_PARTS {
+        return Err(FenError::IncorrectLength);
+    }
+
+    Ok(fen_string)
 }
 
-fn create_part_parsers() -> [FenPartParser; CORRECT_FEN_LENGTH] {
+fn create_part_parsers() -> [FenPartParser; FEN_NR_OF_PARTS] {
     [
         pieces,
         color,

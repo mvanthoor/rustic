@@ -4,7 +4,7 @@ pub mod defs;
 mod display;
 mod result_types;
 
-use crate::board::defs::fen_verify;
+use crate::board::defs::fen_setup_fast;
 use crate::board::Board;
 use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
 use data_point::{DataPoint, DataPointStore};
@@ -118,7 +118,7 @@ impl Tuner {
         let result = parts[1].clone();
 
         // Validate the FEN-string by setting it up on a board.
-        if fen_verify(&mut self.board, Some(fen.trim())).is_err() {
+        if fen_setup_fast(&mut self.board, Some(fen.trim())).is_err() {
             return Err(DataFileLineParseError::FenString);
         };
 

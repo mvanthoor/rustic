@@ -1,7 +1,7 @@
 use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
-pub use crate::board::fen::fen_verify;
+pub use crate::board::fen::fen_setup_fast;
 pub use crate::board::fen::FenError;
 pub use crate::board::zobrist::ZobristKey;
 
