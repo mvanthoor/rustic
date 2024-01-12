@@ -182,13 +182,12 @@ impl Engine {
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.file_name.clone() {
             const OK: &str = "Tuning run finished.";
-            const NO_FILE: &str = "Data file cannot be opened.";
 
             action_requested = true;
             match Tuner::new(data_file).load() {
                 Ok(()) => println!("{}", OK),
                 Err(e) => match e {
-                    TunerLoadrror::DataFileReadError => println!("{}", NO_FILE),
+                    TunerLoadrror::DataFileReadError => println!("{e}"),
                 },
             };
         }
