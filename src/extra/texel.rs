@@ -8,7 +8,7 @@ use crate::board::defs::fen_setup_fast;
 use crate::board::Board;
 use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
 use data_point::{DataPoint, DataPointStore};
-use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerRunError, TunerRunResult};
+use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadResult, TunerLoadrror};
 use std::fs::File;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -31,11 +31,11 @@ impl Tuner {
         }
     }
 
-    pub fn run(&mut self) -> TunerRunResult {
+    pub fn load(&mut self) -> TunerLoadResult {
         let now = Instant::now();
         let data_file_store = match self.data_file_load() {
             Ok(store) => store,
-            Err(_) => return Err(TunerRunError::DataFileReadError),
+            Err(_) => return Err(TunerLoadrror::DataFileReadError),
         };
 
         self.print_data_file_read_result(&data_file_store);

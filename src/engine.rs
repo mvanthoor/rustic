@@ -25,7 +25,7 @@ use transposition::{PerftData, SearchData, TT};
 use crate::{
     board::defs::Pieces,
     engine::defs::TexelSettings,
-    extra::texel::defs::TunerRunError,
+    extra::texel::defs::TunerLoadrror,
     extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
@@ -185,10 +185,10 @@ impl Engine {
             const NO_FILE: &str = "Data file cannot be opened.";
 
             action_requested = true;
-            match Tuner::new(data_file).run() {
+            match Tuner::new(data_file).load() {
                 Ok(()) => println!("{}", OK),
                 Err(e) => match e {
-                    TunerRunError::DataFileReadError => println!("{}", NO_FILE),
+                    TunerLoadrror::DataFileReadError => println!("{}", NO_FILE),
                 },
             };
         }
