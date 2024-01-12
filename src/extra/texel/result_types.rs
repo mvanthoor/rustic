@@ -3,11 +3,11 @@ use crate::extra::texel::{
 };
 use std::fmt::{self, Display};
 
-pub enum TunerLoadrror {
+pub enum TunerLoadError {
     DataFileReadError,
 }
 
-impl Display for TunerLoadrror {
+impl Display for TunerLoadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let error = match self {
             Self::DataFileReadError => "Data file could not be read",
@@ -18,4 +18,4 @@ impl Display for TunerLoadrror {
 
 pub type DataFileLoadResult = Result<DataFileStore, ()>;
 pub type DataFileLineParseResult = Result<DataPoint, DataFileLineParseError>;
-pub type TunerLoadResult = Result<(), TunerLoadrror>;
+pub type TunerLoadResult = Result<(), TunerLoadError>;

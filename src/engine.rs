@@ -25,7 +25,7 @@ use transposition::{PerftData, SearchData, TT};
 use crate::{
     board::defs::Pieces,
     engine::defs::TexelSettings,
-    extra::texel::defs::TunerLoadrror,
+    extra::texel::defs::TunerLoadError,
     extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
@@ -183,7 +183,7 @@ impl Engine {
             match Tuner::new(data_file).load() {
                 Ok(()) => println!("{}", OK),
                 Err(e) => match e {
-                    TunerLoadrror::DataFileReadError => println!("{e}"),
+                    TunerLoadError::DataFileReadError => println!("{e}"),
                 },
             };
             return Ok(());
