@@ -18,4 +18,4 @@ impl Display for TunerLoadError {
 
 pub type DataFileLoadResult = Result<DataFileStore, ()>;
 pub type DataFileLineParseResult = Result<DataPoint, DataFileLineParseError>;
-pub type TunerLoadResult = Result<(), TunerLoadError>;
+pub type TunerLoadResult = Result<String, TunerLoadError>;

@@ -178,10 +178,8 @@ impl Engine {
 
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.file_name.to_owned() {
-            const OK: &str = "Tuning run finished.";
-
             match Tuner::new(data_file).load() {
-                Ok(()) => println!("{}", OK),
+                Ok(message) => println!("{message}"),
                 Err(e) => match e {
                     TunerLoadError::DataFileReadError => println!("{e}"),
                 },

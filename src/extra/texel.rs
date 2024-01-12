@@ -49,7 +49,7 @@ impl Tuner {
         let elapsed = now.elapsed().as_millis();
         println!("Time taken: {elapsed} ms");
 
-        Ok(())
+        Ok(String::from("Data file loaded succesfully"))
     }
 
     fn data_file_load(&mut self) -> DataFileLoadResult {
