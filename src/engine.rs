@@ -138,12 +138,8 @@ impl Engine {
         // Setup position and abort if this fails.
         self.setup_position()?;
 
-        // Run a specific action if requested...
-        let mut action_requested = false;
-
         // Run perft if requested.
         if self.cmdline.perft() > 0 {
-            action_requested = true;
             perft::run(
                 self.board.clone(),
                 self.cmdline.perft(),
@@ -151,15 +147,16 @@ impl Engine {
                 Arc::clone(&self.tt_perft),
                 self.settings.tt_size > 0,
             );
+            return Ok(());
         }
 
         // === Only available with "extra" features enabled. ===
         #[cfg(feature = "extra")]
         // Generate magic numbers if requested.
         if self.cmdline.has_wizardry() {
-            action_requested = true;
             wizardry::find_magics(Pieces::ROOK);
             wizardry::find_magics(Pieces::BISHOP);
+            return Ok(());
         };
 
         #[cfg(feature = "extra")]
@@ -170,39 +167,35 @@ impl Engine {
         // checked there. Just fix the issue by resizing both the perft and
         // search TT's appropriately for running the EPD suite.
         if self.cmdline.has_test() {
-            action_requested = true;
             self.tt_perft
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .resize(self.settings.tt_size);
             self.tt_search.lock().expect(ErrFatal::LOCK).resize(0);
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
+            return Ok(());
         }
 
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.file_name.clone() {
             const OK: &str = "Tuning run finished.";
 
-            action_requested = true;
             match Tuner::new(data_file).load() {
                 Ok(()) => println!("{}", OK),
                 Err(e) => match e {
                     TunerLoadrror::DataFileReadError => println!("{e}"),
                 },
             };
+            return Ok(());
         }
         // =====================================================
 
         // In the main loop, the engine manages its resources so it will be
         // able to play legal chess and communicate with different user
         // interfaces.
-        if !action_requested {
-            self.main_loop();
-        }
+        self.main_loop();
 
-        // There are three ways to exit the engine: when the FEN-setup
-        // fails, because of a crash, or normally. In the first two cases,
-        // this Ok(()) won't be reached.
+        // We're done and the engine exited without issues.
         Ok(())
     }
 
