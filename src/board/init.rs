@@ -1,7 +1,7 @@
 use crate::{
     board::{defs::Pieces, zobrist::ZobristKey, Board},
     defs::{Bitboard, NrOf, Piece, Sides},
-    evaluation::defs::PSQT_COLLECTION,
+    evaluation::defs::EvalParams,
     evaluation::Evaluation,
     misc::bits,
     movegen::defs::Move,
@@ -25,7 +25,7 @@ impl Board {
         self.game_state.next_move = Move::new(0);
 
         // Set initial PST values: also incrementally updated.
-        let pst_values = Evaluation::psqt_apply(self, &PSQT_COLLECTION);
+        let pst_values = Evaluation::psqt_apply(self, &EvalParams::PSQT_SET);
         self.game_state.psqt_value[Sides::WHITE] = pst_values.0;
         self.game_state.psqt_value[Sides::BLACK] = pst_values.1;
 

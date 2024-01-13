@@ -2,7 +2,7 @@ use crate::{
     board::defs::{Location, Ranks},
     board::Board,
     defs::{Side, Sides, Square},
-    evaluation::defs::FLIP,
+    evaluation::defs::EvalParams,
 };
 
 impl Board {
@@ -58,7 +58,7 @@ impl Board {
 
     pub const fn flip(side: Side, square: Square) -> usize {
         if side == Sides::WHITE {
-            FLIP[square]
+            EvalParams::FLIP[square]
         } else {
             square
         }

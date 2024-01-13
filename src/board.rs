@@ -17,7 +17,7 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
-    evaluation::defs::{PHASE_VALUES, PSQT_COLLECTION},
+    evaluation::defs::EvalParams,
     misc::bits,
 };
 use std::sync::Arc;
@@ -94,9 +94,9 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.phase_value -= PHASE_VALUES[piece];
+        self.game_state.phase_value -= EvalParams::PHASE_VALUES[piece];
         let square = Board::flip(side, square);
-        self.game_state.psqt_value[side].sub(PSQT_COLLECTION[piece][square]);
+        self.game_state.psqt_value[side].sub(EvalParams::PSQT_SET[piece][square]);
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -108,9 +108,9 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.phase_value += PHASE_VALUES[piece];
+        self.game_state.phase_value += EvalParams::PHASE_VALUES[piece];
         let square = Board::flip(side, square);
-        self.game_state.psqt_value[side].add(PSQT_COLLECTION[piece][square]);
+        self.game_state.psqt_value[side].add(EvalParams::PSQT_SET[piece][square]);
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.

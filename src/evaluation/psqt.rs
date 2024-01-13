@@ -5,14 +5,14 @@
 use crate::{
     board::Board,
     defs::{NrOf, Sides},
-    evaluation::defs::W,
-    evaluation::defs::{PHASE_MAX, PHASE_MIN},
+    evaluation::defs::{EvalParams, W},
     evaluation::Evaluation,
     misc::bits,
 };
 
 type Psqt = [W; NrOf::SQUARES];
-type PsqtCollection = [Psqt; NrOf::PIECE_TYPES];
+pub type FlipTable = [usize; NrOf::SQUARES];
+pub type PsqtSet = [Psqt; NrOf::PIECE_TYPES];
 
 #[rustfmt::skip]
 const PSQT_KING: Psqt = 
@@ -92,7 +92,7 @@ const PSQT_PAWN: Psqt =
     W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100), W(100,100),
 ];
 
-pub const PSQT_COLLECTION: PsqtCollection = [
+pub const PSQT_SET: PsqtSet = [
     PSQT_KING,
     PSQT_QUEEN,
     PSQT_ROOK,
@@ -154,7 +154,7 @@ pub const PSQT_COLLECTION: PsqtCollection = [
 
 #[allow(dead_code)]
 #[rustfmt::skip]
-pub const FLIP: [usize; 64] = [
+pub const FLIP: FlipTable = [
     56, 57, 58, 59, 60, 61, 62, 63,
     48, 49, 50, 51, 52, 53, 54, 55,
     40, 41, 42, 43, 44, 45, 46, 47,
@@ -171,7 +171,7 @@ impl Evaluation {
     // FEN-reader. The outcome will be placed in the board's game state, so
     // the engine can update the values incrementally very time a piece is
     // moved.
-    pub fn psqt_apply(board: &Board, psqt_collection: &PsqtCollection) -> (W, W) {
+    pub fn psqt_apply(board: &Board, psqt_set: &PsqtSet) -> (W, W) {
         let mut psqt_w_mg: i16 = 0;
         let mut psqt_w_eg: i16 = 0;
         let mut psqt_b_mg: i16 = 0;
@@ -187,15 +187,15 @@ impl Evaluation {
             // Iterate over pieces of the current piece_type for white.
             while white_pieces > 0 {
                 let square = bits::next(&mut white_pieces);
-                psqt_w_mg += psqt_collection[piece_type][FLIP[square]].mg();
-                psqt_w_eg += psqt_collection[piece_type][FLIP[square]].eg();
+                psqt_w_mg += psqt_set[piece_type][FLIP[square]].mg();
+                psqt_w_eg += psqt_set[piece_type][FLIP[square]].eg();
             }
 
             // Iterate over pieces of the current piece_type for black.
             while black_pieces > 0 {
                 let square = bits::next(&mut black_pieces);
-                psqt_b_mg += psqt_collection[piece_type][square].mg();
-                psqt_b_eg += psqt_collection[piece_type][square].eg()
+                psqt_b_mg += psqt_set[piece_type][square].mg();
+                psqt_b_eg += psqt_set[piece_type][square].eg()
             }
         }
 
@@ -215,7 +215,7 @@ impl Evaluation {
 
         // Get the game phase, from 1 (opening/midgame) to 0 (endgame)
         let v = board.game_state.phase_value;
-        let phase = Evaluation::determine_phase(PHASE_MIN, PHASE_MAX, v);
+        let phase = Evaluation::determine_phase(EvalParams::PHASE_MIN, EvalParams::PHASE_MAX, v);
 
         // Mix the tables by taking parts of both mg and eg.
         let score_w = (psqt_w_mg * phase) + (psqt_w_eg * (1.0 - phase));

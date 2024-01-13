@@ -4,7 +4,7 @@ use crate::{
     board::defs::{Pieces, Squares, BB_SQUARES},
     board::Board,
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::defs::PSQT_COLLECTION,
+    evaluation::defs::EvalParams,
     evaluation::Evaluation,
     movegen::{defs::Move, MoveGenerator},
 };
@@ -246,7 +246,7 @@ fn check_incrementals(board: &Board) -> bool {
     const CHECK_INCREMENTALS: &str = "Check Incrementals";
     let from_scratch_key = board.init_zobrist_key();
     let from_scratch_phase_value = Evaluation::count_phase(board);
-    let from_scratch_pst = Evaluation::psqt_apply(board, &PSQT_COLLECTION);
+    let from_scratch_pst = Evaluation::psqt_apply(board, &EvalParams::PSQT_SET);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.

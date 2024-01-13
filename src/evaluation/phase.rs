@@ -1,9 +1,5 @@
-use crate::{
-    board::Board,
-    defs::Sides,
-    evaluation::{defs::PHASE_VALUES, Evaluation},
-    misc::bits,
-};
+use crate::evaluation::defs::EvalParams;
+use crate::{board::Board, defs::Sides, evaluation::Evaluation, misc::bits};
 
 impl Evaluation {
     // Counts all the phase values for white and black and returns the
@@ -20,12 +16,12 @@ impl Evaluation {
             let mut black_pieces = *b;
 
             while white_pieces > 0 {
-                phase_w += PHASE_VALUES[piece_type];
+                phase_w += EvalParams::PHASE_VALUES[piece_type];
                 bits::next(&mut white_pieces);
             }
 
             while black_pieces > 0 {
-                phase_b += PHASE_VALUES[piece_type];
+                phase_b += EvalParams::PHASE_VALUES[piece_type];
                 bits::next(&mut black_pieces);
             }
         }
