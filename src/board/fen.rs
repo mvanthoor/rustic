@@ -63,7 +63,11 @@ impl Board {
     // position. It sets up the position on the engine's board if parsing
     // succeeds. If parsing fails, the board is not changed.
     pub fn fen_setup(&mut self, fen_string: Option<&str>) -> FenResult {
+        // Try to split the FEN-string into 6 parts. Return with an error
+        // if this fails.
         let fen_parts = split_fen_string(fen_string)?;
+
+        // Create the 6 FEN-parsers.
         let fen_parsers = create_part_parsers();
 
         // Create a temporary board so we don't destroy the original if the
@@ -260,7 +264,7 @@ fn en_passant(board: &mut Board, part: &str) -> FenResult {
 // Part 5: Half-move clock: parse number of moves since last capture or pawn push.
 fn half_move_clock(board: &mut Board, part: &str) -> FenResult {
     if_chain! {
-        if part.len() == 1 || part.len() == 2;
+        if (1..=3).contains(&part.len());
         if let Ok(x) = part.parse::<u8>();
         if x <= MAX_MOVE_RULE;
         then {
