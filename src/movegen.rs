@@ -7,7 +7,7 @@ mod movelist;
 use crate::{
     board::defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
     board::Board,
-    defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
+    defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY, MAX_LEGAL_MOVES},
     misc::bits,
 };
 use defs::{Move, MoveType, Shift};
@@ -58,8 +58,7 @@ impl MoveGenerator {
         mg
     }
 
-    // Generates moves for the side that is to move. The MoveType parameter
-    // determines if all moves, or only captures need to be generated.
+    // Generates moves for the side that is to move.
     pub fn generate_moves(
         &self,
         board: &Board,
@@ -79,7 +78,14 @@ impl MoveGenerator {
             self.castling(board, memory, &mut count);
         }
 
+        self.init_unused_part_of(memory, count);
         MoveList::new(*memory, count)
+    }
+
+    pub fn init_unused_part_of(&self, memory: &mut MoveListRaw, count: u8) {
+        for i in count..MAX_LEGAL_MOVES {
+            memory[i as usize].write(Move::new(0));
+        }
     }
 
     // Return non-slider (King, Knight) attacks for the given square.
