@@ -1,8 +1,8 @@
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, PerftData, TT},
-    movegen::defs::{MoveList, MoveType},
-    movegen::MoveGenerator,
+    movegen::defs::MoveType,
+    movegen::{defs::allocate_move_list_memory, MoveGenerator},
 };
 use if_chain::if_chain;
 use std::{
@@ -78,7 +78,6 @@ pub fn perft(
     tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;
-    let mut move_list: MoveList = MoveList::new();
 
     // Count each visited leaf node.
     if depth == 0 {
@@ -99,7 +98,8 @@ pub fn perft(
         }
     }
 
-    mg.generate_moves(board, &mut move_list, MoveType::All);
+    let mut memory = allocate_move_list_memory();
+    let move_list = mg.generate_moves(board, &mut memory, MoveType::All);
 
     // Run perft for each of the moves.
     for i in 0..move_list.len() {

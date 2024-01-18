@@ -4,8 +4,8 @@ use crate::{
     engine::{defs::ErrFatal, Engine},
     misc::parse,
     misc::parse::PotentialMove,
-    movegen::defs::{Move, MoveList, MoveType},
-    movegen::MoveGenerator,
+    movegen::defs::{Move, MoveType},
+    movegen::{defs::allocate_move_list_memory, MoveGenerator},
 };
 use if_chain::if_chain;
 use std::sync::Mutex;
@@ -55,9 +55,9 @@ impl Engine {
         let mut result = Err(());
 
         // Get the pseudo-legal move list for this position.
-        let mut ml = MoveList::new();
+        let mut memory = allocate_move_list_memory();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
-        mg.generate_moves(&mtx_board, &mut ml, MoveType::All);
+        let ml = mg.generate_moves(&mtx_board, &mut memory, MoveType::All);
         std::mem::drop(mtx_board);
 
         // Determine if the potential move is pseudo-legal. make() wil

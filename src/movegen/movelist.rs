@@ -6,10 +6,14 @@
 // mis-addressed due to a bug, the program panics.
 
 use crate::{defs::MAX_LEGAL_MOVES, movegen::defs::Move};
-use std::mem::MaybeUninit;
+use std::mem::{self, MaybeUninit};
 
 type MoveListArray = [Move; MAX_LEGAL_MOVES as usize];
-type MoveListRaw = MaybeUninit<MoveListArray>;
+pub type MoveListRaw = [MaybeUninit<Move>; MAX_LEGAL_MOVES as usize];
+
+pub fn allocate_move_list_memory() -> MoveListRaw {
+    unsafe { MaybeUninit::uninit().assume_init() }
+}
 
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
@@ -24,27 +28,11 @@ impl MoveList {
     // overwriting them with actual moves) is a massive performance hit. In
     // the future we could pass in the move generator so the list can
     // immediately be initialized with moves.
-    pub fn new() -> Self {
+    pub fn new(raw: MoveListRaw, count: u8) -> Self {
         Self {
-            list: unsafe {
-                // Create the memory block.
-                let block = MoveListRaw::uninit();
-
-                // *** Officially, the initialization should be here. This
-                // is now left up to the caller of this function. ***
-
-                // Immediately extract it; which is not best practice, but
-                // required to avoid the mentioned performance hit.
-                block.assume_init()
-            },
-            count: 0,
+            list: unsafe { mem::transmute::<_, MoveListArray>(raw) },
+            count,
         }
-    }
-
-    // Used to store a move in the move list.
-    pub fn push(&mut self, m: Move) {
-        self.list[self.count as usize] = m;
-        self.count += 1;
     }
 
     // Returns the number of moves in the move list.

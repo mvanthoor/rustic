@@ -50,6 +50,7 @@ implemented.
   - pick_move() speed improvement (+3 Elo).
   - Remove unsafe code in move list swap function (0 Elo, +/- 3).
 - Refactor:
+  - _FINALLY_ fixed the (potential) undefined behaviour in MoveList.
   - Restructured Comm to be in line with the rest of the modules.
   - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
     fully fail-soft. No Elo improvement, but the code is cleaner and more
