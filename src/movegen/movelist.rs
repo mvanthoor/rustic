@@ -28,9 +28,9 @@ impl MoveList {
     // overwriting them with actual moves) is a massive performance hit. In
     // the future we could pass in the move generator so the list can
     // immediately be initialized with moves.
-    pub fn new(raw: MoveListRaw, count: u8) -> Self {
+    pub fn new(raw: &MoveListRaw, count: u8) -> Self {
         Self {
-            list: unsafe { mem::transmute::<_, MoveListArray>(raw) },
+            list: unsafe { mem::transmute::<_, MoveListArray>(*raw) },
             count,
         }
     }

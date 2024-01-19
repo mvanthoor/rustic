@@ -79,7 +79,7 @@ impl MoveGenerator {
         }
 
         self.init_unused_part_of(memory, count);
-        MoveList::new(*memory, count)
+        MoveList::new(memory, count)
     }
 
     pub fn init_unused_part_of(&self, memory: &mut MoveListRaw, count: u8) {
