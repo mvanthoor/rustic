@@ -65,17 +65,17 @@ impl Board {
         let has_permissions = self.game_state.castling > 0;
 
         // Assume this is not a pawn move or a capture.
-        self.game_state.halfmove_clock += 1;
+        self.game_state.half_move_clock += 1;
 
         // Every move except double_step unsets the up-square.
         if self.game_state.en_passant.is_some() {
             self.clear_ep_square();
         }
 
-        // If a piece was captured with this move then remove it. Also reset halfmove_clock.
+        // If a piece was captured with this move then remove it. Also reset half_move_clock.
         if is_capture {
             self.remove_piece(opponent, captured, to);
-            self.game_state.halfmove_clock = 0;
+            self.game_state.half_move_clock = 0;
             // Change castling permissions on rook capture in the corner.
             if captured == Pieces::ROOK && has_permissions {
                 self.update_castling_permissions(self.game_state.castling & CASTLING_PERMS[to]);
@@ -86,10 +86,10 @@ impl Board {
         if piece != Pieces::PAWN {
             self.move_piece(us, piece, from, to);
         } else {
-            // It's a pawn move. Take promotion into account and reset halfmove_clock.
+            // It's a pawn move. Take promotion into account and reset half_move_clock.
             self.remove_piece(us, piece, from);
             self.put_piece(us, if !is_promotion { piece } else { promoted }, to);
-            self.game_state.halfmove_clock = 0;
+            self.game_state.half_move_clock = 0;
 
             // After an en-passant maneuver, the opponent's pawn must also be removed.
             if en_passant {

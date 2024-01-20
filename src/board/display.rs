@@ -67,7 +67,7 @@ impl Board {
             Some(ep) => SQUARE_NAME[ep as usize],
             None => "-",
         };
-        let hmc = self.game_state.halfmove_clock;
+        let hmc = self.game_state.half_move_clock;
         let fmn = self.game_state.fullmove_number;
 
         meta.push_str(format!("{:<20}{:x}\n", "Zobrist key:", zk).as_str());

@@ -13,7 +13,7 @@ impl Board {
 
     // Checks for the 50-move rule.
     pub fn draw_by_fifty_move_rule(&self) -> bool {
-        self.game_state.halfmove_clock >= MAX_MOVE_RULE
+        self.game_state.half_move_clock >= MAX_MOVE_RULE
     }
 
     // This function returns true if the amount of material on the board is
@@ -109,7 +109,7 @@ impl Board {
             // search further back, because before this, we can't ever
             // repeat. After all, the capture or pawn move can't be
             // reverted or repeated.
-            stop = historic.halfmove_clock == 0;
+            stop = historic.half_move_clock == 0;
 
             // Search backwards.
             i -= 1;

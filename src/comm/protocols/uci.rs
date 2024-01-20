@@ -461,6 +461,13 @@ impl Uci {
     }
 
     fn search_summary(s: &SearchSummary) {
+        // Report depth and seldepth (if available).
+        let depth = if s.seldepth > 0 {
+            format!("depth {} seldepth {}", s.depth, s.seldepth)
+        } else {
+            format!("depth {}", s.depth)
+        };
+
         // If mate found, report this; otherwise report normal score.
         let score = if let Some(moves) = Shared::moves_to_checkmate(s.cp) {
             // If the engine is being mated itself, flip the score.
@@ -468,13 +475,6 @@ impl Uci {
             format!("mate {}", moves * flip)
         } else {
             format!("cp {}", s.cp)
-        };
-
-        // Report depth and seldepth (if available).
-        let depth = if s.seldepth > 0 {
-            format!("depth {} seldepth {}", s.depth, s.seldepth)
-        } else {
-            format!("depth {}", s.depth)
         };
 
         // Only display hash full if not 0
@@ -485,9 +485,9 @@ impl Uci {
         };
 
         let info = format!(
-            "info score {} {} time {} nodes {} nps {}{}pv {}",
-            score,
+            "info {} score {} time {} nodes {} nps {}{}pv {}",
             depth,
+            score,
             s.time,
             s.nodes,
             s.nps,

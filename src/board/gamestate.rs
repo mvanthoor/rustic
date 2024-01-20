@@ -15,7 +15,7 @@ use std::fmt::{self, Display};
 pub struct GameState {
     pub active_color: u8,
     pub castling: u8,
-    pub halfmove_clock: u8,
+    pub half_move_clock: u8,
     pub en_passant: Option<u8>,
     pub fullmove_number: u16,
     pub zobrist_key: u64,
@@ -30,7 +30,7 @@ impl GameState {
             active_color: 0,
             castling: 0,
             en_passant: None,
-            halfmove_clock: 0,
+            half_move_clock: 0,
             fullmove_number: 0,
             zobrist_key: 0,
             phase_value: 0,
@@ -43,7 +43,7 @@ impl GameState {
         self.active_color = 0;
         self.castling = 0;
         self.en_passant = None;
-        self.halfmove_clock = 0;
+        self.half_move_clock = 0;
         self.fullmove_number = 0;
         self.zobrist_key = 0;
         self.phase_value = 0;
@@ -89,7 +89,7 @@ impl Display for GameState {
             self.active_color,
             self.castling_to_string(),
             ep,
-            self.halfmove_clock,
+            self.half_move_clock,
             self.fullmove_number,
             self.psqt_value[Sides::WHITE].mg(),
             self.psqt_value[Sides::BLACK].mg(),

@@ -268,7 +268,7 @@ fn half_move_clock(board: &mut Board, part: &str) -> FenResult {
         if let Ok(x) = part.parse::<u8>();
         if x <= MAX_MOVE_RULE;
         then {
-            board.game_state.halfmove_clock = x;
+            board.game_state.half_move_clock = x;
             return Ok(());
         }
     }
