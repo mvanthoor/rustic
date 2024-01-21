@@ -62,7 +62,7 @@ Obviously, storing information in "data" is the other way around.PIECE_NAME
 Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 */
 
-pub use super::{magics::Magic, movelist::MoveList};
+pub use super::movelist::MoveList;
 use crate::{
     board::defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
     defs::{Piece, Square},

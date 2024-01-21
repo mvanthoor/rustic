@@ -260,23 +260,12 @@ fn reverse_move(board: &mut Board, side: Side, piece: Piece, remove: Square, put
 
 fn check_incrementals(board: &Board) -> bool {
     let from_scratch_key = board.init_zobrist_key();
-    let from_scratch_material = crate::evaluation::material::count(board);
     let from_scratch_psqt = crate::evaluation::psqt::apply(board);
     let mut result = true;
 
     // Waterfall: only report first error encountered and skip any others.
     if result && from_scratch_key != board.game_state.zobrist_key {
         println!("Check Incrementals: Error in Zobrist key.");
-        result = false;
-    };
-
-    if result && from_scratch_material.0 != board.game_state.material[Sides::WHITE] {
-        println!("Check Incrementals: Error in material count for white.");
-        result = false;
-    };
-
-    if result && from_scratch_material.1 != board.game_state.material[Sides::BLACK] {
-        println!("Check Incrementals: Error in material count for black.");
         result = false;
     };
 
