@@ -48,8 +48,8 @@ pub fn evaluate_position(board: &Board) -> i16 {
     // If one of the sides is down to a bare king, apply the KING_EDGE PSQT
     // to drive that king to the edge and mate it.
     if w_material < PAWN_VALUE || b_material < PAWN_VALUE {
-        let w_king_edge = KING_EDGE[board.king_square(Sides::WHITE)] as i16;
-        let b_king_edge = KING_EDGE[board.king_square(Sides::BLACK)] as i16;
+        let w_king_edge = KING_EDGE[board.king_square(Sides::WHITE)];
+        let b_king_edge = KING_EDGE[board.king_square(Sides::BLACK)];
         value += w_king_edge - b_king_edge;
     }
 

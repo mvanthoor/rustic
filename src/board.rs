@@ -110,7 +110,7 @@ impl Board {
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] -= PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] -= PSQT_MG[piece][s];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -126,7 +126,7 @@ impl Board {
 
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] += PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] += PSQT_MG[piece][s];
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
