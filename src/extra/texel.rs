@@ -2,6 +2,7 @@ mod data_file;
 mod data_point;
 pub mod defs;
 mod display;
+mod init_eval;
 mod result_types;
 
 use crate::board::defs::fen_setup_fast;

@@ -1,5 +1,11 @@
+use crate::defs::NrOf;
 use crate::evaluation::defs::EvalParams;
 use crate::{board::Board, defs::Sides, evaluation::Evaluation, misc::bits};
+
+pub type PhaseValues = [i16; NrOf::PIECE_TYPES];
+pub const PHASE_VALUES: PhaseValues = [0, 1050, 405, 305, 155, 0];
+pub const PHASE_MIN: i16 = 435;
+pub const PHASE_MAX: i16 = 5255;
 
 impl Evaluation {
     // Counts all the phase values for white and black and returns the
@@ -34,7 +40,7 @@ impl Evaluation {
         // Interpolate from edge0 to edge1.
         let result = (value - edge0) as f32 / (edge1 - edge0) as f32;
 
-        // Clamp the result: don't exceed 1.0 or drop below 0.0.
-        f32::min(1.0, f32::max(0.0, result))
+        // Clamp the result: don't drop below 0.0 or exceed 1.0.
+        result.clamp(0.0, 1.0)
     }
 }

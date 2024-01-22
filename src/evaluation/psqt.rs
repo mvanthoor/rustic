@@ -10,8 +10,8 @@ use crate::{
     misc::bits,
 };
 
-type Psqt = [W; NrOf::SQUARES];
 pub type FlipTable = [usize; NrOf::SQUARES];
+pub type Psqt = [W; NrOf::SQUARES];
 pub type PsqtSet = [Psqt; NrOf::PIECE_TYPES];
 
 #[rustfmt::skip]
