@@ -23,7 +23,7 @@
 
 # Changelog
 
-## January, 2023 - Rustic Alpha 3.0.5
+## January 21, 2023 - Rustic Alpha 3.0.5
 
 Version 3.0.5 is a maintenance release. Its main 'feature' is having
 dropped separate material counting, by moving the material values directly
