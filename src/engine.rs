@@ -178,12 +178,18 @@ impl Engine {
 
         #[cfg(feature = "extra")]
         if let Some(data_file) = self.settings.texel.file_name.to_owned() {
-            match Tuner::new(data_file).load() {
-                Ok(message) => println!("{message}"),
+            let mut tuner = Tuner::new(data_file);
+
+            match tuner.load() {
+                Ok(message) => {
+                    println!("{message}");
+                    tuner.run();
+                }
                 Err(e) => match e {
                     TunerLoadError::DataFileReadError => println!("{e}"),
                 },
             };
+
             return Ok(());
         }
         // =====================================================

@@ -53,6 +53,13 @@ impl Tuner {
         Ok(String::from("Data file loaded succesfully"))
     }
 
+    pub fn run(&self) {
+        println!("Running tuner...");
+    }
+}
+
+// Private functions
+impl Tuner {
     fn data_file_load(&mut self) -> DataFileLoadResult {
         if !self.data_file_name.exists() {
             return Err(());
