@@ -3,6 +3,7 @@ mod data_point;
 pub mod defs;
 mod display;
 mod init_eval;
+mod k_factor;
 mod result_types;
 
 use crate::board::defs::fen_setup_fast;
@@ -10,15 +11,18 @@ use crate::board::Board;
 use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
 use data_point::{DataPoint, DataPointStore};
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, TunerLoadResult};
-use std::fs::File;
-use std::path::PathBuf;
-use std::time::Instant;
-use std::{io::BufRead, io::BufReader};
+use std::{
+    fs::File,
+    path::PathBuf,
+    time::{Duration, Instant},
+    {io::BufRead, io::BufReader},
+};
 
 pub struct Tuner {
     board: Board,
     data_file_name: PathBuf,
     data_points: Vec<DataPoint>,
+    k_factor: f32,
     lowest_mean_squared_error: f32,
 }
 
@@ -28,6 +32,7 @@ impl Tuner {
             board: Board::new(),
             data_file_name,
             data_points: vec![],
+            k_factor: 0.0,
             lowest_mean_squared_error: 0.0,
         }
     }
@@ -49,12 +54,16 @@ impl Tuner {
 
         let elapsed = now.elapsed().as_millis();
         println!("Time taken: {elapsed} ms");
+        println!("Data file loaded successfully");
 
-        Ok(String::from("Data file loaded succesfully"))
+        Ok(())
     }
 
-    pub fn run(&self) {
-        println!("Running tuner...");
+    pub fn run(&mut self) {
+        println!("Running tuner");
+        println!("K-factor: Calculating");
+        self.k_factor = self.calculate_k_factor();
+        println!("K-factor: {}", self.k_factor);
     }
 }
 

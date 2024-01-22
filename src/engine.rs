@@ -181,10 +181,7 @@ impl Engine {
             let mut tuner = Tuner::new(data_file);
 
             match tuner.load() {
-                Ok(message) => {
-                    println!("{message}");
-                    tuner.run();
-                }
+                Ok(()) => tuner.run(),
                 Err(e) => match e {
                     TunerLoadError::DataFileReadError => println!("{e}"),
                 },
