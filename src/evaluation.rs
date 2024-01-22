@@ -22,34 +22,23 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 pub mod defs;
-pub mod material;
 pub mod psqt;
 
-use super::evaluation::defs::PIECE_VALUES;
-use crate::{
-    board::{defs::Pieces, Board},
-    defs::Sides,
-};
+use crate::{board::Board, defs::Sides};
 use psqt::KING_EDGE;
 
 pub fn evaluate_position(board: &Board) -> i16 {
-    const PAWN_VALUE: i16 = PIECE_VALUES[Pieces::PAWN] as i16;
-
+    const KING_ONLY: i16 = 300; // PSQT-points
     let side = board.game_state.active_color as usize;
-    let w_material = board.game_state.material[Sides::WHITE] as i16;
-    let b_material = board.game_state.material[Sides::BLACK] as i16;
-
-    // Base evaluation, by counting material.
-    let mut value = w_material - b_material;
-
-    // Add PSQT values
-    value += board.game_state.psqt[Sides::WHITE] - board.game_state.psqt[Sides::BLACK];
+    let w_psqt = board.game_state.psqt[Sides::WHITE];
+    let b_psqt = board.game_state.psqt[Sides::BLACK];
+    let mut value = w_psqt - b_psqt;
 
     // If one of the sides is down to a bare king, apply the KING_EDGE PSQT
     // to drive that king to the edge and mate it.
-    if w_material < PAWN_VALUE || b_material < PAWN_VALUE {
-        let w_king_edge = KING_EDGE[board.king_square(Sides::WHITE)] as i16;
-        let b_king_edge = KING_EDGE[board.king_square(Sides::BLACK)] as i16;
+    if w_psqt < KING_ONLY || b_psqt < KING_ONLY {
+        let w_king_edge = KING_EDGE[board.king_square(Sides::WHITE)];
+        let b_king_edge = KING_EDGE[board.king_square(Sides::BLACK)];
         value += w_king_edge - b_king_edge;
     }
 

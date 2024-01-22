@@ -3,6 +3,7 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
+  - [January 21, 2023 - Rustic Alpha 3.0.5](#january-21-2023---rustic-alpha-305)
   - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
   - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
   - [June 11, 2022 - Rustic Alpha 3.0.2](#june-11-2022---rustic-alpha-302)
@@ -21,6 +22,20 @@
 <!-- /code_chunk_output -->
 
 # Changelog
+
+## January 21, 2023 - Rustic Alpha 3.0.5
+
+Version 3.0.5 is a maintenance release. Its main 'feature' is having
+dropped separate material counting, by moving the material values directly
+into the PSQT's. This is done so that these PSQT's can be used as a basis
+for the upcoming Rustic 4. That way, it can be determined how much playing
+playing strength is added in Rustic 4 by tapering and tuning these tables.
+
+- Unified the material values with the PSQT values the same way Rustic
+  4-beta does. This does not impact playing strength of Alpha 3.
+- Update 'clap' to 4.4.18
+- Update 'crossbeam-channel' to 0.5.11
+- Remove 'crossbeam-utils' (automatically pulled in)
 
 ## December 28, 2023 - Rustic Alpha 3.0.4
 

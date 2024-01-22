@@ -37,11 +37,7 @@ use self::{
 };
 use crate::{
     defs::{Bitboard, NrOf, Piece, Side, Sides, Square, EMPTY},
-    evaluation::{
-        defs::PIECE_VALUES,
-        material,
-        psqt::{self, FLIP, PSQT_MG},
-    },
+    evaluation::psqt::{self, FLIP, PSQT_MG},
     misc::bits,
 };
 use std::sync::Arc;
@@ -106,11 +102,9 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.material[side] -= PIECE_VALUES[piece];
-
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] -= PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] -= PSQT_MG[piece][s];
     }
 
     // Put a piece onto the board, for the given side, piece, and square.
@@ -122,11 +116,9 @@ impl Board {
 
         // Incremental updates
         // =============================================================
-        self.game_state.material[side] += PIECE_VALUES[piece];
-
         let flip = side == Sides::WHITE;
         let s = if flip { FLIP[square] } else { square };
-        self.game_state.psqt[side] += PSQT_MG[piece][s] as i16;
+        self.game_state.psqt[side] += PSQT_MG[piece][s];
     }
 
     // Remove a piece from the from-square, and put it onto the to-square.
@@ -188,10 +180,6 @@ impl Board {
         // later be updated incrementally.
         self.piece_list = self.init_piece_list();
         self.game_state.zobrist_key = self.init_zobrist_key();
-
-        let material = material::count(self);
-        self.game_state.material[Sides::WHITE] = material.0;
-        self.game_state.material[Sides::BLACK] = material.1;
 
         let psqt = psqt::apply(self);
         self.game_state.psqt[Sides::WHITE] = psqt.0;

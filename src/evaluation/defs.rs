@@ -20,5 +20,3 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
-
-pub const PIECE_VALUES: [u16; 6] = [0, 900, 500, 320, 310, 100];

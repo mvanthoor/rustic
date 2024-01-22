@@ -21,11 +21,12 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
+use crate::movegen::defs::Magic;
 use crate::movegen::MoveGenerator;
 use crate::{
     board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
     defs::{Bitboard, Piece, Square, EMPTY},
-    movegen::{defs::Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
+    movegen::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
