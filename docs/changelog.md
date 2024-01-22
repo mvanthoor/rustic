@@ -3,7 +3,7 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
-  - [January 21, 2023 - Rustic Alpha 3.0.5](#january-21-2023---rustic-alpha-305)
+  - [January 21, 2024 - Rustic Alpha 3.0.5](#january-21-2024---rustic-alpha-305)
   - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
   - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
   - [June 11, 2022 - Rustic Alpha 3.0.2](#june-11-2022---rustic-alpha-302)
@@ -23,7 +23,7 @@
 
 # Changelog
 
-## January 21, 2023 - Rustic Alpha 3.0.5
+## January 21, 2024 - Rustic Alpha 3.0.5
 
 Version 3.0.5 is a maintenance release. Its main 'feature' is having
 dropped separate material counting, by moving the material values directly
