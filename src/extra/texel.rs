@@ -48,7 +48,7 @@ impl Tuner {
 
         let lines = data_file_store.get_successful_lines();
         let data_point_store = self.convert_lines_to_data_points(lines);
-        self.data_points = data_point_store.get_successful_data_points().to_vec();
+        self.data_points = data_point_store.get_successful().to_vec();
 
         self.print_data_point_conversion_result(&data_point_store);
 
@@ -104,7 +104,7 @@ impl Tuner {
         for line in lines {
             match self.parse_line_to_data_point(line) {
                 Ok(data_point) => data_point_store.insert_successful(data_point),
-                Err(error) => data_point_store.insert_failed_data(format!("{} - {}", line, error)),
+                Err(error) => data_point_store.insert_failed(format!("{} - {}", line, error)),
             };
         }
 

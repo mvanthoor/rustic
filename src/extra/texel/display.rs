@@ -41,7 +41,7 @@ impl Tuner {
 
         if data_point_store.count_failed() > 0 {
             println!("{FAILURES}: {}", data_point_store.count_failed());
-            for data in data_point_store.get_failed_data() {
+            for data in data_point_store.get_failed() {
                 println!("\t{data}");
             }
         }

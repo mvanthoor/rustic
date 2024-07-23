@@ -58,15 +58,15 @@ impl Store {
         self.successful.push(data_point);
     }
 
-    pub fn insert_failed_data(&mut self, s: String) {
+    pub fn insert_failed(&mut self, s: String) {
         self.failed.push(s);
     }
 
-    pub fn get_successful_data_points(&self) -> &Vec<DataPoint> {
+    pub fn get_successful(&self) -> &Vec<DataPoint> {
         &self.successful
     }
 
-    pub fn get_failed_data(&self) -> &Vec<String> {
+    pub fn get_failed(&self) -> &Vec<String> {
         &self.failed
     }
 }
