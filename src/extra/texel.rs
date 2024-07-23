@@ -8,8 +8,8 @@ mod result_types;
 
 use crate::board::defs::fen_setup_fast;
 use crate::board::Board;
-use data_file::{Line, LineParseError, Store};
-use data_point::{DataPoint, DataPointStore};
+use data_file::{Line, LineParseError};
+use data_point::DataPoint;
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, TunerLoadResult};
 use std::{
     fs::File,
@@ -80,7 +80,7 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut data_file_store = Store::new();
+        let mut data_file_store = data_file::Store::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
@@ -98,8 +98,8 @@ impl Tuner {
         Ok(data_file_store)
     }
 
-    fn convert_lines_to_data_points(&mut self, lines: &Vec<Line>) -> DataPointStore {
-        let mut data_point_store = DataPointStore::new();
+    fn convert_lines_to_data_points(&mut self, lines: &Vec<Line>) -> data_point::Store {
+        let mut data_point_store = data_point::Store::new();
 
         for line in lines {
             match self.parse_line_to_data_point(line) {

@@ -29,12 +29,12 @@ impl Display for DataPoint {
     }
 }
 
-pub struct DataPointStore {
+pub struct Store {
     successful: Vec<DataPoint>,
     failed: Vec<String>,
 }
 
-impl DataPointStore {
+impl Store {
     pub fn new() -> Self {
         Self {
             successful: vec![],
