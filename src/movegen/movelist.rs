@@ -30,7 +30,7 @@ impl MoveList {
     // immediately be initialized with moves.
     pub fn new(raw: &MoveListRaw, count: u8) -> Self {
         Self {
-            list: unsafe { mem::transmute::<_, MoveListArray>(*raw) },
+            list: unsafe { mem::transmute::<MoveListRaw, MoveListArray>(*raw) },
             count,
         }
     }

@@ -14,7 +14,7 @@ use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, 
 use std::{
     fs::File,
     path::PathBuf,
-    time::{Duration, Instant},
+    time::Instant,
     {io::BufRead, io::BufReader},
 };
 
@@ -23,7 +23,7 @@ pub struct Tuner {
     data_file_name: PathBuf,
     data_points: Vec<DataPoint>,
     k_factor: f32,
-    lowest_mean_squared_error: f32,
+    min_mean_squared_error: f32,
 }
 
 impl Tuner {
@@ -33,7 +33,7 @@ impl Tuner {
             data_file_name,
             data_points: vec![],
             k_factor: 0.0,
-            lowest_mean_squared_error: 0.0,
+            min_mean_squared_error: 0.0,
         }
     }
 
