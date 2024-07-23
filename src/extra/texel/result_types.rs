@@ -1,5 +1,6 @@
 use crate::extra::texel::{
-    data_file::DataFileLineParseError, data_file::DataFileStore, data_point::DataPoint,
+    data_file::{LineParseError, Store},
+    data_point::DataPoint,
 };
 use std::fmt::{self, Display};
 
@@ -16,6 +17,6 @@ impl Display for TunerLoadError {
     }
 }
 
-pub type DataFileLoadResult = Result<DataFileStore, ()>;
-pub type DataFileLineParseResult = Result<DataPoint, DataFileLineParseError>;
+pub type DataFileLoadResult = Result<Store, ()>;
+pub type DataFileLineParseResult = Result<DataPoint, LineParseError>;
 pub type TunerLoadResult = Result<(), TunerLoadError>;

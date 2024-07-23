@@ -8,7 +8,7 @@ mod result_types;
 
 use crate::board::defs::fen_setup_fast;
 use crate::board::Board;
-use data_file::{DataFileLine, DataFileLineParseError, DataFileStore};
+use data_file::{Line, LineParseError, Store};
 use data_point::{DataPoint, DataPointStore};
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, TunerLoadResult};
 use std::{
@@ -80,25 +80,25 @@ impl Tuner {
             Err(_) => return Err(()),
         };
         let reader = BufReader::new(file);
-        let mut data_file_store = DataFileStore::new();
+        let mut data_file_store = Store::new();
 
         for (i, line_result) in reader.lines().enumerate() {
             let i = i + 1;
             let line = match line_result {
                 Ok(line) => line,
                 Err(_) => {
-                    data_file_store.insert_failed_line(DataFileLine::new(i, String::from("")));
+                    data_file_store.insert_failed_line(Line::new(i, String::from("")));
                     continue;
                 }
             };
 
-            data_file_store.insert_successful_line(DataFileLine::new(i, line));
+            data_file_store.insert_successful_line(Line::new(i, line));
         }
 
         Ok(data_file_store)
     }
 
-    fn convert_lines_to_data_points(&mut self, lines: &Vec<DataFileLine>) -> DataPointStore {
+    fn convert_lines_to_data_points(&mut self, lines: &Vec<Line>) -> DataPointStore {
         let mut data_point_store = DataPointStore::new();
 
         for line in lines {
@@ -111,7 +111,7 @@ impl Tuner {
         data_point_store
     }
 
-    fn parse_line_to_data_point(&mut self, line: &DataFileLine) -> DataFileLineParseResult {
+    fn parse_line_to_data_point(&mut self, line: &Line) -> DataFileLineParseResult {
         const DASH: char = '-';
         const EM_DASH: char = '–';
         const SEMICOLON: char = ';';
@@ -127,7 +127,7 @@ impl Tuner {
         // It should have exactly two parts. If not, something is wrong
         // with the data formatting.
         if parts.len() != 2 {
-            return Err(DataFileLineParseError::DataLine);
+            return Err(LineParseError::DataLine);
         }
 
         // Create working variables.
@@ -136,7 +136,7 @@ impl Tuner {
 
         // Validate the FEN-string by setting it up on a board.
         if fen_setup_fast(&mut self.board, Some(fen.trim())).is_err() {
-            return Err(DataFileLineParseError::FenString);
+            return Err(LineParseError::FenString);
         };
 
         // Try to parse the game result into an f32.
@@ -144,7 +144,7 @@ impl Tuner {
             "1-0" => 1.0,
             "1/2-1/2" => 0.5,
             "0-1" => 0.0,
-            _ => return Err(DataFileLineParseError::GameResult),
+            _ => return Err(LineParseError::GameResult),
         };
 
         // No errors? Return the data point.

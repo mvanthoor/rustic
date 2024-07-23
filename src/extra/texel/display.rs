@@ -1,10 +1,7 @@
-use crate::extra::texel::{data_file::DataFileStore, data_point::DataPointStore, Tuner};
+use crate::extra::texel::{data_file::Store, data_point::DataPointStore, Tuner};
 
 impl Tuner {
-    pub(in super::super::texel) fn print_data_file_read_result(
-        &self,
-        data_file_store: &DataFileStore,
-    ) {
+    pub(in super::super::texel) fn print_data_file_read_result(&self, data_file_store: &Store) {
         println!(
             "Reading lines from: {}",
             self.data_file_name
