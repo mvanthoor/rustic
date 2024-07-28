@@ -91,8 +91,9 @@ pub struct Magic {
  *      board in the attack table, without any collisions; so the entire table is exactly
  *      filled. This is called a perfect hash.
  * - Finding the magics is a process of just trying random numbers, with the formula below, over
- * and over again until a number is found that generates unique indexes for all of the permutations
- * of attacks of the piece on a particular square. See the explanation for find_magics().
+ *      and over again until a number is found that generates unique indexes for all of the
+ *      permutations of attacks of the piece on a particular square. See the explanation for
+ *      find_magics().
  */
 impl Magic {
     pub fn get_index(&self, occupancy: Bitboard) -> usize {
