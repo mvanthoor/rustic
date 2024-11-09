@@ -2,7 +2,7 @@ use crate::{
     engine::defs::ErrFatal,
     engine::defs::{GameResult, GameResultPoints, GameResultReason},
     movegen::defs::{allocate_move_list_memory, MoveType},
-    Engine,
+    engine::Engine,
 };
 
 impl Engine {

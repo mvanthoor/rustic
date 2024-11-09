@@ -1,8 +1,7 @@
 pub use crate::evaluation::phase::PhaseValues;
 use crate::evaluation::phase::{self};
 use crate::evaluation::psqt::PSQT_SET;
-pub use crate::evaluation::psqt::{FlipTable, FLIP};
-pub use crate::evaluation::psqt::{Psqt, PsqtSet};
+pub use crate::evaluation::psqt::{FlipTable, PsqtSet, FLIP};
 pub use crate::evaluation::weights::W;
 
 pub struct EvalParams;
