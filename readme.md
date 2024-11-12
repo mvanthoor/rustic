@@ -60,15 +60,10 @@ The current feature-set for Rustic Alpha 3.0.0 is:
 
 # Included binaries, supported platforms
 
-Each release contains several binaries; these are compiled for different
-types of CPU's. The following binaries are supplied:
-
-- bmi2: Intel Haswell (2013), AMD Zen 3 (2020)
-- popcnt: Intel Nehalem (2008), AMD Bulldozer (2011), AMD Zen 1 and 2 (2017)
-- old: Intel Core2 Duo (2006) and AMD CPU's between 2003 and 2011
-- ancient: For the very first 64-bit CPU's (2003)
-- i686: Intel Pentium II (1998) (Windows only), 32-bit
-- arm: Raspberry Pi 3 and 4 (not tested on RPi 1 and 2)
+Each release contains several binaries, optimized for different CPU's and
+platforms. Note that I'll only create binaries for the most-used CPU's and
+operating systems, but if Rust is available on your system, you can
+probably compile the engine yourself without needing to change the code.
 
 Windows still supports a 32-bit executable. Note that this executable is at
 50% slower (half the speed) as compared to the 64-bit one and not as well
@@ -82,7 +77,7 @@ You can use the binary which runs fastest on your particular system for
 maximum playing strength. Start a terminal, and run each Rustic version:
 
 ```
-$ ./<executable_name> -p7 -h512
+$ ./<executable_name> -p7 -m512
 ```
 
 This will run perft 7 from the starting position, using a 512 MB
@@ -94,73 +89,11 @@ If you wish to run Rustic on a system for which no binary is supplied, you
 can try to compile the engine yourself using the compilation tips below.
 Make sure to install at least Rust version 1.46.
 
-# Quick compiling tips
+# Building Rustic
 
-The engine includes a Makefile since Rustic Alpha 3.0.0, which makes
-building the engine easier. If you wish to build the engine yourself, you
-can find some quick tips below. These are meant for people who have some
-experience with setting up build environments, or have them installed
-already. If more information is required, see the file "build.md", or
-Rustic's documentation.
-
-## Build environment
-
-- [Install Rust for your platform](https://www.rust-lang.org/tools/install)
-- Windows: [Install MSYS2](https://www.msys2.org/)
-  - Make sure you install the following parts:
-    - CoreUtils
-    - BinUtils
-    - GCC
-    - Make
-- MacOS:
-  - [Install HomeBrew](https://brew.sh/)
-  - Install GNU Make
-  - The command is "gmake" instead of "make", as MacOS includes its own
-    (very old) version of "make".
-- Make sure you install the correct Rust target for your platform, using
-  Rustup:
-  - Linux:
-    - __stable-x86_64-unknown-linux-gnu__
-  - Windows:
-    - __stable-x86_64-pc-windows-gnu__ (This toolchain creates compiles that
-      are compatible with the GNU GDB-debugger.)
-    - __stable-x86_64-pc-windows-msvc__ (This toolchain creates compiles that
-      are compatible with Windows/Visual Studio's debugger. This will
-      require the Microsoft Visual C++ Build Tools, because it uses the
-      Microsoft Linker.)
-- Install Git for your platform.
-
-## Building Rustic
-
-  - Start the terminal for your platform: MSYS2 (MinGW64 or MinGW32
-    version) for Windows, Terminal on Mac, and for Linux, your favorite
-    terminal emulator.
-  - Clone Rustic: "git clone https://github.com/mvanthoor/rustic.git"
-  - Switch to the "rustic" folder.
-  - Run "make" (Windows, Linux) or "gmake" (MacOS).
-  - A ./bin folder should be created. The Makefile will build all versions
-    of Rustic for the operating system and CPU you're running on.
-
-# Extra module
-
-There is a module called "Extra", which compiles some extra capabilities
-into the Rustic executable.
-
-- Command-line option -e: Rustic can run a perft suite containing 172
-  tests, to see if its move generator, make, and unmake are working as
-  intended. This is mainly useful for developers.
-- Command-line option -w: Using this option, Rustic can perform Wizardry:
-  it runs a function that generates magic numbers for use in a magic
-  bitboard engine which has square A1 = 0, or LSB, and square H8 = 63. This
-  is mainly useful if one wants to write their own chess engine, bus has no
-  interest in writing a function to compute the magic numbers. (Though,
-  doing so, will make understanding of magic bitboards much more complete.)
-
-This module can be included by using the --features option of cargo:
-
-```
-cargo build --release --features "extra"
-```
+There is a [dedicated page](./docs/build.md) which explains how you can
+build Rustic for your platform if you wish to create your own binaries, or
+want to run tests by using your own compiler flags.
 
 # All command-line options
 
@@ -197,9 +130,9 @@ Rustic. They are listed below, in no particular order.
 > My girlfriend (for providing lots of support in more ways than she'd ever
 > be able to realize), Richard Allbert, Terje Kirstihagen, Fabian von der
 > Warth, H.G. Müller, Maksim Korzh, Rasmus Althoff, Martin Sedlák, Ronald
-> de Man, Taimo, Sven Schüle, Thomas Jahn, Christian Dean, and last but not
-> least, Ed Schröder and Robert Hyatt (for still hanging around the chess
-> programming community after 40 or 50 years).
+> de Man, Taimo, Sven Schüle, Thomas Jahn, Christian Dean, Brandon Ros, and
+> last but not least, Ed Schröder and Robert Hyatt (for still hanging
+> around the chess programming community after 40 or 50 years).
 
 All of these people (except my girlfriend) can be found on the
 [Talkchess.com](http://talkchess.com/forum3/index.php) forum.
