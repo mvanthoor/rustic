@@ -40,6 +40,7 @@ implemented.
 
 - New features:
   - Tapered and tuned evaluation.
+  - Texel Tuner in the "extra" module.
   - Support for XBoard-protocol version 2 <sup>(1)</sup>.
 - Improvements:
   - TT Clear function: properly clear TT, instead of recreating it.
@@ -64,14 +65,10 @@ implemented.
   - Implemented Display for many structs, removing custom functions.
   - Dropped the "misc::print" module (no code left after refactoring).
   - Huge cleanup of FEN-reader error handling code.
-- Update:
-  - "rand" crate to 0.8.5.
-  - "rand_core" crate to 0.6.4.
-  - "rand_chacha" crate to 0.3.1.
-  - "if_chain" crate to 1.0.2.
-  - "clap" crate to 4.1.8.
-  - "crossbeam_channel" crate to 0.5.7.
-  - "crossbeam-utils" crate to 0.8.15.
+- Updated the libraries Rustic depends on (which are intentionally not many).
+- Rustic has been converted into a library itself. In the future the Engine
+  part will be split out of it, so the library will contain only chess
+  functionality.
 - Fixes
   - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
     avoid conflicts with CLAP's automatic "-h" / "--help" option

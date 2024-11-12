@@ -23,6 +23,8 @@ to improve existing code to work better, faster or cleaner. Thanks to all
 of these people. Below is a list of people who I particularly remember for
 one or more contributions (in no particular order).
 
+- [Brandon Ros](https://github.com/brandonros) for doing the initial work
+  of creating a library out of Rustic.
 - Richard Allbert (better known as BlueFever Software, author of VICE):
   his "Programming a Chess Engine in C" (or the Javascript version) series
   are legendary in the chess programming community. Richard may have
