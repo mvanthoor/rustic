@@ -5,10 +5,9 @@
 # Rustic Chess Engine
 
 Rustic is a chess engine written from scratch in the Rust programming
-language. It is not derived from any other engine, but it uses many
-concepts that have been well-known in chess programming for many decades;
-therefore, the engine still stands on the shoulders of the giants of the
-past.
+language. It is not derived from any other engine but it uses many concepts
+that have been well-known in chess programming for many decades; therefore,
+the engine still stands on the shoulders of giants.
 
 # User interface
 
