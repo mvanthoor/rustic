@@ -99,6 +99,12 @@ pub struct SearchParams {
     pub verbosity: Verbosity,    // No intermediate search stats updates
 }
 
+impl Default for SearchParams {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SearchParams {
     pub fn new() -> Self {
         Self {
@@ -130,6 +136,12 @@ pub struct SearchInfo {
     pub last_curr_move_sent: u128,   // When last current move was sent
     pub allocated_time: u128,        // Allotted msecs to spend on move
     pub terminate: SearchTerminated, // Terminate flag
+}
+
+impl Default for SearchInfo {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SearchInfo {

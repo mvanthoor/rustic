@@ -47,6 +47,12 @@ pub struct Engine {
     search: Search,                         // Search object (active).
 }
 
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {

@@ -37,6 +37,12 @@ pub struct MoveGenerator {
     bishop_magics: [Magic; NrOf::SQUARES],
 }
 
+impl Default for MoveGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MoveGenerator {
     // Creates a new move generator and initializes all the tables.
     pub fn new() -> Self {

@@ -54,6 +54,12 @@ pub struct Uci {
     info: CommInfo,
 }
 
+impl Default for Uci {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Public functions
 impl Uci {
     // Create a new console.

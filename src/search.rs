@@ -29,6 +29,12 @@ pub struct Search {
     control_tx: Option<Sender<SearchControl>>,
 }
 
+impl Default for Search {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Search {
     pub fn new() -> Self {
         Self {

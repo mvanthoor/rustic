@@ -17,6 +17,12 @@ pub struct History {
     count: usize,
 }
 
+impl Default for History {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl History {
     // Create a new history array containing game states.
     pub fn new() -> Self {

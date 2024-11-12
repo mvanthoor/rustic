@@ -40,6 +40,11 @@ impl MoveList {
         self.count
     }
 
+    #[allow(dead_code)]
+    pub fn is_empty(&self) -> bool {
+        self.count == 0
+    }
+
     // Return the move at the given index. If out of bounds, the program crashes.
     pub fn get_move(&self, index: u8) -> Move {
         self.list[index as usize]

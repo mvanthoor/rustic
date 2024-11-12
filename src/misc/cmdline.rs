@@ -70,6 +70,12 @@ pub struct CmdLine {
     arguments: ArgMatches,
 }
 
+impl Default for CmdLine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CmdLine {
     pub fn new() -> Self {
         Self {

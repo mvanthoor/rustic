@@ -237,6 +237,12 @@ pub struct XBoard {
     info: CommInfo,
 }
 
+impl Default for XBoard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Public functions
 impl XBoard {
     // Create a new console.

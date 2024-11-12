@@ -34,6 +34,12 @@ pub struct Board {
     zobrist_randoms: Arc<ZobristRandoms>,
 }
 
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Public functions for use by other modules.
 impl Board {
     // Creates a new board with either the provided FEN, or the starting position.
