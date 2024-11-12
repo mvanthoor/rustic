@@ -1,6 +1,6 @@
 [package]
-name = "rustic-4-beta"
-version = "3.99.101"
+name = "rustic"
+version = "4.0.0"
 authors = ["Marcel Vanthoor"]
 edition = "2021"
 
