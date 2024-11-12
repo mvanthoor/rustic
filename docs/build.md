@@ -29,16 +29,11 @@ default Unix command-line tools available. Therefore it should be possible
 to build Rustic in any Unix-like environment for which Rust is available,
 and under MSYS2 in Windows.
 
-Rustic has a Makefile available since Alpha 3.0.0, which creates all the
-executable versions for the operating system you are building on. At the
-end of the page some hints on alternatives are included.
-
 ## Installing the environment
 
 Under most Unix-like operating systems such as Linux, the build environment
-is already set up by default, especially if a BASH-compatible shell is
+is already set up by default, especially if a Bash-compatible shell is
 being used. To build software in Unix-style, Windows needs MSYS2 installed.
-MacOS needs an updated version of Make.
 
 ### Windows
 
@@ -56,27 +51,25 @@ are written in C or C++, it's very useful to have GCC and Clang installed
 for compiling those engines.
 
 ```
-Download the installer: https://www.msys2.org/#installation
-Run the setup.
-Exit any console that may pop up after install.
-Start the MSYS2 - MSYS terminal (for maintenance)
-Right-click the title bar and select Options...
-Set up the terminal preferences how you want them.
-Run "pacman -Syu <enter>"
-Close the terminal when asked.
-Keep repeating the previous two steps until pacman says:
-    "Nothing more to do".
-Start MSYS2 - MinGW64 (for 64-bit compiles)
-Run these commands to install GCC, Clang, and Make:
-    pacman -S mingw64/mingw-w64-x86_64-gcc
-    mingw64/mingw-w64-x86_64-clang
-    pacman -S mingw64/mingw-w64-x86_64-make
-    ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
-Browse to the folder where you installed MSYS2.
-    In my case: "C:\Programs\MSYS2"
-Open "msys2_shell.cmd" in your favorite text editor. 
-Uncomment the line: "set MSYS2_PATH_TYPE=inherit" and save.
-Close and restart any MSYS2 shell that may have been open.
+- Download the installer: https://www.msys2.org/#installation
+- Run the setup.
+- Exit any console that may pop up after install.
+- Start the MSYS2 - MSYS terminal (for maintenance)
+- Right-click the title bar and select Options...
+- Set up the terminal preferences how you want them.
+- Run "pacman -Syu <enter>"
+- Close the terminal when asked.
+- Keep repeating the previous two steps until pacman says:
+    - "Nothing more to do".
+- Start MSYS2 - MinGW64 (for 64-bit compiles)
+- Run these commands to install GCC and Clang:
+    - pacman -S mingw64/mingw-w64-x86_64-gcc
+    - pacman - S mingw64/mingw-w64-x86_64-clang
+- Browse to the folder where you installed MSYS2.
+    - In my case: "C:\Programs\MSYS2"
+- Open "msys2_shell.cmd" in your favorite text editor. 
+- Uncomment the line: "set MSYS2_PATH_TYPE=inherit" and save.
+- Close and restart any MSYS2 shell that may have been open.
 ```
 
 If you want to build a 32-bit version fo Rustic for some reason, you can
@@ -93,12 +86,11 @@ installation instructions here:
 
 https://www.rust-lang.org/tools/install
 
-In Linux the rest of the build requirements (Bash, make, strip) are already
-installed by default. You can test this using the following commands:
+In Linux the rest of the build requirements are already installed by
+default. You can test this using the following commands:
 
 ```
 $ bash --version
-$ make --version
 $ strip --version
 ```
 
@@ -110,26 +102,7 @@ installation for these tools.
 
 Just like Linux, MacOS doesn't need much setup because it is a Unix-like
 operating system. First, [Install Rust](https://www.rust-lang.org/) for
-MacOS. MacOS has a version of GNU Make installed by default, but this
-version is too old to be used for Rustic's Makefile. It is recommended to
-install _Homebrew_, and then use this to install the latest GNU Make
-version as "gmake."
-
-1. [Install Homebrew](https://brew.sh/)
-2. Install GNU Make
-
-```
-brew install make
-```
-
-3. After installing GNU Make, check the version:
-
-```
-gmake --version
-```
-
-You can build Rustic by typing "gmake" and pressing Enter. If this doesn't
-work for some reason, check the "If make doesn't work" section below.
+MacOS.
 
 ## Compiling and building
 
@@ -152,80 +125,33 @@ switch to the branch or tag you want to compile. Then download the zip-file.
 
 After you have the engine in a directory on your system, switch to that
 directory in a terminal. (Go to the root directory, not inside the /src
-directory.) Now you should be able to type "make (enter)" on Windows or
-Linux, or "gmake" on MacOS. If all goes well, the Makefile will create a
-./bin/ directory, with the operating system as a subdirectory, and put all
-the binaries in there.
+directory.) Now you should be able to type:
 
-## If "make" doesn't work
-
-If "make" / "gmake" don't work for whatever reason, you can also compile
-and build the engine manually. This is the same for each operating system
-(except for a small difference with the "strip" command on MacOS.).
-
-In the terminal (MSYS2 on Windows, Terminal on Linux and MacOS), first
-export the correct environment variable to make Rust compile the engine for
-your CPU. From fastest to slowest:
-
-```
-native:     export RUSTFLAGS = -C target-cpu=native
-bmi2:       export RUSTFLAGS = -C target-cpu=haswell
-popcnt:     export RUSTFLAGS = -C target-cpu=nehalem
-old:        export RUSTFLAGS = -C target-cpu=core2
-ancient:    export RUSTFLAGS = -C target-cpu=athlon64
-generic:    don't export anything
-```
-
-Obviously you can test multiple versions to see which one runs the fastest
-on your system. There may be some that don't run at all. The BMI2 version
-will not run on a Core2Duo CPU, for example. The BMI2 version will run on
-AMD Zen2 CPU's, but the popcnt version will be faster.
-
-Compile and build the engine:
-
-```
+```bash
 cargo build --release
 ```
 
-Strip symbols from the executable:
+If all goes well, the engine will be built. You can switch into /target/release
+directory, find the exectuable, and run:
 
-Windows:
-```
-strip -s ./target/release/rustic.exe
-```
-
-Linux:
-```
-strip -s ./target/release/rustic
+```bash
+strip -s ./rustic
 ```
 
-MacOS:
-```
+to strip the debug symbols from the release version.
+
+For MacOS it might be (depending on the version of strip):
+
+```bash
 strip ./target/release/rustic
 ```
 
-Copy and paste the executable from the ./target/release directory to a
-different location, and give it an appropriate name, so you know what
-version you built.  My recommendation is:
-
-```
-rustic-($version)-($os)-($bits)-($cpu_type)($extension)
-```
-
-An example would be:
-```
-rustic-alpha-3.0.0-windows-64-bit-bmi2.exe
-```
-
-(In Linux or MacOS, you can leave the .exe extension out.) This naming
-convention is also Rustic's default when it's built by the Makefile.
-
 ## On 32-bit versions
 
-Because a (standard) chess board has 64 squares, the engine uses 64-bit
+Because a normal western chess board has 64 squares, the engine uses 64-bit
 integers for most of its calculations, especially for move generation. Even
 though Rustic can be built and run as a 32-bit engine, it will lose about
-half of its speed, and will be 50-70 Elo weaker. It is not recommended to
+half of its speed, and will be 50-75 Elo weaker. It is not recommended to
 use such a version for tournaments and matches. The only operating system
 where the 32-bit version is the default is Raspberry Pi OS, because this
 operating system is 32-bit. The 64-bit version of Raspberry Pi OS is still
@@ -241,7 +167,7 @@ build tools have a massive installation size.)
 
 It is probably also possible to build Rustic on WSL2 (Windows Subsystem for
 Linux 2) and on Cygwin, by installing the respective versions of Rust and
-GNU tools there before either running "make" or "cargo build --release".
+GNU tools there before either running "cargo build --release".
 
 If built on Cygwin, the Rustic executable will depend on Cygwin1.dll. As
 this is an additional layer between the engine and operating system, this
