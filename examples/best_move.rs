@@ -15,7 +15,7 @@ fn main() {
     let fen = "rnbqkbnr/pp1pppp1/8/2p4p/4P3/2P5/PP1P1PPP/RNBQKBNR w KQkq h6 0 3";
     let mut board = Board::new();
     board
-        .fen_setup(Some(&fen))
+        .fen_setup(Some(fen))
         .expect("failed to setup board from fen");
     let board = Arc::new(Mutex::new(board));
 
@@ -34,7 +34,7 @@ fn main() {
     // start search
     let depth = 8;
     search.send(SearchControl::Start(SearchParams {
-        depth: depth,
+        depth,
         game_time: GameTime::new(0, 0, 0, 0, None),
         move_time: 0,
         nodes: 0,
