@@ -112,17 +112,25 @@ impl Search {
         // Holds the best move in the move loop for storing into the TT.
         let mut best_move = Move::new(0);
 
-        // Iterate over the moves.
+        // Iterate over all pseudo-legal moves, trying to find the best
+        // move in the current position..
         for i in 0..move_list.len() {
-            // This function finds the best move to test according to the
-            // move scoring, and puts it at the current index of the move
-            // list, so get_move() will get this next.
+            // This function picks the move with the highest likelyhood to
+            // be a good move and it puts it at the current index of the
+            // move list, so get_move() will get this. This makes sure that
+            // moves who are considered the best candidates for being good
+            // moves are tried first.
             Search::pick_move(&mut move_list, i);
 
+            // Get the move which was just picked and test if it is a legal
+            // move. (This test is required because the list contains all
+            // possible moves in the position, which are pseudo-legal. A
+            // move could leave the king in check and we must test for
+            // this.)
             let current_move = move_list.get_move(i);
             let is_legal = refs.board.make(current_move, refs.mg);
 
-            // If not legal, skip the move.
+            // If the move turns out to be not legal, we skip it.
             if !is_legal {
                 continue;
             }
@@ -197,7 +205,16 @@ impl Search {
                     Search::store_killer_move(current_move, refs);
                 }
 
-                // Perform the cutoff. Break the move loop.
+                // Perform the cutoff. Break the move loop. Many
+                // implementations of alpha-beta just return beta here.
+                // This is fine, but we *definitely* want to save this
+                // score and move in the TT. This would require us to have
+                // the transposition table store code duplicated right here
+                // where this comment is. Therefore I prefer to save the
+                // current values we need to store as best_score,
+                // best_move, and hash_flag and break the loop instead of
+                // returning. We store the values in the TT when finishing
+                // up the alpha-beta run after the move loop.
                 break;
             }
 
@@ -219,6 +236,14 @@ impl Search {
                 pv.append(&mut node_pv);
             }
         }
+
+        // === This is where we end up if we either finish the move loop,
+        // or we've broken it because of a beta-cutoff. We now have our
+        // best_score, which is either alpha (if we finished the move-loop)
+        // or beta (if we have a beta-cutoff). We also have the best_move,
+        // which was responsible for our best_score. === //
+
+        // === Finish up the alpha-beta run below === //
 
         // If we exit the loop without legal moves being found, the
         // side to move is either in checkmate or stalemate.
@@ -244,8 +269,10 @@ impl Search {
             ),
         );
 
-        // We have traversed the entire move list and found the best
-        // possible move/score for us.
+        // We traversed the entire move list or broken it due to a beta
+        // cutoff. We return the best score of the run, which is thus
+        // either alpha if we finished the list, or beta if we've broken
+        // the loop.
         best_score
     }
 }
