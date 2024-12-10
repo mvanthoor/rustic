@@ -19,7 +19,7 @@ impl Search {
     ) -> i16 {
         let verbosity = refs.search_params.verbosity; // If quiet, don't send intermediate stats.
         let is_root = refs.search_info.ply == 0; // At root if no moves were played.
-        let mut do_pvs = false; // Used for PVS (Principal Variation Search)
+        let mut found_pv_move = false; // Used for PVS (Principal Variation Search)
 
         // Check if termination condition is met.
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
@@ -151,11 +151,20 @@ impl Search {
 
             // If it isn't a draw, we must search.
             if !refs.board.is_draw() {
-                // Try a PVS if applicable.
-                if do_pvs {
+                // The previous move in our move list was a PV move.
+                // Because of this, we can now search the current and
+                // upcoming moves in the list with a zero-width window.
+                // This will make searching very fast, because we are just
+                // trying to prove that the move will not improve alpha and
+                // thus doesn't have to be searched further.
+                if found_pv_move {
+                    // This is the zero-width search.
                     score = -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);
 
-                    // Check if we failed the PVS.
+                    // If the zero-width *did* improve alpha and stayed
+                    // below beta, we found a new, better PV move.
+                    // Therefore we failed the zero-width search and have
+                    // to search again with the normal alpha-beta window.
                     if (score > alpha) && (score < beta) {
                         score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
                     }
@@ -202,8 +211,9 @@ impl Search {
                 // score between alpha and beta.
                 hash_flag = HashFlag::Exact;
 
-                // Update the Principal Variation.
-                do_pvs = true;
+                // Update the Principal Variation. These are moves that
+                // improved alpha but did not cause a beta-cutoff.
+                found_pv_move = true;
                 pv.clear();
                 pv.push(current_move);
                 pv.append(&mut node_pv);
