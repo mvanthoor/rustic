@@ -7,7 +7,7 @@ use if_chain::if_chain;
 pub type PotentialMove = (Square, Square, Piece);
 pub type ParseMoveResult = Result<PotentialMove, ()>;
 
-pub fn algebraic_move_to_number(m: &str) -> ParseMoveResult {
+pub fn algebraic_move_to_square_numbers(m: &str) -> ParseMoveResult {
     let lower_case_move = m.to_ascii_lowercase();
     let mut potential_move: PotentialMove = (0, 0, Pieces::NONE);
 

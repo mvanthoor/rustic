@@ -34,7 +34,7 @@ impl Engine {
     pub fn execute_move(&mut self, m: String) -> bool {
         // Prepare shorthand variables.
         let empty = (0usize, 0usize, 0usize);
-        let potential_move = parse::algebraic_move_to_number(&m[..]).unwrap_or(empty);
+        let potential_move = parse::algebraic_move_to_square_numbers(&m[..]).unwrap_or(empty);
         let is_pseudo_legal = self.pseudo_legal(potential_move, &self.board, &self.mg);
         let mut is_legal = false;
 
