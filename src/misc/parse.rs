@@ -3,53 +3,68 @@ use crate::{
     defs::{Piece, Square},
 };
 use if_chain::if_chain;
+use std::{error::Error, fmt};
 
-pub type PotentialMove = (Square, Square, Piece);
-pub type ParseMoveResult = Result<PotentialMove, ()>;
+#[derive(Debug)]
+pub enum ParseMoveError {
+    WrongMoveLength,
+    CannotConvertSquare,
+    CannotConvertPromotionPiece,
+}
 
-pub fn algebraic_move_to_square_numbers(m: &str) -> ParseMoveResult {
-    let lower_case_move = m.to_ascii_lowercase();
-    let mut potential_move: PotentialMove = (0, 0, Pieces::NONE);
-
-    // Assume parsing the move will fail.
-    let mut parse_move_result: ParseMoveResult = Err(());
-
-    // Get the "from" and "to" squares from the move string.
-    if m.len() == 4 || m.len() == 5 {
-        if_chain! {
-            // If conversion from algebraic square to number succeeds...
-            if let Some(f) = algebraic_square_to_number(&lower_case_move[0..=1]);
-            if let Some(t) = algebraic_square_to_number(&lower_case_move[2..=3]);
-            then {
-                // ...save the result
-                potential_move.0 = f;
-                potential_move.1 = t;
-
-                // Up to here, parsing is OK.
-                parse_move_result = Ok(potential_move);
-            }
+impl fmt::Display for ParseMoveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let error = match self {
+            Self::WrongMoveLength => "Move must be of length 4 or 5",
+            Self::CannotConvertSquare => "Cannot convert square to number",
+            Self::CannotConvertPromotionPiece => "Cannot convert promotion piece",
         };
+        write!(f, "{error}")
+    }
+}
+
+impl Error for ParseMoveError {}
+
+pub type ConvertedMove = (Square, Square, Piece);
+pub type ParseMoveResult = Result<ConvertedMove, ParseMoveError>;
+
+pub fn algebraic_move_to_numbers(m: &str) -> ParseMoveResult {
+    let lower_case_move = m.to_ascii_lowercase();
+    let mut converted_move: ConvertedMove = (0, 0, Pieces::NONE);
+
+    if m.len() != 4 && m.len() != 5 {
+        return Err(ParseMoveError::WrongMoveLength);
     }
 
-    // If Ok and there are 5 characters, keep parsing...
-    if parse_move_result != Err(()) && m.len() == 5 {
-        // Again, assume that parsing will fail.
-        parse_move_result = Err(());
+    // Get the "from" and "to" squares from the move string.
+    if_chain! {
+        // If conversion from algebraic square to number succeeds...
+        if let Some(from) = algebraic_square_to_number(&lower_case_move[0..=1]);
+        if let Some(to) = algebraic_square_to_number(&lower_case_move[2..=3]);
+        then {
+            // ...save the result
+            converted_move.0 = from;
+            converted_move.1 = to;
+        } else {
+            return Err(ParseMoveError::CannotConvertSquare)
+        }
+    };
 
+    // Keep parsing if there are 5 characters.
+    if m.len() == 5 {
         // Get the promotion piece character.
         let c = lower_case_move.chars().last().unwrap_or('-');
 
         // If the conversion from character to promotion piece succeeds...
-        if let Some(p) = promotion_piece_letter_to_number(c) {
+        if let Some(piece) = promotion_piece_letter_to_number(c) {
             // ...save the result
-            potential_move.2 = p;
-
-            // and set the parsing result to Ok again.
-            parse_move_result = Ok(potential_move);
+            converted_move.2 = piece;
+        } else {
+            return Err(ParseMoveError::CannotConvertPromotionPiece);
         }
     }
 
-    parse_move_result
+    Ok(converted_move)
 }
 
 // Convert square names to numbers.
@@ -78,6 +93,7 @@ pub fn promotion_piece_letter_to_number(piece_letter: char) -> Option<Piece> {
             _ => (),
         }
     }
+
     // Return the piece if found, or None.
     piece
 }

@@ -3,12 +3,28 @@ use crate::{
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     engine::{defs::ErrFatal, Engine},
     misc::parse,
-    misc::parse::PotentialMove,
+    misc::parse::ConvertedMove,
     movegen::defs::{Move, MoveType},
     movegen::{defs::allocate_move_list_memory, MoveGenerator},
 };
 use if_chain::if_chain;
-use std::sync::Mutex;
+use std::{error::Error, fmt, sync::Mutex};
+
+#[derive(Debug)]
+pub enum PseudoLegalMoveError {
+    NotPseudoLegalMove,
+}
+
+impl fmt::Display for PseudoLegalMoveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let error = match self {
+            Self::NotPseudoLegalMove => "Not a pseudo-legal move in this position",
+        };
+        write!(f, "{error}")
+    }
+}
+
+impl Error for PseudoLegalMoveError {}
 
 impl Engine {
     // This function sets up a position using a given FEN-string.
@@ -34,8 +50,8 @@ impl Engine {
     pub fn execute_move(&mut self, m: String) -> bool {
         // Prepare shorthand variables.
         let empty = (0usize, 0usize, 0usize);
-        let potential_move = parse::algebraic_move_to_square_numbers(&m[..]).unwrap_or(empty);
-        let is_pseudo_legal = self.pseudo_legal(potential_move, &self.board, &self.mg);
+        let converted_move = parse::algebraic_move_to_numbers(m.as_str()).unwrap_or(empty);
+        let is_pseudo_legal = self.pseudo_legal(converted_move, &self.board, &self.mg);
         let mut is_legal = false;
 
         if let Ok(ips) = is_pseudo_legal {
@@ -48,12 +64,10 @@ impl Engine {
     // is actually in the list of pseudo-legal moves for this position.
     pub fn pseudo_legal(
         &self,
-        m: PotentialMove,
+        converted_move: ConvertedMove,
         board: &Mutex<Board>,
         mg: &MoveGenerator,
-    ) -> Result<Move, ()> {
-        let mut result = Err(());
-
+    ) -> Result<Move, PseudoLegalMoveError> {
         // Get the pseudo-legal move list for this position.
         let mut memory = allocate_move_list_memory();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
@@ -63,17 +77,17 @@ impl Engine {
         // Determine if the potential move is pseudo-legal. make() wil
         // determine final legality when executing the move.
         for i in 0..ml.len() {
-            let current = ml.get_move(i);
+            let m = ml.get_move(i);
             if_chain! {
-                if m.0 == current.from();
-                if m.1 == current.to();
-                if m.2 == current.promoted();
+                if converted_move.0 == m.from();
+                if converted_move.1 == m.to();
+                if converted_move.2 == m.promoted();
                 then {
-                    result = Ok(current);
-                    break;
+                    return Ok(m);
                 }
             }
         }
-        result
+
+        Err(PseudoLegalMoveError::NotPseudoLegalMove)
     }
 }
