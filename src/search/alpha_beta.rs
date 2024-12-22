@@ -206,15 +206,16 @@ impl Search {
                 }
 
                 // Perform the cutoff. Break the move loop. Many
-                // implementations of alpha-beta just return beta here.
-                // This is fine, but we *definitely* want to save this
-                // score and move in the TT. This would require us to have
-                // the transposition table store code duplicated right here
-                // where this comment is. Therefore I prefer to save the
-                // current values we need to store as best_score,
-                // best_move, and hash_flag and break the loop instead of
-                // returning. We store the values in the TT when finishing
-                // up the alpha-beta run after the move loop.
+                // implementations of alpha-beta just return beta here
+                // (fail-hard), or best_score (fail-soft). This is fine,
+                // but we *definitely* want to save this score and move in
+                // the TT. This would require us to have the transposition
+                // table store code duplicated right here where this
+                // comment is. Therefore I prefer to save the current
+                // values we need to store as best_score, best_move, and
+                // hash_flag and break the loop instead of returning. We
+                // store the values in the TT when finishing up the
+                // alpha-beta run after the move loop.
                 break;
             }
 
