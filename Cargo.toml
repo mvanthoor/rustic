@@ -1,6 +1,6 @@
 [package]
 name = "rustic"
-version = "3.99.2"
+version = "3.99.3"
 authors = ["Marcel Vanthoor"]
 edition = "2021"
 
