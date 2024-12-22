@@ -14,13 +14,12 @@ use crate::{
     engine::defs::{SearchData, TT},
     movegen::MoveGenerator,
 };
-use crossbeam_channel::Sender;
 use defs::{
     SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
     SearchTerminated,
 };
 use std::{
-    sync::{Arc, Mutex},
+    sync::{mpsc::channel, mpsc::Sender, Arc, Mutex},
     thread::{self, JoinHandle},
 };
 
@@ -51,7 +50,7 @@ impl Search {
         tt: Arc<Mutex<TT<SearchData>>>,
     ) {
         // Set up a channel for incoming commands
-        let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
+        let (control_tx, control_rx) = channel();
 
         // Create thread-local variables.
         let t_report_tx = report_tx;

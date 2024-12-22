@@ -2,12 +2,12 @@ use crate::{
     engine::defs::{ErrFatal, Information},
     engine::Engine,
 };
-use std::sync::Arc;
+use std::sync::{mpsc::channel, Arc};
 
 impl Engine {
     pub fn main_loop(&mut self) {
         // Set up a channel for incoming information.
-        let (info_tx, info_rx) = crossbeam_channel::unbounded::<Information>();
+        let (info_tx, info_rx) = channel();
 
         // Store the information receiver in the engine for use in other functions.
         self.info_rx = Some(info_rx);

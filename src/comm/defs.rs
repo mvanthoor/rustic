@@ -4,8 +4,7 @@ use crate::{
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
-use crossbeam_channel::Sender;
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc::Sender, Arc, Mutex};
 
 pub use crate::comm::protocols::{
     uci::{Uci, UciIn, UciOut},

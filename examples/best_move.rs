@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use rustic::{
     board::Board,
     engine::defs::{Information, SearchData, Verbosity, TT},
@@ -9,6 +7,7 @@ use rustic::{
         Search,
     },
 };
+use std::sync::{mpsc::channel, Arc, Mutex};
 
 fn main() {
     // setup board
@@ -28,7 +27,7 @@ fn main() {
 
     // setup search
     let mut search = Search::new();
-    let (info_tx, info_rx) = crossbeam_channel::unbounded::<Information>();
+    let (info_tx, info_rx) = channel();
     search.init(info_tx, board, move_generator, transposition_table);
 
     // start search

@@ -7,9 +7,8 @@ use crate::{
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,
 };
-use crossbeam_channel::{Receiver, Sender};
 use std::{
-    sync::{Arc, Mutex},
+    sync::{mpsc::Receiver, mpsc::Sender, Arc, Mutex},
     time::Instant,
 };
 

@@ -11,11 +11,10 @@ use crate::{
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
-use crossbeam_channel::{self, Sender};
 use std::{
     fmt::{self, Display},
     io,
-    sync::{Arc, Mutex},
+    sync::{mpsc::channel, mpsc::Sender, Arc, Mutex},
     thread::{self, JoinHandle},
 };
 
@@ -617,7 +616,7 @@ impl XBoard {
     // The control thread receives commands from the engine thread.
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
         // Create an incoming channel for the control thread.
-        let (output_tx, output_rx) = crossbeam_channel::unbounded::<CommOut>();
+        let (output_tx, output_rx) = channel();
 
         // Create the output thread.
         let output_handle = thread::spawn(move || {

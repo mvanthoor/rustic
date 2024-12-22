@@ -17,8 +17,7 @@ use crate::{
     movegen::MoveGenerator,
     search::{defs::SearchControl, Search},
 };
-use crossbeam_channel::Receiver;
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc::Receiver, Arc, Mutex};
 use transposition::{PerftData, SearchData, TT};
 
 #[cfg(feature = "extra")]
