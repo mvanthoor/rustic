@@ -186,55 +186,55 @@ impl Search {
             refs.search_info.ply -= 1;
 
             // If we improved our best score, we save it, and the current
-            // move that goes along with it.
+            // move that goes along with it. Then we check if the score
+            // beats beta or alpha.
             if score > best_score {
                 best_score = score;
                 best_move = current_move;
-            }
 
-            // A move that is so strong for our opponent that we want to
-            // avoid it at all cost, is called a beta cutoff. We don't
-            // search along that path and abort ("cut") the search.
-            if score >= beta {
-                // This is a beta cutoff.
-                hash_flag = HashFlag::Beta;
+                // A move that is so strong for our opponent that we want to
+                // avoid it at all cost, is called a beta cutoff. We don't
+                // search along that path and abort ("cut") the search.
+                if score >= beta {
+                    hash_flag = HashFlag::Beta;
 
-                // If the current move is not a capture but still causes a
-                // beta-cutoff, then store it as a killer.
-                if current_move.captured() == Pieces::NONE {
-                    Search::store_killer_move(current_move, refs);
+                    // If the current move is not a capture but still causes a
+                    // beta-cutoff, then store it as a killer.
+                    if current_move.captured() == Pieces::NONE {
+                        Search::store_killer_move(current_move, refs);
+                    }
+
+                    // Perform the cutoff. Break the move loop. Many
+                    // implementations of alpha-beta just return beta here
+                    // (fail-hard), or best_score (fail-soft). This is fine,
+                    // but we *definitely* want to save this score and move in
+                    // the TT. This would require us to have the transposition
+                    // table store code duplicated right here where this
+                    // comment is. Therefore I prefer to save the current
+                    // values we need to store as best_score, best_move, and
+                    // hash_flag and break the loop instead of returning. We
+                    // store the values in the TT when finishing up the
+                    // alpha-beta run after the move loop.
+                    break;
                 }
 
-                // Perform the cutoff. Break the move loop. Many
-                // implementations of alpha-beta just return beta here
-                // (fail-hard), or best_score (fail-soft). This is fine,
-                // but we *definitely* want to save this score and move in
-                // the TT. This would require us to have the transposition
-                // table store code duplicated right here where this
-                // comment is. Therefore I prefer to save the current
-                // values we need to store as best_score, best_move, and
-                // hash_flag and break the loop instead of returning. We
-                // store the values in the TT when finishing up the
-                // alpha-beta run after the move loop.
-                break;
-            }
+                // We found a better move for us: the score is higher than
+                // Alpha, but NOT equal or higher than beta.
+                if score > alpha {
+                    // This is an exact move score. It's a PV move, with a
+                    // score between alpha and beta.
+                    hash_flag = HashFlag::Exact;
 
-            // We found a better move for us: the score is higher than
-            // Alpha, but NOT equal or higher than beta.
-            if score > alpha {
-                // Save our better evaluation score as the new alpha.
-                alpha = score;
+                    // Save our better evaluation score as the new alpha.
+                    alpha = score;
 
-                // This is an exact move score. It's a PV move, with a
-                // score between alpha and beta.
-                hash_flag = HashFlag::Exact;
-
-                // Update the Principal Variation. These are moves that
-                // improved alpha but did not cause a beta-cutoff.
-                found_pv_move = true;
-                pv.clear();
-                pv.push(current_move);
-                pv.append(&mut node_pv);
+                    // Update the Principal Variation. These are moves that
+                    // improved alpha but did not cause a beta-cutoff.
+                    found_pv_move = true;
+                    pv.clear();
+                    pv.push(current_move);
+                    pv.append(&mut node_pv);
+                }
             }
         }
 
