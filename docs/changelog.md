@@ -65,7 +65,8 @@ implemented.
   - Implemented Display for many structs, removing custom functions.
   - Dropped the "misc::print" module (no code left after refactoring).
   - Huge cleanup of FEN-reader error handling code.
-- Updated the libraries Rustic depends on (which are intentionally not many).
+- Updated all the libraries
+- Dropped crossbeam_channel and crossbeam_utils
 - Rustic has been converted into a library itself. In the future the Engine
   part will be split out of it, so the library will contain only chess
   functionality.
