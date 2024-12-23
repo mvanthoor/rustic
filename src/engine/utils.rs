@@ -49,25 +49,25 @@ impl Engine {
     // TODO: Refactor this to accept a reference instead of a String
     pub fn execute_move(&mut self, m: String) -> bool {
         // Prepare shorthand variables.
-        let empty = (0usize, 0usize, 0usize);
-        let converted_move = parse::algebraic_move_to_numbers(m.as_str()).unwrap_or(empty);
-        let is_pseudo_legal = self.pseudo_legal(converted_move, &self.board, &self.mg);
-        let mut is_legal = false;
+        let empty_move = (0usize, 0usize, 0usize);
+        let converted_move = parse::algebraic_move_to_numbers(m.as_str()).unwrap_or(empty_move);
+        let pseudo_legal_move = self.is_pseudo_legal_move(converted_move, &self.board, &self.mg);
 
-        if let Ok(ips) = is_pseudo_legal {
-            is_legal = self.board.lock().expect(ErrFatal::LOCK).make(ips, &self.mg);
+        if let Some(m) = pseudo_legal_move {
+            return self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
+        } else {
+            false
         }
-        is_legal
     }
 
     // After the engine receives an incoming move, it checks if this move
     // is actually in the list of pseudo-legal moves for this position.
-    pub fn pseudo_legal(
+    pub fn is_pseudo_legal_move(
         &self,
         converted_move: ConvertedMove,
         board: &Mutex<Board>,
         mg: &MoveGenerator,
-    ) -> Result<Move, PseudoLegalMoveError> {
+    ) -> Option<Move> {
         // Get the pseudo-legal move list for this position.
         let mut memory = allocate_move_list_memory();
         let mtx_board = board.lock().expect(ErrFatal::LOCK);
@@ -83,11 +83,11 @@ impl Engine {
                 if converted_move.1 == m.to();
                 if converted_move.2 == m.promoted();
                 then {
-                    return Ok(m);
+                    return Some(m);
                 }
             }
         }
 
-        Err(PseudoLegalMoveError::NotPseudoLegalMove)
+        None
     }
 }
