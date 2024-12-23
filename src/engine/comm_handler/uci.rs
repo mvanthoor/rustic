@@ -54,7 +54,7 @@ impl Engine {
 
                 if fen_result.is_ok() {
                     for m in moves.iter() {
-                        let ok = self.execute_move(m.clone());
+                        let ok = self.execute_move(m);
                         if !ok {
                             self.comm
                                 .send(CommOut::Error(ErrNormal::NOT_LEGAL, m.clone()));

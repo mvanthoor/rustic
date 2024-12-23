@@ -138,7 +138,7 @@ impl Engine {
                     // When we are observing, we just execute the incoming
                     // move and send the game result (if any).
                     EngineState::Observing => {
-                        if self.execute_move(m.clone()) {
+                        if self.execute_move(m) {
                             if let Some(result) = self.game_over() {
                                 self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                             }
@@ -154,7 +154,7 @@ impl Engine {
                     // is not over, we start thinking.
                     EngineState::Waiting => {
                         if tc.is_set() {
-                            if self.execute_move(m.clone()) {
+                            if self.execute_move(m) {
                                 if let Some(result) = self.game_over() {
                                     self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 } else {
@@ -179,7 +179,7 @@ impl Engine {
                         self.search.send(SearchControl::Abandon);
                         while self.info_rx() != Information::Search(SearchReport::Ready) {}
 
-                        if self.execute_move(m.clone()) {
+                        if self.execute_move(m) {
                             if let Some(result) = self.game_over() {
                                 self.comm.send(CommOut::XBoard(XBoardOut::Result(result)));
                                 self.set_observing();

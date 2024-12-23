@@ -29,10 +29,10 @@ impl Engine {
     // This function executes a move on the internal board, if it legal to
     // do so in the given position.
     // TODO: Refactor this to accept a reference instead of a String
-    pub fn execute_move(&mut self, m: String) -> bool {
+    pub fn execute_move(&mut self, m: &str) -> bool {
         // Prepare shorthand variables.
         let empty_move = (0usize, 0usize, 0usize);
-        let converted_move = parse::algebraic_move_to_numbers(m.as_str()).unwrap_or(empty_move);
+        let converted_move = parse::algebraic_move_to_numbers(m).unwrap_or(empty_move);
         let pseudo_legal_move = self.is_pseudo_legal_move(converted_move);
 
         if let Some(m) = pseudo_legal_move {
