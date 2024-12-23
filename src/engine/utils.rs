@@ -28,7 +28,6 @@ impl Engine {
 
     // This function executes a move on the internal board, if it legal to
     // do so in the given position.
-    // TODO: Refactor this to accept a reference instead of a String
     pub fn execute_move(&mut self, m: &str) -> bool {
         // Prepare shorthand variables.
         let empty_move = (0usize, 0usize, 0usize);
