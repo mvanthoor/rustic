@@ -1,30 +1,12 @@
 use crate::{
-    board::Board,
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     engine::{defs::ErrFatal, Engine},
     misc::parse,
     misc::parse::ConvertedMove,
+    movegen::defs::allocate_move_list_memory,
     movegen::defs::{Move, MoveType},
-    movegen::{defs::allocate_move_list_memory, MoveGenerator},
 };
 use if_chain::if_chain;
-use std::{error::Error, fmt, sync::Mutex};
-
-#[derive(Debug)]
-pub enum PseudoLegalMoveError {
-    NotPseudoLegalMove,
-}
-
-impl fmt::Display for PseudoLegalMoveError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let error = match self {
-            Self::NotPseudoLegalMove => "Not a pseudo-legal move in this position",
-        };
-        write!(f, "{error}")
-    }
-}
-
-impl Error for PseudoLegalMoveError {}
 
 impl Engine {
     // This function sets up a position using a given FEN-string.
@@ -51,7 +33,7 @@ impl Engine {
         // Prepare shorthand variables.
         let empty_move = (0usize, 0usize, 0usize);
         let converted_move = parse::algebraic_move_to_numbers(m.as_str()).unwrap_or(empty_move);
-        let pseudo_legal_move = self.is_pseudo_legal_move(converted_move, &self.board, &self.mg);
+        let pseudo_legal_move = self.is_pseudo_legal_move(converted_move);
 
         if let Some(m) = pseudo_legal_move {
             return self.board.lock().expect(ErrFatal::LOCK).make(m, &self.mg);
@@ -62,22 +44,20 @@ impl Engine {
 
     // After the engine receives an incoming move, it checks if this move
     // is actually in the list of pseudo-legal moves for this position.
-    pub fn is_pseudo_legal_move(
-        &self,
-        converted_move: ConvertedMove,
-        board: &Mutex<Board>,
-        mg: &MoveGenerator,
-    ) -> Option<Move> {
+    pub fn is_pseudo_legal_move(&self, converted_move: ConvertedMove) -> Option<Move> {
         // Get the pseudo-legal move list for this position.
         let mut memory = allocate_move_list_memory();
-        let mtx_board = board.lock().expect(ErrFatal::LOCK);
-        let ml = mg.generate_moves(&mtx_board, &mut memory, MoveType::All);
-        std::mem::drop(mtx_board);
+        let move_list = self.mg.generate_moves(
+            &self.board.lock().expect(ErrFatal::LOCK),
+            &mut memory,
+            MoveType::All,
+        );
 
-        // Determine if the potential move is pseudo-legal. make() wil
-        // determine final legality when executing the move.
-        for i in 0..ml.len() {
-            let m = ml.get_move(i);
+        // Determine if the converted move is a possible pseudo-legal move
+        // in the current position. make() wil determine final legality
+        // when executing the move.
+        for i in 0..move_list.len() {
+            let m = move_list.get_move(i);
             if_chain! {
                 if converted_move.0 == m.from();
                 if converted_move.1 == m.to();
