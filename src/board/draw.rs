@@ -16,18 +16,17 @@ impl Board {
         self.game_state.half_move_clock >= MAX_MOVE_RULE
     }
 
-    // This function returns true if the amount of material on the board is
-    // not sufficient to deliver checkmate, in ANY position, using ANY
-    // sequence of legal moves, EVEN if the losing side is trying to ASSIST
-    // in getting checkmated. In such a position a draw can officially be
+    // This function returns true if the amount of material on the board is not sufficient to
+    // deliver checkmate, in ANY position, using ANY sequence of legal moves, EVEN if the losing
+    // side is trying to assist in getting checkmated. In such a position a draw can officially be
     // claimed under FIDE rules.
     pub fn draw_by_insufficient_material_rule(&self) -> bool {
         // Get the piece bitboards for white and black.
         let w = self.get_bitboards(Sides::WHITE);
         let b = self.get_bitboards(Sides::BLACK);
 
-        // Determine if at least one side has either a Queen, a Rook or a
-        // pawn (qrp). If is the case, a draw by rule is not possible.
+        // Determine if at least one side has either a Queen, a Rook or a pawn (qrp). If this is the
+        // case, a draw by rule is not possible because mate can be achieved.
         let qrp = w[Pieces::QUEEN] != 0
             || w[Pieces::ROOK] != 0
             || w[Pieces::PAWN] != 0
@@ -35,52 +34,61 @@ impl Board {
             || b[Pieces::ROOK] != 0
             || b[Pieces::PAWN] != 0;
 
-        // No queens, rooks or pawns. We may have a draw.
-        if !qrp {
-            // King vs. King
-            let kk = w[Pieces::BISHOP] == 0
-                && w[Pieces::KNIGHT] == 0
-                && b[Pieces::BISHOP] == 0
-                && b[Pieces::KNIGHT] == 0;
-            // King/Bishop vs. King
-            let kbk = w[Pieces::BISHOP].count_ones() == 1
-                && w[Pieces::KNIGHT] == 0
-                && b[Pieces::BISHOP] == 0
-                && b[Pieces::KNIGHT] == 0;
-            // King/Knight vs. King
-            let knk = w[Pieces::BISHOP] == 0
-                && w[Pieces::KNIGHT].count_ones() == 1
-                && b[Pieces::BISHOP] == 0
-                && b[Pieces::KNIGHT] == 0;
-            // King vs. King/Bishop
-            let kkb = w[Pieces::BISHOP] == 0
-                && w[Pieces::KNIGHT] == 0
-                && b[Pieces::BISHOP].count_ones() == 1
-                && b[Pieces::KNIGHT] == 0;
-            // King vs. King/Knight
-            let kkn = w[Pieces::BISHOP] == 0
-                && w[Pieces::KNIGHT] == 0
-                && b[Pieces::BISHOP] == 0
-                && b[Pieces::KNIGHT].count_ones() == 1;
-            // King/Bishop vs. King/Bishop
-            let kbkb = w[Pieces::BISHOP].count_ones() == 1
-                && w[Pieces::KNIGHT] == 0
-                && b[Pieces::BISHOP].count_ones() == 1
-                && b[Pieces::KNIGHT] == 0;
-            // Both bishops have to be on the same colored square for a
-            // draw to be claimable.
-            let same_color_sq = if kbkb {
-                let wb_sq = w[Pieces::BISHOP].trailing_zeros() as usize;
-                let bb_sq = b[Pieces::BISHOP].trailing_zeros() as usize;
+        if qrp {
+            return false;
+        }
 
-                Board::is_white_square(wb_sq) == Board::is_white_square(bb_sq)
-            } else {
-                false
-            };
+        // No queens, rooks or pawns. We may have a draw. For this, one of the following conditions
+        // in material balance must be true:
 
-            if kk || kbk || knk || kkb || kkn || (kbkb && same_color_sq) {
-                return true;
-            }
+        // King vs. King
+        let kk = w[Pieces::BISHOP] == 0
+            && w[Pieces::KNIGHT] == 0
+            && b[Pieces::BISHOP] == 0
+            && b[Pieces::KNIGHT] == 0;
+        // King/Bishop vs. King
+        let kbk = w[Pieces::BISHOP].count_ones() == 1
+            && w[Pieces::KNIGHT] == 0
+            && b[Pieces::BISHOP] == 0
+            && b[Pieces::KNIGHT] == 0;
+        // King/Knight vs. King
+        let knk = w[Pieces::BISHOP] == 0
+            && w[Pieces::KNIGHT].count_ones() == 1
+            && b[Pieces::BISHOP] == 0
+            && b[Pieces::KNIGHT] == 0;
+        // King vs. King/Bishop
+        let kkb = w[Pieces::BISHOP] == 0
+            && w[Pieces::KNIGHT] == 0
+            && b[Pieces::BISHOP].count_ones() == 1
+            && b[Pieces::KNIGHT] == 0;
+        // King vs. King/Knight
+        let kkn = w[Pieces::BISHOP] == 0
+            && w[Pieces::KNIGHT] == 0
+            && b[Pieces::BISHOP] == 0
+            && b[Pieces::KNIGHT].count_ones() == 1;
+        // King/Bishop vs. King/Bishop
+        let kbkb = w[Pieces::BISHOP].count_ones() == 1
+            && w[Pieces::KNIGHT] == 0
+            && b[Pieces::BISHOP].count_ones() == 1
+            && b[Pieces::KNIGHT] == 0;
+
+        // If we have King/Bishop vs King/Bishop, an additional condition applies. Both bishops have
+        // to be on the same colored square for a draw to be claimable. If they are on different
+        // colored squares, a mate is still possible (even though one player must assist the other
+        // in actually achieving it).
+        let same_color_sq = if kbkb {
+            let wb_sq = w[Pieces::BISHOP].trailing_zeros() as usize;
+            let bb_sq = b[Pieces::BISHOP].trailing_zeros() as usize;
+
+            Board::is_white_square(wb_sq) == Board::is_white_square(bb_sq)
+        } else {
+            false
+        };
+
+        // If we have any of these conditions, a draw can be claimed according to FIDE rules of
+        // "draw by insufficient material."
+        if kk || kbk || knk || kkb || kkn || (kbkb && same_color_sq) {
+            return true;
         }
 
         // All other cases cannot be claimed as a draw.
@@ -117,13 +125,9 @@ impl Board {
         count
     }
 
-    // This function returns true if there is enough material available for
-    // at least one of the sides to force a checkmate, even with best play
-    // from the losing side. If mate cannot be forced then this function
-    // returns false. (In some situations it may be possible to achieve a
-    // mate if the losing side plays very poorly or even assists in getting
-    // mated, but this function will still return false if mate can not be
-    // forced.)
+    // This function returns true if there is enough material available for at least one of the
+    // sides to achieve a checkmate position against a lone king, without this lone king assisting
+    // to create the mate.
     pub fn can_force_checkmate(&self) -> bool {
         let w = self.get_bitboards(Sides::WHITE);
         let b = self.get_bitboards(Sides::BLACK);
