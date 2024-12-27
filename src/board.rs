@@ -46,12 +46,4 @@ impl Board {
             zobrist_randoms: Arc::new(ZobristRandoms::new()),
         }
     }
-
-    pub fn reset(&mut self) {
-        self.bb_pieces = [[EMPTY; NrOf::PIECE_TYPES]; Sides::BOTH];
-        self.bb_side = [EMPTY; Sides::BOTH];
-        self.game_state.clear();
-        self.history.clear();
-        self.piece_list = [Pieces::NONE; NrOf::SQUARES];
-    }
 }
