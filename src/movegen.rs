@@ -7,7 +7,7 @@ mod movelist;
 use crate::{
     board::defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
     board::Board,
-    defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY, MAX_LEGAL_MOVES},
+    defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
     misc::bits,
 };
 use defs::{Move, MoveType, Shift};
