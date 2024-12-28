@@ -157,7 +157,7 @@ dependencies = [
 
 [[package]]
 name = "rustic"
-version = "3.99.5"
+version = "3.99.0"
 dependencies = [
  "clap",
  "if_chain",
