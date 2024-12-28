@@ -1,11 +1,14 @@
 use super::defs::Move;
 use crate::defs::MAX_LEGAL_MOVES;
-use std::mem;
+use std::mem::{self, MaybeUninit};
+
+type MoveListArray = [Move; MAX_LEGAL_MOVES as usize];
+type MoveListRaw = MaybeUninit<MoveListArray>;
 
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
 pub struct MoveList {
-    list: [Move; MAX_LEGAL_MOVES as usize],
+    list: MoveListArray,
     count: u8,
 }
 
@@ -29,8 +32,8 @@ impl MoveList {
     pub fn new() -> Self {
         Self {
             list: unsafe {
-                let block = mem::MaybeUninit::uninit();
-                block.assume_init()
+                let raw = mem::MaybeUninit::<MoveListArray>::uninit();
+                mem::transmute::<MoveListRaw, MoveListArray>(raw)
             },
             count: 0,
         }
