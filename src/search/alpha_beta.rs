@@ -3,10 +3,14 @@ use crate::{
     defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData, Verbosity},
     evaluation::Evaluation,
-    movegen::defs::{allocate_move_list_memory, Move, MoveType, ShortMove},
-    search::defs::{PrincipalVariation, SearchTerminated},
-    search::defs::{CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
-    search::{Search, SearchRefs},
+    movegen::defs::{Move, MoveList, MoveType, ShortMove},
+    search::{
+        defs::{
+            PrincipalVariation, SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF,
+            SEND_STATS, STALEMATE,
+        },
+        Search, SearchRefs,
+    },
 };
 
 impl Search {
@@ -88,10 +92,9 @@ impl Search {
 
         // Generate the moves in this position
         let mut legal_moves_found = 0;
-        let mut memory = allocate_move_list_memory();
-        let mut move_list = refs
-            .mg
-            .generate_moves(refs.board, &mut memory, MoveType::All);
+        let mut move_list = MoveList::new();
+        refs.mg
+            .generate_moves(refs.board, &mut move_list, MoveType::All);
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list, tt_move, refs);

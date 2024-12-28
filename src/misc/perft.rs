@@ -1,8 +1,10 @@
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, PerftData, TT},
-    movegen::defs::MoveType,
-    movegen::{defs::allocate_move_list_memory, MoveGenerator},
+    movegen::{
+        defs::{MoveList, MoveType},
+        MoveGenerator,
+    },
 };
 use if_chain::if_chain;
 use std::{
@@ -98,8 +100,8 @@ pub fn perft(
         }
     }
 
-    let mut memory = allocate_move_list_memory();
-    let move_list = mg.generate_moves(board, &mut memory, MoveType::All);
+    let mut move_list = MoveList::new();
+    mg.generate_moves(board, &mut move_list, MoveType::All);
 
     // Run perft for each of the moves.
     for i in 0..move_list.len() {

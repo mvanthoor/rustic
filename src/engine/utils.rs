@@ -1,10 +1,8 @@
 use crate::{
     defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
     engine::{defs::ErrFatal, Engine},
-    misc::parse,
-    misc::parse::ConvertedMove,
-    movegen::defs::allocate_move_list_memory,
-    movegen::defs::{Move, MoveType},
+    misc::parse::{self, ConvertedMove},
+    movegen::defs::{Move, MoveList, MoveType},
 };
 use if_chain::if_chain;
 
@@ -45,10 +43,10 @@ impl Engine {
     // is actually in the list of pseudo-legal moves for this position.
     pub fn is_pseudo_legal_move(&self, converted_move: ConvertedMove) -> Option<Move> {
         // Get the pseudo-legal move list for this position.
-        let mut memory = allocate_move_list_memory();
-        let move_list = self.mg.generate_moves(
+        let mut move_list = MoveList::new();
+        self.mg.generate_moves(
             &self.board.lock().expect(ErrFatal::LOCK),
-            &mut memory,
+            &mut move_list,
             MoveType::All,
         );
 

@@ -26,7 +26,7 @@ pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
 impl Search {
     pub fn score_moves(ml: &mut MoveList, tt_move: ShortMove, refs: &SearchRefs) {
         for i in 0..ml.len() {
-            let m = ml.get_mut_ref_move(i);
+            let m = ml.get_mut_move(i);
             let mut value: u32 = 0;
 
             // Sort order priority is: TT Move first, then captures, then

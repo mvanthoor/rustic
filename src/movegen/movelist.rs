@@ -1,38 +1,45 @@
-// movelist.rs contains the implementation of an array backed by a counter, as a
-// very minimal drop-in replacement for a vector. An array on the stack is
-// faster than a vector allocated on the heap. Speed is much more important than
-// functionality, so only the bare minimum to be able to use the array is
-// implemented. There is error checking or bounds checking. If the array is
-// mis-addressed due to a bug, the program panics.
-
-use crate::{defs::MAX_LEGAL_MOVES, movegen::defs::Move};
-use std::mem::{self, MaybeUninit};
-
-type MoveListArray = [Move; MAX_LEGAL_MOVES as usize];
-pub type MoveListRaw = [MaybeUninit<Move>; MAX_LEGAL_MOVES as usize];
-
-pub fn allocate_move_list_memory() -> MoveListRaw {
-    unsafe { MaybeUninit::uninit().assume_init() }
-}
+use super::defs::Move;
+use crate::defs::MAX_LEGAL_MOVES;
+use std::mem;
 
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
 pub struct MoveList {
-    list: MoveListArray,
+    list: [Move; MAX_LEGAL_MOVES as usize],
     count: u8,
 }
 
+impl Default for MoveList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MoveList {
-    // This function uses unsafe code to create an uninitialized move list.
-    // We do this because initializing the list with zero's (and then
-    // overwriting them with actual moves) is a massive performance hit. In
-    // the future we could pass in the move generator so the list can
-    // immediately be initialized with moves.
-    pub fn new(raw: &MoveListRaw, count: u8) -> Self {
+    // Creates a new move list. YES, I know that the use of MaybeUninit
+    // directly followed by assume_init() is, officially speaking,
+    // incorrect because it DOES create a memory block with uninitialized
+    // variables. The memory doesn't need to be initialized, because the
+    // next step after creating the move list will always be to generate
+    // moves and store them in the list beginning at index 0. This would
+    // overwrite the initialization and make it useless. Initializing the
+    // move list with 0's massively slows down the program. Maybe in the
+    // future, I'll rewrite the move generator function to create and fill
+    // in the list by itself, without taking a reference to an empty list.
+    pub fn new() -> Self {
         Self {
-            list: unsafe { mem::transmute::<MoveListRaw, MoveListArray>(*raw) },
-            count,
+            list: unsafe {
+                let block = mem::MaybeUninit::uninit();
+                block.assume_init()
+            },
+            count: 0,
         }
+    }
+
+    // Used to store a move in the move list.
+    pub fn push(&mut self, m: Move) {
+        self.list[self.count as usize] = m;
+        self.count += 1;
     }
 
     // Returns the number of moves in the move list.
@@ -50,11 +57,18 @@ impl MoveList {
         self.list[index as usize]
     }
 
-    pub fn get_mut_ref_move(&mut self, index: u8) -> &mut Move {
+    pub fn get_mut_move(&mut self, index: u8) -> &mut Move {
         &mut self.list[index as usize]
     }
 
     pub fn swap(&mut self, a: usize, b: usize) {
-        self.list.swap(a, b);
+        unsafe {
+            // Take two raw pointers to the moves.
+            let ptr_a: *mut Move = &mut self.list[a];
+            let ptr_b: *mut Move = &mut self.list[b];
+
+            // Swap those pointers, so now the moves are swapped.
+            std::ptr::swap(ptr_a, ptr_b);
+        }
     }
 }

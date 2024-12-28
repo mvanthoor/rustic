@@ -1,8 +1,9 @@
 use crate::{
-    engine::defs::ErrFatal,
-    engine::defs::{GameResult, GameResultPoints, GameResultReason},
-    movegen::defs::{allocate_move_list_memory, MoveType},
-    engine::Engine,
+    engine::{
+        defs::{ErrFatal, GameResult, GameResultPoints, GameResultReason},
+        Engine,
+    },
+    movegen::defs::{MoveList, MoveType},
 };
 
 impl Engine {
@@ -55,13 +56,12 @@ impl Engine {
 
     // Determines if the side to move has at least one legal move.
     pub fn moves_available(&self) -> bool {
-        let mut memory = allocate_move_list_memory();
+        let mut move_list = MoveList::new();
         let mut mtx_board = self.board.lock().expect(ErrFatal::LOCK);
 
         // Generate pseudo-legal moves.
-        let move_list = self
-            .mg
-            .generate_moves(&mtx_board, &mut memory, MoveType::All);
+        self.mg
+            .generate_moves(&mtx_board, &mut move_list, MoveType::All);
 
         // We can break as soon as we find a legal move.
         for i in 0..move_list.len() {

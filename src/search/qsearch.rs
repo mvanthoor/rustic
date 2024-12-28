@@ -2,9 +2,11 @@ use crate::{
     defs::MAX_PLY,
     engine::defs::Verbosity,
     evaluation::Evaluation,
-    movegen::defs::{allocate_move_list_memory, MoveType, ShortMove},
-    search::defs::{PrincipalVariation, SearchTerminated, CHECK_TERMINATION, SEND_STATS},
-    search::{Search, SearchRefs},
+    movegen::defs::{MoveList, MoveType, ShortMove},
+    search::{
+        defs::{PrincipalVariation, SearchTerminated, CHECK_TERMINATION, SEND_STATS},
+        Search, SearchRefs,
+    },
 };
 
 impl Search {
@@ -58,10 +60,9 @@ impl Search {
         // Then the function will return after looping the move list.
 
         // Generate only capture moves.
-        let mut memory = allocate_move_list_memory();
-        let mut move_list = refs
-            .mg
-            .generate_moves(refs.board, &mut memory, MoveType::Capture);
+        let mut move_list = MoveList::new();
+        refs.mg
+            .generate_moves(refs.board, &mut move_list, MoveType::Capture);
 
         // Do move scoring, so the best move will be searched first.
         Search::score_moves(&mut move_list, ShortMove::new(0), refs);

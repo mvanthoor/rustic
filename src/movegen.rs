@@ -5,16 +5,16 @@ mod magics;
 mod movelist;
 
 use crate::{
-    board::defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
-    board::Board,
+    board::{
+        defs::{Pieces, Squares, BB_RANKS, BB_SQUARES},
+        Board,
+    },
     defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square, EMPTY},
     misc::bits,
 };
 use defs::{Move, MoveType, Shift};
 use magics::Magic;
 use movelist::MoveList;
-
-use self::defs::MoveListRaw;
 
 // This is a list of all pieces a pawn can promote to.
 const PROMOTION_PIECES: [usize; 4] = [Pieces::QUEEN, Pieces::ROOK, Pieces::BISHOP, Pieces::KNIGHT];
@@ -64,27 +64,19 @@ impl MoveGenerator {
         mg
     }
 
-    // Generates moves for the side that is to move.
-    pub fn generate_moves(
-        &self,
-        board: &Board,
-        memory: &mut MoveListRaw,
-        move_type: MoveType,
-    ) -> MoveList {
-        let mut count: u8 = 0;
+    // Generates moves for the side that is to move. The MoveType parameter
+    // determines if all moves, or only captures need to be generated.
+    pub fn generate_moves(&self, board: &Board, ml: &mut MoveList, mt: MoveType) {
+        self.piece(board, Pieces::KING, ml, mt);
+        self.piece(board, Pieces::KNIGHT, ml, mt);
+        self.piece(board, Pieces::ROOK, ml, mt);
+        self.piece(board, Pieces::BISHOP, ml, mt);
+        self.piece(board, Pieces::QUEEN, ml, mt);
+        self.pawns(board, ml, mt);
 
-        self.piece(board, Pieces::KING, memory, move_type, &mut count);
-        self.piece(board, Pieces::KNIGHT, memory, move_type, &mut count);
-        self.piece(board, Pieces::ROOK, memory, move_type, &mut count);
-        self.piece(board, Pieces::BISHOP, memory, move_type, &mut count);
-        self.piece(board, Pieces::QUEEN, memory, move_type, &mut count);
-        self.pawns(board, memory, move_type, &mut count);
-
-        if move_type == MoveType::All || move_type == MoveType::Quiet {
-            self.castling(board, memory, &mut count);
+        if mt == MoveType::All || mt == MoveType::Quiet {
+            self.castling(board, ml);
         }
-
-        MoveList::new(memory, count)
     }
 
     // Return non-slider (King, Knight) attacks for the given square.
@@ -96,7 +88,7 @@ impl MoveGenerator {
         }
     }
 
-    // Return slider attack for Rook, Bishop and Queen using the magic numbers.
+    // Return slider attacsk for Rook, Bishop and Queen using the magic numbers.
     pub fn get_slider_attacks(
         &self,
         piece: Piece,
@@ -130,14 +122,7 @@ impl MoveGenerator {
 // *** === Getting the actual pseudo-legal moves. === *** //
 
 impl MoveGenerator {
-    pub fn piece(
-        &self,
-        board: &Board,
-        piece: Piece,
-        memory: &mut MoveListRaw,
-        move_type: MoveType,
-        count: &mut u8,
-    ) {
+    pub fn piece(&self, board: &Board, piece: Piece, list: &mut MoveList, mt: MoveType) {
         let us = board.us();
         let bb_occupancy = board.occupancy();
 
@@ -147,7 +132,7 @@ impl MoveGenerator {
         let bb_own_pieces = board.bb_side[us];
         let bb_opponent_pieces = board.bb_side[board.opponent()];
 
-        let mut bb_pieces = board.get_pieces(us, piece);
+        let mut bb_pieces = board.get_pieces(piece, us);
 
         // Generate moves for each piece of the type passed into the function.
         while bb_pieces > 0 {
@@ -161,23 +146,17 @@ impl MoveGenerator {
             };
 
             // Generate moves according to requested move type.
-            let bb_moves = match move_type {
+            let bb_moves = match mt {
                 MoveType::All => bb_target & !bb_own_pieces,
                 MoveType::Quiet => bb_target & bb_empty,
                 MoveType::Capture => bb_target & bb_opponent_pieces,
             };
 
-            self.add_move(board, piece, from, bb_moves, memory, count);
+            self.add_move(board, piece, from, bb_moves, list);
         }
     }
 
-    pub fn pawns(
-        &self,
-        board: &Board,
-        memory: &mut MoveListRaw,
-        move_type: MoveType,
-        count: &mut u8,
-    ) {
+    pub fn pawns(&self, board: &Board, list: &mut MoveList, mt: MoveType) {
         // Create shorthand variables.
         let us = board.us();
         let bb_opponent_pieces = board.bb_side[board.opponent()];
@@ -185,7 +164,7 @@ impl MoveGenerator {
         let bb_fourth = BB_RANKS[Board::fourth_rank(us)];
         let direction = Board::pawn_direction(us);
         let rotation_count = (NrOf::SQUARES as i8 + direction) as u32;
-        let mut bb_pawns = board.get_pieces(us, Pieces::PAWN);
+        let mut bb_pawns = board.get_pieces(Pieces::PAWN, us);
 
         // As long as there are pawns, generate moves for each of them.
         while bb_pawns > 0 {
@@ -194,7 +173,7 @@ impl MoveGenerator {
             let mut bb_moves = 0;
 
             // Generate pawn pushes
-            if move_type == MoveType::All || move_type == MoveType::Quiet {
+            if mt == MoveType::All || mt == MoveType::Quiet {
                 let bb_push = BB_SQUARES[to];
                 let bb_one_step = bb_push & bb_empty;
                 let bb_two_step = bb_one_step.rotate_left(rotation_count) & bb_empty & bb_fourth;
@@ -202,7 +181,7 @@ impl MoveGenerator {
             }
 
             // Generate pawn captures
-            if move_type == MoveType::All || move_type == MoveType::Capture {
+            if mt == MoveType::All || mt == MoveType::Capture {
                 let bb_targets = self.get_pawn_attacks(us, from);
                 let bb_captures = bb_targets & bb_opponent_pieces;
                 let bb_ep_capture = match board.game_state.en_passant {
@@ -212,18 +191,18 @@ impl MoveGenerator {
                 bb_moves |= bb_captures | bb_ep_capture;
             }
 
-            self.add_move(board, Pieces::PAWN, from, bb_moves, memory, count);
+            self.add_move(board, Pieces::PAWN, from, bb_moves, list);
         }
     }
 
-    pub fn castling(&self, board: &Board, memory: &mut MoveListRaw, count: &mut u8) {
+    pub fn castling(&self, board: &Board, list: &mut MoveList) {
         // Create shorthand variables.
         let us = board.us();
         let opponent = board.opponent();
         let castle_perms_white = (board.game_state.castling & (Castling::WK | Castling::WQ)) > 0;
         let castle_perms_black = (board.game_state.castling & (Castling::BK | Castling::BQ)) > 0;
         let bb_occupancy = board.occupancy();
-        let mut bb_king = board.get_pieces(us, Pieces::KING);
+        let mut bb_king = board.get_pieces(Pieces::KING, us);
         let from = bits::next(&mut bb_king);
 
         // Generate castling moves for white.
@@ -238,7 +217,7 @@ impl MoveGenerator {
                     && !self.square_attacked(board, opponent, Squares::F1)
                 {
                     let to = BB_SQUARES[from] << 2;
-                    self.add_move(board, Pieces::KING, from, to, memory, count);
+                    self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
 
@@ -253,7 +232,7 @@ impl MoveGenerator {
                     && !self.square_attacked(board, opponent, Squares::D1)
                 {
                     let to = BB_SQUARES[from] >> 2;
-                    self.add_move(board, Pieces::KING, from, to, memory, count);
+                    self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
         }
@@ -270,7 +249,7 @@ impl MoveGenerator {
                     && !self.square_attacked(board, opponent, Squares::F8)
                 {
                     let to = BB_SQUARES[from] << 2;
-                    self.add_move(board, Pieces::KING, from, to, memory, count);
+                    self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
 
@@ -285,7 +264,7 @@ impl MoveGenerator {
                     && !self.square_attacked(board, opponent, Squares::D8)
                 {
                     let to = BB_SQUARES[from] >> 2;
-                    self.add_move(board, Pieces::KING, from, to, memory, count);
+                    self.add_move(board, Pieces::KING, from, to, list);
                 }
             }
         }
@@ -298,16 +277,15 @@ impl MoveGenerator {
         piece: Piece,
         from: Square,
         to: Bitboard,
-        memory: &mut MoveListRaw,
-        count: &mut u8,
+        list: &mut MoveList,
     ) {
-        // Shorthand variables.
+        // Shorthand variiables.
         let mut bb_to = to;
         let us = board.us();
         let promotion_rank = Board::promotion_rank(us);
         let is_pawn = piece == Pieces::PAWN;
 
-        // As long as there are still to-squares in bb_to, this piece has moves to add.
+        // As long as there are still to-squres in bb_to, this piece has moves to add.
         while bb_to > 0 {
             // More shorthand variables
             let to_square = bits::next(&mut bb_to);
@@ -332,14 +310,12 @@ impl MoveGenerator {
             // Push the move to the piece list...
             if !promotion {
                 move_data |= Pieces::NONE << Shift::PROMOTION;
-                memory[*count as usize].write(Move::new(move_data));
-                *count += 1;
+                list.push(Move::new(move_data));
             } else {
                 // ...or push four promotion moves.
                 PROMOTION_PIECES.iter().for_each(|piece| {
                     let promotion_piece = *piece << Shift::PROMOTION;
-                    memory[*count as usize].write(Move::new(move_data | promotion_piece));
-                    *count += 1;
+                    list.push(Move::new(move_data | promotion_piece))
                 });
             }
         }
@@ -354,7 +330,7 @@ impl MoveGenerator {
         let attackers = board.bb_pieces[attacker];
 
         // Use the super-piece method: get the moves for each piece,
-        // starting from the given square. This provides the squares where
+        // starting from the given square. This provides the sqaures where
         // a piece has to be, to be able to reach the given square.
         let occupancy = board.occupancy();
         let bb_king = self.get_non_slider_attacks(Pieces::KING, square);
