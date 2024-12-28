@@ -84,14 +84,7 @@ impl MoveGenerator {
             self.castling(board, memory, &mut count);
         }
 
-        self.init_unused_part_of(memory, count);
         MoveList::new(memory, count)
-    }
-
-    pub fn init_unused_part_of(&self, memory: &mut MoveListRaw, count: u8) {
-        for i in count..MAX_LEGAL_MOVES {
-            memory[i as usize].write(Move::new(0));
-        }
     }
 
     // Return non-slider (King, Knight) attacks for the given square.
