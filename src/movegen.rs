@@ -279,13 +279,13 @@ impl MoveGenerator {
         to: Bitboard,
         list: &mut MoveList,
     ) {
-        // Shorthand variiables.
+        // Shorthand variables.
         let mut bb_to = to;
         let us = board.us();
         let promotion_rank = Board::promotion_rank(us);
         let is_pawn = piece == Pieces::PAWN;
 
-        // As long as there are still to-squres in bb_to, this piece has moves to add.
+        // As long as there are still to-squares in bb_to, this piece has moves to add.
         while bb_to > 0 {
             // More shorthand variables
             let to_square = bits::next(&mut bb_to);
