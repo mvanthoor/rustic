@@ -18,12 +18,8 @@ impl Engine {
             Arc::clone(&self.board),
             Arc::clone(&self.options),
         );
-        self.search.init(
-            info_tx,
-            Arc::clone(&self.board),
-            Arc::clone(&self.mg),
-            Arc::clone(&self.tt_search),
-        );
+        self.search
+            .init(info_tx, Arc::clone(&self.board), Arc::clone(&self.mg));
 
         // Keep looping forever until 'quit' received.
         while !self.quit {

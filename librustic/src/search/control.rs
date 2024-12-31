@@ -3,11 +3,8 @@ use crate::{
     board::Board,
     engine::defs::{ErrFatal, Information},
     movegen::MoveGenerator,
-    search::{
-        defs::{
-            SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminated,
-        },
-        transposition::{SearchData, TT},
+    search::defs::{
+        SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminated,
     },
 };
 use std::{
@@ -21,22 +18,19 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
-        tt: Arc<Mutex<TT<SearchData>>>,
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = channel();
 
         // Create thread-local variables.
         let t_report_tx = report_tx;
+        let arc_board = Arc::clone(&board);
+        let arc_mg = Arc::clone(&mg);
+        let arc_tt = Arc::clone(&self.transposition);
 
         // Create the search thread.
         let h = thread::spawn(move || {
-            // Create thread-local variables.
-            let arc_board = Arc::clone(&board);
-            let arc_mg = Arc::clone(&mg);
-            let arc_tt = Arc::clone(&tt);
             let mut search_params = SearchParams::new();
-
             let mut quit = false;
             let mut halt = true;
 
@@ -110,6 +104,17 @@ impl Search {
         // Store the thread's handle and command sender.
         self.handle = Some(h);
         self.control_tx = Some(control_tx);
+    }
+
+    pub fn transposition_clear(&self) {
+        self.transposition.lock().expect(ErrFatal::LOCK).clear();
+    }
+
+    pub fn transposition_resize(&self, megabytes: usize) {
+        self.transposition
+            .lock()
+            .expect(ErrFatal::LOCK)
+            .resize(megabytes);
     }
 
     // This function is used to send commands into the search thread.

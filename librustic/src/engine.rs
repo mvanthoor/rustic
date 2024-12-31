@@ -14,7 +14,7 @@ use crate::{
     engine::defs::{ErrFatal, Information, Settings, UiElement},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::defs::{PerftData, SearchData, Verbosity, TT},
+    search::defs::{PerftData, Verbosity, TT},
     search::{defs::SearchControl, Search},
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};
@@ -36,10 +36,9 @@ pub struct Engine {
     settings: Settings,                     // Struct holding all the settings.
     options: Arc<Vec<EngineOption>>,        // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
-    comm: Box<dyn IComm>,                   // Communications (active).
+    comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     tt_perft: Arc<Mutex<TT<PerftData>>>,    // TT for running perft.
-    tt_search: Arc<Mutex<TT<SearchData>>>,  // TT for search information.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
@@ -91,17 +90,6 @@ impl Engine {
             ),
         ];
 
-        // Initialize correct TT.
-        let tt_perft: Arc<Mutex<TT<PerftData>>>;
-        let tt_search: Arc<Mutex<TT<SearchData>>>;
-        if cmdline.perft() > 0 {
-            tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
-            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(0)));
-        } else {
-            tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(0)));
-            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
-        };
-
         #[cfg(feature = "extra")]
         let texel = TexelSettings {
             file_name: cmdline.texel(),
@@ -124,8 +112,7 @@ impl Engine {
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            tt_perft,
-            tt_search,
+            tt_perft: Arc::new(Mutex::new(TT::<PerftData>::new(tt_size))),
             info_rx: None,
             search: Search::new(tt_size),
         }
@@ -175,7 +162,6 @@ impl Engine {
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .resize(self.settings.tt_size);
-            self.tt_search.lock().expect(ErrFatal::LOCK).resize(0);
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
             return Ok(());
         }

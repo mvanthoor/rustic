@@ -21,7 +21,7 @@ impl Engine {
                     .expect(ErrFatal::LOCK)
                     .fen_setup(Some(FEN_START_POSITION))
                     .expect(ErrFatal::NEW_GAME);
-                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.search.transposition_clear();
             }
 
             UciIn::IsReady => self.comm.send(CommOut::Uci(UciOut::Ready)),
@@ -30,7 +30,7 @@ impl Engine {
                 match option {
                     EngineSetOption::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
-                            self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                            self.search.transposition_resize(v);
                         } else {
                             self.comm
                                 .send(CommOut::Error(ErrNormal::NOT_INT, value.to_string()));
@@ -38,7 +38,7 @@ impl Engine {
                     }
 
                     EngineSetOption::ClearHash => {
-                        self.tt_search.lock().expect(ErrFatal::LOCK).clear()
+                        self.search.transposition_clear();
                     }
 
                     EngineSetOption::Nothing => (),

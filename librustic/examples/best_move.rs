@@ -22,14 +22,10 @@ fn main() {
     // setup move generator
     let move_generator = Arc::new(MoveGenerator::new());
 
-    // setup transposition table
-    let tt_size = 32; // TODO: not sure
-    let transposition_table = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
-
     // setup search
-    let mut search = Search::new(tt_size);
+    let mut search = Search::new(32);
     let (info_tx, info_rx) = channel();
-    search.init(info_tx, board, move_generator, transposition_table);
+    search.init(info_tx, board, move_generator);
 
     // start search
     let depth = 8;

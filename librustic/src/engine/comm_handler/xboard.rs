@@ -44,7 +44,7 @@ impl Engine {
                     .expect(ErrFatal::LOCK)
                     .fen_setup(Some(FEN_START_POSITION))
                     .expect(ErrFatal::NEW_GAME);
-                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.search.transposition_clear();
                 self.set_waiting();
             }
 
@@ -106,7 +106,7 @@ impl Engine {
                 if self.is_analyzing() {
                     self.search.send(SearchControl::Abandon);
                     while self.info_rx() != Information::Search(SearchReport::Ready) {}
-                    self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                    self.search.transposition_clear();
                 }
 
                 // Set up the new board.
@@ -253,7 +253,7 @@ impl Engine {
             XBoardIn::NoPost => self.settings.verbosity = Verbosity::Silent,
 
             // Set the transposition table size.
-            XBoardIn::Memory(mb) => self.tt_search.lock().expect(ErrFatal::LOCK).resize(*mb),
+            XBoardIn::Memory(mb) => self.search.transposition_resize(*mb),
 
             // Start analyze mode.
             XBoardIn::Analyze => {

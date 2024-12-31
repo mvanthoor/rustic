@@ -27,7 +27,7 @@ impl Engine {
             }
             CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
             CommIn::ClearTt => {
-                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.search.transposition_clear();
                 self.comm
                     .send(CommOut::Message(Messages::CLEARED_TT.to_string()));
             }
