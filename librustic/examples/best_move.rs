@@ -2,7 +2,6 @@ use rustic::{
     board::Board,
     engine::defs::Information,
     movegen::MoveGenerator,
-    search::defs::{SearchData, TT},
     search::{
         defs::{GameTime, SearchControl, SearchMode, SearchParams, SearchReport, Verbosity},
         Search,
