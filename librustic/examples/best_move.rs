@@ -1,10 +1,10 @@
 use rustic::{
     board::Board,
-    engine::defs::{Information, Verbosity},
+    engine::defs::Information,
     movegen::MoveGenerator,
     search::defs::{SearchData, TT},
     search::{
-        defs::{GameTime, SearchControl, SearchMode, SearchParams, SearchReport},
+        defs::{GameTime, SearchControl, SearchMode, SearchParams, SearchReport, Verbosity},
         Search,
     },
 };

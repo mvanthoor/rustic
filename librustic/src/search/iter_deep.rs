@@ -1,8 +1,7 @@
 use crate::{
     defs::MAX_PLY,
-    engine::defs::Verbosity,
     movegen::defs::Move,
-    search::defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, INF},
+    search::defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, Verbosity, INF},
     search::{ErrFatal, Information, Search, SearchReport, SearchSummary},
 };
 

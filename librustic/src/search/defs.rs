@@ -6,7 +6,7 @@ pub use crate::search::{
 use crate::{
     board::Board,
     defs::MAX_PLY,
-    engine::defs::{Information, Verbosity},
+    engine::defs::Information,
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,
 };
@@ -29,6 +29,13 @@ pub const MAX_KILLER_MOVES: usize = 2;
 pub type SearchResult = (Move, SearchTerminated);
 pub type PrincipalVariation = Vec<Move>;
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
+
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub enum Verbosity {
+    Full,
+    Quiet,
+    Silent,
+}
 
 #[derive(PartialEq, Eq)]
 // These commands can be used by the engine thread to control the search.

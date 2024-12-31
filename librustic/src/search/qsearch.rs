@@ -1,10 +1,9 @@
 use crate::{
     defs::MAX_PLY,
-    engine::defs::Verbosity,
     evaluation::Evaluation,
     movegen::defs::{MoveList, MoveType, ShortMove},
     search::{
-        defs::{PrincipalVariation, SearchTerminated, CHECK_TERMINATION, SEND_STATS},
+        defs::{PrincipalVariation, SearchTerminated, Verbosity, CHECK_TERMINATION, SEND_STATS},
         Search, SearchRefs,
     },
 };

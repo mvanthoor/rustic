@@ -11,10 +11,10 @@ use crate::{
     comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
     engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption, EngineState},
-    engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
+    engine::defs::{ErrFatal, Information, Settings, UiElement},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::defs::{PerftData, SearchData, TT},
+    search::defs::{PerftData, SearchData, Verbosity, TT},
     search::{defs::SearchControl, Search},
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};

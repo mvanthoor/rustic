@@ -1,13 +1,13 @@
 use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
-    engine::defs::{ErrFatal, Verbosity},
+    engine::defs::ErrFatal,
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
     search::{
         defs::{
-            PrincipalVariation, SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF,
-            SEND_STATS, STALEMATE,
+            PrincipalVariation, SearchTerminated, Verbosity, CHECKMATE, CHECK_TERMINATION, DRAW,
+            INF, SEND_STATS, STALEMATE,
         },
         transposition::{HashFlag, SearchData},
         Search, SearchRefs,

@@ -1,3 +1,4 @@
+use crate::search::defs::Verbosity;
 use crate::{comm::defs::CommIn, search::defs::SearchReport};
 use std::fmt::{Display, Formatter, Result};
 
@@ -98,13 +99,6 @@ impl Messages {
     pub const INCOMING_CMD_BUFFERED: &'static str = "Incoming command buffered";
     pub const CLEARED_TT: &'static str = "Cleared the transposition table";
     pub const GAME_OVER: &'static str = "Game over. Result received";
-}
-
-#[derive(PartialEq, Eq, Copy, Clone)]
-pub enum Verbosity {
-    Full,
-    Quiet,
-    Silent,
 }
 
 #[derive(PartialEq, Eq, Copy, Clone)]
