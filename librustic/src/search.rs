@@ -11,10 +11,11 @@ mod transposition;
 mod utils;
 
 use crate::{
-    engine::defs::{ErrFatal, Information},
-    search::defs::SearchData,
-    search::defs::{SearchControl, SearchRefs, SearchReport, SearchSummary},
-    search::transposition::TT,
+    engine::defs::{EngineOptionDefaults, ErrFatal, Information},
+    search::{
+        defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
+        transposition::TT,
+    },
 };
 use std::{
     sync::{mpsc::Sender, Arc, Mutex},
@@ -29,7 +30,7 @@ pub struct Search {
 
 impl Default for Search {
     fn default() -> Self {
-        Self::new(32)
+        Self::new(EngineOptionDefaults::HASH_DEFAULT)
     }
 }
 

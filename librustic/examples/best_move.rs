@@ -1,6 +1,6 @@
 use rustic::{
     board::Board,
-    engine::defs::Information,
+    engine::defs::{EngineOptionDefaults, Information},
     movegen::MoveGenerator,
     search::{
         defs::{GameTime, SearchControl, SearchMode, SearchParams, SearchReport, Verbosity},
@@ -22,7 +22,7 @@ fn main() {
     let move_generator = Arc::new(MoveGenerator::new());
 
     // setup search
-    let mut search = Search::new(32);
+    let mut search = Search::new(EngineOptionDefaults::HASH_DEFAULT);
     let (info_tx, info_rx) = channel();
     search.init(info_tx, board, move_generator);
 
