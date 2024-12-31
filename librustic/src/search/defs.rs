@@ -1,9 +1,12 @@
-pub use crate::search::time::SAFEGUARD;
+pub use crate::search::{
+    time::SAFEGUARD,
+    transposition::{PerftData, SearchData, TT},
+};
 
 use crate::{
     board::Board,
     defs::MAX_PLY,
-    engine::defs::{Information, SearchData, Verbosity, TT},
+    engine::defs::{Information, Verbosity},
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,
 };

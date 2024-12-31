@@ -1,9 +1,9 @@
 use crate::{
     board::Board,
-    engine::defs::{PerftData, TT},
     extra::epds::LARGE_TEST_EPDS,
     misc::perft,
     movegen::MoveGenerator,
+    search::defs::{PerftData, TT},
 };
 use std::{
     sync::{Arc, Mutex},

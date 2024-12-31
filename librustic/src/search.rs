@@ -6,17 +6,18 @@ mod iter_deep;
 mod qsearch;
 mod sorting;
 mod time;
+mod transposition;
 mod utils;
 
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, Information},
-    engine::defs::{SearchData, TT},
     movegen::MoveGenerator,
-};
-use defs::{
-    SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
-    SearchTerminated,
+    search::defs::{
+        SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
+        SearchTerminated,
+    },
+    search::transposition::{SearchData, TT},
 };
 use std::{
     sync::{mpsc::channel, mpsc::Sender, Arc, Mutex},

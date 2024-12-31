@@ -4,7 +4,6 @@ pub mod defs;
 mod game_result;
 mod main_loop;
 mod search_handler;
-mod transposition;
 mod utils;
 
 use crate::{
@@ -15,10 +14,10 @@ use crate::{
     engine::defs::{ErrFatal, Information, Settings, UiElement, Verbosity},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
+    search::defs::{PerftData, SearchData, TT},
     search::{defs::SearchControl, Search},
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};
-use transposition::{PerftData, SearchData, TT};
 
 #[cfg(feature = "extra")]
 use crate::{

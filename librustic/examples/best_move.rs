@@ -1,7 +1,8 @@
 use rustic::{
     board::Board,
-    engine::defs::{Information, SearchData, Verbosity, TT},
+    engine::defs::{Information, Verbosity},
     movegen::MoveGenerator,
+    search::defs::{SearchData, TT},
     search::{
         defs::{GameTime, SearchControl, SearchMode, SearchParams, SearchReport},
         Search,

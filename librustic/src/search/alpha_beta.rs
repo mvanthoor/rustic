@@ -1,7 +1,7 @@
 use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
-    engine::defs::{ErrFatal, HashFlag, SearchData, Verbosity},
+    engine::defs::{ErrFatal, Verbosity},
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
     search::{
@@ -9,6 +9,7 @@ use crate::{
             PrincipalVariation, SearchTerminated, CHECKMATE, CHECK_TERMINATION, DRAW, INF,
             SEND_STATS, STALEMATE,
         },
+        transposition::{HashFlag, SearchData},
         Search, SearchRefs,
     },
 };

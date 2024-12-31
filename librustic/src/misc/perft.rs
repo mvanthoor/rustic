@@ -1,10 +1,11 @@
 use crate::{
     board::Board,
-    engine::defs::{ErrFatal, PerftData, TT},
+    engine::defs::ErrFatal,
     movegen::{
         defs::{MoveList, MoveType},
         MoveGenerator,
     },
+    search::defs::{PerftData, TT},
 };
 use if_chain::if_chain;
 use std::{

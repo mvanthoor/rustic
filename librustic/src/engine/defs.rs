@@ -4,8 +4,6 @@ use std::fmt::{Display, Formatter, Result};
 #[cfg(feature = "extra")]
 use std::path::PathBuf;
 
-pub use crate::engine::transposition::{HashFlag, PerftData, SearchData, TT};
-
 #[derive(PartialEq, Eq, Clone)]
 pub enum GameResultPoints {
     WhiteWins,
