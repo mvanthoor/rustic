@@ -127,7 +127,7 @@ impl Engine {
             tt_perft,
             tt_search,
             info_rx: None,
-            search: Search::new(),
+            search: Search::new(tt_size),
         }
     }
 

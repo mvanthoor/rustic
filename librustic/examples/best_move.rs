@@ -27,7 +27,7 @@ fn main() {
     let transposition_table = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
 
     // setup search
-    let mut search = Search::new();
+    let mut search = Search::new(tt_size);
     let (info_tx, info_rx) = channel();
     search.init(info_tx, board, move_generator, transposition_table);
 
