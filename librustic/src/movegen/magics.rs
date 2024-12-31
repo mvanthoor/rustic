@@ -6,6 +6,12 @@
 */
 use crate::defs::{Bitboard, NrOf};
 
+// These are the exact sizes needed for the rook and bishop moves. These
+// can be calculated by adding all the possible blocker boards for a rook
+// or a bishop.
+pub const ROOK_TABLE_SIZE: usize = 102_400; // Total permutations of all rook blocker boards.
+pub const BISHOP_TABLE_SIZE: usize = 5_248; // Total permutations of all bishop blocker boards.
+
 /** Rook magic numbers. Don't touch them. Changing these numbers breaks the program. */
 #[rustfmt::skip]
 #[allow(clippy::unreadable_literal)]

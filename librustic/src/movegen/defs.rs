@@ -41,6 +41,7 @@ Storing the "To" square: Shift LEFT 9 bits, then XOR with "data".
 
 #[cfg(feature = "extra")]
 pub use crate::movegen::magics::Magic;
+pub use crate::movegen::magics::{BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE};
 pub use crate::movegen::movelist::MoveList;
 use crate::{
     board::defs::{PIECE_CHAR_SMALL, SQUARE_NAME},
