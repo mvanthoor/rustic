@@ -38,7 +38,6 @@ pub struct Engine {
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
-    tt_perft: Arc<Mutex<TT<PerftData>>>,    // TT for running perft.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
@@ -112,7 +111,6 @@ impl Engine {
             comm,
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
-            tt_perft: Arc::new(Mutex::new(TT::<PerftData>::new(tt_size))),
             info_rx: None,
             search: Search::new(tt_size),
         }
@@ -150,17 +148,7 @@ impl Engine {
         };
 
         #[cfg(feature = "extra")]
-        // Run large EPD test suite if requested. Because the -p (perft)
-        // option is not used in this scenario, the engine initializes the
-        // search TT instead of the one for perft. The -e option is
-        // not available in a non-extra compilation, so it cannot be
-        // checked there. Just fix the issue by resizing both the perft and
-        // search TT's appropriately for running the EPD suite.
         if self.cmdline.has_test() {
-            self.tt_perft
-                .lock()
-                .expect(ErrFatal::LOCK)
-                .resize(self.settings.tt_size);
             testsuite::run(self.settings.tt_size);
             return Ok(());
         }
