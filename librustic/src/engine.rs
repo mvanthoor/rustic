@@ -135,8 +135,7 @@ impl Engine {
                 self.board.clone(),
                 self.cmdline.perft(),
                 Arc::clone(&self.mg),
-                Arc::clone(&self.tt_perft),
-                self.settings.tt_size > 0,
+                self.settings.tt_size,
             );
             return Ok(());
         }

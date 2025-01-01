@@ -248,6 +248,10 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
+    pub fn is_enabled(&self) -> bool {
+        self.megabytes > 0
+    }
+
     // Resize the TT if the incoming size is different from the current
     // one; otherwise just clear the TT.
     pub fn resize(&mut self, megabytes: usize) {
