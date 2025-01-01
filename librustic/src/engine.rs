@@ -14,7 +14,7 @@ use crate::{
     engine::defs::{ErrFatal, Information, Settings, UiElement},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::defs::{PerftData, Verbosity, TT},
+    search::defs::Verbosity,
     search::{defs::SearchControl, Search},
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};
