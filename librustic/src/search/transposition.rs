@@ -248,6 +248,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_enabled(&self) -> bool {
         self.megabytes > 0
     }
@@ -302,11 +303,25 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Provides TT usage per mille (1 per 1000, as opposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
-        if self.megabytes > 0 {
-            ((self.used_buckets as f64 / self.total_buckets as f64) * 1000f64).floor() as u16
-        } else {
-            0
+        if self.megabytes == 0 {
+            return 0;
         }
+
+        let fraction = self.used_buckets as f64 / self.total_buckets as f64;
+        let promille = (fraction * 1000f64).floor();
+
+        promille as u16
+    }
+
+    pub fn hash_full_percent(&self) -> u16 {
+        if self.megabytes == 0 {
+            return 0;
+        }
+
+        let fraction = self.used_buckets as f64 / self.total_buckets as f64;
+        let percent = (fraction * 100f64).floor();
+
+        percent as u16
     }
 }
 

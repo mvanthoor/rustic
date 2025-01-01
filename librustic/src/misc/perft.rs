@@ -49,7 +49,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size:
         // Request TT usage. (This is provided per mille as per UCI
         // spec, so divide by 10 to get the usage in percents.)
         if tt_enabled {
-            hash_full = format!(", hash full: {}%", transposition.hash_full() as f64 / 10f64);
+            hash_full = format!(", hash full: {}%", transposition.hash_full_percent());
         }
 
         // Print the results.
