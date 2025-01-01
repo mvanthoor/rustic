@@ -5,10 +5,7 @@ use crate::{
     movegen::MoveGenerator,
     search::defs::{PerftData, TT},
 };
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::time::Instant;
 
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
@@ -29,11 +26,13 @@ const TEST_RESULTS: [&str; 5] = [
 
 // This private function is the one actually running tests.
 // This can be the entire suite, or a single test.
-pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
+pub fn run(tt_size: usize) {
     let number_of_tests = LARGE_TEST_EPDS.len();
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
     let mut result: usize = ERR_NONE;
+    let mut transposition = TT::<PerftData>::new(tt_size);
+    let tt_enabled = tt_size > 0;
 
     // Run all the tests.
     let mut test_nr = 0;
@@ -73,7 +72,13 @@ pub fn run(tt: Arc<Mutex<TT<PerftData>>>, tt_enabled: bool) {
 
                 // This is the actual perft run for this test and depth.
                 let now = Instant::now();
-                let found_ln = perft::perft(&mut board, depth, &move_generator, &tt, tt_enabled);
+                let found_ln = perft::perft(
+                    &mut board,
+                    depth,
+                    &move_generator,
+                    &mut transposition,
+                    tt_enabled,
+                );
                 let elapsed = now.elapsed().as_millis();
                 let moves_per_second = ((found_ln * 1000) as f64 / elapsed as f64).floor();
                 let is_ok = expected_ln == found_ln;

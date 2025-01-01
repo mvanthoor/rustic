@@ -24,7 +24,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size:
     // Clone the engine's board for local use. (The engine's board needs to
     // be locked when changing it to be thread safe.)
     let mut local_board = board.lock().expect(ErrFatal::LOCK).clone();
-    let transposition = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
+    let mut transposition = TT::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
 
     println!("Benchmarking perft 1-{depth}:");
@@ -36,7 +36,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size:
         let now = Instant::now();
         let mut leaf_nodes = 0;
 
-        leaf_nodes += perft(&mut local_board, d, &mg, &transposition, tt_enabled);
+        leaf_nodes += perft(&mut local_board, d, &mg, &mut transposition, tt_enabled);
 
         // Measure time and speed
         let elapsed = now.elapsed().as_millis();
@@ -49,10 +49,7 @@ pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size:
         // Request TT usage. (This is provided per mille as per UCI
         // spec, so divide by 10 to get the usage in percents.)
         if tt_enabled {
-            hash_full = format!(
-                ", hash full: {}%",
-                transposition.lock().expect(ErrFatal::LOCK).hash_full() as f64 / 10f64
-            );
+            hash_full = format!(", hash full: {}%", transposition.hash_full() as f64 / 10f64);
         }
 
         // Print the results.
@@ -73,7 +70,7 @@ pub fn perft(
     board: &mut Board,
     depth: i8,
     mg: &MoveGenerator,
-    transposition: &Mutex<TT<PerftData>>,
+    transposition: &mut TT<PerftData>,
     tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;
@@ -87,10 +84,7 @@ pub fn perft(
     // number of leaf nodes that were previously calculated for it.
     if_chain! {
         if tt_enabled;
-        if let Some(data) = transposition
-            .lock()
-            .expect(ErrFatal::LOCK)
-            .probe(board.game_state.zobrist_key);
+        if let Some(data) = transposition.probe(board.game_state.zobrist_key);
         if let Some(leaf_nodes) = data.get(depth);
         then {
             return leaf_nodes;
@@ -118,7 +112,7 @@ pub fn perft(
     // We have calculated the number of leaf nodes for this position.
     // Store this in the TT for later use.
     if tt_enabled {
-        transposition.lock().expect(ErrFatal::LOCK).insert(
+        transposition.insert(
             board.game_state.zobrist_key,
             PerftData::create(depth, leaf_nodes),
         )

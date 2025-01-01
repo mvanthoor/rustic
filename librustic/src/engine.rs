@@ -161,7 +161,7 @@ impl Engine {
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .resize(self.settings.tt_size);
-            testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
+            testsuite::run(self.settings.tt_size);
             return Ok(());
         }
 
