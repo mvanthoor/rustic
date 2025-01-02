@@ -2,6 +2,7 @@ use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
 pub use crate::board::fen::FenError;
+pub use crate::board::fen::FenResult;
 pub use crate::board::zobrist::ZobristKey;
 
 #[cfg(feature = "extra")]

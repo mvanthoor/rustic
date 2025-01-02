@@ -10,12 +10,16 @@ use crate::{
     board::Board,
     comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
-    engine::defs::{EngineOption, EngineOptionDefaults, EngineSetOption, EngineState},
-    engine::defs::{ErrFatal, Information, Settings, UiElement},
+    engine::defs::{
+        EngineOption, EngineOptionDefaults, EngineSetOption, EngineState, ErrFatal, Information,
+        Settings, UiElement,
+    },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::defs::Verbosity,
-    search::{defs::SearchControl, Search},
+    search::{
+        defs::{SearchControl, Verbosity},
+        Search,
+    },
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 
@@ -125,16 +129,20 @@ impl Engine {
         }
 
         // Setup position and abort if this fails.
-        self.setup_position()?;
+        let position = self.determine_startup_position();
+        self.board
+            .lock()
+            .expect(ErrFatal::LOCK)
+            .fen_setup(Some(&position))?;
 
         // Run perft if requested.
         if self.cmdline.perft() > 0 {
             perft::run(
-                self.board.clone(),
+                &position,
                 self.cmdline.perft(),
                 Arc::clone(&self.mg),
                 self.settings.tt_size,
-            );
+            )?;
             return Ok(());
         }
 

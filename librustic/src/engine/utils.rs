@@ -1,5 +1,5 @@
 use crate::{
-    defs::{EngineRunResult, FEN_KIWIPETE_POSITION},
+    defs::FEN_KIWIPETE_POSITION,
     engine::{defs::ErrFatal, Engine},
     misc::parse::{self, ConvertedMove},
     movegen::defs::{Move, MoveList, MoveType},
@@ -7,21 +7,18 @@ use crate::{
 use if_chain::if_chain;
 
 impl Engine {
-    // This function sets up a position using a given FEN-string.
-    pub fn setup_position(&mut self) -> EngineRunResult {
+    pub fn determine_startup_position(&mut self) -> String {
         // Get either the provided FEN-string or KiwiPete. If both are
         // provided, the KiwiPete position takes precedence.
-        let f = &self.cmdline.fen()[..];
-        let kp = self.cmdline.has_kiwipete();
-        let fen = if kp { FEN_KIWIPETE_POSITION } else { f };
+        let fen_string = self.cmdline.fen();
+        let kiwi_pete = self.cmdline.has_kiwipete();
+        let kiwi_string = FEN_KIWIPETE_POSITION.to_string();
 
-        // Lock the board, setup the FEN-string, and drop the lock.
-        self.board
-            .lock()
-            .expect(ErrFatal::LOCK)
-            .fen_setup(Some(fen))?;
+        if kiwi_pete {
+            return kiwi_string;
+        }
 
-        Ok(())
+        fen_string
     }
 
     // This function executes a move on the internal board, if it legal to

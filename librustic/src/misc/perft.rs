@@ -1,6 +1,6 @@
 use crate::{
+    board::defs::FenResult,
     board::Board,
-    engine::defs::ErrFatal,
     movegen::{
         defs::{MoveList, MoveType},
         MoveGenerator,
@@ -8,29 +8,25 @@ use crate::{
     search::defs::{PerftData, TT},
 };
 use if_chain::if_chain;
-use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::{sync::Arc, time::Instant};
 
 // This function runs perft(), while collecting speed information.
 // It uses iterative deepening, so when running perft(7), it will output
 // the results of perft(1) up to and including perft(7).
-pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size: usize) {
+pub fn run(fen: &str, depth: i8, mg: Arc<MoveGenerator>, tt_size: usize) -> FenResult {
+    // Setup everything.
     let mut total_time: u128 = 0;
     let mut total_nodes: u64 = 0;
     let mut hash_full = String::from("");
-
-    // Clone the engine's board for local use. (The engine's board needs to
-    // be locked when changing it to be thread safe.)
-    let mut local_board = board.lock().expect(ErrFatal::LOCK).clone();
+    let mut local_board = Board::new();
     let mut transposition = TT::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
+    local_board.fen_setup(Some(fen))?;
 
     println!("Benchmarking perft 1-{depth}:");
     println!("{local_board}");
 
-    // Perform all perfts for depths 1 up to and including "depth"
+    // Perform all perft for depths 1 up to and including "depth"
     for d in 1..=depth {
         // Current time
         let now = Instant::now();
@@ -62,6 +58,8 @@ pub fn run(board: Arc<Mutex<Board>>, depth: i8, mg: Arc<MoveGenerator>, tt_size:
     let final_lnps = ((total_nodes * 1000) as f64 / total_time as f64).floor();
     println!("Total time spent: {total_time} ms");
     println!("Execution speed: {final_lnps} leaves/second");
+
+    Ok(())
 }
 
 // This is the actual Perft function. It is public, because it is used by

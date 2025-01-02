@@ -10,11 +10,14 @@ use std::time::Instant;
 const SEMI_COLON: char = ';';
 const SPACE: char = ' ';
 
-const ERR_NONE: usize = 0;
-const ERR_FEN: usize = 1;
-const ERR_DEPTH: usize = 2;
-const ERR_EXPECT: usize = 3;
-const ERR_FAIL: usize = 4;
+struct TestResult;
+impl TestResult {
+    pub const ERR_NONE: usize = 0;
+    pub const ERR_FEN: usize = 1;
+    pub const ERR_DEPTH: usize = 2;
+    pub const ERR_EXPECT: usize = 3;
+    pub const ERR_FAIL: usize = 4;
+}
 
 const TEST_RESULTS: [&str; 5] = [
     "No errors. Test completed successfully.",
@@ -30,7 +33,7 @@ pub fn run(tt_size: usize) {
     let number_of_tests = LARGE_TEST_EPDS.len();
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
-    let mut result: usize = ERR_NONE;
+    let mut result: usize = TestResult::ERR_NONE;
     let mut transposition = TT::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
 
@@ -49,7 +52,7 @@ pub fn run(tt_size: usize) {
         // If setup ok, then print position. Else, print error and continue to the next test.
         match setup_result {
             Ok(()) => println!("{board}"),
-            Err(_) => result = ERR_FEN,
+            Err(_) => result = TestResult::ERR_FEN,
         };
 
         // Run all the parts of a test.
@@ -63,9 +66,19 @@ pub fn run(tt_size: usize) {
             let depth = (depth_ln[0][1..]).parse::<u8>().unwrap_or(0) as i8;
             let expected_ln = depth_ln[1].parse::<u64>().unwrap_or(0);
 
-            // Abort if depth or expected leaf node parsing fails.
-            result = if depth == 0 { ERR_DEPTH } else { result };
-            result = if expected_ln == 0 { ERR_EXPECT } else { result };
+            // Abort if depth parsing failed
+            result = if depth == 0 {
+                TestResult::ERR_DEPTH
+            } else {
+                result
+            };
+
+            // Abort if parsing expected number of leaf nodes failed
+            result = if expected_ln == 0 {
+                TestResult::ERR_EXPECT
+            } else {
+                result
+            };
 
             if result == 0 {
                 print!("Expect for depth {depth}: {expected_ln}");
@@ -88,7 +101,7 @@ pub fn run(tt_size: usize) {
                 print!(" - Result: {}", if is_ok { "OK" } else { "Fail" });
                 println!(" ({elapsed} ms, {moves_per_second} leaves/sec)");
 
-                result = if !is_ok { ERR_FAIL } else { result };
+                result = if !is_ok { TestResult::ERR_FAIL } else { result };
             }
 
             index += 1;
