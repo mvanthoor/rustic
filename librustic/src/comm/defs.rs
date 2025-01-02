@@ -1,8 +1,7 @@
 use crate::{
     board::Board,
-    engine::defs::Information,
     movegen::defs::Move,
-    search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
+    search::defs::{SearchCurrentMove, SearchReport, SearchStats, SearchSummary},
 };
 use std::{
     fmt::{Display, Formatter, Result},
@@ -13,6 +12,14 @@ pub use crate::comm::protocols::{
     uci::{Uci, UciIn, UciOut},
     xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
 };
+
+// This enum provides information to the engine, with regard to incoming
+// messages and search results.
+#[derive(PartialEq, Eq)]
+pub enum Information {
+    Comm(CommIn),
+    Search(SearchReport),
+}
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 pub enum EngineState {

@@ -5,8 +5,8 @@ pub use crate::search::{
 
 use crate::{
     board::Board,
+    comm::defs::Information,
     defs::MAX_PLY,
-    engine::defs::Information,
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,
 };

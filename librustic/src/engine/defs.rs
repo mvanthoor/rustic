@@ -1,5 +1,4 @@
 use crate::search::defs::Verbosity;
-use crate::{comm::defs::CommIn, search::defs::SearchReport};
 use std::fmt::{Display, Formatter, Result};
 
 #[cfg(feature = "extra")]
@@ -25,14 +24,6 @@ pub struct Settings {
 
     #[cfg(feature = "extra")]
     pub texel: TexelSettings,
-}
-
-// This enum provides information to the engine, with regard to incoming
-// messages and search results.
-#[derive(PartialEq, Eq)]
-pub enum Information {
-    Comm(CommIn),
-    Search(SearchReport),
 }
 
 #[derive(PartialEq, Eq, Clone)]

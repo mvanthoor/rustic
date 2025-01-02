@@ -5,11 +5,10 @@ use crate::{
     board::Board,
     comm::defs::{
         CommIn, CommInfo, CommOption, CommOut, CommType, EngineState, GameResult, GameResultPoints,
-        GameResultReason, IComm,
+        GameResultReason, IComm, Information,
     },
     comm::shared::Shared,
     defs::{About, Sides},
-    engine::defs::Information,
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
