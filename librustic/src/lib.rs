@@ -1,3 +1,4 @@
+pub mod basetypes;
 pub mod board;
 pub mod comm;
 pub mod defs;

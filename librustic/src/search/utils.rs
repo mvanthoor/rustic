@@ -1,5 +1,6 @@
 use crate::{
-    engine::defs::{ErrFatal, Information},
+    basetypes::error::ErrFatal,
+    engine::defs::Information,
     movegen::defs::Move,
     search::defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,

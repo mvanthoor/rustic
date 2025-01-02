@@ -2,8 +2,9 @@ mod uci;
 mod xboard;
 
 use crate::{
+    basetypes::error::{ErrFatal, ErrNormal},
     comm::defs::{CommIn, CommOut},
-    engine::defs::{ErrFatal, ErrNormal, Messages},
+    engine::defs::Messages,
     engine::Engine,
     evaluation::Evaluation,
 };

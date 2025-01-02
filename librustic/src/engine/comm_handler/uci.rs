@@ -1,7 +1,8 @@
 use crate::{
+    basetypes::error::{ErrFatal, ErrNormal},
     comm::defs::{CommOut, UciIn, UciOut},
     defs::FEN_START_POSITION,
-    engine::defs::{EngineSetOption, ErrFatal, ErrNormal},
+    engine::defs::EngineSetOption,
     engine::Engine,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };

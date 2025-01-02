@@ -1,7 +1,7 @@
 use crate::{
+    basetypes::error::ErrFatal,
     board::defs::Pieces,
     defs::MAX_PLY,
-    engine::defs::ErrFatal,
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
     search::{

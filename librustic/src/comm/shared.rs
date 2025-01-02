@@ -1,6 +1,7 @@
 use crate::{
+    basetypes::error::ErrFatal,
     board::Board,
-    engine::defs::{EngineState, ErrFatal},
+    engine::defs::EngineState,
     search::defs::{CHECKMATE, CHECKMATE_THRESHOLD},
 };
 use std::sync::{Arc, Mutex};
@@ -48,12 +49,8 @@ impl Shared {
     }
 
     pub fn print_help(protocol: &str) {
-        println!(
-            "The engine is in {protocol} communication mode. It supports some custom"
-        );
-        println!(
-            "non-{protocol} commands to make use through a terminal window easier."
-        );
+        println!("The engine is in {protocol} communication mode. It supports some custom");
+        println!("non-{protocol} commands to make use through a terminal window easier.");
         println!("These commands can also be very useful for debugging purposes.");
         println!();
         println!("Custom commands");

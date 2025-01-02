@@ -7,12 +7,13 @@ mod search_handler;
 mod utils;
 
 use crate::{
+    basetypes::error::ErrFatal,
     board::Board,
     comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
     defs::EngineRunResult,
     engine::defs::{
-        EngineOption, EngineOptionDefaults, EngineSetOption, EngineState, ErrFatal, Information,
-        Settings, UiElement,
+        EngineOption, EngineOptionDefaults, EngineSetOption, EngineState, Information, Settings,
+        UiElement,
     },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,

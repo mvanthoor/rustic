@@ -1,12 +1,13 @@
 // This file implements the UCI communication module.
 
 use crate::{
+    basetypes::error::ErrFatal,
     board::Board,
     comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
     comm::shared::Shared,
     defs::{About, FEN_START_POSITION},
     engine::defs::{EngineOption, EngineSetOption, EngineState},
-    engine::defs::{ErrFatal, GameResult, Information, UiElement},
+    engine::defs::{GameResult, Information, UiElement},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };

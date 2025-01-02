@@ -1,6 +1,7 @@
 use crate::{
+    basetypes::error::ErrFatal,
     defs::FEN_KIWIPETE_POSITION,
-    engine::{defs::ErrFatal, Engine},
+    engine::Engine,
     misc::parse::{self, ConvertedMove},
     movegen::defs::{Move, MoveList, MoveType},
 };

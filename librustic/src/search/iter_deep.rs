@@ -1,8 +1,9 @@
 use crate::{
+    basetypes::error::ErrFatal,
     defs::MAX_PLY,
     movegen::defs::Move,
     search::defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, Verbosity, INF},
-    search::{ErrFatal, Information, Search, SearchReport, SearchSummary},
+    search::{Information, Search, SearchReport, SearchSummary},
 };
 
 // Actual search routines.

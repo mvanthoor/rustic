@@ -1,12 +1,13 @@
 // This file implements the XBoard communication protocol.
 
 use crate::{
+    basetypes::error::ErrFatal,
     board::Board,
     comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
     comm::shared::Shared,
     defs::{About, Sides},
+    engine::defs::Information,
     engine::defs::{EngineOption, EngineState},
-    engine::defs::{ErrFatal, Information},
     engine::defs::{GameResult, GameResultPoints, GameResultReason},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},

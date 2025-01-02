@@ -1,7 +1,4 @@
-use crate::{
-    engine::defs::{ErrFatal, Information},
-    engine::Engine,
-};
+use crate::{basetypes::error::ErrFatal, engine::defs::Information, engine::Engine};
 use std::sync::{mpsc::channel, Arc};
 
 impl Engine {

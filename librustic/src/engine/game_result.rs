@@ -1,6 +1,7 @@
 use crate::{
+    basetypes::error::ErrFatal,
     engine::{
-        defs::{ErrFatal, GameResult, GameResultPoints, GameResultReason},
+        defs::{GameResult, GameResultPoints, GameResultReason},
         Engine,
     },
     movegen::defs::{MoveList, MoveType},

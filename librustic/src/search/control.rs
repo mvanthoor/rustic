@@ -1,7 +1,8 @@
 use crate::search::Search;
 use crate::{
+    basetypes::error::ErrFatal,
     board::Board,
-    engine::defs::{ErrFatal, Information},
+    engine::defs::Information,
     movegen::MoveGenerator,
     search::defs::{
         SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminated,
