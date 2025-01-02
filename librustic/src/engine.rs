@@ -9,12 +9,9 @@ mod utils;
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommOut, CommType, IComm, Uci, XBoard},
+    comm::defs::{CommOption, CommOut, CommType, IComm, Uci, UiElement, XBoard},
     defs::EngineRunResult,
-    engine::defs::{
-        EngineOption, EngineOptionDefaults, EngineSetOption, EngineState, Information, Settings,
-        UiElement,
-    },
+    engine::defs::{EngineOptionDefaults, EngineSetOption, EngineState, Information, Settings},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{
@@ -39,7 +36,7 @@ pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    options: Arc<Vec<EngineOption>>,        // Engine options exported to the GUI.
+    options: Arc<Vec<CommOption>>,          // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
@@ -78,14 +75,14 @@ impl Engine {
 
         // List of options that should be announced to the GUI.
         let options = vec![
-            EngineOption::new(
+            CommOption::new(
                 EngineSetOption::HASH,
                 UiElement::Spin,
                 Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
                 Some(EngineOptionDefaults::HASH_MIN.to_string()),
                 Some(EngineOptionDefaults::max_hash().to_string()),
             ),
-            EngineOption::new(
+            CommOption::new(
                 EngineSetOption::CLEAR_HASH,
                 UiElement::Button,
                 None,

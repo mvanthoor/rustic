@@ -3,11 +3,11 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, IComm},
     comm::shared::Shared,
     defs::{About, Sides},
+    engine::defs::EngineState,
     engine::defs::Information,
-    engine::defs::{EngineOption, EngineState},
     engine::defs::{GameResult, GameResultPoints, GameResultReason},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
@@ -265,7 +265,7 @@ impl IComm for XBoard {
         &mut self,
         input_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<EngineOption>>,
+        options: Arc<Vec<CommOption>>,
     ) {
         // Start threads
         self.input_thread(input_tx);
@@ -615,7 +615,7 @@ impl XBoard {
 
 impl XBoard {
     // The control thread receives commands from the engine thread.
-    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
+    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<CommOption>>) {
         // Create an incoming channel for the control thread.
         let (output_tx, output_rx) = channel();
 

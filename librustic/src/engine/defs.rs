@@ -115,37 +115,6 @@ pub enum Information {
     Search(SearchReport),
 }
 
-pub enum UiElement {
-    Spin,
-    Button,
-}
-
-pub struct EngineOption {
-    pub name: &'static str,
-    pub ui_element: UiElement,
-    pub default: Option<String>,
-    pub min: Option<String>,
-    pub max: Option<String>,
-}
-
-impl EngineOption {
-    pub fn new(
-        name: &'static str,
-        ui_element: UiElement,
-        default: Option<String>,
-        min: Option<String>,
-        max: Option<String>,
-    ) -> Self {
-        Self {
-            name,
-            ui_element,
-            default,
-            min,
-            max,
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Clone)]
 pub enum EngineSetOption {
     Hash(String),

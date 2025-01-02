@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    engine::defs::{EngineOption, EngineState, GameResult, Information},
+    engine::defs::{EngineState, GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -10,6 +10,37 @@ pub use crate::comm::protocols::{
     uci::{Uci, UciIn, UciOut},
     xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
 };
+
+pub enum UiElement {
+    Spin,
+    Button,
+}
+
+pub struct CommOption {
+    pub name: &'static str,
+    pub ui_element: UiElement,
+    pub default: Option<String>,
+    pub min: Option<String>,
+    pub max: Option<String>,
+}
+
+impl CommOption {
+    pub fn new(
+        name: &'static str,
+        ui_element: UiElement,
+        default: Option<String>,
+        min: Option<String>,
+        max: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            ui_element,
+            default,
+            min,
+            max,
+        }
+    }
+}
 
 // These are the types of communication the engine is capable of.
 pub struct CommType;
@@ -71,7 +102,7 @@ pub trait IComm {
         &mut self,
         report_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<EngineOption>>,
+        options: Arc<Vec<CommOption>>,
     );
     fn send(&self, msg: CommOut);
     fn shutdown(&mut self);

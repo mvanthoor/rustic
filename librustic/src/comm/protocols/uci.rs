@@ -3,11 +3,11 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommIn, CommInfo, CommOut, CommType, IComm},
+    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, IComm, UiElement},
     comm::shared::Shared,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineOption, EngineSetOption, EngineState},
-    engine::defs::{GameResult, Information, UiElement},
+    engine::defs::{EngineSetOption, EngineState},
+    engine::defs::{GameResult, Information},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -86,7 +86,7 @@ impl IComm for Uci {
         &mut self,
         input_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<EngineOption>>,
+        options: Arc<Vec<CommOption>>,
     ) {
         // Start threads
         self.input_thread(input_tx);
@@ -365,7 +365,7 @@ impl Uci {
 // Implement the output thread
 impl Uci {
     // The control thread receives commands from the engine thread.
-    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<EngineOption>>) {
+    fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<CommOption>>) {
         // Create an incoming channel for the output thread.
         let (output_tx, output_rx) = channel();
 
@@ -426,7 +426,7 @@ impl Uci {
         println!("id author {}", About::AUTHOR);
     }
 
-    fn options(options: &Arc<Vec<EngineOption>>) {
+    fn options(options: &Arc<Vec<CommOption>>) {
         for option in options.iter() {
             let name = format!("option name {}", option.name);
 
