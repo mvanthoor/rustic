@@ -4,12 +4,11 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     comm::defs::{
-        CommIn, CommInfo, CommOption, CommOut, CommType, EngineState, GameResult, IComm,
-        Information, UiElement,
+        CommIn, CommInfo, CommOption, CommOut, CommType, EngineSetOption, EngineState, GameResult,
+        IComm, Information, UiElement,
     },
     comm::shared::Shared,
     defs::{About, FEN_START_POSITION},
-    engine::defs::EngineSetOption,
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };

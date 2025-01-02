@@ -17,25 +17,3 @@ pub struct Settings {
     #[cfg(feature = "extra")]
     pub texel: TexelSettings,
 }
-
-#[derive(PartialEq, Eq, Clone)]
-pub enum EngineSetOption {
-    Hash(String),
-    ClearHash,
-    Nothing,
-}
-
-impl EngineSetOption {
-    pub const HASH: &'static str = "Hash";
-    pub const CLEAR_HASH: &'static str = "Clear Hash";
-}
-
-impl Display for EngineSetOption {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            EngineSetOption::Hash(mb) => write!(f, "Hash {mb}"),
-            EngineSetOption::ClearHash => write!(f, "Clear Hash"),
-            EngineSetOption::Nothing => write!(f, ""),
-        }
-    }
-}

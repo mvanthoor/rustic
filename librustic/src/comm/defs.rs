@@ -13,6 +13,28 @@ pub use crate::comm::protocols::{
     xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
 };
 
+#[derive(PartialEq, Eq, Clone)]
+pub enum EngineSetOption {
+    Hash(String),
+    ClearHash,
+    Nothing,
+}
+
+impl EngineSetOption {
+    pub const HASH: &'static str = "Hash";
+    pub const CLEAR_HASH: &'static str = "Clear Hash";
+}
+
+impl Display for EngineSetOption {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            EngineSetOption::Hash(mb) => write!(f, "Hash {mb}"),
+            EngineSetOption::ClearHash => write!(f, "Clear Hash"),
+            EngineSetOption::Nothing => write!(f, ""),
+        }
+    }
+}
+
 pub struct EngineOptionDefaults;
 impl EngineOptionDefaults {
     pub const HASH_DEFAULT: usize = 32;
