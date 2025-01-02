@@ -1,15 +1,37 @@
 use crate::{
     board::Board,
-    engine::defs::{EngineState, GameResult, Information},
+    engine::defs::{GameResult, Information},
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::{
+    fmt::{Display, Formatter, Result},
+    sync::{mpsc::Sender, Arc, Mutex},
+};
 
 pub use crate::comm::protocols::{
     uci::{Uci, UciIn, UciOut},
     xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
 };
+
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub enum EngineState {
+    Observing,
+    Waiting,
+    Thinking,
+    Analyzing,
+}
+
+impl Display for EngineState {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match *self {
+            EngineState::Observing => write!(f, "Observing"),
+            EngineState::Waiting => write!(f, "Waiting"),
+            EngineState::Thinking => write!(f, "Thinking"),
+            EngineState::Analyzing => write!(f, "Analyzing"),
+        }
+    }
+}
 
 pub enum UiElement {
     Spin,

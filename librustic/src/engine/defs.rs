@@ -74,25 +74,6 @@ impl Messages {
     pub const GAME_OVER: &'static str = "Game over. Result received";
 }
 
-#[derive(PartialEq, Eq, Copy, Clone)]
-pub enum EngineState {
-    Observing,
-    Waiting,
-    Thinking,
-    Analyzing,
-}
-
-impl Display for EngineState {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        match *self {
-            EngineState::Observing => write!(f, "Observing"),
-            EngineState::Waiting => write!(f, "Waiting"),
-            EngineState::Thinking => write!(f, "Thinking"),
-            EngineState::Analyzing => write!(f, "Analyzing"),
-        }
-    }
-}
-
 // This struct holds the engine's settings.
 #[cfg(feature = "extra")]
 pub struct TexelSettings {

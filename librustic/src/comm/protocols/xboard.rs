@@ -3,10 +3,9 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, IComm},
+    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, EngineState, IComm},
     comm::shared::Shared,
     defs::{About, Sides},
-    engine::defs::EngineState,
     engine::defs::Information,
     engine::defs::{GameResult, GameResultPoints, GameResultReason},
     movegen::defs::Move,

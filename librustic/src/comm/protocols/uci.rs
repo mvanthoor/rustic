@@ -3,10 +3,10 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, IComm, UiElement},
+    comm::defs::{CommIn, CommInfo, CommOption, CommOut, CommType, EngineState, IComm, UiElement},
     comm::shared::Shared,
     defs::{About, FEN_START_POSITION},
-    engine::defs::{EngineSetOption, EngineState},
+    engine::defs::EngineSetOption,
     engine::defs::{GameResult, Information},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},

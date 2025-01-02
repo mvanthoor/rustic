@@ -1,7 +1,7 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    engine::defs::EngineState,
+    comm::defs::EngineState,
     search::defs::{CHECKMATE, CHECKMATE_THRESHOLD},
 };
 use std::sync::{Arc, Mutex};

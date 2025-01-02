@@ -9,9 +9,9 @@ mod utils;
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{CommOption, CommOut, CommType, IComm, Uci, UiElement, XBoard},
+    comm::defs::{CommOption, CommOut, CommType, EngineState, IComm, Uci, UiElement, XBoard},
     defs::EngineRunResult,
-    engine::defs::{EngineOptionDefaults, EngineSetOption, EngineState, Information, Settings},
+    engine::defs::{EngineOptionDefaults, EngineSetOption, Information, Settings},
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{
