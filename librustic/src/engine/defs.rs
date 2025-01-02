@@ -5,67 +5,6 @@ use std::fmt::{Display, Formatter, Result};
 #[cfg(feature = "extra")]
 use std::path::PathBuf;
 
-#[derive(PartialEq, Eq, Clone)]
-pub enum GameResultPoints {
-    WhiteWins,
-    BlackWins,
-    Draw,
-    Asterisk,
-    Nothing,
-}
-
-impl Display for GameResultPoints {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        match *self {
-            GameResultPoints::WhiteWins => write!(f, "1-0"),
-            GameResultPoints::BlackWins => write!(f, "0-1"),
-            GameResultPoints::Draw => write!(f, "1/2-1/2"),
-            GameResultPoints::Asterisk => write!(f, "*"),
-            GameResultPoints::Nothing => write!(f, "-"),
-        }
-    }
-}
-
-// Lists all possible game results.
-#[derive(PartialEq, Eq, Clone)]
-pub enum GameResultReason {
-    WhiteMates,
-    BlackMates,
-    Stalemate,
-    Insufficient,
-    FiftyMoves,
-    ThreeFold,
-    Other(String),
-    Nothing,
-}
-
-impl Display for GameResultReason {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        match self {
-            GameResultReason::WhiteMates => write!(f, "White mates"),
-            GameResultReason::BlackMates => write!(f, "Black mates"),
-            GameResultReason::Stalemate => write!(f, "Stalemate"),
-            GameResultReason::ThreeFold => write!(f, "Draw by repetition"),
-            GameResultReason::Insufficient => write!(f, "Insufficient material"),
-            GameResultReason::FiftyMoves => write!(f, "Ffifty move rule"),
-            GameResultReason::Other(reason) => write!(f, "{reason}"),
-            GameResultReason::Nothing => write!(f, "-"),
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Clone)]
-pub struct GameResult {
-    pub points: GameResultPoints,
-    pub reason: GameResultReason,
-}
-
-impl Display for GameResult {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {{{}}}", self.points, self.reason)
-    }
-}
-
 pub struct Messages;
 impl Messages {
     pub const COMMAND_IGNORED: &'static str = "Command is known but unused";

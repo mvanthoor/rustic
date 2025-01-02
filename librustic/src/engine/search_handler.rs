@@ -1,5 +1,5 @@
 use crate::{
-    basetypes::error::ErrFatal, comm::defs::CommOut, engine::defs::GameResult, engine::Engine,
+    basetypes::error::ErrFatal, comm::defs::CommOut, comm::defs::GameResult, engine::Engine,
     search::defs::SearchReport,
 };
 
