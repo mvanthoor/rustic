@@ -11,8 +11,7 @@ mod transposition;
 mod utils;
 
 use crate::{
-    comm::defs::Information,
-    engine::defs::EngineOptionDefaults,
+    comm::defs::{EngineOptionDefaults, Information},
     search::{
         defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
         transposition::TT,

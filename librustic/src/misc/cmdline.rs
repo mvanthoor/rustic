@@ -1,6 +1,6 @@
 use crate::{
+    comm::defs::EngineOptionDefaults,
     defs::{About, FEN_START_POSITION},
-    engine::defs::EngineOptionDefaults,
 };
 use clap::{value_parser, Arg, ArgAction, ArgMatches};
 use std::path::PathBuf;

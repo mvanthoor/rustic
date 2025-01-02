@@ -3,8 +3,7 @@ mod xboard;
 
 use crate::{
     basetypes::error::{ErrFatal, ErrNormal},
-    comm::defs::{CommIn, CommOut},
-    engine::defs::Messages,
+    comm::defs::{CommIn, CommOut, Messages},
     engine::Engine,
     evaluation::Evaluation,
 };
