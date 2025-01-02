@@ -1,5 +1,4 @@
 use crate::search::defs::Verbosity;
-use std::fmt::{Display, Formatter, Result};
 
 #[cfg(feature = "extra")]
 use std::path::PathBuf;
