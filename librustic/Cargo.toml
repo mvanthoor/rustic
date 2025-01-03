@@ -8,10 +8,8 @@ edition.workspace = true
 
 [dependencies]
 rand = { version = "0.8.5", features = ["small_rng"] }
-rand_core = "0.6.4"
 rand_chacha = "0.3.1"
 if_chain = "1.0.2"
-clap = "4.5.23"
 
 [features]
 extra = []
