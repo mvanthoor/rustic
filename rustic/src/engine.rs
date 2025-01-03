@@ -1,4 +1,5 @@
 mod about;
+mod cmdline;
 mod comm_handler;
 pub mod defs;
 mod game_result;
@@ -6,6 +7,7 @@ mod main_loop;
 mod search_handler;
 mod utils;
 
+use crate::engine::cmdline::CmdLine;
 use crate::engine::defs::Settings;
 use librustic::{
     basetypes::error::ErrFatal,
@@ -15,7 +17,7 @@ use librustic::{
         Information, Uci, UiElement, XBoard,
     },
     defs::EngineRunResult,
-    misc::{cmdline::CmdLine, perft},
+    misc::perft,
     movegen::MoveGenerator,
     search::{
         defs::{SearchControl, Verbosity},

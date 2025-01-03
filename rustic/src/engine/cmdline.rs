@@ -1,5 +1,6 @@
-use crate::{comm::defs::EngineOptionDefaults, defs::FEN_START_POSITION};
+use crate::engine::about;
 use clap::{value_parser, Arg, ArgAction, ArgMatches};
+use librustic::{comm::defs::EngineOptionDefaults, defs::FEN_START_POSITION};
 use std::path::PathBuf;
 
 // Consts for command line options, flags and arguments
@@ -145,10 +146,10 @@ impl CmdLine {
 
     // TODO: Fix engine information
     fn get() -> ArgMatches {
-        let mut cmd_line = clap::Command::new("")
-            .version("")
-            .author("")
-            .about("")
+        let mut cmd_line = clap::Command::new(about::AUTHOR)
+            .version(about::VERSION)
+            .author(about::AUTHOR)
+            .about(about::WEBSITE)
             .arg(
                 Arg::new(CmdLineArgs::COMM_LONG)
                     .short(CmdLineArgs::COMM_SHORT)

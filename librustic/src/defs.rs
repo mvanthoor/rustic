@@ -4,6 +4,59 @@
 
 use crate::board::defs::FenError;
 
+pub struct About {
+    engine: String,
+    version: String,
+    author: String,
+    email: Option<String>,
+    website: Option<String>,
+}
+impl About {
+    pub fn new(
+        engine: String,
+        version: String,
+        author: String,
+        email: Option<String>,
+        website: Option<String>,
+    ) -> Self {
+        Self {
+            engine,
+            version,
+            author,
+            email,
+            website,
+        }
+    }
+
+    pub fn get_engine(&self) -> &str {
+        &self.engine
+    }
+
+    pub fn get_version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn get_author(&self) -> &str {
+        &self.author
+    }
+
+    pub fn get_email(&self) -> &str {
+        if let Some(e) = &self.email {
+            return e;
+        }
+
+        ""
+    }
+
+    pub fn get_website(&self) -> &str {
+        if let Some(w) = &self.website {
+            return w;
+        }
+
+        ""
+    }
+}
+
 pub type Bitboard = u64;
 pub type Piece = usize;
 pub type Side = usize;
