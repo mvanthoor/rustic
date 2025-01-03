@@ -8,7 +8,7 @@ use crate::{
         IComm, Information, UiElement,
     },
     comm::shared::Shared,
-    defs::FEN_START_POSITION,
+    defs::{About, FEN_START_POSITION},
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -52,6 +52,7 @@ pub enum UciOut {
 
 // This struct is used to instantiate the Comm UCI module.
 pub struct Uci {
+    about: About,
     input_handle: Option<JoinHandle<()>>, // Thread for receiving input.
     output_handle: Option<JoinHandle<()>>, // Thread for sending output.
     output_tx: Option<Sender<CommOut>>,   // Actual output sender object.
@@ -60,15 +61,16 @@ pub struct Uci {
 
 impl Default for Uci {
     fn default() -> Self {
-        Self::new()
+        Self::new(About::default())
     }
 }
 
 // Public functions
 impl Uci {
     // Create a new console.
-    pub fn new() -> Self {
+    pub fn new(about: About) -> Self {
         Self {
+            about,
             input_handle: None,
             output_handle: None,
             output_tx: None,
@@ -370,12 +372,14 @@ impl Uci {
         // Create an incoming channel for the output thread.
         let (output_tx, output_rx) = channel();
 
+        // Create thread-local variables to be captured by the closure
+        let about = self.about.clone();
+        let t_board = Arc::clone(&board);
+        let t_options = Arc::clone(&options);
+        let mut quit = false;
+
         // Create the output thread.
         let output_handle = thread::spawn(move || {
-            let mut quit = false;
-            let t_board = Arc::clone(&board);
-            let t_options = Arc::clone(&options);
-
             // Keep running as long as Quit is not received.
             while !quit {
                 let output = output_rx.recv().expect(ErrFatal::CHANNEL);
@@ -383,7 +387,7 @@ impl Uci {
                 // Perform command as sent by the engine thread.
                 match output {
                     CommOut::Uci(UciOut::Identify) => {
-                        Uci::id();
+                        Uci::id(about.get_engine(), about.get_version(), about.get_author());
                         Uci::options(&t_options);
                         Uci::uciok();
                     }
@@ -421,11 +425,10 @@ impl Uci {
 // ---------------------------------------------------------------------
 
 // Implement output functions
-// TODO: Fix engine information
 impl Uci {
-    fn id() {
-        println!("id name {} {}", "Engine Name", "Engine Version");
-        println!("id author {}", "Engine Author");
+    fn id(engine: &str, version: &str, author: &str) {
+        println!("id name {} {}", engine, version);
+        println!("id author {}", author);
     }
 
     fn options(options: &Arc<Vec<CommOption>>) {

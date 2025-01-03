@@ -4,27 +4,18 @@
 
 use crate::board::defs::FenError;
 
+#[derive(Default, Clone)]
 pub struct About {
     engine: String,
     version: String,
     author: String,
-    email: Option<String>,
-    website: Option<String>,
 }
 impl About {
-    pub fn new(
-        engine: String,
-        version: String,
-        author: String,
-        email: Option<String>,
-        website: Option<String>,
-    ) -> Self {
+    pub fn new(engine: String, version: String, author: String) -> Self {
         Self {
             engine,
             version,
             author,
-            email,
-            website,
         }
     }
 
@@ -38,22 +29,6 @@ impl About {
 
     pub fn get_author(&self) -> &str {
         &self.author
-    }
-
-    pub fn get_email(&self) -> &str {
-        if let Some(e) = &self.email {
-            return e;
-        }
-
-        ""
-    }
-
-    pub fn get_website(&self) -> &str {
-        if let Some(w) = &self.website {
-            return w;
-        }
-
-        ""
     }
 }
 

@@ -7,6 +7,7 @@ mod main_loop;
 mod search_handler;
 mod utils;
 
+use crate::engine::about::{AUTHOR, ENGINE, VERSION};
 use crate::engine::cmdline::CmdLine;
 use crate::engine::defs::Settings;
 use librustic::{
@@ -16,7 +17,7 @@ use librustic::{
         CommOption, CommOut, CommType, EngineOptionDefaults, EngineSetOption, EngineState, IComm,
         Information, Uci, UiElement, XBoard,
     },
-    defs::EngineRunResult,
+    defs::{About, EngineRunResult},
     misc::perft,
     movegen::MoveGenerator,
     search::{
@@ -62,11 +63,16 @@ impl Engine {
     pub fn new() -> Self {
         // Create the command-line object.
         let cmdline = CmdLine::new();
+        let about = About::new(
+            String::from(ENGINE),
+            String::from(VERSION),
+            String::from(AUTHOR),
+        );
 
         // Create the communication interface
         let comm: Box<dyn IComm> = match cmdline.comm().as_str() {
             CommType::XBOARD => Box::new(XBoard::new()),
-            CommType::UCI => Box::new(Uci::new()),
+            CommType::UCI => Box::new(Uci::new(about)),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
 
