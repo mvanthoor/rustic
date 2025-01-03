@@ -144,7 +144,6 @@ impl CmdLine {
         }
     }
 
-    // TODO: Fix engine information
     fn get() -> ArgMatches {
         let mut cmd_line = clap::Command::new(about::ENGINE)
             .version(about::VERSION)
