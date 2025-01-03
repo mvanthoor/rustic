@@ -71,7 +71,7 @@ impl Engine {
 
         // Create the communication interface
         let comm: Box<dyn IComm> = match cmdline.comm().as_str() {
-            CommType::XBOARD => Box::new(XBoard::new()),
+            CommType::XBOARD => Box::new(XBoard::new(about)),
             CommType::UCI => Box::new(Uci::new(about)),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
