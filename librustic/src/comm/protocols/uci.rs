@@ -8,7 +8,7 @@ use crate::{
         IComm, Information, UiElement,
     },
     comm::shared::Shared,
-    defs::{About, FEN_START_POSITION},
+    defs::FEN_START_POSITION,
     movegen::defs::Move,
     search::defs::{GameTime, SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -421,10 +421,11 @@ impl Uci {
 // ---------------------------------------------------------------------
 
 // Implement output functions
+// TODO: Fix engine information
 impl Uci {
     fn id() {
-        println!("id name {} {}", About::ENGINE, About::VERSION);
-        println!("id author {}", About::AUTHOR);
+        println!("id name {} {}", "Engine Name", "Engine Version");
+        println!("id author {}", "Engine Author");
     }
 
     fn options(options: &Arc<Vec<CommOption>>) {

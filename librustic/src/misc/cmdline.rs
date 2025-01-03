@@ -1,7 +1,4 @@
-use crate::{
-    comm::defs::EngineOptionDefaults,
-    defs::{About, FEN_START_POSITION},
-};
+use crate::{comm::defs::EngineOptionDefaults, defs::FEN_START_POSITION};
 use clap::{value_parser, Arg, ArgAction, ArgMatches};
 use std::path::PathBuf;
 
@@ -146,11 +143,12 @@ impl CmdLine {
         }
     }
 
+    // TODO: Fix engine information
     fn get() -> ArgMatches {
-        let mut cmd_line = clap::Command::new(About::ENGINE)
-            .version(About::VERSION)
-            .author(About::AUTHOR)
-            .about(About::WEBSITE)
+        let mut cmd_line = clap::Command::new("")
+            .version("")
+            .author("")
+            .about("")
             .arg(
                 Arg::new(CmdLineArgs::COMM_LONG)
                     .short(CmdLineArgs::COMM_SHORT)

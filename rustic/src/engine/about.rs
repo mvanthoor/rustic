@@ -6,6 +6,15 @@ use librustic::defs::About;
 #[cfg(debug_assertions)]
 const NOTICE_DEBUG_MODE: &str = "Notice: Running in debug mode";
 
+pub struct About;
+impl About {
+    pub const ENGINE: &'static str = env!("CARGO_PKG_NAME");
+    pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+    pub const AUTHOR: &'static str = "Marcel Vanthoor";
+    pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
+    pub const WEBSITE: &'static str = "https://rustic-chess.org/";
+}
+
 impl Engine {
     // Print information about the engine.
     pub fn print_fancy_about(&self, s: &Settings, protocol: &str) {

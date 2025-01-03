@@ -8,7 +8,7 @@ use crate::{
         GameResultReason, IComm, Information,
     },
     comm::shared::Shared,
-    defs::{About, Sides},
+    defs::Sides,
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -688,8 +688,9 @@ impl XBoard {
         println!();
     }
 
+    // TODO: Fix engine information
     fn features() {
-        let myname = format!("myname=\"{} {}\"", About::ENGINE, About::VERSION);
+        let myname = format!("myname=\"{} {}\"", "Engine Name", "Engine Version");
 
         for f in FEATURES {
             let value = f.to_string().replace("myname=x", myname.as_str());

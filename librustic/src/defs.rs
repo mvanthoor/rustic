@@ -4,15 +4,6 @@
 
 use crate::board::defs::FenError;
 
-pub struct About;
-impl About {
-    pub const ENGINE: &'static str = env!("CARGO_PKG_NAME");
-    pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-    pub const AUTHOR: &'static str = "Marcel Vanthoor";
-    pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
-    pub const WEBSITE: &'static str = "https://rustic-chess.org/";
-}
-
 pub type Bitboard = u64;
 pub type Piece = usize;
 pub type Side = usize;
