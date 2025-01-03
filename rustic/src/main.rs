@@ -19,18 +19,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
-mod basetypes;
-mod board;
-mod comm;
-mod defs;
 mod engine;
-mod evaluation;
-mod misc;
-mod movegen;
-mod search;
-
-#[cfg(feature = "extra")]
-mod extra;
 
 // use interface::console;
 use engine::Engine;

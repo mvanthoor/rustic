@@ -1,7 +1,7 @@
-use crate::{
+use crate::engine::Engine;
+use librustic::{
     basetypes::error::ErrFatal,
     comm::defs::{GameResult, GameResultPoints, GameResultReason},
-    engine::Engine,
     movegen::defs::{MoveList, MoveType},
 };
 

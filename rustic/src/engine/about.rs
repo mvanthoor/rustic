@@ -1,4 +1,5 @@
-use crate::{defs::About, engine::defs::Settings, engine::Engine};
+use crate::engine::{defs::Settings, Engine};
+use librustic::defs::About;
 
 // This notice is displayed if the engine is a debug binary. (Debug
 // binaries are unoptimized and slower than release binaries.)

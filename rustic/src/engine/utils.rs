@@ -1,11 +1,11 @@
-use crate::{
+use crate::engine::Engine;
+use if_chain::if_chain;
+use librustic::{
     basetypes::error::ErrFatal,
     defs::FEN_KIWIPETE_POSITION,
-    engine::Engine,
     misc::parse::{self, ConvertedMove},
     movegen::defs::{Move, MoveList, MoveType},
 };
-use if_chain::if_chain;
 
 impl Engine {
     pub fn determine_startup_position(&mut self) -> String {

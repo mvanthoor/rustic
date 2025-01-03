@@ -1,4 +1,4 @@
-use crate::search::defs::Verbosity;
+use librustic::search::defs::Verbosity;
 
 #[cfg(feature = "extra")]
 use std::path::PathBuf;

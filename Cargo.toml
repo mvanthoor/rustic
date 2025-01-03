@@ -1,6 +1,6 @@
 [workspace]
 
-members = [ "librustic" ]
+members = ["librustic", "rustic"]
 resolver = "2"
 
 [profile.dev]

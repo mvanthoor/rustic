@@ -1,4 +1,5 @@
-use crate::{basetypes::error::ErrFatal, comm::defs::Information, engine::Engine};
+use crate::engine::Engine;
+use librustic::{basetypes::error::ErrFatal, comm::defs::Information};
 use std::sync::{mpsc::channel, Arc};
 
 impl Engine {

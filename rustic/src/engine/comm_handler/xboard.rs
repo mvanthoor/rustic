@@ -1,8 +1,8 @@
-use crate::{
+use crate::engine::Engine;
+use librustic::{
     basetypes::error::{ErrFatal, ErrNormal},
     comm::defs::{CommOut, EngineState, Information, Messages, TimeControl, XBoardIn, XBoardOut},
     defs::FEN_START_POSITION,
-    engine::Engine,
     search::defs::{SearchControl, SearchMode, SearchParams, SearchReport, Verbosity},
 };
 

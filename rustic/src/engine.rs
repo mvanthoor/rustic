@@ -6,7 +6,8 @@ mod main_loop;
 mod search_handler;
 mod utils;
 
-use crate::{
+use crate::engine::defs::Settings;
+use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
     comm::defs::{
@@ -14,7 +15,6 @@ use crate::{
         Information, Uci, UiElement, XBoard,
     },
     defs::EngineRunResult,
-    engine::defs::Settings,
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
     search::{
@@ -25,9 +25,10 @@ use crate::{
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 
 #[cfg(feature = "extra")]
-use crate::{
+use crate::engine::defs::TexelSettings;
+#[cfg(feature = "extra")]
+use librustic::{
     board::defs::Pieces,
-    engine::defs::TexelSettings,
     extra::texel::defs::TunerLoadError,
     extra::texel::Tuner,
     extra::{testsuite, wizardry},

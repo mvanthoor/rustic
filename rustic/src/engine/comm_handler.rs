@@ -1,10 +1,10 @@
 mod uci;
 mod xboard;
 
-use crate::{
+use crate::engine::Engine;
+use librustic::{
     basetypes::error::{ErrFatal, ErrNormal},
     comm::defs::{CommIn, CommOut, Messages},
-    engine::Engine,
     evaluation::Evaluation,
 };
 

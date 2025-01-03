@@ -1,5 +1,6 @@
-use crate::{
-    basetypes::error::ErrFatal, comm::defs::CommOut, comm::defs::GameResult, engine::Engine,
+use crate::engine::Engine;
+use librustic::{
+    basetypes::error::ErrFatal, comm::defs::CommOut, comm::defs::GameResult,
     search::defs::SearchReport,
 };
 
