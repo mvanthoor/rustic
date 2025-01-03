@@ -1,6 +1,6 @@
 [package]
-name = "rustic"
-version = "3.99.0"
+name = "librustic"
+version = "0.1.0"
 authors = ["Marcel Vanthoor <mail@marcelvanthoor.nl>"]
 edition = "2021"
 

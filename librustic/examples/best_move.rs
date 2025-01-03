@@ -1,4 +1,4 @@
-use rustic::{
+use librustic::{
     board::Board,
     comm::defs::EngineOptionDefaults,
     comm::defs::Information,

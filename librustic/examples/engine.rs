@@ -20,7 +20,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 // use interface::console;
-use rustic::engine::Engine;
+use librustic::engine::Engine;
 
 fn main() {
     let mut engine = Engine::new();
