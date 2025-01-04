@@ -32,8 +32,6 @@ use crate::engine::defs::TexelSettings;
 #[cfg(feature = "extra")]
 use librustic::{
     board::defs::Pieces,
-    extra::texel::defs::TunerLoadError,
-    extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
 
