@@ -1,4 +1,4 @@
-use librustic::{
+use crate::{
     board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
     defs::{Bitboard, Piece, Square, EMPTY},
     movegen::{
@@ -9,11 +9,12 @@ use librustic::{
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 
-// The find_magics function can be used by compiling the "wizardry" module
-// into the engine, and then adding the "-w" option on the command line.
-// This function generates magic numbers for the rooks and bishops. A queen
-// is a combination of a rook and a bishop, so she does not have her own
-// magic numbers.
+// The find_magics function can be used by compiling the "wizardry"
+// executable crate in Rustic's workspace and running it on the
+// commandline. This function generates magic numbers for the rooks and
+// bishops. A queen is a combination of a rook and a bishop, so she does
+// not have her own magic numbers.
+#[allow(dead_code)]
 pub fn find_magics(piece: Piece) {
     // First check if we're actually dealing with a rook or a bishop.
     let ok = piece == Pieces::ROOK || piece == Pieces::BISHOP;

@@ -1,6 +1,4 @@
-mod wizardry;
-
-use librustic::board::defs::Pieces;
+use librustic::{board::defs::Pieces, movegen::wizardry};
 
 fn main() {
     wizardry::find_magics(Pieces::ROOK);

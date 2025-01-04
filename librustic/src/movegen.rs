@@ -4,6 +4,7 @@ mod generate;
 mod init;
 mod magics;
 mod movelist;
+pub mod wizardry;
 
 use crate::board::defs::Pieces;
 use crate::defs::{Bitboard, NrOf, Sides, EMPTY};
