@@ -1,0 +1,13 @@
+[package]
+version = "0.1.0"
+name = "texel"
+authors.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+librustic = { path = "../librustic" }
+
+[features]
+extra = []

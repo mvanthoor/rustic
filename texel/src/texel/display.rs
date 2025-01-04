@@ -1,5 +1,5 @@
-use crate::extra::texel::Tuner;
-use crate::extra::texel::{data_file, data_point};
+use crate::texel::Tuner;
+use crate::texel::{data_file, data_point};
 
 impl Tuner {
     pub(in super::super::texel) fn print_data_file_read_result(

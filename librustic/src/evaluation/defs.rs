@@ -1,11 +1,9 @@
 pub use crate::evaluation::phase::PhaseValues;
 use crate::evaluation::phase::{self};
+pub use crate::evaluation::psqt::Psqt;
 use crate::evaluation::psqt::PSQT_SET;
 pub use crate::evaluation::psqt::{FlipTable, PsqtSet, FLIP};
 pub use crate::evaluation::weights::W;
-
-#[cfg(feature = "extra")]
-pub use crate::evaluation::psqt::Psqt;
 
 pub struct EvalParams;
 impl EvalParams {

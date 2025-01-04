@@ -218,6 +218,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "texel"
+version = "0.1.0"
+dependencies = [
+ "librustic",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"

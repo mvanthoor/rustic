@@ -1,5 +1,5 @@
-use crate::evaluation::defs::{FlipTable, PhaseValues, FLIP};
-use crate::evaluation::defs::{Psqt, PsqtSet, W};
+use librustic::evaluation::defs::{FlipTable, PhaseValues, FLIP};
+use librustic::evaluation::defs::{Psqt, PsqtSet, W};
 
 #[rustfmt::skip]
 const PSQT_KING: Psqt = 

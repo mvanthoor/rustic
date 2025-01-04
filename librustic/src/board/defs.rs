@@ -1,12 +1,10 @@
 use crate::defs::{Bitboard, NrOf, Piece, Square};
 use std::ops::RangeInclusive;
 
+pub use crate::board::fen::fen_setup_fast;
 pub use crate::board::fen::FenError;
 pub use crate::board::fen::FenResult;
 pub use crate::board::zobrist::ZobristKey;
-
-#[cfg(feature = "extra")]
-pub use crate::board::fen::fen_setup_fast;
 
 #[rustfmt::skip]
 pub const SQUARE_NAME: [&str; NrOf::SQUARES] = [

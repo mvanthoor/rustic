@@ -28,12 +28,8 @@ use librustic::{
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 
 #[cfg(feature = "extra")]
-use crate::engine::defs::TexelSettings;
-#[cfg(feature = "extra")]
 use librustic::{
     board::defs::Pieces,
-    extra::texel::defs::TunerLoadError,
-    extra::texel::Tuner,
     extra::{testsuite, wizardry},
 };
 
@@ -103,11 +99,6 @@ impl Engine {
             ),
         ];
 
-        #[cfg(feature = "extra")]
-        let texel = TexelSettings {
-            file_name: cmdline.texel(),
-        };
-
         // Create the engine itself.
         Self {
             quit: false,
@@ -116,9 +107,6 @@ impl Engine {
                 threads,
                 verbosity,
                 tt_size,
-
-                #[cfg(feature = "extra")]
-                texel,
             },
             options: Arc::new(options),
             cmdline,
@@ -168,20 +156,6 @@ impl Engine {
         #[cfg(feature = "extra")]
         if self.cmdline.has_test() {
             testsuite::run(self.settings.tt_size);
-            return Ok(());
-        }
-
-        #[cfg(feature = "extra")]
-        if let Some(data_file) = self.settings.texel.file_name.to_owned() {
-            let mut tuner = Tuner::new(data_file);
-
-            match tuner.load() {
-                Ok(()) => tuner.run(),
-                Err(e) => match e {
-                    TunerLoadError::DataFileReadError => println!("{e}"),
-                },
-            };
-
             return Ok(());
         }
         // =====================================================

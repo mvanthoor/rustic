@@ -1,4 +1,4 @@
-use crate::extra::texel::Tuner;
+use crate::texel::Tuner;
 
 impl Tuner {
     pub fn calculate_k_factor(&mut self) -> f32 {

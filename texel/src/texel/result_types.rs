@@ -1,9 +1,10 @@
-use crate::extra::texel::{
+use crate::texel::{
     data_file::{LineParseError, Store},
     data_point::DataPoint,
 };
 use std::fmt::{self, Display};
 
+#[derive(Debug)]
 pub enum TunerLoadError {
     DataFileReadError,
 }

@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["librustic", "rustic"]
+members = ["librustic", "rustic", "texel"]
 resolver = "2"
 
 [workspace.package]
