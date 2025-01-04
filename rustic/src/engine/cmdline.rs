@@ -49,10 +49,6 @@ impl CmdLineArgs {
     const KIWI_SHORT: char = 'k';
     const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
 
-    // Wizardry
-    const WIZARDRY_LONG: &'static str = "wizardry";
-    const WIZARDRY_HELP: &'static str = "Generate magic numbers";
-
     // Test
     const EPD_TEST_LONG: &'static str = "epdtest";
     const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
@@ -116,11 +112,6 @@ impl CmdLine {
 
     pub fn has_quiet(&self) -> bool {
         self.arguments.get_flag(CmdLineArgs::QUIET_LONG)
-    }
-
-    #[cfg(feature = "extra")]
-    pub fn has_wizardry(&self) -> bool {
-        self.arguments.get_flag(CmdLineArgs::WIZARDRY_LONG)
     }
 
     #[cfg(feature = "extra")]
@@ -195,19 +186,12 @@ impl CmdLine {
             );
 
         if cfg!(feature = "extra") {
-            cmd_line = cmd_line
-                .arg(
-                    Arg::new(CmdLineArgs::WIZARDRY_LONG)
-                        .long(CmdLineArgs::WIZARDRY_LONG)
-                        .help(CmdLineArgs::WIZARDRY_HELP)
-                        .action(ArgAction::SetTrue),
-                )
-                .arg(
-                    Arg::new(CmdLineArgs::EPD_TEST_LONG)
-                        .long(CmdLineArgs::EPD_TEST_LONG)
-                        .help(CmdLineArgs::EPD_TEST_HELP)
-                        .action(ArgAction::SetTrue),
-                )
+            cmd_line = cmd_line.arg(
+                Arg::new(CmdLineArgs::EPD_TEST_LONG)
+                    .long(CmdLineArgs::EPD_TEST_LONG)
+                    .help(CmdLineArgs::EPD_TEST_HELP)
+                    .action(ArgAction::SetTrue),
+            )
         }
 
         cmd_line.get_matches()

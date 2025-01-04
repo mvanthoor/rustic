@@ -28,10 +28,7 @@ use librustic::{
 use std::sync::{mpsc::Receiver, Arc, Mutex};
 
 #[cfg(feature = "extra")]
-use librustic::{
-    board::defs::Pieces,
-    extra::{testsuite, wizardry},
-};
+use librustic::{board::defs::Pieces, extra::testsuite};
 
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
@@ -143,15 +140,6 @@ impl Engine {
             )?;
             return Ok(());
         }
-
-        // === Only available with "extra" features enabled. ===
-        #[cfg(feature = "extra")]
-        // Generate magic numbers if requested.
-        if self.cmdline.has_wizardry() {
-            wizardry::find_magics(Pieces::ROOK);
-            wizardry::find_magics(Pieces::BISHOP);
-            return Ok(());
-        };
 
         #[cfg(feature = "extra")]
         if self.cmdline.has_test() {

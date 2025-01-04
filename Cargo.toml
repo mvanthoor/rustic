@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["librustic", "rustic", "texel"]
+members = ["librustic", "rustic", "texel", "wizardry"]
 resolver = "2"
 
 [workspace.package]
@@ -20,6 +20,7 @@ codegen-units = 256
 rpath = false
 
 [profile.release]
+strip = "symbols"
 opt-level = 3
 lto = true
 codegen-units = 1

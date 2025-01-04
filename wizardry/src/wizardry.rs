@@ -1,4 +1,4 @@
-use crate::{
+use librustic::{
     board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
     defs::{Bitboard, Piece, Square, EMPTY},
     movegen::{
