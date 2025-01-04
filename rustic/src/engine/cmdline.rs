@@ -1,7 +1,6 @@
 use crate::engine::about;
 use clap::{value_parser, Arg, ArgAction, ArgMatches};
 use librustic::{comm::defs::EngineOptionDefaults, defs::FEN_START_POSITION};
-use std::path::PathBuf;
 
 // Consts for command line options, flags and arguments
 
@@ -57,11 +56,6 @@ impl CmdLineArgs {
     // Test
     const EPD_TEST_LONG: &'static str = "epdtest";
     const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
-
-    // Texel tuner
-    const TEXEL_LONG: &'static str = "texel";
-    const TEXEL_VALUE_NAME: &'static str = "dataset.pgn";
-    const TEXEL_HELP: &'static str = "Create new evaluation weights by Texel Tuning";
 }
 
 pub struct CmdLine {
@@ -132,16 +126,6 @@ impl CmdLine {
     #[cfg(feature = "extra")]
     pub fn has_test(&self) -> bool {
         self.arguments.get_flag(CmdLineArgs::EPD_TEST_LONG)
-    }
-
-    #[cfg(feature = "extra")]
-    pub fn texel(&self) -> Option<PathBuf> {
-        let value = self.arguments.get_one::<PathBuf>(CmdLineArgs::TEXEL_LONG);
-        if value.is_some() {
-            value.cloned()
-        } else {
-            None
-        }
     }
 
     fn get() -> ArgMatches {
@@ -224,14 +208,6 @@ impl CmdLine {
                         .help(CmdLineArgs::EPD_TEST_HELP)
                         .action(ArgAction::SetTrue),
                 )
-                .arg(
-                    Arg::new(CmdLineArgs::TEXEL_LONG)
-                        .long(CmdLineArgs::TEXEL_LONG)
-                        .help(CmdLineArgs::TEXEL_HELP)
-                        .value_name(CmdLineArgs::TEXEL_VALUE_NAME)
-                        .value_parser(value_parser!(PathBuf))
-                        .num_args(1),
-                );
         }
 
         cmd_line.get_matches()

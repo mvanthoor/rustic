@@ -94,7 +94,6 @@ impl Board {
 // than fen_setup() in verifying if a FEN-string is correct. In contrast to
 // fen_setup() though, it does not protect the incoming board from
 // corruption. If the function fails, the incoming board is useless.
-#[cfg(feature = "extra")]
 pub fn fen_setup_fast(board: &mut Board, fen_string: Option<&str>) -> FenResult {
     board.reset();
 

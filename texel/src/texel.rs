@@ -6,10 +6,9 @@ mod init_eval;
 mod k_factor;
 mod result_types;
 
-use crate::board::defs::fen_setup_fast;
-use crate::board::Board;
 use data_file::{Line, LineParseError};
 use data_point::DataPoint;
+use librustic::board::{defs::fen_setup_fast, Board};
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, TunerLoadResult};
 use std::{
     fs::File,

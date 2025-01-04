@@ -221,9 +221,7 @@ dependencies = [
 name = "texel"
 version = "0.1.0"
 dependencies = [
- "if_chain",
- "rand",
- "rand_chacha",
+ "librustic",
 ]
 
 [[package]]
