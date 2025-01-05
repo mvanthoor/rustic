@@ -1,5 +1,7 @@
+mod cmdline;
 mod epds;
 
+use cmdline::CmdLine;
 use epds::LARGE_TEST_EPDS;
 use librustic::{
     board::Board,
@@ -32,9 +34,10 @@ const TEST_RESULTS: [&str; 5] = [
 // This private function is the one actually running tests.
 // This can be the entire suite, or a single test.
 pub fn main() {
-    // TODO: Add command-line to set transposition table size
+    // TODO: Write About
 
-    let tt_size = 0;
+    let cmdline = CmdLine::new();
+    let tt_size = cmdline.hash();
     let number_of_tests = LARGE_TEST_EPDS.len();
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
