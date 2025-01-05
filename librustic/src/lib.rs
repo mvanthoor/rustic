@@ -6,6 +6,3 @@ pub mod evaluation;
 pub mod misc;
 pub mod movegen;
 pub mod search;
-
-#[cfg(feature = "extra")]
-pub mod extra;

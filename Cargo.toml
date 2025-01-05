@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["librustic", "rustic", "texel", "wizardry"]
+members = ["librustic", "rustic", "texel", "wizardry", "epdtest"]
 resolver = "2"
 
 [workspace.package]

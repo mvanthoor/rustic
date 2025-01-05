@@ -48,10 +48,6 @@ impl CmdLineArgs {
     const KIWI_LONG: &'static str = "kiwipete";
     const KIWI_SHORT: char = 'k';
     const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
-
-    // Test
-    const EPD_TEST_LONG: &'static str = "epdtest";
-    const EPD_TEST_HELP: &'static str = "Run EPD Test Suite";
 }
 
 pub struct CmdLine {
@@ -114,13 +110,8 @@ impl CmdLine {
         self.arguments.get_flag(CmdLineArgs::QUIET_LONG)
     }
 
-    #[cfg(feature = "extra")]
-    pub fn has_test(&self) -> bool {
-        self.arguments.get_flag(CmdLineArgs::EPD_TEST_LONG)
-    }
-
     fn get() -> ArgMatches {
-        let mut cmd_line = clap::Command::new(about::ENGINE)
+        let cmd_line = clap::Command::new(about::ENGINE)
             .version(about::VERSION)
             .author(about::AUTHOR)
             .about(about::WEBSITE)
@@ -184,15 +175,6 @@ impl CmdLine {
                     .help(CmdLineArgs::QUIET_HELP)
                     .action(ArgAction::SetTrue),
             );
-
-        if cfg!(feature = "extra") {
-            cmd_line = cmd_line.arg(
-                Arg::new(CmdLineArgs::EPD_TEST_LONG)
-                    .long(CmdLineArgs::EPD_TEST_LONG)
-                    .help(CmdLineArgs::EPD_TEST_HELP)
-                    .action(ArgAction::SetTrue),
-            )
-        }
 
         cmd_line.get_matches()
     }

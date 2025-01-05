@@ -7,9 +7,11 @@ mod main_loop;
 mod search_handler;
 mod utils;
 
-use crate::engine::about::{AUTHOR, ENGINE, VERSION};
-use crate::engine::cmdline::CmdLine;
-use crate::engine::defs::Settings;
+use crate::engine::{
+    about::{AUTHOR, ENGINE, VERSION},
+    cmdline::CmdLine,
+    defs::Settings,
+};
 use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
@@ -26,9 +28,6 @@ use librustic::{
     },
 };
 use std::sync::{mpsc::Receiver, Arc, Mutex};
-
-#[cfg(feature = "extra")]
-use librustic::{board::defs::Pieces, extra::testsuite};
 
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
@@ -140,13 +139,6 @@ impl Engine {
             )?;
             return Ok(());
         }
-
-        #[cfg(feature = "extra")]
-        if self.cmdline.has_test() {
-            testsuite::run(self.settings.tt_size);
-            return Ok(());
-        }
-        // =====================================================
 
         // In the main loop, the engine manages its resources so it will be
         // able to play legal chess and communicate with different user
