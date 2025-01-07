@@ -82,7 +82,7 @@ impl<D: HashData + Copy> Entry<D> {
 
 // Transposition Table
 pub struct Transposition<D> {
-    tt: Vec<Entry<D>>,
+    table: Vec<Entry<D>>,
     megabytes: usize,
     used_buckets: usize,
     total_entries: usize,
@@ -98,7 +98,7 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
         let (total_entries, total_buckets) = Self::init_values(megabytes);
 
         Self {
-            tt: vec![Entry::<D>::new(); total_entries],
+            table: vec![Entry::<D>::new(); total_entries],
             megabytes,
             used_buckets: 0,
             total_entries,
@@ -117,7 +117,7 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
         if self.megabytes != megabytes {
             let (total_entries, total_buckets) = Transposition::<D>::init_values(megabytes);
 
-            self.tt = vec![Entry::<D>::new(); total_entries];
+            self.table = vec![Entry::<D>::new(); total_entries];
             self.megabytes = megabytes;
             self.used_buckets = 0;
             self.total_entries = total_entries;
@@ -133,7 +133,7 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
         if self.megabytes > 0 {
             let index = self.index_from(zobrist_key);
             let verification = self.verification_from(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_buckets);
+            self.table[index].store(verification, data, &mut self.used_buckets);
         }
     }
 
@@ -144,7 +144,7 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
             let index = self.index_from(zobrist_key);
             let verification = self.verification_from(zobrist_key);
 
-            self.tt[index].find(verification)
+            self.table[index].find(verification)
         } else {
             None
         }
@@ -152,7 +152,7 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
 
     // Clear TT by replacing entries with empty ones.
     pub fn clear(&mut self) {
-        for entry in self.tt.iter_mut() {
+        for entry in self.table.iter_mut() {
             *entry = Entry::new();
         }
         self.used_buckets = 0;

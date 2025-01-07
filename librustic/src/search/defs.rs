@@ -1,8 +1,5 @@
-pub use crate::search::{
-    search_data::SearchData,
-    time::SAFEGUARD,
-    transposition::{HashData, Transposition},
-};
+pub use crate::search::{search_data::SearchData, time::SAFEGUARD};
+pub use crate::transposition::defs::{HashData, Transposition};
 
 use crate::{
     board::Board,

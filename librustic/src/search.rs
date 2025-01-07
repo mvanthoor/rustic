@@ -8,15 +8,12 @@ mod qsearch;
 mod search_data;
 mod sorting;
 mod time;
-mod transposition;
 mod utils;
 
 use crate::{
     comm::defs::{EngineOptionDefaults, Information},
-    search::{
-        defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
-        transposition::Transposition,
-    },
+    search::defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
+    transposition::defs::Transposition,
 };
 use std::{
     sync::{mpsc::Sender, Arc, Mutex},

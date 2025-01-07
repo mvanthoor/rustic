@@ -1,6 +1,5 @@
 use crate::{
-    movegen::defs::ShortMove,
-    search::{defs::CHECKMATE_THRESHOLD, transposition::HashData},
+    movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD, transposition::defs::HashData,
 };
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
