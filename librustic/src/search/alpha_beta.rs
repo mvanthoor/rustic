@@ -70,7 +70,7 @@ impl Search {
 
         // Probe the TT for information.
         if let Some(data) = refs
-            .tt
+            .transposition
             .lock()
             .expect(ErrFatal::LOCK)
             .probe(refs.board.game_state.zobrist_key)
@@ -263,9 +263,9 @@ impl Search {
         }
 
         // We save the best score and move (if any) in the TT.
-        refs.tt.lock().expect(ErrFatal::LOCK).insert(
+        refs.transposition.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData::create(
+            SearchData::new(
                 depth,
                 refs.search_info.ply,
                 hash_flag,

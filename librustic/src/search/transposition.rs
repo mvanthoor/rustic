@@ -9,7 +9,7 @@ const SHIFT_TO_LOWER: u64 = 32;
 /* ===== Data ========================================================= */
 
 pub trait IHashData {
-    fn new() -> Self;
+    fn empty() -> Self;
     fn depth(&self) -> i8;
 }
 #[derive(Copy, Clone)]
@@ -19,7 +19,7 @@ pub struct PerftData {
 }
 
 impl IHashData for PerftData {
-    fn new() -> Self {
+    fn empty() -> Self {
         Self {
             depth: 0,
             leaf_nodes: 0,
@@ -32,11 +32,11 @@ impl IHashData for PerftData {
 }
 
 impl PerftData {
-    pub fn create(depth: i8, leaf_nodes: u64) -> Self {
+    pub fn new(depth: i8, leaf_nodes: u64) -> Self {
         Self { depth, leaf_nodes }
     }
 
-    pub fn get(&self, depth: i8) -> Option<u64> {
+    pub fn get_leaf_nodes(&self, depth: i8) -> Option<u64> {
         if self.depth == depth {
             Some(self.leaf_nodes)
         } else {
@@ -62,7 +62,7 @@ pub struct SearchData {
 }
 
 impl IHashData for SearchData {
-    fn new() -> Self {
+    fn empty() -> Self {
         Self {
             depth: 0,
             flag: HashFlag::Nothing,
@@ -77,7 +77,7 @@ impl IHashData for SearchData {
 }
 
 impl SearchData {
-    pub fn create(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: ShortMove) -> Self {
+    pub fn new(depth: i8, ply: i8, flag: HashFlag, value: i16, best_move: ShortMove) -> Self {
         // This is the value we're going to save into the TT.
         let mut v = value;
 
@@ -167,7 +167,7 @@ impl<D: IHashData> Bucket<D> {
     pub fn new() -> Self {
         Self {
             verification: 0,
-            data: D::new(),
+            data: D::empty(),
         }
     }
 }

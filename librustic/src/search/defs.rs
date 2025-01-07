@@ -266,7 +266,7 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub tt: &'a Arc<Mutex<TT<SearchData>>>,
+    pub transposition: &'a Arc<Mutex<TT<SearchData>>>,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,

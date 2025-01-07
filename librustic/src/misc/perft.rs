@@ -83,7 +83,7 @@ pub fn perft(
     if_chain! {
         if tt_enabled;
         if let Some(data) = transposition.probe(board.game_state.zobrist_key);
-        if let Some(leaf_nodes) = data.get(depth);
+        if let Some(leaf_nodes) = data.get_leaf_nodes(depth);
         then {
             return leaf_nodes;
         }
@@ -112,7 +112,7 @@ pub fn perft(
     if tt_enabled {
         transposition.insert(
             board.game_state.zobrist_key,
-            PerftData::create(depth, leaf_nodes),
+            PerftData::new(depth, leaf_nodes),
         )
     }
 
