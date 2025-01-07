@@ -5,7 +5,7 @@ use crate::{
         defs::{MoveList, MoveType},
         MoveGenerator,
     },
-    search::defs::{IHashData, TT},
+    search::defs::{HashData, TT},
 };
 use if_chain::if_chain;
 use std::{sync::Arc, time::Instant};
@@ -17,7 +17,7 @@ pub struct PerftData {
     leaf_nodes: u64,
 }
 
-impl IHashData for PerftData {
+impl HashData for PerftData {
     fn empty() -> Self {
         Self::default()
     }

@@ -1,6 +1,6 @@
 use crate::{
     movegen::defs::ShortMove,
-    search::{defs::CHECKMATE_THRESHOLD, transposition::IHashData},
+    search::{defs::CHECKMATE_THRESHOLD, transposition::HashData},
 };
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
@@ -20,7 +20,7 @@ pub struct SearchData {
     best_move: ShortMove,
 }
 
-impl IHashData for SearchData {
+impl HashData for SearchData {
     fn empty() -> Self {
         Self::default()
     }

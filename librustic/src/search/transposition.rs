@@ -8,7 +8,7 @@ const SHIFT_TO_LOWER: u64 = 32;
 
 /* ===== Data ========================================================= */
 
-pub trait IHashData {
+pub trait HashData {
     fn empty() -> Self;
     fn depth(&self) -> i8;
 }
@@ -21,7 +21,7 @@ struct Bucket<D> {
     data: D,
 }
 
-impl<D: IHashData> Bucket<D> {
+impl<D: HashData> Bucket<D> {
     pub fn new() -> Self {
         Self {
             verification: 0,
@@ -37,7 +37,7 @@ struct Entry<D> {
     entry: [Bucket<D>; NR_OF_BUCKETS],
 }
 
-impl<D: IHashData + Copy> Entry<D> {
+impl<D: HashData + Copy> Entry<D> {
     pub fn new() -> Self {
         Self {
             entry: [Bucket::new(); NR_OF_BUCKETS],
@@ -90,9 +90,9 @@ pub struct TT<D> {
 }
 
 // Public functions
-impl<D: IHashData + Copy + Clone> TT<D> {
+impl<D: HashData + Copy + Clone> TT<D> {
     // Create a new TT of the requested size, able to hold the data
-    // of type D, where D has to implement IHashData, and must be cloneable
+    // of type D, where D has to implement HashData, and must be cloneable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
         let (total_entries, total_buckets) = Self::init_values(megabytes);
@@ -184,7 +184,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 }
 
 // Private functions
-impl<D: IHashData + Copy + Clone> TT<D> {
+impl<D: HashData + Copy + Clone> TT<D> {
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
