@@ -11,9 +11,9 @@ const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;
 
-impl<D> Transposition<D>
+impl<T> Transposition<T>
 where
-    D: HashData + Copy + Clone,
+    T: HashData + Copy + Clone,
 {
     // Create a new TT of the requested size, able to hold the data
     // of type D, where D has to implement HashData, and must be cloneable
@@ -22,7 +22,7 @@ where
         let (total_entries, total_buckets) = Self::init_values(megabytes);
 
         Self {
-            table: vec![Entry::<D>::new(); total_entries],
+            table: vec![Entry::<T>::new(); total_entries],
             megabytes,
             used_buckets: 0,
             total_entries,
@@ -38,9 +38,9 @@ where
     // one; otherwise just clear the TT.
     pub fn resize(&mut self, megabytes: usize) {
         if self.megabytes != megabytes {
-            let (total_entries, total_buckets) = Transposition::<D>::init_values(megabytes);
+            let (total_entries, total_buckets) = Transposition::<T>::init_values(megabytes);
 
-            self.table = vec![Entry::<D>::new(); total_entries];
+            self.table = vec![Entry::<T>::new(); total_entries];
             self.megabytes = megabytes;
             self.used_buckets = 0;
             self.total_entries = total_entries;
@@ -52,7 +52,7 @@ where
 
     // Insert a position at the calculated index, by storing it in the
     // index's bucket.
-    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
+    pub fn insert(&mut self, zobrist_key: ZobristKey, data: T) {
         if self.is_enabled() {
             let index = self.index_from(zobrist_key);
             let verification = self.verification_from(zobrist_key);
@@ -62,12 +62,12 @@ where
 
     // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
-    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
+    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&T> {
         if self.is_enabled() {
             let index = self.index_from(zobrist_key);
             let verification = self.verification_from(zobrist_key);
 
-            self.table[index].find(verification)
+            self.find_entry(index).find_data(verification)
         } else {
             None
         }
@@ -107,10 +107,14 @@ where
 }
 
 // Private functions
-impl<D> Transposition<D>
+impl<T> Transposition<T>
 where
-    D: HashData + Copy + Clone,
+    T: HashData + Copy + Clone,
 {
+    fn find_entry(&self, index: usize) -> &Entry<T> {
+        &self.table[index]
+    }
+
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
@@ -130,7 +134,7 @@ where
     // This function calculates the values for total_entries and
     // total_buckets. These depend on the requested TT size.
     fn init_values(megabytes: usize) -> (usize, usize) {
-        let bucket_size = std::mem::size_of::<Bucket<D>>();
+        let bucket_size = std::mem::size_of::<Bucket<T>>();
         let entry_size = bucket_size * NR_OF_BUCKETS;
         let total_entries = MEGABYTE / entry_size * megabytes;
         let total_buckets = total_entries * NR_OF_BUCKETS;

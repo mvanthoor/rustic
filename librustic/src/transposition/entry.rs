@@ -50,7 +50,7 @@ where
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
-    pub fn find(&self, verification: u32) -> Option<&T> {
+    pub fn find_data(&self, verification: u32) -> Option<&T> {
         for bucket in self.entry.iter() {
             if bucket.verification == verification {
                 return Some(&bucket.data);
