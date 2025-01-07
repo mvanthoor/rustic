@@ -12,7 +12,8 @@ pub trait IHashData {
     fn empty() -> Self;
     fn depth(&self) -> i8;
 }
-#[derive(Copy, Clone)]
+
+#[derive(Copy, Clone, Default)]
 pub struct PerftData {
     depth: i8,
     leaf_nodes: u64,
@@ -20,10 +21,7 @@ pub struct PerftData {
 
 impl IHashData for PerftData {
     fn empty() -> Self {
-        Self {
-            depth: 0,
-            leaf_nodes: 0,
-        }
+        Self::default()
     }
 
     fn depth(&self) -> i8 {
@@ -45,15 +43,16 @@ impl PerftData {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub enum HashFlag {
+    #[default]
     Nothing,
     Exact,
     Alpha,
     Beta,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct SearchData {
     depth: i8,
     flag: HashFlag,
@@ -63,12 +62,7 @@ pub struct SearchData {
 
 impl IHashData for SearchData {
     fn empty() -> Self {
-        Self {
-            depth: 0,
-            flag: HashFlag::Nothing,
-            value: 0,
-            best_move: ShortMove::new(0),
-        }
+        Self::default()
     }
 
     fn depth(&self) -> i8 {
