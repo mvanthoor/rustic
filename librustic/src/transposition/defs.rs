@@ -21,7 +21,10 @@ struct Bucket<D> {
     data: D,
 }
 
-impl<D: HashData> Bucket<D> {
+impl<D> Bucket<D>
+where
+    D: HashData,
+{
     pub fn new() -> Self {
         Self {
             verification: 0,
@@ -37,7 +40,10 @@ struct Entry<D> {
     entry: [Bucket<D>; NR_OF_BUCKETS],
 }
 
-impl<D: HashData + Copy> Entry<D> {
+impl<D> Entry<D>
+where
+    D: HashData + Copy,
+{
     pub fn new() -> Self {
         Self {
             entry: [Bucket::new(); NR_OF_BUCKETS],
@@ -90,7 +96,10 @@ pub struct Transposition<D> {
 }
 
 // Public functions
-impl<D: HashData + Copy + Clone> Transposition<D> {
+impl<D> Transposition<D>
+where
+    D: HashData + Copy + Clone,
+{
     // Create a new TT of the requested size, able to hold the data
     // of type D, where D has to implement HashData, and must be cloneable
     // and copyable.
@@ -184,7 +193,10 @@ impl<D: HashData + Copy + Clone> Transposition<D> {
 }
 
 // Private functions
-impl<D: HashData + Copy + Clone> Transposition<D> {
+impl<D> Transposition<D>
+where
+    D: HashData + Copy + Clone,
+{
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
