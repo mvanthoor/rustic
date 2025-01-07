@@ -3,13 +3,22 @@ use crate::transposition::{bucket::Bucket, defs::HashData};
 pub const NR_OF_BUCKETS: usize = 3;
 
 #[derive(Clone)]
-pub struct Entry<D> {
-    entry: [Bucket<D>; NR_OF_BUCKETS],
+pub struct Entry<T> {
+    entry: [Bucket<T>; NR_OF_BUCKETS],
 }
 
-impl<D> Entry<D>
+impl<T> Default for Entry<T>
 where
-    D: HashData + Copy,
+    T: HashData + Copy,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T> Entry<T>
+where
+    T: HashData + Copy,
 {
     pub fn new() -> Self {
         Self {
@@ -19,7 +28,7 @@ where
 
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u32, data: D, used_buckets: &mut usize) {
+    pub fn store(&mut self, verification: u32, data: T, used_buckets: &mut usize) {
         let mut idx_low = 0;
 
         // Find the index of the entry with the lowest depth.
@@ -41,7 +50,7 @@ where
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
-    pub fn find(&self, verification: u32) -> Option<&D> {
+    pub fn find(&self, verification: u32) -> Option<&T> {
         for bucket in self.entry.iter() {
             if bucket.verification == verification {
                 return Some(&bucket.data);

@@ -6,6 +6,15 @@ pub struct Bucket<T> {
     pub data: T,
 }
 
+impl<T> Default for Bucket<T>
+where
+    T: HashData,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> Bucket<T>
 where
     T: HashData,
