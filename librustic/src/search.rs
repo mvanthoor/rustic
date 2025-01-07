@@ -5,6 +5,7 @@ mod control;
 pub mod defs;
 mod iter_deep;
 mod qsearch;
+mod search_data;
 mod sorting;
 mod time;
 mod transposition;

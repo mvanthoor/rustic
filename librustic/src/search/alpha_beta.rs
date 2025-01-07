@@ -9,7 +9,7 @@ use crate::{
             PrincipalVariation, SearchTerminated, Verbosity, CHECKMATE, CHECK_TERMINATION, DRAW,
             INF, SEND_STATS, STALEMATE,
         },
-        transposition::{HashFlag, SearchData},
+        search_data::{HashFlag, SearchData},
         Search, SearchRefs,
     },
 };
