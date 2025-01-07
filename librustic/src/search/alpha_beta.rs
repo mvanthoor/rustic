@@ -119,7 +119,7 @@ impl Search {
         // Iterate over all pseudo-legal moves, trying to find the best
         // move in the current position..
         for i in 0..move_list.len() {
-            // This function picks the move with the highest likelyhood to
+            // This function picks the move with the highest likelihood to
             // be a good move and it puts it at the current index of the
             // move list, so get_move() will get this. This makes sure that
             // moves who are considered the best candidates for being good
