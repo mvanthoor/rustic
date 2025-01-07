@@ -1,19 +1,19 @@
 use crate::transposition::defs::HashData;
 
 #[derive(Copy, Clone)]
-pub struct Bucket<D> {
+pub struct Bucket<T> {
     pub verification: u32,
-    pub data: D,
+    pub data: T,
 }
 
-impl<D> Bucket<D>
+impl<T> Bucket<T>
 where
-    D: HashData,
+    T: HashData,
 {
     pub fn new() -> Self {
         Self {
             verification: 0,
-            data: D::empty(),
+            data: T::empty(),
         }
     }
 }
