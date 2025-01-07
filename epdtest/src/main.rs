@@ -7,7 +7,7 @@ use librustic::{
     board::Board,
     misc::{perft, perft::PerftData},
     movegen::MoveGenerator,
-    search::defs::TT,
+    search::defs::Transposition,
 };
 use std::time::Instant;
 
@@ -42,7 +42,7 @@ pub fn main() {
     let move_generator = MoveGenerator::new();
     let mut board: Board = Board::new();
     let mut result: usize = TestResult::ERR_NONE;
-    let mut transposition = TT::<PerftData>::new(tt_size);
+    let mut transposition = Transposition::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
 
     // Run all the tests.

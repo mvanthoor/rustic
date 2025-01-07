@@ -15,7 +15,7 @@ use crate::{
     comm::defs::{EngineOptionDefaults, Information},
     search::{
         defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
-        transposition::TT,
+        transposition::Transposition,
     },
 };
 use std::{
@@ -26,7 +26,7 @@ use std::{
 pub struct Search {
     handle: Option<JoinHandle<()>>,
     control_tx: Option<Sender<SearchControl>>,
-    transposition: Arc<Mutex<TT<SearchData>>>,
+    transposition: Arc<Mutex<Transposition<SearchData>>>,
 }
 
 impl Default for Search {
@@ -40,7 +40,7 @@ impl Search {
         Self {
             handle: None,
             control_tx: None,
-            transposition: Arc::new(Mutex::new(TT::<SearchData>::new(tt_size))),
+            transposition: Arc::new(Mutex::new(Transposition::<SearchData>::new(tt_size))),
         }
     }
 }

@@ -5,7 +5,7 @@ use crate::{
         defs::{MoveList, MoveType},
         MoveGenerator,
     },
-    search::defs::{HashData, TT},
+    search::defs::{HashData, Transposition},
 };
 use if_chain::if_chain;
 use std::{sync::Arc, time::Instant};
@@ -50,7 +50,7 @@ pub fn run(fen: &str, depth: i8, mg: Arc<MoveGenerator>, tt_size: usize) -> FenR
     let mut total_nodes: u64 = 0;
     let mut hash_full = String::from("");
     let mut local_board = Board::new();
-    let mut transposition = TT::<PerftData>::new(tt_size);
+    let mut transposition = Transposition::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
     local_board.fen_setup(Some(fen))?;
 
@@ -99,7 +99,7 @@ pub fn perft(
     board: &mut Board,
     depth: i8,
     mg: &MoveGenerator,
-    transposition: &mut TT<PerftData>,
+    transposition: &mut Transposition<PerftData>,
     tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;

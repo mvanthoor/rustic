@@ -81,7 +81,7 @@ impl<D: HashData + Copy> Entry<D> {
 /* ===== TT =================================================== */
 
 // Transposition Table
-pub struct TT<D> {
+pub struct Transposition<D> {
     tt: Vec<Entry<D>>,
     megabytes: usize,
     used_buckets: usize,
@@ -90,7 +90,7 @@ pub struct TT<D> {
 }
 
 // Public functions
-impl<D: HashData + Copy + Clone> TT<D> {
+impl<D: HashData + Copy + Clone> Transposition<D> {
     // Create a new TT of the requested size, able to hold the data
     // of type D, where D has to implement HashData, and must be cloneable
     // and copyable.
@@ -115,7 +115,7 @@ impl<D: HashData + Copy + Clone> TT<D> {
     // one; otherwise just clear the TT.
     pub fn resize(&mut self, megabytes: usize) {
         if self.megabytes != megabytes {
-            let (total_entries, total_buckets) = TT::<D>::init_values(megabytes);
+            let (total_entries, total_buckets) = Transposition::<D>::init_values(megabytes);
 
             self.tt = vec![Entry::<D>::new(); total_entries];
             self.megabytes = megabytes;
@@ -184,7 +184,7 @@ impl<D: HashData + Copy + Clone> TT<D> {
 }
 
 // Private functions
-impl<D: HashData + Copy + Clone> TT<D> {
+impl<D: HashData + Copy + Clone> Transposition<D> {
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.

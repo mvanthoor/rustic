@@ -1,7 +1,7 @@
 pub use crate::search::{
     search_data::SearchData,
     time::SAFEGUARD,
-    transposition::{HashData, TT},
+    transposition::{HashData, Transposition},
 };
 
 use crate::{
@@ -267,7 +267,7 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub transposition: &'a Arc<Mutex<TT<SearchData>>>,
+    pub transposition: &'a Arc<Mutex<Transposition<SearchData>>>,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
