@@ -5,17 +5,15 @@ mod control;
 pub mod defs;
 mod iter_deep;
 mod qsearch;
+mod search_data;
 mod sorting;
 mod time;
-mod transposition;
 mod utils;
 
 use crate::{
     comm::defs::{EngineOptionDefaults, Information},
-    search::{
-        defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
-        transposition::TT,
-    },
+    search::defs::{SearchControl, SearchData, SearchRefs, SearchReport, SearchSummary},
+    transposition::defs::Transposition,
 };
 use std::{
     sync::{mpsc::Sender, Arc, Mutex},
@@ -25,7 +23,7 @@ use std::{
 pub struct Search {
     handle: Option<JoinHandle<()>>,
     control_tx: Option<Sender<SearchControl>>,
-    transposition: Arc<Mutex<TT<SearchData>>>,
+    transposition: Arc<Mutex<Transposition<SearchData>>>,
 }
 
 impl Default for Search {
@@ -39,7 +37,7 @@ impl Search {
         Self {
             handle: None,
             control_tx: None,
-            transposition: Arc::new(Mutex::new(TT::<SearchData>::new(tt_size))),
+            transposition: Arc::new(Mutex::new(Transposition::<SearchData>::new(tt_size))),
         }
     }
 }

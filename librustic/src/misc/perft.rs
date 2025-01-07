@@ -5,10 +5,41 @@ use crate::{
         defs::{MoveList, MoveType},
         MoveGenerator,
     },
-    search::defs::{PerftData, TT},
+    search::defs::{HashData, Transposition},
 };
 use if_chain::if_chain;
 use std::{sync::Arc, time::Instant};
+
+// Implement required data for Perft
+#[derive(Copy, Clone, Default)]
+pub struct PerftData {
+    depth: i8,
+    leaf_nodes: u64,
+}
+
+impl HashData for PerftData {
+    fn empty() -> Self {
+        Self::default()
+    }
+
+    fn depth(&self) -> i8 {
+        self.depth
+    }
+}
+
+impl PerftData {
+    pub fn new(depth: i8, leaf_nodes: u64) -> Self {
+        Self { depth, leaf_nodes }
+    }
+
+    pub fn get_leaf_nodes(&self, depth: i8) -> Option<u64> {
+        if self.depth == depth {
+            Some(self.leaf_nodes)
+        } else {
+            None
+        }
+    }
+}
 
 // This function runs perft(), while collecting speed information.
 // It uses iterative deepening, so when running perft(7), it will output
@@ -19,7 +50,7 @@ pub fn run(fen: &str, depth: i8, mg: Arc<MoveGenerator>, tt_size: usize) -> FenR
     let mut total_nodes: u64 = 0;
     let mut hash_full = String::from("");
     let mut local_board = Board::new();
-    let mut transposition = TT::<PerftData>::new(tt_size);
+    let mut transposition = Transposition::<PerftData>::new(tt_size);
     let tt_enabled = tt_size > 0;
     local_board.fen_setup(Some(fen))?;
 
@@ -68,7 +99,7 @@ pub fn perft(
     board: &mut Board,
     depth: i8,
     mg: &MoveGenerator,
-    transposition: &mut TT<PerftData>,
+    transposition: &mut Transposition<PerftData>,
     tt_enabled: bool,
 ) -> u64 {
     let mut leaf_nodes: u64 = 0;
@@ -83,7 +114,7 @@ pub fn perft(
     if_chain! {
         if tt_enabled;
         if let Some(data) = transposition.probe(board.game_state.zobrist_key);
-        if let Some(leaf_nodes) = data.get(depth);
+        if let Some(leaf_nodes) = data.get_leaf_nodes(depth);
         then {
             return leaf_nodes;
         }
@@ -112,7 +143,7 @@ pub fn perft(
     if tt_enabled {
         transposition.insert(
             board.game_state.zobrist_key,
-            PerftData::create(depth, leaf_nodes),
+            PerftData::new(depth, leaf_nodes),
         )
     }
 

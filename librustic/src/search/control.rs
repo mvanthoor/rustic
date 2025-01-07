@@ -70,7 +70,7 @@ impl Search {
                     let mut search_refs = SearchRefs {
                         board: &mut board,
                         mg: &arc_mg,
-                        tt: &arc_tt,
+                        transposition: &arc_tt,
                         search_params: &mut search_params,
                         search_info: &mut search_info,
                         control_rx: &control_rx,

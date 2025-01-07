@@ -9,7 +9,7 @@ use crate::{
             PrincipalVariation, SearchTerminated, Verbosity, CHECKMATE, CHECK_TERMINATION, DRAW,
             INF, SEND_STATS, STALEMATE,
         },
-        transposition::{HashFlag, SearchData},
+        search_data::{HashFlag, SearchData},
         Search, SearchRefs,
     },
 };
@@ -70,7 +70,7 @@ impl Search {
 
         // Probe the TT for information.
         if let Some(data) = refs
-            .tt
+            .transposition
             .lock()
             .expect(ErrFatal::LOCK)
             .probe(refs.board.game_state.zobrist_key)
@@ -119,7 +119,7 @@ impl Search {
         // Iterate over all pseudo-legal moves, trying to find the best
         // move in the current position..
         for i in 0..move_list.len() {
-            // This function picks the move with the highest likelyhood to
+            // This function picks the move with the highest likelihood to
             // be a good move and it puts it at the current index of the
             // move list, so get_move() will get this. This makes sure that
             // moves who are considered the best candidates for being good
@@ -263,9 +263,9 @@ impl Search {
         }
 
         // We save the best score and move (if any) in the TT.
-        refs.tt.lock().expect(ErrFatal::LOCK).insert(
+        refs.transposition.lock().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
-            SearchData::create(
+            SearchData::new(
                 depth,
                 refs.search_info.ply,
                 hash_flag,

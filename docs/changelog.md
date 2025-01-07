@@ -33,15 +33,17 @@
 
 ### Rustic 4.0.0 (TBA)
 
-This version has two main new features: Tapered and tuned evaluation, and
-support for the XBoard-protocol. The engine dropped the "Alpha" part from
-its name because now everything I consider to be the basics have been
-implemented.
+This version has several new features:
 
-- New features:
-  - Tapered and tuned evaluation.
-  - Texel Tuner in the "extra" module.
-  - Support for XBoard-protocol version 2 <sup>(1)</sup>.
+- Tapered and tuned evaluation
+- Refactored and cleaned-up code (+75 Elo!)
+- Support for the XBoard protocol <sup>(1)</sup>
+- Separate Texel tuner
+- Split off into executable(s) and library
+
+The engine dropped the "Alpha" part from its name because now everything I
+consider to be the basics have been implemented.
+
 - Improvements:
   - TT Clear function: properly clear TT, instead of recreating it.
   - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
@@ -51,7 +53,7 @@ implemented.
   - pick_move() speed improvement (+3 Elo).
   - Remove unsafe code in move list swap function (0 Elo, +/- 3).
 - Refactor:
-  - _FINALLY_ fixed the (potential) undefined behaviour in MoveList.
+  - _FINALLY_ fixed the (potential) undefined behavior in MoveList.
   - Restructured Comm to be in line with the rest of the modules.
   - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
     fully fail-soft. No Elo improvement, but the code is cleaner and more
@@ -67,9 +69,8 @@ implemented.
   - Huge cleanup of FEN-reader error handling code.
 - Updated all the libraries
 - Dropped crossbeam_channel and crossbeam_utils
-- Rustic has been converted into a library itself. In the future the Engine
-  part will be split out of it, so the library will contain only chess
-  functionality.
+- Dropped the extra module: those functions are now separate executables.
+- Rustic has been converted into an engine executable + librustic library.
 - Fixes
   - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
     avoid conflicts with CLAP's automatic "-h" / "--help" option
@@ -86,7 +87,7 @@ implemented.
 > you are using.) For example:
 > 
 > ```
-> ./rustic-4.0.0-bmi2 -c xboard
+> ./rustic -c xboard
 > ```
 
 <hr />

@@ -6,3 +6,4 @@ pub mod evaluation;
 pub mod misc;
 pub mod movegen;
 pub mod search;
+pub mod transposition;

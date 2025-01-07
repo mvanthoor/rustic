@@ -148,7 +148,7 @@ impl Display for Move {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub struct ShortMove {
     data: u32,
 }
