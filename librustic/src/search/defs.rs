@@ -1,6 +1,6 @@
 pub use crate::search::{
     time::SAFEGUARD,
-    transposition::{PerftData, SearchData, TT},
+    transposition::{IHashData, SearchData, TT},
 };
 
 use crate::{

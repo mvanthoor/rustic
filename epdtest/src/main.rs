@@ -5,9 +5,9 @@ use cmdline::CmdLine;
 use epds::LARGE_TEST_EPDS;
 use librustic::{
     board::Board,
-    misc::perft,
+    misc::{perft, perft::PerftData},
     movegen::MoveGenerator,
-    search::defs::{PerftData, TT},
+    search::defs::TT,
 };
 use std::time::Instant;
 
