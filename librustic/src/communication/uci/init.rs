@@ -14,12 +14,12 @@ use super::{cmd_in::UciIn, cmd_out::UciOut};
 impl IComm for Uci {
     fn init(
         &mut self,
-        cmd_in_tx: Sender<UciIn>,
-        search_tx: Sender<SearchReport>,
+        cmd_incoming_transmitter: Sender<UciIn>,
+        search_report_transmitter: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<Features>>,
     ) {
-        self.input_thread(cmd_in_tx);
+        self.input_thread(cmd_incoming_transmitter);
         self.output_thread(board, options);
     }
 

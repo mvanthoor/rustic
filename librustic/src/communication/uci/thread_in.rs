@@ -4,7 +4,7 @@ use crate::{
 use std::{io, sync::mpsc::Sender, thread};
 
 impl Uci {
-    pub fn input_thread(&mut self, to_engine_thread: Sender<UciIn>) {
+    pub fn input_thread(&mut self, transmit_to_engine: Sender<UciIn>) {
         let mut buffer_incoming_cmd = String::from("");
 
         let thread = thread::spawn(move || loop {
@@ -12,7 +12,7 @@ impl Uci {
                 .read_line(&mut buffer_incoming_cmd)
                 .expect(ErrFatal::READ_IO);
             let cmd = Uci::get_input(&buffer_incoming_cmd);
-            to_engine_thread.send(cmd).expect(ErrFatal::HANDLE);
+            transmit_to_engine.send(cmd).expect(ErrFatal::HANDLE);
             buffer_incoming_cmd = String::from("");
 
             if cmd == UciIn::Quit {
