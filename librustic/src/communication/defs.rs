@@ -1,6 +1,7 @@
-use super::uci::cmd_in::UciIn;
-use crate::communication::uci::cmd_out::UciOut;
-use crate::{board::Board, search::defs::SearchReport};
+use crate::{
+    communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    {board::Board, search::defs::SearchReport},
+};
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 pub trait IComm {
@@ -9,13 +10,13 @@ pub trait IComm {
         cmd_in_tx: Sender<UciIn>,
         search_tx: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<CommOption>>,
+        options: Arc<Vec<Features>>,
     );
     fn send(&self, msg: UciOut);
     fn shutdown(&mut self);
 }
 
-pub struct CommOption {
+pub struct Features {
     pub name: &'static str,
     pub ui_element: UiElement,
     pub default: Option<String>,
@@ -23,7 +24,7 @@ pub struct CommOption {
     pub max: Option<String>,
 }
 
-impl CommOption {
+impl Features {
     pub fn new(
         name: &'static str,
         ui_element: UiElement,

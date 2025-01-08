@@ -2,7 +2,7 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::uci::cmd_out::UciOut,
-    communication::{defs::CommOption, uci::defs::Uci},
+    communication::{defs::Features, uci::defs::Uci},
 };
 use std::{
     sync::{mpsc::channel, Arc, Mutex},
@@ -11,7 +11,7 @@ use std::{
 
 impl Uci {
     // The control thread receives commands from the engine thread.
-    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, _options: Arc<Vec<CommOption>>) {
+    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, _options: Arc<Vec<Features>>) {
         // Create an incoming channel for the output thread.
         let (output_tx, output_rx) = channel();
 

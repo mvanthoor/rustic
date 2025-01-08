@@ -1,11 +1,15 @@
-use crate::basetypes::error::ErrFatal;
-use crate::board::Board;
-use crate::communication::defs::CommOption;
-use crate::communication::uci::{cmd_in::UciIn, cmd_out::UciOut};
-use crate::search::defs::SearchReport;
-use crate::{communication::defs::IComm, defs::About};
-use std::sync::{Arc, Mutex};
-use std::{sync::mpsc::Sender, thread::JoinHandle};
+use crate::{
+    basetypes::error::ErrFatal,
+    board::Board,
+    communication::defs::Features,
+    communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    search::defs::SearchReport,
+    {communication::defs::IComm, defs::About},
+};
+use std::{
+    sync::{mpsc::Sender, Arc, Mutex},
+    thread::JoinHandle,
+};
 
 pub struct Uci {
     pub about: About,
@@ -39,7 +43,7 @@ impl IComm for Uci {
         cmd_in_tx: Sender<UciIn>,
         search_tx: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<CommOption>>,
+        options: Arc<Vec<Features>>,
     ) {
         self.input_thread(cmd_in_tx);
         self.output_thread(board, options);
