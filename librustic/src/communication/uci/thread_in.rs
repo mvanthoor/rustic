@@ -5,19 +5,15 @@ use std::{io, sync::mpsc::Sender, thread};
 
 impl Uci {
     pub fn input_thread(&mut self, transmit_to_engine: Sender<UciIn>) {
-        let mut buffer_incoming_cmd = String::from("");
-
         let thread = thread::spawn(move || loop {
-            io::stdin()
-                .read_line(&mut buffer_incoming_cmd)
-                .expect(ErrFatal::READ_IO);
-            let cmd = Uci::get_incoming_cmd(&buffer_incoming_cmd);
+            let mut buffer = String::from("");
+            io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
+            let cmd = Uci::get_incoming_cmd(&buffer);
             transmit_to_engine.send(cmd).expect(ErrFatal::HANDLE);
-            buffer_incoming_cmd = String::from("");
 
-            // To prevent having to set up a send/receive channel from the
-            // engine to this thread for only this single command, we will
-            // have the input thread quit itself.
+            // To prevent having to set up another channel (sending from
+            // the engine to this thread) we'll have the input thread
+            // terminate itself.
             if cmd == UciIn::Quit {
                 break;
             }
