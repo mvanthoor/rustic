@@ -1,10 +1,10 @@
 pub mod basetypes;
 pub mod board;
 pub mod comm;
+pub mod communication;
 pub mod defs;
 pub mod evaluation;
 pub mod misc;
 pub mod movegen;
-pub mod new_comm;
 pub mod search;
 pub mod transposition;
