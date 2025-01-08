@@ -5,5 +5,6 @@ pub mod defs;
 pub mod evaluation;
 pub mod misc;
 pub mod movegen;
+pub mod new_comm;
 pub mod search;
 pub mod transposition;
