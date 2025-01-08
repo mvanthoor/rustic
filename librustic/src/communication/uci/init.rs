@@ -1,41 +1,15 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    communication::defs::Features,
-    communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    communication::{
+        defs::{Features, IComm},
+        uci::Uci,
+    },
     search::defs::SearchReport,
-    {communication::defs::IComm, defs::About},
 };
-use std::{
-    sync::{mpsc::Sender, Arc, Mutex},
-    thread::JoinHandle,
-};
+use std::sync::{mpsc::Sender, Arc, Mutex};
 
-pub struct Uci {
-    pub about: About,
-    pub input_thread: Option<JoinHandle<()>>,
-    pub output_thread: Option<JoinHandle<()>>,
-    pub uci_output: Option<Sender<UciOut>>,
-}
-
-impl Default for Uci {
-    fn default() -> Self {
-        Self::new(About::default())
-    }
-}
-
-// Public functions
-impl Uci {
-    // Create a new console.
-    pub fn new(about: About) -> Self {
-        Self {
-            about,
-            input_thread: None,
-            output_thread: None,
-            uci_output: None,
-        }
-    }
-}
+use super::{cmd_in::UciIn, cmd_out::UciOut};
 
 impl IComm for Uci {
     fn init(

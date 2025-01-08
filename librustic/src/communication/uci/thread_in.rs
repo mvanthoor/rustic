@@ -1,5 +1,5 @@
 use crate::{
-    basetypes::error::ErrFatal, communication::uci::cmd_in::UciIn, communication::uci::defs::Uci,
+    basetypes::error::ErrFatal, communication::uci::cmd_in::UciIn, communication::uci::Uci,
 };
 use std::{io, sync::mpsc::Sender, thread};
 
