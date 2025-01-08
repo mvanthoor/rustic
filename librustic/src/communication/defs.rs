@@ -8,7 +8,6 @@ pub trait IComm {
     fn init(
         &mut self,
         cmd_in_tx: Sender<UciIn>,
-        search_tx: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<Features>>,
     );

@@ -15,7 +15,6 @@ impl IComm for Uci {
     fn init(
         &mut self,
         cmd_incoming_transmitter: Sender<UciIn>,
-        search_report_transmitter: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<Features>>,
     ) {

@@ -13,7 +13,7 @@ impl Uci {
     // The control thread receives commands from the engine thread.
     pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, _options: Arc<Vec<Features>>) {
         // Create an incoming channel for the output thread.
-        let (output_tx, output_rx) = channel();
+        let (transmitter_for_engine, received_from_engine) = channel();
 
         // Create thread-local variables to be captured by the closure
         // let about = self.about.clone();
@@ -23,10 +23,10 @@ impl Uci {
         // Create the output thread.
         let thread = thread::spawn(move || {
             loop {
-                let output = output_rx.recv().expect(ErrFatal::CHANNEL);
+                let print_to_stdio = received_from_engine.recv().expect(ErrFatal::CHANNEL);
 
                 // Perform command as sent by the engine thread.
-                match output {
+                match print_to_stdio {
                     UciOut::Id => {
                         // Uci::id(about.get_engine(), about.get_version(), about.get_author());
                         // Uci::options(&t_options);
@@ -57,6 +57,6 @@ impl Uci {
 
         // Store handle and control sender.
         self.output_thread = Some(thread);
-        self.uci_output = Some(output_tx);
+        self.uci_output = Some(transmitter_for_engine);
     }
 }
