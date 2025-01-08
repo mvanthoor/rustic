@@ -1,13 +1,12 @@
+use super::uci::cmd_in::UciIn;
 use crate::communication::uci::cmd_out::UciOut;
 use crate::{board::Board, search::defs::SearchReport};
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
-use super::uci::cmd_in::UciIn;
-
 pub trait IComm {
     fn init(
         &mut self,
-        cmd_tx: Sender<UciIn>,
+        cmd_in_tx: Sender<UciIn>,
         search_tx: Sender<SearchReport>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<CommOption>>,
