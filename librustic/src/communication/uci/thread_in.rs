@@ -12,7 +12,7 @@ impl Uci {
                 .read_line(&mut buffer_incoming_cmd)
                 .expect(ErrFatal::READ_IO);
             let cmd = Uci::get_input(&buffer_incoming_cmd);
-            to_engine_thread.send(cmd.clone()).expect(ErrFatal::HANDLE);
+            to_engine_thread.send(cmd).expect(ErrFatal::HANDLE);
             buffer_incoming_cmd = String::from("");
 
             if cmd == UciIn::Quit {
