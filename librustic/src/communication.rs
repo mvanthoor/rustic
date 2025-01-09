@@ -1,4 +1,4 @@
 pub mod defs;
-pub mod features;
+pub mod feature;
 pub mod protocol;
 pub mod uci;

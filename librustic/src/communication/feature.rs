@@ -1,4 +1,4 @@
-pub struct Features {
+pub struct Feature {
     pub name: &'static str,
     pub ui_element: UiElement,
     pub default: Option<String>,
@@ -6,7 +6,7 @@ pub struct Features {
     pub max: Option<String>,
 }
 
-impl Features {
+impl Feature {
     pub fn new(
         name: &'static str,
         ui_element: UiElement,

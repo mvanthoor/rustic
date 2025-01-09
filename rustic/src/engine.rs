@@ -1,6 +1,7 @@
 mod about;
 mod cmdline;
 pub mod defs;
+mod features;
 mod game_result;
 mod handlers;
 mod main_loop;
@@ -15,10 +16,9 @@ use crate::engine::{
 use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{EngineOptionDefaults, EngineSetOption},
     communication::{
         defs::{EngineState, IComm, Information},
-        features::{Features, UiElement},
+        feature::Feature,
         uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
@@ -37,7 +37,7 @@ pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    options: Arc<Vec<Features>>,            // Engine options exported to the GUI.
+    features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
@@ -75,23 +75,9 @@ impl Engine {
         };
         let tt_size = cmdline.hash();
 
-        // List of options that should be announced to the GUI.
-        let options = vec![
-            Features::new(
-                EngineSetOption::HASH,
-                UiElement::Spin,
-                Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
-                Some(EngineOptionDefaults::HASH_MIN.to_string()),
-                Some(EngineOptionDefaults::max_hash().to_string()),
-            ),
-            Features::new(
-                EngineSetOption::CLEAR_HASH,
-                UiElement::Button,
-                None,
-                None,
-                None,
-            ),
-        ];
+        // These are features the engine supports. It sends them to the
+        // communication module so they will be announced to the GUI.
+        let features = vec![features::hash::new(), features::clear_hash::new()];
 
         // Create the engine itself.
         Self {
@@ -102,7 +88,7 @@ impl Engine {
                 verbosity,
                 tt_size,
             },
-            options: Arc::new(options),
+            features: Arc::new(features),
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),

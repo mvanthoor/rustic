@@ -2,7 +2,7 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        features::{Features, UiElement},
+        feature::{Feature, UiElement},
         uci::{cmd_out::UciOut, Uci},
     },
 };
@@ -13,7 +13,7 @@ use std::{
 
 impl Uci {
     // The control thread receives commands from the engine thread.
-    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, features: Arc<Vec<Features>>) {
+    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, features: Arc<Vec<Feature>>) {
         // Create an incoming channel for the output thread.
         let (transmitter_for_engine, received_from_engine) = channel();
         let about = self.about.clone();
@@ -66,7 +66,7 @@ impl Uci {
         println!("id author {}", author);
     }
 
-    fn features(features: &Arc<Vec<Features>>) {
+    fn features(features: &Arc<Vec<Feature>>) {
         for feature in features.iter() {
             let name = format!("option name {}", feature.name);
 

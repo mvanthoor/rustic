@@ -3,7 +3,7 @@ use crate::{
     board::Board,
     communication::{
         defs::{IComm, Information},
-        features::Features,
+        feature::Feature,
         protocol::Properties,
         uci::Uci,
     },
@@ -17,7 +17,7 @@ impl IComm for Uci {
         &mut self,
         cmd_incoming_transmitter: Sender<Information>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<Features>>,
+        options: Arc<Vec<Feature>>,
     ) {
         self.input_thread(cmd_incoming_transmitter);
         self.output_thread(board, options);

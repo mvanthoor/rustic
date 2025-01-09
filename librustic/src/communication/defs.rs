@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    communication::features::Features,
+    communication::feature::Feature,
     communication::protocol::Properties,
     communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
     search::defs::SearchReport,
@@ -12,7 +12,7 @@ pub trait IComm {
         &mut self,
         cmd_in_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
-        options: Arc<Vec<Features>>,
+        options: Arc<Vec<Feature>>,
     );
     fn properties(&self) -> &Properties;
     fn send(&self, msg: UciOut);
