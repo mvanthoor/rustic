@@ -4,6 +4,7 @@ pub mod defs;
 mod game_result;
 mod handlers;
 mod main_loop;
+mod states;
 mod utils;
 
 use crate::engine::{
@@ -14,9 +15,10 @@ use crate::engine::{
 use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{EngineOptionDefaults, EngineSetOption, EngineState},
+    comm::defs::{EngineOptionDefaults, EngineSetOption},
     communication::{
-        defs::{Features, IComm, Information, UiElement},
+        defs::{EngineState, IComm, Information},
+        features::{Features, UiElement},
         uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
@@ -61,13 +63,6 @@ impl Engine {
             String::from(VERSION),
             String::from(AUTHOR),
         );
-
-        // Create the communication interface
-        // let comm: Box<dyn IComm> = match cmdline.comm().as_str() {
-        //     CommType::XBOARD => Box::new(XBoard::new(about)),
-        //     CommType::UCI => Box::new(Uci::new(about)),
-        //     _ => panic!("{}", ErrFatal::CREATE_COMM),
-        // };
 
         let comm: Box<dyn IComm> = Box::new(Uci::new(about));
 
@@ -119,11 +114,17 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // if self.comm.info().supports_fancy_about() {
-        //     self.print_fancy_about(&self.settings, self.comm.info().protocol_name());
-        // } else {
-        //     self.print_simple_about(&self.settings, self.comm.info().protocol_name());
-        // }
+        // Required for Stateful protocols such as XBoard.
+        self.state = self.comm.properties().startup_state();
+
+        // The UCI GUI's I tested don't seem to care about non-uci input
+        // over multiple lines. Some XBoard user interfaces do choke on
+        // this. Use a simpler, online-about instead.
+        if self.comm.properties().support_fancy_about() {
+            self.print_fancy_about(&self.settings, self.comm.properties().protocol_name());
+        } else {
+            self.print_simple_about(&self.settings, self.comm.properties().protocol_name());
+        }
 
         // Setup position and abort if this fails.
         let position = self.determine_startup_position();
@@ -132,7 +133,7 @@ impl Engine {
             .expect(ErrFatal::LOCK)
             .fen_setup(Some(&position))?;
 
-        // Run perft if requested.
+        // Run perft if requested, then quit.
         if self.cmdline.perft() > 0 {
             perft::run(
                 &position,
@@ -143,9 +144,7 @@ impl Engine {
             return Ok(());
         }
 
-        // In the main loop, the engine manages its resources so it will be
-        // able to play legal chess and communicate with different user
-        // interfaces.
+        // Finally start the actual engine.
         self.main_loop();
 
         // We're done and the engine exited without issues.
@@ -157,37 +156,5 @@ impl Engine {
         self.search.send(SearchControl::Quit);
         self.comm.send(UciOut::Quit);
         self.quit = true;
-    }
-
-    fn is_observing(&self) -> bool {
-        self.state == EngineState::Observing
-    }
-
-    fn is_waiting(&self) -> bool {
-        self.state == EngineState::Waiting
-    }
-
-    fn is_thinking(&self) -> bool {
-        self.state == EngineState::Thinking
-    }
-
-    fn is_analyzing(&self) -> bool {
-        self.state == EngineState::Analyzing
-    }
-
-    fn set_observing(&mut self) {
-        self.state = EngineState::Observing;
-    }
-
-    fn set_waiting(&mut self) {
-        self.state = EngineState::Waiting;
-    }
-
-    fn set_thinking(&mut self) {
-        self.state = EngineState::Thinking;
-    }
-
-    fn set_analyzing(&mut self) {
-        self.state = EngineState::Analyzing;
     }
 }

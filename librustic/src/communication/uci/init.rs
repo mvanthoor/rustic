@@ -2,7 +2,9 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{Features, IComm, Information},
+        defs::{IComm, Information},
+        features::Features,
+        protocol::Properties,
         uci::Uci,
     },
 };
@@ -19,6 +21,10 @@ impl IComm for Uci {
     ) {
         self.input_thread(cmd_incoming_transmitter);
         self.output_thread(board, options);
+    }
+
+    fn properties(&self) -> &Properties {
+        &self.properties
     }
 
     // The engine thread can use this function to send information out of

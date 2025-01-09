@@ -2,7 +2,7 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::uci::cmd_out::UciOut,
-    communication::{defs::Features, uci::Uci},
+    communication::{features::Features, uci::Uci},
 };
 use std::{
     sync::{mpsc::channel, Arc, Mutex},
