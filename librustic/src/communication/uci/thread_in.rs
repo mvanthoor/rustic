@@ -35,6 +35,7 @@ impl Uci {
 
         match input {
             cmd if cmd == "uci" => UciIn::Uci,
+            cmd if cmd == "quit" => UciIn::Quit,
             _ => UciIn::Unknown,
         }
     }

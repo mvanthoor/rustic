@@ -1,10 +1,9 @@
 mod about;
 mod cmdline;
-mod comm_handler;
 pub mod defs;
 mod game_result;
+mod handlers;
 mod main_loop;
-mod search_handler;
 mod utils;
 
 use crate::engine::{

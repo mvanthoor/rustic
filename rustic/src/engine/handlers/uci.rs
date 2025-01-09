@@ -6,7 +6,10 @@ use librustic::communication::uci::cmd_in::UciIn;
 impl Engine {
     pub fn comm_handler(&mut self, input: UciIn) {
         match input {
-            UciIn::Quit => self.quit(),
+            UciIn::Quit => {
+                println!("Received Quit");
+                self.quit();
+            }
             UciIn::Uci => {
                 println!("Wtf, received UCI!");
             }
