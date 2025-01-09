@@ -1,6 +1,6 @@
 mod about;
 mod cmdline;
-pub mod defs;
+mod defs;
 mod features;
 mod game_result;
 mod handlers;
