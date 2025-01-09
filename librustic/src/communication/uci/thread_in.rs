@@ -1,15 +1,20 @@
 use crate::{
-    basetypes::error::ErrFatal, communication::uci::cmd_in::UciIn, communication::uci::Uci,
+    basetypes::error::ErrFatal,
+    communication::{
+        defs::Information,
+        uci::{cmd_in::UciIn, Uci},
+    },
 };
 use std::{io, sync::mpsc::Sender, thread};
 
 impl Uci {
-    pub fn input_thread(&mut self, transmit_to_engine: Sender<UciIn>) {
+    pub fn input_thread(&mut self, transmit_to_engine: Sender<Information>) {
         let thread = thread::spawn(move || loop {
             let mut buffer = String::from("");
             io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
             let cmd = Uci::get_incoming_cmd(&buffer);
-            transmit_to_engine.send(cmd).expect(ErrFatal::HANDLE);
+            let info = Information::Command(cmd);
+            transmit_to_engine.send(info).expect(ErrFatal::HANDLE);
 
             // To prevent having to set up another channel (sending from
             // the engine to this thread) we'll have the input thread

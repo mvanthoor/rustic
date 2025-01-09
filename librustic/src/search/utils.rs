@@ -1,6 +1,6 @@
 use crate::{
     basetypes::error::ErrFatal,
-    comm::defs::Information,
+    communication::defs::Information,
     movegen::defs::Move,
     search::defs::{
         SearchControl, SearchCurrentMove, SearchMode, SearchRefs, SearchReport, SearchStats,
@@ -32,8 +32,9 @@ impl Search {
             let nps = Search::nodes_per_second(refs.search_info.nodes, msecs);
             let stats = SearchStats::new(msecs, refs.search_info.nodes, nps, hash_full);
             let stats_report = SearchReport::SearchStats(stats);
+            let info = Information::Search(stats_report);
 
-            refs.report_tx.send(stats_report).expect(ErrFatal::CHANNEL);
+            refs.report_tx.send(info).expect(ErrFatal::CHANNEL);
             refs.search_info.last_stats_sent = elapsed;
         }
     }
@@ -46,8 +47,9 @@ impl Search {
         if elapsed >= lcm + MIN_TIME_CURR_MOVE {
             let scm = SearchCurrentMove::new(current_move, nr, total);
             let scm_report = SearchReport::SearchCurrentMove(scm);
+            let info = Information::Search(scm_report);
 
-            refs.report_tx.send(scm_report).expect(ErrFatal::CHANNEL);
+            refs.report_tx.send(info).expect(ErrFatal::CHANNEL);
             refs.search_info.last_curr_move_sent = elapsed;
         }
     }

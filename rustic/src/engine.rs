@@ -15,16 +15,16 @@ use crate::engine::{
 use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{EngineOptionDefaults, EngineSetOption, EngineState, Information},
+    comm::defs::{EngineOptionDefaults, EngineSetOption, EngineState},
     communication::{
-        defs::{Features, IComm, UiElement},
-        uci::{cmd_in::UciIn, cmd_out::UciOut, Uci},
+        defs::{Features, IComm, Information, UiElement},
+        uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
     misc::perft,
     movegen::MoveGenerator,
     search::{
-        defs::{SearchControl, SearchReport, Verbosity},
+        defs::{SearchControl, Verbosity},
         Search,
     },
 };
@@ -33,17 +33,17 @@ use std::sync::{mpsc::Receiver, Arc, Mutex};
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
 pub struct Engine {
-    quit: bool,                                // Flag that will quit the main thread.
-    state: EngineState,                        // Keeps the current engine activity.
-    settings: Settings,                        // Struct holding all the settings.
-    options: Arc<Vec<Features>>,               // Engine options exported to the GUI.
-    cmdline: CmdLine,                          // Command line interpreter.
-    comm: Box<dyn IComm>,                      // UCI/XBoard communication (active).
-    board: Arc<Mutex<Board>>,                  // This is the main engine board.
-    mg: Arc<MoveGenerator>,                    // Move Generator.
-    info_rx: Option<Receiver<UciIn>>,          // Receiver for incoming information.
-    search_rx: Option<Receiver<SearchReport>>, // Search report receiver
-    search: Search,                            // Search object (active).
+    quit: bool,                             // Flag that will quit the main thread.
+    state: EngineState,                     // Keeps the current engine activity.
+    settings: Settings,                     // Struct holding all the settings.
+    options: Arc<Vec<Features>>,            // Engine options exported to the GUI.
+    cmdline: CmdLine,                       // Command line interpreter.
+    comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
+    board: Arc<Mutex<Board>>,               // This is the main engine board.
+    mg: Arc<MoveGenerator>,                 // Move Generator.
+    info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
+
+    search: Search, // Search object (active).
 }
 
 impl Default for Engine {
@@ -114,7 +114,6 @@ impl Engine {
             board: Arc::new(Mutex::new(Board::new())),
             mg: Arc::new(MoveGenerator::new()),
             info_rx: None,
-            search_rx: None,
             search: Search::new(tt_size),
         }
     }

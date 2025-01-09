@@ -1,13 +1,14 @@
 use crate::{
+    board::Board,
     communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
-    {board::Board, search::defs::SearchReport},
+    search::defs::SearchReport,
 };
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 pub trait IComm {
     fn init(
         &mut self,
-        cmd_in_tx: Sender<UciIn>,
+        cmd_in_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<Features>>,
     );
@@ -44,4 +45,9 @@ impl Features {
 pub enum UiElement {
     Spin,
     Button,
+}
+
+pub enum Information {
+    Command(UciIn),
+    Search(SearchReport),
 }

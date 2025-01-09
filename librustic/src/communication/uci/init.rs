@@ -2,19 +2,18 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{Features, IComm},
+        defs::{Features, IComm, Information},
         uci::Uci,
     },
-    search::defs::SearchReport,
 };
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
-use super::{cmd_in::UciIn, cmd_out::UciOut};
+use super::cmd_out::UciOut;
 
 impl IComm for Uci {
     fn init(
         &mut self,
-        cmd_incoming_transmitter: Sender<UciIn>,
+        cmd_incoming_transmitter: Sender<Information>,
         board: Arc<Mutex<Board>>,
         options: Arc<Vec<Features>>,
     ) {

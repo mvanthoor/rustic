@@ -2,7 +2,7 @@ use crate::search::Search;
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::Information,
+    communication::defs::Information,
     movegen::MoveGenerator,
     search::defs::{
         SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminated,
@@ -16,9 +16,9 @@ use std::{
 impl Search {
     pub fn init(
         &mut self,
-        report_tx: Sender<SearchReport>, // Used to send information to engine.
-        board: Arc<Mutex<Board>>,        // Arc pointer to engine's board.
-        mg: Arc<MoveGenerator>,          // Arc pointer to engine's move generator.
+        report_tx: Sender<Information>, // Used to send information to engine.
+        board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
+        mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = channel();
@@ -39,7 +39,7 @@ impl Search {
             while !quit {
                 // Inform the engine that we are now ready to search.
                 t_report_tx
-                    .send(SearchReport::Ready)
+                    .send(Information::Search(SearchReport::Ready))
                     .expect(ErrFatal::CHANNEL);
 
                 // Wait for the next incoming command from the engine.
@@ -82,8 +82,8 @@ impl Search {
 
                     // if we didn't abandon the search, return a best move.
                     if termination != SearchTerminated::Abandoned {
-                        let information = SearchReport::Finished(best_move);
-                        t_report_tx.send(information).expect(ErrFatal::CHANNEL);
+                        let info = Information::Search(SearchReport::Finished(best_move));
+                        t_report_tx.send(info).expect(ErrFatal::CHANNEL);
                     }
 
                     // We halt (stop) or quit the search according to the
