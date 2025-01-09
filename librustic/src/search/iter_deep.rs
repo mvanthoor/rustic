@@ -71,8 +71,7 @@ impl Search {
 
                     // Create information for the engine
                     let report = SearchReport::SearchSummary(summary);
-                    let information = Information::Search(report);
-                    refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    refs.report_tx.send(report).expect(ErrFatal::CHANNEL);
                 }
 
                 // Search one ply deeper.
