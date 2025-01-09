@@ -32,9 +32,9 @@ impl Uci {
                         Uci::features(&features);
                         Uci::uciok();
                     }
+                    UciOut::ReadyOk => Uci::readyok(),
+                    UciOut::InfoString(msg) => Uci::info_string(&msg),
                     UciOut::Quit => break,
-                    // CommOut::Uci(UciOut::Ready) => Uci::readyok(),
-                    // CommOut::Message(msg) => Uci::message(&msg),
                     // CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
                     // CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
                     // CommOut::SearchStats(stats) => Uci::search_stats(&stats),
@@ -64,6 +64,14 @@ impl Uci {
     fn id(engine: &str, version: &str, author: &str) {
         println!("id name {} {}", engine, version);
         println!("id author {}", author);
+    }
+
+    fn readyok() {
+        println!("readyok");
+    }
+
+    fn info_string(message: &String) {
+        println!("info string {message}");
     }
 
     fn features(features: &Arc<Vec<Feature>>) {

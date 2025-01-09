@@ -1,6 +1,7 @@
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum UciIn {
     Uci,
     Quit,
-    Unknown,
+    IsReady,
+    Unknown(String),
 }

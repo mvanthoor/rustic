@@ -1,6 +1,8 @@
 use crate::engine::Engine;
 use librustic::communication::uci::{cmd_in::UciIn, cmd_out::UciOut};
 
+const UNKNOWN: &str = "Unknown command";
+
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
@@ -8,7 +10,10 @@ impl Engine {
         match input {
             UciIn::Quit => self.quit(),
             UciIn::Uci => self.comm.send(UciOut::Id),
-            UciIn::Unknown => (),
+            UciIn::IsReady => self.comm.send(UciOut::ReadyOk),
+            UciIn::Unknown(cmd) => self
+                .comm
+                .send(UciOut::InfoString(format!("{UNKNOWN}: {cmd}"))),
             // CommIn::Uci(command) => self.uci_handler(command),
             // CommIn::XBoard(command) => self.xboard_handler(command),
 

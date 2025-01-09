@@ -13,13 +13,14 @@ impl Uci {
             let mut buffer = String::from("");
             io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
             let cmd = Uci::get_incoming_cmd(&buffer);
+            let quit = cmd == UciIn::Quit;
             let info = Information::Command(cmd);
             transmit_to_engine.send(info).expect(ErrFatal::HANDLE);
 
             // To prevent having to set up another channel (sending from
             // the engine to this thread) we'll have the input thread
             // terminate itself.
-            if cmd == UciIn::Quit {
+            if quit {
                 break;
             }
         });
@@ -35,8 +36,9 @@ impl Uci {
 
         match input {
             cmd if cmd == "uci" => UciIn::Uci,
+            cmd if cmd == "isready" => UciIn::IsReady,
             cmd if cmd == "quit" => UciIn::Quit,
-            _ => UciIn::Unknown,
+            _ => UciIn::Unknown(input),
         }
     }
 }
