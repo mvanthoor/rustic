@@ -1,8 +1,10 @@
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    communication::uci::cmd_out::UciOut,
-    communication::{features::Features, uci::Uci},
+    communication::{
+        features::{Features, UiElement},
+        uci::{cmd_out::UciOut, Uci},
+    },
 };
 use std::{
     sync::{mpsc::channel, Arc, Mutex},
@@ -11,14 +13,12 @@ use std::{
 
 impl Uci {
     // The control thread receives commands from the engine thread.
-    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, _options: Arc<Vec<Features>>) {
+    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, features: Arc<Vec<Features>>) {
         // Create an incoming channel for the output thread.
         let (transmitter_for_engine, received_from_engine) = channel();
+        let about = self.about.clone();
 
-        // Create thread-local variables to be captured by the closure
-        // let about = self.about.clone();
         // let t_board = Arc::clone(&board);
-        // let t_options = Arc::clone(&options);
 
         // Create the output thread.
         let thread = thread::spawn(move || {
@@ -28,10 +28,9 @@ impl Uci {
                 // Perform command as sent by the engine thread.
                 match print_to_stdio {
                     UciOut::Id => {
-                        // Uci::id(about.get_engine(), about.get_version(), about.get_author());
-                        // Uci::options(&t_options);
-                        // Uci::uciok();
-                        println!("Identification: Rustic 4.0.0 Beta")
+                        Uci::id(about.get_engine(), about.get_version(), about.get_author());
+                        Uci::features(&features);
+                        Uci::uciok();
                     }
                     UciOut::Quit => break,
                     // CommOut::Uci(UciOut::Ready) => Uci::readyok(),
@@ -58,5 +57,52 @@ impl Uci {
         // Store handle and control sender.
         self.output_thread = Some(thread);
         self.uci_output = Some(transmitter_for_engine);
+    }
+}
+
+impl Uci {
+    fn id(engine: &str, version: &str, author: &str) {
+        println!("id name {} {}", engine, version);
+        println!("id author {}", author);
+    }
+
+    fn features(features: &Arc<Vec<Features>>) {
+        for feature in features.iter() {
+            let name = format!("option name {}", feature.name);
+
+            let ui_element = match feature.ui_element {
+                UiElement::Spin => String::from("type spin"),
+                UiElement::Button => String::from("type button"),
+            };
+
+            let value_default = if let Some(v) = &feature.default {
+                format!("default {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_min = if let Some(v) = &feature.min {
+                format!("min {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let value_max = if let Some(v) = &feature.max {
+                format!("max {}", (*v).clone())
+            } else {
+                String::from("")
+            };
+
+            let uci_feature =
+                format!("{name} {ui_element} {value_default} {value_min} {value_max}")
+                    .trim()
+                    .to_string();
+
+            println!("{uci_feature}");
+        }
+    }
+
+    fn uciok() {
+        println!("uciok");
     }
 }

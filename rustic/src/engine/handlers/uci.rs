@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use librustic::communication::uci::cmd_in::UciIn;
+use librustic::communication::uci::{cmd_in::UciIn, cmd_out::UciOut};
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -7,9 +7,7 @@ impl Engine {
     pub fn comm_handler(&mut self, input: UciIn) {
         match input {
             UciIn::Quit => self.quit(),
-            UciIn::Uci => {
-                println!("Wtf, received UCI!");
-            }
+            UciIn::Uci => self.comm.send(UciOut::Id),
             UciIn::Unknown => (),
             // CommIn::Uci(command) => self.uci_handler(command),
             // CommIn::XBoard(command) => self.xboard_handler(command),
