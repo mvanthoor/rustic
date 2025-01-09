@@ -1,14 +1,7 @@
-use librustic::{
-    comm::defs::EngineSetOption,
-    communication::feature::{Feature, UiElement},
-};
+use librustic::communication::feature::{Feature, UiElement};
+
+const NAME: &str = "Clear Hash";
 
 pub fn new() -> Feature {
-    Feature::new(
-        EngineSetOption::CLEAR_HASH,
-        UiElement::Button,
-        None,
-        None,
-        None,
-    )
+    Feature::new(NAME, UiElement::Button, None, None, None)
 }

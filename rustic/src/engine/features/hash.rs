@@ -1,14 +1,16 @@
-use librustic::{
-    comm::defs::{EngineOptionDefaults, EngineSetOption},
-    communication::feature::{Feature, UiElement},
-};
+use librustic::communication::feature::{Feature, UiElement};
+
+const NAME: &str = "Hash";
+const DEFAULT: &str = "32";
+const MIN: &str = "0";
+const MAX: &str = "65535";
 
 pub fn new() -> Feature {
     Feature::new(
-        EngineSetOption::HASH,
+        NAME,
         UiElement::Spin,
-        Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
-        Some(EngineOptionDefaults::HASH_MIN.to_string()),
-        Some(EngineOptionDefaults::max_hash().to_string()),
+        Some(String::from(DEFAULT)),
+        Some(String::from(MIN)),
+        Some(String::from(MAX)),
     )
 }
