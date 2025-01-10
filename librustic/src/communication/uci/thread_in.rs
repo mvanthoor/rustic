@@ -2,7 +2,7 @@ use crate::{
     basetypes::error::ErrFatal,
     communication::{
         defs::Information,
-        uci::{cmd_in::UciIn, Uci},
+        uci::{cmd_in::UciIn, parse, Uci},
     },
 };
 use std::{io, sync::mpsc::Sender, thread};
@@ -42,6 +42,7 @@ impl Uci {
             cmd if cmd == "debug off" => UciIn::DebugOff,
             cmd if cmd == "quit" => UciIn::Quit,
             cmd if cmd == "board" => UciIn::Board,
+            cmd if cmd.starts_with("position") => parse::position(&cmd),
             _ => UciIn::Unknown(input),
         }
     }

@@ -1,6 +1,6 @@
 use crate::engine::Engine;
 use librustic::{
-    basetypes::error::ErrFatal,
+    basetypes::error::{ErrFatal, ErrNormal},
     communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
     defs::FEN_START_POSITION,
 };
@@ -23,6 +23,26 @@ impl Engine {
                     .expect(ErrFatal::NEW_GAME);
                 self.search.transposition_clear();
             }
+            UciIn::Position(fen, moves) => {
+                let fen_result = self
+                    .board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_setup(Some(fen.as_str()));
+
+                if fen_result.is_ok() {
+                    for m in moves.iter() {
+                        if !self.execute_move(m) && self.debug {
+                            let fail = format!("{}: {}", ErrNormal::NOT_LEGAL, m.clone());
+                            self.comm.send(UciOut::InfoString(fail));
+                            break;
+                        }
+                    }
+                } else if self.debug {
+                    let fail = format!("{}: {}", ErrNormal::FEN_FAILED, fen.clone());
+                    self.comm.send(UciOut::InfoString(fail));
+                }
+            }
             UciIn::DebugOn => self.debug = true,
             UciIn::DebugOff => self.debug = false,
             UciIn::Unknown(cmd) => {
@@ -32,11 +52,6 @@ impl Engine {
                 }
             }
             UciIn::Board => self.comm.send(UciOut::PrintBoard),
-            // CommIn::Uci(command) => self.uci_handler(command),
-            // CommIn::XBoard(command) => self.xboard_handler(command),
-
-            // CommIn::Quit => self.quit(),
-            // CommIn::Board => self.comm.send(CommOut::PrintBoard),
             // CommIn::History => self.comm.send(CommOut::PrintHistory),
             // CommIn::Eval => {
             //     let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
