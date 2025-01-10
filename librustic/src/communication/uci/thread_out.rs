@@ -2,7 +2,8 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        feature::{Feature, UiElement},
+        feature::Feature,
+        uci::output,
         uci::{cmd_out::UciOut, Uci},
     },
 };
@@ -26,28 +27,18 @@ impl Uci {
                 // Perform command as sent by the engine thread.
                 match print_to_stdio {
                     UciOut::Id => {
-                        Uci::id(about.get_engine(), about.get_version(), about.get_author());
-                        Uci::features(&features);
-                        Uci::uciok();
+                        output::id(about.get_engine(), about.get_version(), about.get_author());
+                        output::features(&features);
+                        output::uciok();
                     }
-                    UciOut::ReadyOk => Uci::readyok(),
-                    UciOut::InfoString(msg) => Uci::info_string(&msg),
+                    UciOut::ReadyOk => output::readyok(),
+                    UciOut::InfoString(msg) => output::info_string(&msg),
                     UciOut::Quit => break,
-                    UciOut::PrintBoard => Uci::print_board(&board),
-                    // CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
-                    // CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
-                    // CommOut::SearchStats(stats) => Uci::search_stats(&stats),
-                    // CommOut::BestMove(bm, result) => Uci::best_move(&bm, &result),
-                    // CommOut::Error(err_type, cmd) => Uci::error(err_type, &cmd),
-
-                    // // Custom commands
-                    // CommOut::PrintHistory => Shared::print_history(&t_board),
-                    // CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
-                    // CommOut::PrintState(state) => Shared::print_state(&state),
-                    // CommOut::PrintHelp => Shared::print_help(CommType::UCI),
-
-                    // Ignore everything else
-                    // _ => (),
+                    UciOut::PrintBoard => output::print_board(&board),
+                    UciOut::SearchSummary(summary) => output::search_summary(&summary),
+                    UciOut::SearchCurrMove(current) => output::search_currmove(&current),
+                    UciOut::SearchStats(stats) => output::search_stats(&stats),
+                    UciOut::BestMove(bestmove) => output::best_move(&bestmove),
                 }
             }
         });
@@ -55,64 +46,5 @@ impl Uci {
         // Store handle and control sender.
         self.output_thread = Some(thread);
         self.uci_output = Some(transmitter_for_engine);
-    }
-}
-
-impl Uci {
-    fn id(engine: &str, version: &str, author: &str) {
-        println!("id name {} {}", engine, version);
-        println!("id author {}", author);
-    }
-
-    fn readyok() {
-        println!("readyok");
-    }
-
-    fn info_string(message: &String) {
-        println!("info string {message}");
-    }
-
-    fn features(features: &Arc<Vec<Feature>>) {
-        for feature in features.iter() {
-            let name = format!("option name {}", feature.name);
-
-            let ui_element = match feature.ui_element {
-                UiElement::Spin => String::from("type spin"),
-                UiElement::Button => String::from("type button"),
-            };
-
-            let value_default = if let Some(v) = &feature.default {
-                format!("default {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let value_min = if let Some(v) = &feature.min {
-                format!("min {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let value_max = if let Some(v) = &feature.max {
-                format!("max {}", (*v).clone())
-            } else {
-                String::from("")
-            };
-
-            let uci_feature =
-                format!("{name} {ui_element} {value_default} {value_min} {value_max}")
-                    .trim()
-                    .to_string();
-
-            println!("{uci_feature}");
-        }
-    }
-
-    fn uciok() {
-        println!("uciok");
-    }
-
-    fn print_board(board: &Arc<Mutex<Board>>) {
-        println!("{}", &board.lock().expect(ErrFatal::LOCK));
     }
 }

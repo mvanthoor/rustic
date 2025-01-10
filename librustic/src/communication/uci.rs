@@ -11,6 +11,7 @@ use std::{sync::mpsc::Sender, thread::JoinHandle};
 pub mod cmd_in;
 pub mod cmd_out;
 pub mod init;
+pub mod output;
 pub mod parse;
 pub mod thread_in;
 pub mod thread_out;
