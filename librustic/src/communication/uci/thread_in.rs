@@ -43,6 +43,7 @@ impl Uci {
             cmd if cmd == "quit" => UciIn::Quit,
             cmd if cmd == "board" => UciIn::Board,
             cmd if cmd.starts_with("position") => parse::position(&cmd),
+            cmd if cmd.starts_with("go") => parse::go(&cmd),
             _ => UciIn::Unknown(input),
         }
     }

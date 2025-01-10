@@ -3,6 +3,7 @@ use librustic::{
     basetypes::error::{ErrFatal, ErrNormal},
     communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
     defs::FEN_START_POSITION,
+    search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
 
 const UNKNOWN: &str = "Unknown command";
@@ -11,6 +12,9 @@ const UNKNOWN: &str = "Unknown command";
 // the form of either Comm or Search reports.
 impl Engine {
     pub fn comm_handler(&mut self, input: UciIn) {
+        let mut search_params = SearchParams::new();
+        search_params.verbosity = self.settings.verbosity;
+
         match input {
             UciIn::Quit => self.quit(),
             UciIn::Uci => self.comm.send(UciOut::Id),
@@ -43,6 +47,30 @@ impl Engine {
                     self.comm.send(UciOut::InfoString(fail));
                 }
             }
+            UciIn::GoInfinite => {
+                search_params.search_mode = SearchMode::Infinite;
+                self.search.send(SearchControl::Start(search_params));
+            }
+            UciIn::GoDepth(depth) => {
+                search_params.depth = depth;
+                search_params.search_mode = SearchMode::Depth;
+                self.search.send(SearchControl::Start(search_params));
+            }
+            UciIn::GoMoveTime(msecs) => {
+                search_params.move_time = msecs - (SAFEGUARD as u128);
+                search_params.search_mode = SearchMode::MoveTime;
+                self.search.send(SearchControl::Start(search_params));
+            }
+            UciIn::GoNodes(nodes) => {
+                search_params.nodes = nodes;
+                search_params.search_mode = SearchMode::Nodes;
+                self.search.send(SearchControl::Start(search_params));
+            }
+            UciIn::GoGameTime(gt) => {
+                search_params.game_time = gt;
+                search_params.search_mode = SearchMode::GameTime;
+                self.search.send(SearchControl::Start(search_params));
+            }
             UciIn::DebugOn => self.debug = true,
             UciIn::DebugOff => self.debug = false,
             UciIn::Unknown(cmd) => {
@@ -52,30 +80,6 @@ impl Engine {
                 }
             }
             UciIn::Board => self.comm.send(UciOut::PrintBoard),
-            // CommIn::History => self.comm.send(CommOut::PrintHistory),
-            // CommIn::Eval => {
-            //     let mtx_board = &self.board.lock().expect(ErrFatal::LOCK);
-            //     let eval = Evaluation::evaluate_position(mtx_board);
-            //     let phase = mtx_board.game_state.phase_value;
-            //     self.comm.send(CommOut::PrintEval(eval, phase));
-            // }
-            // CommIn::State => self.comm.send(CommOut::PrintState(self.state)),
-            // CommIn::ClearTt => {
-            //     self.search.transposition_clear();
-            //     self.comm
-            //         .send(CommOut::Message(Messages::CLEARED_TT.to_string()));
-            // }
-            // CommIn::Help => self.comm.send(CommOut::PrintHelp),
-            // CommIn::Ignore(cmd) => {
-            //     self.comm.send(CommOut::Message(format!(
-            //         "{}: {}",
-            //         Messages::COMMAND_IGNORED,
-            //         cmd
-            //     )));
-            // }
-            // CommIn::Unknown(cmd) => self
-            //     .comm
-            //     .send(CommOut::Error(ErrNormal::UNKNOWN_COMMAND, cmd.to_string())),
         }
     }
 }
