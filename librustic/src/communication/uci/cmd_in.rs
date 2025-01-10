@@ -14,6 +14,7 @@ pub enum UciIn {
     GoGameTime(GameTime),
     DebugOff,
     DebugOn,
+    Stop,
     Quit,
     Unknown(String),
 

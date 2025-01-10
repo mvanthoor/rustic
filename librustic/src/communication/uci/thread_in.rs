@@ -40,6 +40,7 @@ impl Uci {
             cmd if cmd == "ucinewgame" => UciIn::UciNewGame,
             cmd if cmd == "debug on" => UciIn::DebugOn,
             cmd if cmd == "debug off" => UciIn::DebugOff,
+            cmd if cmd == "stop" => UciIn::Stop,
             cmd if cmd == "quit" => UciIn::Quit,
             cmd if cmd == "board" => UciIn::Board,
             cmd if cmd.starts_with("position") => parse::position(&cmd),

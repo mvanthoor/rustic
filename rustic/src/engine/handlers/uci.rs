@@ -11,12 +11,11 @@ const UNKNOWN: &str = "Unknown command";
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_handler(&mut self, input: UciIn) {
+    pub fn comm_handler(&mut self, command: UciIn) {
         let mut search_params = SearchParams::new();
         search_params.verbosity = self.settings.verbosity;
 
-        match input {
-            UciIn::Quit => self.quit(),
+        match command {
             UciIn::Uci => self.comm.send(UciOut::Id),
             UciIn::IsReady => self.comm.send(UciOut::ReadyOk),
             UciIn::UciNewGame => {
@@ -73,6 +72,8 @@ impl Engine {
             }
             UciIn::DebugOn => self.debug = true,
             UciIn::DebugOff => self.debug = false,
+            UciIn::Stop => self.search.send(SearchControl::Stop),
+            UciIn::Quit => self.quit(),
             UciIn::Unknown(cmd) => {
                 if self.debug {
                     self.comm
