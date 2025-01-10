@@ -48,6 +48,11 @@ impl CmdLineArgs {
     const KIWI_LONG: &'static str = "kiwipete";
     const KIWI_SHORT: char = 'k';
     const KIWI_HELP: &'static str = "Set up KiwiPete position (ignore --fen)";
+
+    // Start with debugging on
+    const DEBUG_LONG: &'static str = "debug";
+    const DEBUG_SHORT: char = 'd';
+    const DEBUG_HELP: &'static str = "Start with debugging turned on";
 }
 
 pub struct CmdLine {
@@ -104,6 +109,10 @@ impl CmdLine {
 
     pub fn has_kiwipete(&self) -> bool {
         self.arguments.get_flag(CmdLineArgs::KIWI_LONG)
+    }
+
+    pub fn has_debug(&self) -> bool {
+        self.arguments.get_flag(CmdLineArgs::DEBUG_LONG)
     }
 
     pub fn has_quiet(&self) -> bool {
@@ -166,6 +175,13 @@ impl CmdLine {
                     .long(CmdLineArgs::KIWI_LONG)
                     .short(CmdLineArgs::KIWI_SHORT)
                     .help(CmdLineArgs::KIWI_HELP)
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(CmdLineArgs::DEBUG_LONG)
+                    .long(CmdLineArgs::DEBUG_LONG)
+                    .short(CmdLineArgs::DEBUG_SHORT)
+                    .help(CmdLineArgs::DEBUG_HELP)
                     .action(ArgAction::SetTrue),
             )
             .arg(

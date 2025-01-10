@@ -38,6 +38,8 @@ impl Uci {
             cmd if cmd == "uci" => UciIn::Uci,
             cmd if cmd == "isready" => UciIn::IsReady,
             cmd if cmd == "ucinewgame" => UciIn::UciNewGame,
+            cmd if cmd == "debug on" => UciIn::DebugOn,
+            cmd if cmd == "debug off" => UciIn::DebugOff,
             cmd if cmd == "quit" => UciIn::Quit,
             cmd if cmd == "board" => UciIn::Board,
             _ => UciIn::Unknown(input),

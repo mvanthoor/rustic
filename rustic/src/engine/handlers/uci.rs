@@ -23,9 +23,14 @@ impl Engine {
                     .expect(ErrFatal::NEW_GAME);
                 self.search.transposition_clear();
             }
-            UciIn::Unknown(cmd) => self
-                .comm
-                .send(UciOut::InfoString(format!("{UNKNOWN}: {cmd}"))),
+            UciIn::DebugOn => self.debug = true,
+            UciIn::DebugOff => self.debug = false,
+            UciIn::Unknown(cmd) => {
+                if self.debug {
+                    self.comm
+                        .send(UciOut::InfoString(format!("{UNKNOWN}: {cmd}")));
+                }
+            }
             UciIn::Board => self.comm.send(UciOut::PrintBoard),
             // CommIn::Uci(command) => self.uci_handler(command),
             // CommIn::XBoard(command) => self.xboard_handler(command),

@@ -4,6 +4,8 @@ pub enum UciIn {
     Uci,
     IsReady,
     UciNewGame,
+    DebugOff,
+    DebugOn,
     Quit,
     Unknown(String),
 

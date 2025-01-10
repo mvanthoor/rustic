@@ -35,6 +35,7 @@ use std::sync::{mpsc::Receiver, Arc, Mutex};
 // all separate entities in the global space.
 pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
+    debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
     features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
@@ -82,6 +83,7 @@ impl Engine {
         // Create the engine itself.
         Self {
             quit: false,
+            debug: cmdline.has_debug(),
             state: EngineState::Waiting,
             settings: Settings {
                 threads,
