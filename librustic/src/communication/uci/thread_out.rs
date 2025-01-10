@@ -13,12 +13,10 @@ use std::{
 
 impl Uci {
     // The control thread receives commands from the engine thread.
-    pub fn output_thread(&mut self, _board: Arc<Mutex<Board>>, features: Arc<Vec<Feature>>) {
+    pub fn output_thread(&mut self, board: Arc<Mutex<Board>>, features: Arc<Vec<Feature>>) {
         // Create an incoming channel for the output thread.
         let (transmitter_for_engine, received_from_engine) = channel();
         let about = self.about.clone();
-
-        // let t_board = Arc::clone(&board);
 
         // Create the output thread.
         let thread = thread::spawn(move || {
@@ -35,6 +33,7 @@ impl Uci {
                     UciOut::ReadyOk => Uci::readyok(),
                     UciOut::InfoString(msg) => Uci::info_string(&msg),
                     UciOut::Quit => break,
+                    UciOut::PrintBoard => Uci::print_board(&board),
                     // CommOut::SearchSummary(summary) => Uci::search_summary(&summary),
                     // CommOut::SearchCurrMove(current) => Uci::search_currmove(&current),
                     // CommOut::SearchStats(stats) => Uci::search_stats(&stats),
@@ -42,7 +41,6 @@ impl Uci {
                     // CommOut::Error(err_type, cmd) => Uci::error(err_type, &cmd),
 
                     // // Custom commands
-                    // CommOut::PrintBoard => Shared::print_board(&t_board),
                     // CommOut::PrintHistory => Shared::print_history(&t_board),
                     // CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
                     // CommOut::PrintState(state) => Shared::print_state(&state),
@@ -112,5 +110,9 @@ impl Uci {
 
     fn uciok() {
         println!("uciok");
+    }
+
+    fn print_board(board: &Arc<Mutex<Board>>) {
+        println!("{}", &board.lock().expect(ErrFatal::LOCK));
     }
 }

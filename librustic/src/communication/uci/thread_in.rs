@@ -37,7 +37,9 @@ impl Uci {
         match input {
             cmd if cmd == "uci" => UciIn::Uci,
             cmd if cmd == "isready" => UciIn::IsReady,
+            cmd if cmd == "ucinewgame" => UciIn::UciNewGame,
             cmd if cmd == "quit" => UciIn::Quit,
+            cmd if cmd == "board" => UciIn::Board,
             _ => UciIn::Unknown(input),
         }
     }

@@ -1,5 +1,9 @@
 use crate::engine::Engine;
-use librustic::communication::uci::{cmd_in::UciIn, cmd_out::UciOut};
+use librustic::{
+    basetypes::error::ErrFatal,
+    communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    defs::FEN_START_POSITION,
+};
 
 const UNKNOWN: &str = "Unknown command";
 
@@ -11,9 +15,18 @@ impl Engine {
             UciIn::Quit => self.quit(),
             UciIn::Uci => self.comm.send(UciOut::Id),
             UciIn::IsReady => self.comm.send(UciOut::ReadyOk),
+            UciIn::UciNewGame => {
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_setup(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.search.transposition_clear();
+            }
             UciIn::Unknown(cmd) => self
                 .comm
                 .send(UciOut::InfoString(format!("{UNKNOWN}: {cmd}"))),
+            UciIn::Board => self.comm.send(UciOut::PrintBoard),
             // CommIn::Uci(command) => self.uci_handler(command),
             // CommIn::XBoard(command) => self.xboard_handler(command),
 
