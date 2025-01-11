@@ -24,3 +24,12 @@ impl ErrFatal {
     pub const NO_INFO_RX: &'static str = "No incoming Info channel.";
     pub const GENERATED_ILLEGAL_MOVE: &'static str = "The engine generated an illegal move!";
 }
+
+pub struct ErrUci;
+impl ErrUci {
+    pub const UNKNOWN_CMD: &str = "Unknown command";
+    pub const OPTION_UNKNOWN_NAME: &str = "Unknown option name";
+    pub const OPTION_NO_NAME: &str = "Option must have a name";
+    pub const OPTION_NO_VALUE: &str = "Value is required for option";
+    pub const OPTION_VALUE_NOT_INT: &str = "Value must be integer for option";
+}

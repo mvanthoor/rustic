@@ -1,6 +1,8 @@
 use crate::communication::uci::defs::{Name, Value};
 use crate::{communication::uci::cmd_in::UciIn, defs::FEN_START_POSITION, search::defs::GameTime};
 
+const SPACE: char = ' ';
+
 pub fn position(cmd: &str) -> UciIn {
     enum Tokens {
         Empty,
@@ -28,7 +30,7 @@ pub fn position(cmd: &str) -> UciIn {
                 Tokens::Empty => (),
                 Tokens::Fen => {
                     fen.push_str(s);
-                    fen.push(' ');
+                    fen.push(SPACE);
                 }
                 Tokens::Moves => moves.push(String::from(s)),
             },
@@ -137,12 +139,15 @@ pub fn setoption(cmd: &str) -> UciIn {
             "name" => token = Tokens::Name,
             "value" => token = Tokens::Value,
             _ => match token {
-                Tokens::Name => name = s.trim().to_lowercase(),
+                Tokens::Name => {
+                    name.push_str(s);
+                    name.push(SPACE);
+                }
                 Tokens::Value => value = Some(s.to_lowercase()),
                 Tokens::Empty => (),
             },
         }
     }
 
-    UciIn::SetOption(name, value)
+    UciIn::SetOption(name.trim().to_lowercase(), value)
 }

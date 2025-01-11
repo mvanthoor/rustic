@@ -1,6 +1,6 @@
 use crate::engine::Engine;
 use librustic::{
-    basetypes::error::{ErrFatal, ErrNormal},
+    basetypes::error::{ErrFatal, ErrNormal, ErrUci},
     communication::uci::{
         cmd_in::UciIn,
         cmd_out::UciOut,
@@ -9,12 +9,6 @@ use librustic::{
     defs::FEN_START_POSITION,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
-
-const UNKNOWN_CMD: &str = "Unknown command";
-const UNKNOWN_OPTION: &str = "Unknown option";
-const NO_NAME: &str = "Option must have a name";
-const NO_VALUE: &str = "Value is required for";
-const VALUE_NOT_INT: &str = "Value must be an integer";
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -87,13 +81,17 @@ impl Engine {
                 if !name.is_empty() {
                     self.setoption(name, value);
                 } else if self.debug {
-                    self.comm.send(UciOut::InfoString(String::from(NO_NAME)));
+                    self.comm
+                        .send(UciOut::InfoString(String::from(ErrUci::OPTION_NO_NAME)));
                 }
             }
             UciIn::Unknown(cmd) => {
                 if self.debug {
-                    self.comm
-                        .send(UciOut::InfoString(format!("{UNKNOWN_CMD}: {cmd}")));
+                    self.comm.send(UciOut::InfoString(format!(
+                        "{}: {}",
+                        ErrUci::UNKNOWN_CMD,
+                        cmd
+                    )));
                 }
             }
         }
@@ -103,13 +101,15 @@ impl Engine {
         match option {
             option if option == "hash" => self.setoption_hash(option, value),
             option if option == "clear hash" => {
-                println!("Clearing TT");
                 self.search.transposition_clear();
             }
             _ => {
                 if self.debug {
-                    self.comm
-                        .send(UciOut::InfoString(format!("{UNKNOWN_OPTION}: {option}")));
+                    self.comm.send(UciOut::InfoString(format!(
+                        "{}: {}",
+                        ErrUci::OPTION_UNKNOWN_NAME,
+                        option
+                    )));
                 }
             }
         }
@@ -118,15 +118,20 @@ impl Engine {
     fn setoption_hash(&self, option: Name, value: Value) {
         if let Some(value) = value {
             if let Ok(size) = value.parse::<usize>() {
-                println!("Resizing TT");
                 self.search.transposition_resize(size);
             } else if self.debug {
-                self.comm
-                    .send(UciOut::InfoString(format!("{VALUE_NOT_INT}: {option}")));
+                self.comm.send(UciOut::InfoString(format!(
+                    "{}: {}",
+                    ErrUci::OPTION_VALUE_NOT_INT,
+                    option
+                )));
             }
         } else if self.debug {
-            self.comm
-                .send(UciOut::InfoString(format!("{NO_VALUE}: {option}")));
+            self.comm.send(UciOut::InfoString(format!(
+                "{}: {}",
+                ErrUci::OPTION_NO_VALUE,
+                option
+            )));
         }
     }
 }
