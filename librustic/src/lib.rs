@@ -1,6 +1,7 @@
 pub mod basetypes;
 pub mod board;
 pub mod comm;
+pub mod communication;
 pub mod defs;
 pub mod evaluation;
 pub mod misc;

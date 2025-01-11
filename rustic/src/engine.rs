@@ -1,10 +1,11 @@
 mod about;
 mod cmdline;
-mod comm_handler;
-pub mod defs;
+mod defs;
 mod game_result;
+mod handlers;
 mod main_loop;
-mod search_handler;
+mod states;
+mod uci_options;
 mod utils;
 
 use crate::engine::{
@@ -15,9 +16,10 @@ use crate::engine::{
 use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::{
-        CommOption, CommOut, CommType, EngineOptionDefaults, EngineSetOption, EngineState, IComm,
-        Information, Uci, UiElement, XBoard,
+    communication::{
+        defs::{EngineState, IComm, Information},
+        uci::uci_option::UciOption,
+        uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
     misc::perft,
@@ -33,15 +35,17 @@ use std::sync::{mpsc::Receiver, Arc, Mutex};
 // all separate entities in the global space.
 pub struct Engine {
     quit: bool,                             // Flag that will quit the main thread.
+    debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    options: Arc<Vec<CommOption>>,          // Engine options exported to the GUI.
+    features: Arc<Vec<UciOption>>,          // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
-    search: Search,                         // Search object (active).
+
+    search: Search, // Search object (active).
 }
 
 impl Default for Engine {
@@ -61,12 +65,7 @@ impl Engine {
             String::from(AUTHOR),
         );
 
-        // Create the communication interface
-        let comm: Box<dyn IComm> = match cmdline.comm().as_str() {
-            CommType::XBOARD => Box::new(XBoard::new(about)),
-            CommType::UCI => Box::new(Uci::new(about)),
-            _ => panic!("{}", ErrFatal::CREATE_COMM),
-        };
+        let comm: Box<dyn IComm> = Box::new(Uci::new(about));
 
         // Get engine settings from the command-line.
         let threads = cmdline.threads();
@@ -77,34 +76,21 @@ impl Engine {
         };
         let tt_size = cmdline.hash();
 
-        // List of options that should be announced to the GUI.
-        let options = vec![
-            CommOption::new(
-                EngineSetOption::HASH,
-                UiElement::Spin,
-                Some(EngineOptionDefaults::HASH_DEFAULT.to_string()),
-                Some(EngineOptionDefaults::HASH_MIN.to_string()),
-                Some(EngineOptionDefaults::max_hash().to_string()),
-            ),
-            CommOption::new(
-                EngineSetOption::CLEAR_HASH,
-                UiElement::Button,
-                None,
-                None,
-                None,
-            ),
-        ];
+        // These are features the engine supports. It sends them to the
+        // communication module so they will be announced to the GUI.
+        let features = vec![uci_options::hash::new(), uci_options::clear_hash::new()];
 
         // Create the engine itself.
         Self {
             quit: false,
-            state: comm.info().startup_state(),
+            debug: cmdline.has_debug(),
+            state: EngineState::UciNotUsed,
             settings: Settings {
                 threads,
                 verbosity,
                 tt_size,
             },
-            options: Arc::new(options),
+            features: Arc::new(features),
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
@@ -116,10 +102,16 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        if self.comm.info().supports_fancy_about() {
-            self.print_fancy_about(&self.settings, self.comm.info().protocol_name());
+        // Required for Stateful protocols such as XBoard.
+        self.state = self.comm.properties().startup_state();
+
+        // The UCI GUI's I tested don't seem to care about non-uci input
+        // over multiple lines. Some XBoard user interfaces do choke on
+        // this. Use a simpler, online-about instead.
+        if self.comm.properties().support_fancy_about() {
+            self.print_fancy_about(&self.settings, self.comm.properties().protocol_name());
         } else {
-            self.print_simple_about(&self.settings, self.comm.info().protocol_name());
+            self.print_simple_about(&self.settings, self.comm.properties().protocol_name());
         }
 
         // Setup position and abort if this fails.
@@ -129,7 +121,7 @@ impl Engine {
             .expect(ErrFatal::LOCK)
             .fen_setup(Some(&position))?;
 
-        // Run perft if requested.
+        // Run perft if requested, then quit.
         if self.cmdline.perft() > 0 {
             perft::run(
                 &position,
@@ -140,9 +132,7 @@ impl Engine {
             return Ok(());
         }
 
-        // In the main loop, the engine manages its resources so it will be
-        // able to play legal chess and communicate with different user
-        // interfaces.
+        // Finally start the actual engine.
         self.main_loop();
 
         // We're done and the engine exited without issues.
@@ -152,39 +142,7 @@ impl Engine {
     // This function quits Comm, Search, and then the engine thread itself.
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
-        self.comm.send(CommOut::Quit);
+        self.comm.send(UciOut::Quit);
         self.quit = true;
-    }
-
-    fn is_observing(&self) -> bool {
-        self.state == EngineState::Observing
-    }
-
-    fn is_waiting(&self) -> bool {
-        self.state == EngineState::Waiting
-    }
-
-    fn is_thinking(&self) -> bool {
-        self.state == EngineState::Thinking
-    }
-
-    fn is_analyzing(&self) -> bool {
-        self.state == EngineState::Analyzing
-    }
-
-    fn set_observing(&mut self) {
-        self.state = EngineState::Observing;
-    }
-
-    fn set_waiting(&mut self) {
-        self.state = EngineState::Waiting;
-    }
-
-    fn set_thinking(&mut self) {
-        self.state = EngineState::Thinking;
-    }
-
-    fn set_analyzing(&mut self) {
-        self.state = EngineState::Analyzing;
     }
 }

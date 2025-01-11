@@ -1,9 +1,12 @@
 use crate::{
     basetypes::error::ErrFatal,
+    communication::defs::Information,
     defs::MAX_PLY,
     movegen::defs::Move,
-    search::defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, Verbosity, INF},
-    search::{Information, Search, SearchReport, SearchSummary},
+    search::{
+        defs::{PrincipalVariation, SearchMode, SearchRefs, SearchResult, Verbosity, INF},
+        Search, SearchReport, SearchSummary,
+    },
 };
 
 // Actual search routines.
@@ -71,8 +74,8 @@ impl Search {
 
                     // Create information for the engine
                     let report = SearchReport::SearchSummary(summary);
-                    let information = Information::Search(report);
-                    refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    let info = Information::Search(report);
+                    refs.report_tx.send(info).expect(ErrFatal::CHANNEL);
                 }
 
                 // Search one ply deeper.

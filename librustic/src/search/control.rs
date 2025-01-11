@@ -2,7 +2,7 @@ use crate::search::Search;
 use crate::{
     basetypes::error::ErrFatal,
     board::Board,
-    comm::defs::Information,
+    communication::defs::Information,
     movegen::MoveGenerator,
     search::defs::{
         SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchTerminated,
@@ -82,8 +82,8 @@ impl Search {
 
                     // if we didn't abandon the search, return a best move.
                     if termination != SearchTerminated::Abandoned {
-                        let information = Information::Search(SearchReport::Finished(best_move));
-                        t_report_tx.send(information).expect(ErrFatal::CHANNEL);
+                        let info = Information::Search(SearchReport::Finished(best_move));
+                        t_report_tx.send(info).expect(ErrFatal::CHANNEL);
                     }
 
                     // We halt (stop) or quit the search according to the

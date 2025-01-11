@@ -3,7 +3,7 @@ pub use crate::transposition::defs::{HashData, Transposition};
 
 use crate::{
     board::Board,
-    comm::defs::Information,
+    communication::defs::Information,
     defs::MAX_PLY,
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,

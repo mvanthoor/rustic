@@ -8,10 +8,7 @@ use std::{
     sync::{mpsc::Sender, Arc, Mutex},
 };
 
-pub use crate::comm::protocols::{
-    uci::{Uci, UciIn, UciOut},
-    xboard::{TimeControl, XBoard, XBoardIn, XBoardOut},
-};
+pub use crate::comm::protocols::xboard::{TimeControl, XBoard, XBoardIn, XBoardOut};
 
 #[derive(PartialEq, Eq, Clone)]
 pub enum EngineSetOption {
@@ -249,7 +246,6 @@ pub trait IComm {
 
 #[derive(PartialEq, Eq, Clone)]
 pub enum CommIn {
-    Uci(UciIn),
     XBoard(XBoardIn),
 
     // Common incoming commands
@@ -269,7 +265,6 @@ pub enum CommIn {
 }
 
 pub enum CommOut {
-    Uci(UciOut),
     XBoard(XBoardOut),
 
     // Common output for all protocols
