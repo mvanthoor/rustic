@@ -1,6 +1,4 @@
 use crate::{
-    basetypes::error::ErrFatal,
-    board::Board,
     communication::{
         shared,
         uci::uci_option::{UciOption, UiElement},
@@ -8,7 +6,7 @@ use crate::{
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 pub fn id(engine: &str, version: &str, author: &str) {
     println!("id name {} {}", engine, version);

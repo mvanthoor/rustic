@@ -11,11 +11,7 @@ impl Engine {
         self.info_rx = Some(info_rx);
 
         // Initialize Communications and Search modules.
-        self.comm.init(
-            info_tx.clone(),
-            Arc::clone(&self.board),
-            Arc::clone(&self.features),
-        );
+        self.comm.init(info_tx.clone(), Arc::clone(&self.features));
         self.search
             .init(info_tx, Arc::clone(&self.board), Arc::clone(&self.mg));
 

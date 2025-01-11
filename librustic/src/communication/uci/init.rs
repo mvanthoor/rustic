@@ -1,23 +1,21 @@
 use crate::{
     basetypes::error::ErrFatal,
-    board::Board,
     communication::{
         defs::{IComm, Information},
         protocol::Properties,
         uci::{cmd_out::UciOut, uci_option::UciOption, Uci},
     },
 };
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::sync::{mpsc::Sender, Arc};
 
 impl IComm for Uci {
     fn init(
         &mut self,
         cmd_incoming_transmitter: Sender<Information>,
-        board: Arc<Mutex<Board>>,
         options: Arc<Vec<UciOption>>,
     ) {
         self.input_thread(cmd_incoming_transmitter);
-        self.output_thread(board, options);
+        self.output_thread(options);
     }
 
     fn properties(&self) -> &Properties {
