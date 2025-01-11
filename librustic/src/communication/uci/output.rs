@@ -2,8 +2,8 @@ use crate::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        feature::{Feature, UiElement},
         shared,
+        uci::uci_option::{UciOption, UiElement},
     },
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
@@ -23,7 +23,7 @@ pub fn info_string(message: &String) {
     println!("info string {message}");
 }
 
-pub fn features(features: &Arc<Vec<Feature>>) {
+pub fn features(features: &Arc<Vec<UciOption>>) {
     for feature in features.iter() {
         let name = format!("option name {}", feature.name);
 

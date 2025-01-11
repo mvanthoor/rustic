@@ -1,11 +1,11 @@
 mod about;
 mod cmdline;
 mod defs;
-mod features;
 mod game_result;
 mod handlers;
 mod main_loop;
 mod states;
+mod uci_options;
 mod utils;
 
 use crate::engine::{
@@ -18,7 +18,7 @@ use librustic::{
     board::Board,
     communication::{
         defs::{EngineState, IComm, Information},
-        feature::Feature,
+        uci::uci_option::UciOption,
         uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
@@ -38,7 +38,7 @@ pub struct Engine {
     debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
+    features: Arc<Vec<UciOption>>,          // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
@@ -78,7 +78,7 @@ impl Engine {
 
         // These are features the engine supports. It sends them to the
         // communication module so they will be announced to the GUI.
-        let features = vec![features::hash::new(), features::clear_hash::new()];
+        let features = vec![uci_options::hash::new(), uci_options::clear_hash::new()];
 
         // Create the engine itself.
         Self {
