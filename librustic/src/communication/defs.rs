@@ -26,6 +26,7 @@ pub enum Information {
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum EngineState {
+    UciNotUsed,
     Observing,
     Waiting,
     Thinking,

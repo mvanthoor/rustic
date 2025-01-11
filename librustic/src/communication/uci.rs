@@ -45,7 +45,7 @@ impl Uci {
                 SupportFancyAbout::Yes,
                 RequireStatefulMode::No,
                 RequireGameResult::No,
-                EngineState::Waiting,
+                EngineState::UciNotUsed,
             ),
         }
     }

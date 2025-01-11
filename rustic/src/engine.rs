@@ -84,7 +84,7 @@ impl Engine {
         Self {
             quit: false,
             debug: cmdline.has_debug(),
-            state: EngineState::Waiting,
+            state: EngineState::UciNotUsed,
             settings: Settings {
                 threads,
                 verbosity,
