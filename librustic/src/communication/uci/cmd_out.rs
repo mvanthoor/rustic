@@ -13,7 +13,5 @@ pub enum UciOut {
     BestMove(Move),
     InfoString(String),
     Quit,
-
-    // Custom
-    PrintBoard,
+    Custom(String),
 }

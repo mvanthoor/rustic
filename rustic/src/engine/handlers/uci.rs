@@ -32,7 +32,6 @@ impl Engine {
             UciIn::DebugOff => self.debug = false,
             UciIn::Stop => self.search.send(SearchControl::Stop),
             UciIn::Quit => self.quit(),
-            UciIn::Board => self.comm.send(UciOut::PrintBoard),
             UciIn::Position(fen, moves) => {
                 let fen_result = self
                     .board
@@ -85,15 +84,7 @@ impl Engine {
                         .send(UciOut::InfoString(String::from(ErrUci::OPTION_NO_NAME)));
                 }
             }
-            UciIn::Unknown(cmd) => {
-                if self.debug {
-                    self.comm.send(UciOut::InfoString(format!(
-                        "{}: {}",
-                        ErrUci::UNKNOWN_CMD,
-                        cmd
-                    )));
-                }
-            }
+            UciIn::Unknown(cmd) => self.unknown(cmd),
         }
     }
 
@@ -132,6 +123,24 @@ impl Engine {
                 ErrUci::OPTION_NO_VALUE,
                 option
             )));
+        }
+    }
+
+    fn unknown(&self, command: String) {
+        match command {
+            cmd if cmd == "board" => {
+                let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
+                self.comm.send(UciOut::Custom(board));
+            }
+            _ => {
+                if self.debug {
+                    self.comm.send(UciOut::InfoString(format!(
+                        "{}: {}",
+                        ErrUci::UNKNOWN_CMD,
+                        command
+                    )));
+                }
+            }
         }
     }
 }

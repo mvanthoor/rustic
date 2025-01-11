@@ -32,9 +32,9 @@ impl Uci {
                         output::uciok();
                     }
                     UciOut::ReadyOk => output::readyok(),
-                    UciOut::InfoString(msg) => output::info_string(&msg),
+                    UciOut::InfoString(message) => output::info_string(&message),
                     UciOut::Quit => break,
-                    UciOut::PrintBoard => output::print_board(&board),
+                    UciOut::Custom(message) => output::custom(&message),
                     UciOut::SearchSummary(summary) => output::search_summary(&summary),
                     UciOut::SearchCurrMove(current) => output::search_currmove(&current),
                     UciOut::SearchStats(stats) => output::search_stats(&stats),

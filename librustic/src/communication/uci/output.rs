@@ -62,6 +62,10 @@ pub fn uciok() {
     println!("uciok");
 }
 
+pub fn custom(message: &String) {
+    println!("{message}");
+}
+
 pub fn search_summary(s: &SearchSummary) {
     // Report depth and seldepth (if available).
     let depth = if s.seldepth > 0 {
@@ -122,8 +126,4 @@ pub fn search_stats(s: &SearchStats) {
 
 pub fn best_move(m: &Move) {
     println!("bestmove {m}");
-}
-
-pub fn print_board(board: &Arc<Mutex<Board>>) {
-    println!("{}", &board.lock().expect(ErrFatal::LOCK));
 }

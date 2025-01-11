@@ -19,7 +19,4 @@ pub enum UciIn {
     Stop,
     Quit,
     Unknown(String),
-
-    // Custom
-    Board,
 }
