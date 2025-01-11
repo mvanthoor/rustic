@@ -2,8 +2,8 @@ use crate::communication::defs::EngineState;
 
 pub struct Protocol;
 impl Protocol {
-    pub const XBOARD: &'static str = "xboard";
     pub const UCI: &'static str = "uci";
+    pub const XBOARD: &'static str = "xboard";
 }
 
 pub enum SupportFancyAbout {
