@@ -4,13 +4,10 @@ use crate::{
     communication::{
         defs::{IComm, Information},
         protocol::Properties,
-        uci::uci_option::UciOption,
-        uci::Uci,
+        uci::{cmd_out::UciOut, uci_option::UciOption, Uci},
     },
 };
 use std::sync::{mpsc::Sender, Arc, Mutex};
-
-use super::cmd_out::UciOut;
 
 impl IComm for Uci {
     fn init(

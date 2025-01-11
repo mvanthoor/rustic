@@ -12,7 +12,7 @@ impl Uci {
         let thread = thread::spawn(move || loop {
             let mut buffer = String::from("");
             io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
-            let cmd = Uci::get_incoming_cmd(&buffer);
+            let cmd = Uci::get_incoming_command(&buffer);
             let quit = cmd == UciIn::Quit;
             let info = Information::Command(cmd);
             transmit_to_engine.send(info).expect(ErrFatal::HANDLE);
@@ -31,7 +31,7 @@ impl Uci {
 }
 
 impl Uci {
-    fn get_incoming_cmd(buffer: &str) -> UciIn {
+    fn get_incoming_command(buffer: &str) -> UciIn {
         let input = buffer.trim_end().to_string();
 
         match input {
@@ -45,6 +45,7 @@ impl Uci {
             cmd if cmd == "board" => UciIn::Board,
             cmd if cmd.starts_with("position") => parse::position(&cmd),
             cmd if cmd.starts_with("go") => parse::go(&cmd),
+            cmd if cmd.starts_with("setoption") => parse::setoption(&cmd),
             _ => UciIn::Unknown(input),
         }
     }

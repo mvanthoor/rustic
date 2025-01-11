@@ -1,12 +1,20 @@
 use crate::engine::Engine;
 use librustic::{
     basetypes::error::{ErrFatal, ErrNormal},
-    communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    communication::uci::{
+        cmd_in::UciIn,
+        cmd_out::UciOut,
+        defs::{Name, Value},
+    },
     defs::FEN_START_POSITION,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
 
-const UNKNOWN: &str = "Unknown command";
+const UNKNOWN_CMD: &str = "Unknown command";
+const UNKNOWN_OPTION: &str = "Unknown option";
+const NO_NAME: &str = "Option must have a name";
+const NO_VALUE: &str = "Value is required for";
+const VALUE_NOT_INT: &str = "Value must be an integer";
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -26,6 +34,11 @@ impl Engine {
                     .expect(ErrFatal::NEW_GAME);
                 self.search.transposition_clear();
             }
+            UciIn::DebugOn => self.debug = true,
+            UciIn::DebugOff => self.debug = false,
+            UciIn::Stop => self.search.send(SearchControl::Stop),
+            UciIn::Quit => self.quit(),
+            UciIn::Board => self.comm.send(UciOut::PrintBoard),
             UciIn::Position(fen, moves) => {
                 let fen_result = self
                     .board
@@ -70,17 +83,50 @@ impl Engine {
                 search_params.search_mode = SearchMode::GameTime;
                 self.search.send(SearchControl::Start(search_params));
             }
-            UciIn::DebugOn => self.debug = true,
-            UciIn::DebugOff => self.debug = false,
-            UciIn::Stop => self.search.send(SearchControl::Stop),
-            UciIn::Quit => self.quit(),
+            UciIn::SetOption(name, value) => {
+                if !name.is_empty() {
+                    self.setoption(name, value);
+                } else if self.debug {
+                    self.comm.send(UciOut::InfoString(String::from(NO_NAME)));
+                }
+            }
             UciIn::Unknown(cmd) => {
                 if self.debug {
                     self.comm
-                        .send(UciOut::InfoString(format!("{UNKNOWN}: {cmd}")));
+                        .send(UciOut::InfoString(format!("{UNKNOWN_CMD}: {cmd}")));
                 }
             }
-            UciIn::Board => self.comm.send(UciOut::PrintBoard),
+        }
+    }
+
+    fn setoption(&self, option: Name, value: Value) {
+        match option {
+            option if option == "hash" => self.setoption_hash(option, value),
+            option if option == "clear hash" => {
+                println!("Clearing TT");
+                self.search.transposition_clear();
+            }
+            _ => {
+                if self.debug {
+                    self.comm
+                        .send(UciOut::InfoString(format!("{UNKNOWN_OPTION}: {option}")));
+                }
+            }
+        }
+    }
+
+    fn setoption_hash(&self, option: Name, value: Value) {
+        if let Some(value) = value {
+            if let Ok(size) = value.parse::<usize>() {
+                println!("Resizing TT");
+                self.search.transposition_resize(size);
+            } else if self.debug {
+                self.comm
+                    .send(UciOut::InfoString(format!("{VALUE_NOT_INT}: {option}")));
+            }
+        } else if self.debug {
+            self.comm
+                .send(UciOut::InfoString(format!("{NO_VALUE}: {option}")));
         }
     }
 }

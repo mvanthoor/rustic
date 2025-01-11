@@ -10,6 +10,7 @@ use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub mod cmd_in;
 pub mod cmd_out;
+pub mod defs;
 pub mod init;
 pub mod output;
 pub mod parse;

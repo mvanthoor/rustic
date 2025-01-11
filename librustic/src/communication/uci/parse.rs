@@ -1,20 +1,21 @@
+use crate::communication::uci::defs::{Name, Value};
 use crate::{communication::uci::cmd_in::UciIn, defs::FEN_START_POSITION, search::defs::GameTime};
 
 pub fn position(cmd: &str) -> UciIn {
     enum Tokens {
-        Nothing,
+        Empty,
         Fen,
         Moves,
     }
 
-    let parts: Vec<&str> = cmd.split_whitespace().collect();
+    let stream: Vec<&str> = cmd.split_whitespace().collect();
     let mut fen = String::from("");
     let mut moves: Vec<String> = Vec::new();
     let mut skip_fen = false;
-    let mut token = Tokens::Nothing;
+    let mut token = Tokens::Empty;
 
-    for p in parts {
-        match p {
+    for s in stream {
+        match s {
             "position" => (),
             "startpos" => skip_fen = true,
             "moves" => token = Tokens::Moves,
@@ -24,12 +25,12 @@ pub fn position(cmd: &str) -> UciIn {
                 }
             }
             _ => match token {
-                Tokens::Nothing => (),
+                Tokens::Empty => (),
                 Tokens::Fen => {
-                    fen.push_str(p);
+                    fen.push_str(s);
                     fen.push(' ');
                 }
-                Tokens::Moves => moves.push(String::from(p)),
+                Tokens::Moves => moves.push(String::from(s)),
             },
         }
     }
@@ -43,7 +44,7 @@ pub fn position(cmd: &str) -> UciIn {
 
 pub fn go(cmd: &str) -> UciIn {
     enum Tokens {
-        Nothing,
+        Empty,
         Depth,
         Nodes,
         MoveTime,
@@ -54,13 +55,13 @@ pub fn go(cmd: &str) -> UciIn {
         MovesToGo,
     }
 
-    let parts: Vec<&str> = cmd.split_whitespace().collect();
+    let stream: Vec<&str> = cmd.split_whitespace().collect();
     let mut received = UciIn::Unknown(cmd.to_string());
-    let mut token = Tokens::Nothing;
+    let mut token = Tokens::Empty;
     let mut game_time = GameTime::new(0, 0, 0, 0, None);
 
-    for p in parts {
-        match p {
+    for s in stream {
+        match s {
             "go" => received = UciIn::GoInfinite,
             "infinite" => break, // Already Infinite; nothing more to do.
             "depth" => token = Tokens::Depth,
@@ -72,28 +73,28 @@ pub fn go(cmd: &str) -> UciIn {
             "binc" => token = Tokens::BInc,
             "movestogo" => token = Tokens::MovesToGo,
             _ => match token {
-                Tokens::Nothing => (),
+                Tokens::Empty => (),
                 Tokens::Depth => {
-                    let depth = p.parse::<i8>().unwrap_or(1);
+                    let depth = s.parse::<i8>().unwrap_or(1);
                     received = UciIn::GoDepth(depth);
                     break; // break for-loop: nothing more to do.
                 }
                 Tokens::MoveTime => {
-                    let milliseconds = p.parse::<u128>().unwrap_or(1000);
+                    let milliseconds = s.parse::<u128>().unwrap_or(1000);
                     received = UciIn::GoMoveTime(milliseconds);
                     break; // break for-loop: nothing more to do.
                 }
                 Tokens::Nodes => {
-                    let nodes = p.parse::<usize>().unwrap_or(1);
+                    let nodes = s.parse::<usize>().unwrap_or(1);
                     received = UciIn::GoNodes(nodes);
                     break; // break for-loop: nothing more to do.
                 }
-                Tokens::WTime => game_time.wtime = p.parse::<u128>().unwrap_or(0),
-                Tokens::BTime => game_time.btime = p.parse::<u128>().unwrap_or(0),
-                Tokens::WInc => game_time.winc = p.parse::<u128>().unwrap_or(0),
-                Tokens::BInc => game_time.binc = p.parse::<u128>().unwrap_or(0),
+                Tokens::WTime => game_time.wtime = s.parse::<u128>().unwrap_or(0),
+                Tokens::BTime => game_time.btime = s.parse::<u128>().unwrap_or(0),
+                Tokens::WInc => game_time.winc = s.parse::<u128>().unwrap_or(0),
+                Tokens::BInc => game_time.binc = s.parse::<u128>().unwrap_or(0),
                 Tokens::MovesToGo => {
-                    game_time.moves_to_go = if let Ok(x) = p.parse::<usize>() {
+                    game_time.moves_to_go = if let Ok(x) = s.parse::<usize>() {
                         Some(x)
                     } else {
                         None
@@ -116,4 +117,32 @@ pub fn go(cmd: &str) -> UciIn {
     }
 
     received
+}
+
+pub fn setoption(cmd: &str) -> UciIn {
+    enum Tokens {
+        Empty,
+        Name,
+        Value,
+    }
+
+    let stream: Vec<&str> = cmd.split_whitespace().collect();
+    let mut token = Tokens::Empty;
+    let mut name: Name = String::from("");
+    let mut value: Value = None;
+
+    for s in stream {
+        match s {
+            "setoption" => (),
+            "name" => token = Tokens::Name,
+            "value" => token = Tokens::Value,
+            _ => match token {
+                Tokens::Name => name = s.trim().to_lowercase(),
+                Tokens::Value => value = Some(s.to_lowercase()),
+                Tokens::Empty => (),
+            },
+        }
+    }
+
+    UciIn::SetOption(name, value)
 }
