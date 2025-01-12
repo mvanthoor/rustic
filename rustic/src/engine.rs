@@ -1,11 +1,11 @@
 mod about;
 mod cmdline;
 mod defs;
+mod features;
 mod game_result;
 mod handlers;
 mod main_loop;
 mod states;
-mod uci_options;
 mod utils;
 
 use crate::engine::{
@@ -78,7 +78,7 @@ impl Engine {
 
         // These are features the engine supports. It sends them to the
         // communication module so they will be announced to the GUI.
-        let features = vec![uci_options::hash::new(), uci_options::clear_hash::new()];
+        let features = vec![features::uci::hash(), features::uci::clear_hash()];
 
         // Create the engine itself.
         Self {

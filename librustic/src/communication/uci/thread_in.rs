@@ -14,7 +14,7 @@ impl Uci {
             io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
             let cmd = Uci::get_incoming_command(&buffer);
             let quit = cmd == UciIn::Quit;
-            let info = Information::Command(cmd);
+            let info = Information::Uci(cmd);
             transmit_to_engine.send(info).expect(ErrFatal::HANDLE);
 
             // To prevent having to set up another channel (sending from

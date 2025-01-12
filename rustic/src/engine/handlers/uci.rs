@@ -13,7 +13,7 @@ use librustic::{
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
 impl Engine {
-    pub fn comm_handler(&mut self, command: UciIn) {
+    pub fn uci_handler(&mut self, command: UciIn) {
         let mut search_params = SearchParams::new();
         search_params.verbosity = self.settings.verbosity;
 

@@ -14,7 +14,7 @@ pub trait IComm {
 }
 
 pub enum Information {
-    Command(UciIn),
+    Uci(UciIn),
     Search(SearchReport),
 }
 

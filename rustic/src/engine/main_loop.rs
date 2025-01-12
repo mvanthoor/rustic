@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use librustic::communication::defs::Information;
+use librustic::{basetypes::error::ErrFatal, communication::defs::Information};
 use std::sync::{mpsc::channel, Arc};
 
 impl Engine {
@@ -19,12 +19,12 @@ impl Engine {
         while !self.quit {
             let incoming = match &self.info_rx {
                 Some(i) => i.recv(),
-                None => panic!("UCI command receiver not available"),
+                None => panic!("{}", ErrFatal::NO_INFO_RX),
             };
 
             if let Ok(i) = incoming {
                 match i {
-                    Information::Command(cmd) => self.comm_handler(cmd),
+                    Information::Uci(cmd) => self.uci_handler(cmd),
                     Information::Search(report) => self.search_handler(report),
                 }
             }
