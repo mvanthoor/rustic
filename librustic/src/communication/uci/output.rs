@@ -1,7 +1,7 @@
 use crate::{
     communication::{
+        feature::{Feature, UiElement},
         shared,
-        uci::uci_option::{UciOption, UiElement},
     },
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
@@ -21,13 +21,17 @@ pub fn info_string(message: &String) {
     println!("info string {message}");
 }
 
-pub fn features(features: &Arc<Vec<UciOption>>) {
+pub fn features(features: &Arc<Vec<Feature>>) {
     for feature in features.iter() {
         let name = format!("option name {}", feature.name);
 
-        let ui_element = match feature.ui_element {
-            UiElement::Spin => String::from("type spin"),
-            UiElement::Button => String::from("type button"),
+        let ui_element = if let Some(e) = &feature.ui_element {
+            match e {
+                UiElement::Spin => String::from("type spin"),
+                UiElement::Button => String::from("type button"),
+            }
+        } else {
+            String::from("")
         };
 
         let value_default = if let Some(v) = &feature.default {

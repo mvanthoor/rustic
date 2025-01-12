@@ -16,7 +16,6 @@ pub mod output;
 pub mod parse;
 pub mod thread_in;
 pub mod thread_out;
-pub mod uci_option;
 
 pub struct Uci {
     pub about: About,

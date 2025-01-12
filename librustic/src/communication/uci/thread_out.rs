@@ -1,8 +1,8 @@
 use crate::{
     basetypes::error::ErrFatal,
     communication::{
+        feature::Feature,
         uci::output,
-        uci::uci_option::UciOption,
         uci::{cmd_out::UciOut, Uci},
     },
 };
@@ -13,7 +13,7 @@ use std::{
 
 impl Uci {
     // The control thread receives commands from the engine thread.
-    pub fn output_thread(&mut self, features: Arc<Vec<UciOption>>) {
+    pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
         // Create an incoming channel for the output thread.
         let (transmitter_for_engine, received_from_engine) = channel();
         let about = self.about.clone();

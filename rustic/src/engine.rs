@@ -18,7 +18,7 @@ use librustic::{
     board::Board,
     communication::{
         defs::{EngineState, IComm, Information},
-        uci::uci_option::UciOption,
+        feature::Feature,
         uci::{cmd_out::UciOut, Uci},
     },
     defs::{About, EngineRunResult},
@@ -38,7 +38,7 @@ pub struct Engine {
     debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    features: Arc<Vec<UciOption>>,          // Engine options exported to the GUI.
+    features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.

@@ -2,18 +2,15 @@ use crate::{
     basetypes::error::ErrFatal,
     communication::{
         defs::{IComm, Information},
+        feature::Feature,
         protocol::Properties,
-        uci::{cmd_out::UciOut, uci_option::UciOption, Uci},
+        uci::{cmd_out::UciOut, Uci},
     },
 };
 use std::sync::{mpsc::Sender, Arc};
 
 impl IComm for Uci {
-    fn init(
-        &mut self,
-        cmd_incoming_transmitter: Sender<Information>,
-        options: Arc<Vec<UciOption>>,
-    ) {
+    fn init(&mut self, cmd_incoming_transmitter: Sender<Information>, options: Arc<Vec<Feature>>) {
         self.input_thread(cmd_incoming_transmitter);
         self.output_thread(options);
     }
