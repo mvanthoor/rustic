@@ -1,6 +1,6 @@
 use crate::{
     communication::{
-        feature::{Feature, UiElement},
+        feature::{Feature, IFeature, UiElement},
         shared,
     },
     movegen::defs::Move,
@@ -23,9 +23,9 @@ pub fn info_string(message: &String) {
 
 pub fn features(features: &Arc<Vec<Feature>>) {
     for feature in features.iter() {
-        let name = format!("option name {}", feature.name);
+        let name = format!("option name {}", feature.get_name());
 
-        let ui_element = if let Some(e) = &feature.ui_element {
+        let ui_element = if let Some(e) = feature.get_ui_element() {
             match e {
                 UiElement::Spin => String::from("type spin"),
                 UiElement::Button => String::from("type button"),
@@ -34,19 +34,19 @@ pub fn features(features: &Arc<Vec<Feature>>) {
             String::from("")
         };
 
-        let value_default = if let Some(v) = &feature.default {
+        let value_default = if let Some(v) = feature.get_default() {
             format!("default {}", (*v).clone())
         } else {
             String::from("")
         };
 
-        let value_min = if let Some(v) = &feature.min {
+        let value_min = if let Some(v) = feature.get_min() {
             format!("min {}", (*v).clone())
         } else {
             String::from("")
         };
 
-        let value_max = if let Some(v) = &feature.max {
+        let value_max = if let Some(v) = feature.get_max() {
             format!("max {}", (*v).clone())
         } else {
             String::from("")
