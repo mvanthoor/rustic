@@ -10,8 +10,10 @@ use librustic::{
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
 };
 
-// This block implements handling of incoming information, which will be in
-// the form of either Comm or Search reports.
+// This is the UCI handler. It handles the incoming UCI commands and when
+// needed, it sends replies to the communication module to be sent out of
+// the engine to the GUI. Each enum variant of the UciIn type has a
+// match-arm in this function.
 impl Engine {
     pub fn uci_handler(&mut self, command: UciIn) {
         let mut search_params = SearchParams::new();
@@ -88,6 +90,9 @@ impl Engine {
         }
     }
 
+    // UCI calls an engine Feature an "Option". This function handles
+    // setting the engine's features/options depending on the incoming
+    // option names and values.
     fn setoption(&self, option: Name, value: Value) {
         match option {
             option if option == "hash" => self.setoption_hash(option, value),
@@ -106,6 +111,8 @@ impl Engine {
         }
     }
 
+    // Setting the Hash feature requires error checking for the incoming
+    // value so this has been extracted into its own function.
     fn setoption_hash(&self, option: Name, value: Value) {
         if let Some(value) = value {
             if let Ok(size) = value.parse::<usize>() {
@@ -126,6 +133,13 @@ impl Engine {
         }
     }
 
+    // This function handles commands that cannot be captured in one of the
+    // UciIn enum variants; these are therefore unknown. These could be any
+    // string of text. The engine can do whatever it wants with these; most
+    //of the time they are ignored (except in debug mode, where an
+    //InfoString is printed.) In Rustic, the function handles "board" as a
+    // custom command that is not part of the UCI-specification. It may
+    // handle other incoming commands as custom in the future as well.
     fn unknown(&self, command: String) {
         match command {
             cmd if cmd == "board" => {
