@@ -93,7 +93,7 @@ impl Engine {
     // UCI calls an engine Feature an "Option". This function handles
     // setting the engine's features/options depending on the incoming
     // option names and values.
-    fn setoption(&self, option: Name, value: Value) {
+    fn setoption(&mut self, option: Name, value: Value) {
         match option {
             option if option == "hash" => self.setoption_hash(option, value),
             option if option == "clear hash" => {
@@ -113,9 +113,19 @@ impl Engine {
 
     // Setting the Hash feature requires error checking for the incoming
     // value so this has been extracted into its own function.
-    fn setoption_hash(&self, option: Name, value: Value) {
+    fn setoption_hash(&mut self, option: Name, value: Value) {
+        if value.is_none() && self.debug {
+            self.comm.send(UciOut::InfoString(format!(
+                "{}: {}",
+                ErrUci::OPTION_NO_VALUE,
+                option
+            )));
+            return;
+        }
+
         if let Some(value) = value {
             if let Ok(size) = value.parse::<usize>() {
+                self.settings.tt_size = size;
                 self.search.transposition_resize(size);
             } else if self.debug {
                 self.comm.send(UciOut::InfoString(format!(
@@ -124,12 +134,6 @@ impl Engine {
                     option
                 )));
             }
-        } else if self.debug {
-            self.comm.send(UciOut::InfoString(format!(
-                "{}: {}",
-                ErrUci::OPTION_NO_VALUE,
-                option
-            )));
         }
     }
 
