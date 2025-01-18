@@ -2,6 +2,7 @@ use crate::{
     communication::feature::Feature,
     communication::protocol::Properties,
     communication::uci::{cmd_in::UciIn, cmd_out::UciOut},
+    communication::xboard::cmd_in::XBoardIn,
     search::defs::SearchReport,
 };
 use std::sync::{mpsc::Sender, Arc};
@@ -15,6 +16,7 @@ pub trait IComm {
 
 pub enum Information {
     Uci(UciIn),
+    XBoard(XBoardIn),
     Search(SearchReport),
 }
 
