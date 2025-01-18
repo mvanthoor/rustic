@@ -10,17 +10,18 @@ use crate::{
         protocol::{
             Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
         },
-        xboard::cmd_out::XBoardOut,
     },
     defs::About,
 };
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
+use super::uci::cmd_out::UciOut;
+
 pub struct XBoard {
     pub about: About,
     pub input_thread: Option<JoinHandle<()>>,
     pub output_thread: Option<JoinHandle<()>>,
-    pub xboard_output: Option<Sender<XBoardOut>>,
+    pub xboard_output: Option<Sender<UciOut>>,
     pub properties: Properties,
 }
 

@@ -4,7 +4,7 @@ use crate::{
         defs::{IComm, Information},
         feature::Feature,
         protocol::Properties,
-        xboard::cmd_out::XBoardOut,
+        uci::cmd_out::UciOut,
         xboard::XBoard,
     },
 };
@@ -24,7 +24,7 @@ impl IComm for XBoard {
     // the engine towards a GUI. Effectively the output thread will print
     // the information to stdout.
     fn send(&self, info: UciOut) {
-        if let Some(out) = &self.uci_output {
+        if let Some(out) = &self.xboard_output {
             out.send(info).expect(ErrFatal::CHANNEL);
         }
     }
