@@ -3,7 +3,7 @@ pub use crate::transposition::defs::{HashData, Transposition};
 
 use crate::{
     board::Board,
-    communication::defs::Information,
+    communication::defs::EngineInput,
     defs::MAX_PLY,
     movegen::defs::{Move, ShortMove},
     movegen::MoveGenerator,
@@ -268,7 +268,7 @@ pub struct SearchRefs<'a> {
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
-    pub report_tx: &'a Sender<Information>,
+    pub report_tx: &'a Sender<EngineInput>,
 }
 
 // This struct holds all the reports a search can send to the engine.

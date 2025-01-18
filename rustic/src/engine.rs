@@ -17,7 +17,7 @@ use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{EngineState, IComm, Information},
+        defs::{EngineInput, EngineState, IComm},
         feature::Feature,
         uci::{cmd_out::UciOut, Uci},
     },
@@ -43,7 +43,7 @@ pub struct Engine {
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
-    info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
+    info_rx: Option<Receiver<EngineInput>>, // Receiver for incoming information.
 
     search: Search, // Search object (active).
 }

@@ -1,6 +1,6 @@
 use crate::{
     basetypes::error::ErrFatal,
-    communication::defs::Information,
+    communication::defs::EngineInput,
     defs::MAX_PLY,
     movegen::defs::Move,
     search::{
@@ -74,7 +74,7 @@ impl Search {
 
                     // Create information for the engine
                     let report = SearchReport::SearchSummary(summary);
-                    let info = Information::Search(report);
+                    let info = EngineInput::Search(report);
                     refs.report_tx.send(info).expect(ErrFatal::CHANNEL);
                 }
 
