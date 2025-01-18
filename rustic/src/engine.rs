@@ -65,7 +65,11 @@ impl Engine {
             String::from(AUTHOR),
         );
 
-        let comm: Box<dyn IComm> = Box::new(Uci::new(about));
+        let comm: Box<dyn IComm> = match cmdline.comm() {
+            protocol if protocol == "uci" => Box::new(Uci::new(about)),
+            protocol if protocol == "xboard" => Box::new(Uci::new(about)),
+            _ => panic!("{}", ErrFatal::CREATE_COMM),
+        };
 
         // Get engine settings from the command-line.
         let threads = cmdline.threads();
