@@ -14,8 +14,9 @@ impl Uci {
             io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
             let cmd = Uci::get_incoming_command(&buffer);
             let quit = cmd == UciIn::Quit;
-            let info = EngineInput::Uci(cmd);
-            transmit_to_engine.send(info).expect(ErrFatal::HANDLE);
+            transmit_to_engine
+                .send(EngineInput::Uci(cmd))
+                .expect(ErrFatal::HANDLE);
 
             // To prevent having to set up another channel (sending from
             // the engine to this thread) we'll have the input thread
