@@ -16,6 +16,13 @@ impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
             XBoardIn::XBoard => (),
+            XBoardIn::Protover(version) => {
+                if version != 2 {
+                    println!("WHAT! Not XBoard v2 ?!");
+                } else {
+                    println!("Printing features....");
+                }
+            }
             XBoardIn::New => {
                 self.board
                     .lock()

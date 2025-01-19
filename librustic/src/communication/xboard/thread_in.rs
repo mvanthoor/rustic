@@ -1,8 +1,9 @@
 use crate::basetypes::error::ErrFatal;
-use crate::communication::defs::EngineInput;
-use crate::communication::xboard::cmd_in::XBoardIn;
-use crate::communication::xboard::XBoard;
+use crate::communication::{defs::EngineInput, xboard::cmd_in::XBoardIn, xboard::XBoard};
+
 use std::{io, sync::mpsc::Sender, thread};
+
+use super::parse;
 
 impl XBoard {
     pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
@@ -36,6 +37,10 @@ impl XBoard {
             cmd if cmd == "xboard" => XBoardIn::XBoard,
             cmd if cmd == "new" => XBoardIn::New,
             cmd if cmd == "quit" => XBoardIn::Quit,
+
+            // See the KEYS constant in xboard-defs for an array of
+            // commands which are key-value pairs.
+            cmd if cmd.starts_with("protover") => parse::key_value_pair(&cmd),
             _ => XBoardIn::Unknown(input),
         }
     }
