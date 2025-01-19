@@ -25,7 +25,7 @@ impl Engine {
             if let Ok(i) = incoming {
                 match i {
                     EngineInput::Uci(cmd) => self.uci_handler(cmd),
-                    EngineInput::XBoard(cmd) => (),
+                    EngineInput::XBoard(cmd) => self.xboard_handler(cmd),
                     EngineInput::Search(report) => self.search_handler(report),
                 }
             }

@@ -89,7 +89,7 @@ impl Engine {
                     self.comm.send(EngineOutput::Uci(message));
                 }
             }
-            UciIn::Unknown(cmd) => self.unknown(cmd),
+            UciIn::Unknown(cmd) => self.uci_unknown(cmd),
         }
     }
 
@@ -140,7 +140,7 @@ impl Engine {
     //InfoString is printed.) In Rustic, the function handles "board" as a
     // custom command that is not part of the UCI-specification. It may
     // handle other incoming commands as custom in the future as well.
-    fn unknown(&self, cmd: String) {
+    fn uci_unknown(&self, cmd: String) {
         match cmd {
             c if c == "board" => {
                 let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
