@@ -20,7 +20,7 @@ use librustic::{
         defs::{EngineInput, EngineOutput, EngineState, IComm},
         feature::Feature,
         uci::{cmd_out::UciOut, Uci},
-        xboard::XBoard,
+        xboard::{cmd_out::XBoardOut, XBoard},
     },
     defs::{About, EngineRunResult},
     misc::perft,
@@ -148,6 +148,7 @@ impl Engine {
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
         self.comm.send(EngineOutput::Uci(UciOut::Quit));
+        self.comm.send(EngineOutput::XBoard(XBoardOut::Quit));
         self.quit = true;
     }
 }

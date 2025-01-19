@@ -14,8 +14,8 @@ use librustic::{
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
-            XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
             XBoardIn::Quit => self.quit(),
+            XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
         }
     }
 
