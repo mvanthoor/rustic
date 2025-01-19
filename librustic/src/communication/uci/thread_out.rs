@@ -3,7 +3,7 @@ use crate::{
     communication::{
         defs::EngineOutput,
         feature::Feature,
-        uci::{cmd_out::UciOut, output, Uci},
+        uci::{cmd_out::UciOut, print, Uci},
     },
 };
 use std::{
@@ -27,18 +27,18 @@ impl Uci {
                 if let EngineOutput::Uci(cmd) = print_to_stdio {
                     match cmd {
                         UciOut::Id => {
-                            output::id(about.get_engine(), about.get_version(), about.get_author());
-                            output::features(&features);
-                            output::uciok();
+                            print::id(about.get_engine(), about.get_version(), about.get_author());
+                            print::features(&features);
+                            print::uciok();
                         }
-                        UciOut::ReadyOk => output::readyok(),
-                        UciOut::InfoString(message) => output::info_string(&message),
+                        UciOut::ReadyOk => print::readyok(),
+                        UciOut::InfoString(message) => print::info_string(&message),
                         UciOut::Quit => break,
-                        UciOut::Custom(message) => output::custom(&message),
-                        UciOut::SearchSummary(summary) => output::search_summary(&summary),
-                        UciOut::SearchCurrMove(current) => output::search_currmove(&current),
-                        UciOut::SearchStats(stats) => output::search_stats(&stats),
-                        UciOut::BestMove(bestmove) => output::best_move(&bestmove),
+                        UciOut::Custom(message) => print::custom(&message),
+                        UciOut::SearchSummary(summary) => print::search_summary(&summary),
+                        UciOut::SearchCurrMove(current) => print::search_currmove(&current),
+                        UciOut::SearchStats(stats) => print::search_stats(&stats),
+                        UciOut::BestMove(bestmove) => print::best_move(&bestmove),
                     }
                 }
             }
