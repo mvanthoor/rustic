@@ -1,10 +1,9 @@
 use crate::{
     basetypes::error::ErrFatal,
     communication::{
-        defs::{EngineInput, IComm},
+        defs::{EngineInput, EngineOutput, IComm},
         feature::Feature,
         protocol::Properties,
-        uci::cmd_out::UciOut,
         xboard::XBoard,
     },
 };
@@ -23,8 +22,8 @@ impl IComm for XBoard {
     // The engine thread can use this function to send information out of
     // the engine towards a GUI. Effectively the output thread will print
     // the information to stdout.
-    fn send(&self, info: UciOut) {
-        if let Some(out) = &self.xboard_output {
+    fn send(&self, info: EngineOutput) {
+        if let Some(out) = &self.output_write {
             out.send(info).expect(ErrFatal::CHANNEL);
         }
     }

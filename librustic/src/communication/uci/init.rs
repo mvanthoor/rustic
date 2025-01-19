@@ -1,10 +1,10 @@
 use crate::{
     basetypes::error::ErrFatal,
     communication::{
-        defs::{EngineInput, IComm},
+        defs::{EngineInput, EngineOutput, IComm},
         feature::Feature,
         protocol::Properties,
-        uci::{cmd_out::UciOut, Uci},
+        uci::Uci,
     },
 };
 use std::sync::{mpsc::Sender, Arc};
@@ -22,8 +22,8 @@ impl IComm for Uci {
     // The engine thread can use this function to send information out of
     // the engine towards a GUI. Effectively the output thread will print
     // the information to stdout.
-    fn send(&self, info: UciOut) {
-        if let Some(out) = &self.uci_output {
+    fn send(&self, info: EngineOutput) {
+        if let Some(out) = &self.output_write {
             out.send(info).expect(ErrFatal::CHANNEL);
         }
     }

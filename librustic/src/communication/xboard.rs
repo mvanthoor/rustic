@@ -4,24 +4,18 @@ pub mod init;
 pub mod thread_in;
 pub mod thread_out;
 
-use crate::{
-    communication::{
-        defs::EngineState,
-        protocol::{
-            Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
-        },
-    },
-    defs::About,
+use crate::communication::defs::{EngineOutput, EngineState};
+use crate::communication::protocol::{
+    Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
 };
+use crate::defs::About;
 use std::{sync::mpsc::Sender, thread::JoinHandle};
-
-use super::uci::cmd_out::UciOut;
 
 pub struct XBoard {
     pub about: About,
     pub input_thread: Option<JoinHandle<()>>,
     pub output_thread: Option<JoinHandle<()>>,
-    pub xboard_output: Option<Sender<UciOut>>,
+    pub output_write: Option<Sender<EngineOutput>>,
     pub properties: Properties,
 }
 
@@ -39,7 +33,7 @@ impl XBoard {
             about,
             input_thread: None,
             output_thread: None,
-            xboard_output: None,
+            output_write: None,
             properties: Properties::new(
                 Protocol::XBOARD,
                 SupportFancyAbout::No,

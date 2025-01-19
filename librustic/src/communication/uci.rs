@@ -8,11 +8,10 @@ pub mod thread_in;
 pub mod thread_out;
 
 use crate::{
-    communication::defs::EngineState,
+    communication::defs::{EngineOutput, EngineState},
     communication::protocol::{
         Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
     },
-    communication::uci::cmd_out::UciOut,
     defs::About,
 };
 use std::{sync::mpsc::Sender, thread::JoinHandle};
@@ -21,7 +20,7 @@ pub struct Uci {
     pub about: About,
     pub input_thread: Option<JoinHandle<()>>,
     pub output_thread: Option<JoinHandle<()>>,
-    pub uci_output: Option<Sender<UciOut>>,
+    pub output_write: Option<Sender<EngineOutput>>,
     pub properties: Properties,
 }
 
@@ -39,7 +38,7 @@ impl Uci {
             about,
             input_thread: None,
             output_thread: None,
-            uci_output: None,
+            output_write: None,
             properties: Properties::new(
                 Protocol::UCI,
                 SupportFancyAbout::Yes,

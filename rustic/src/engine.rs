@@ -17,7 +17,7 @@ use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{EngineInput, EngineState, IComm},
+        defs::{EngineInput, EngineOutput, EngineState, IComm},
         feature::Feature,
         uci::{cmd_out::UciOut, Uci},
     },
@@ -146,7 +146,7 @@ impl Engine {
     // This function quits Comm, Search, and then the engine thread itself.
     pub fn quit(&mut self) {
         self.search.send(SearchControl::Quit);
-        self.comm.send(UciOut::Quit);
+        self.comm.send(EngineOutput::Uci(UciOut::Quit));
         self.quit = true;
     }
 }

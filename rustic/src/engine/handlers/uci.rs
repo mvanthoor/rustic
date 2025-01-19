@@ -1,10 +1,13 @@
 use crate::engine::Engine;
 use librustic::{
     basetypes::error::{ErrFatal, ErrNormal, ErrUci},
-    communication::uci::{
-        cmd_in::UciIn,
-        cmd_out::UciOut,
-        defs::{Name, Value},
+    communication::{
+        defs::EngineOutput,
+        uci::{
+            cmd_in::UciIn,
+            cmd_out::UciOut,
+            defs::{Name, Value},
+        },
     },
     defs::FEN_START_POSITION,
     search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
@@ -20,8 +23,8 @@ impl Engine {
         search_params.verbosity = self.settings.verbosity;
 
         match command {
-            UciIn::Uci => self.comm.send(UciOut::Id),
-            UciIn::IsReady => self.comm.send(UciOut::ReadyOk),
+            UciIn::Uci => self.comm.send(EngineOutput::Uci(UciOut::Id)),
+            UciIn::IsReady => self.comm.send(EngineOutput::Uci(UciOut::ReadyOk)),
             UciIn::UciNewGame => {
                 self.board
                     .lock()
@@ -45,13 +48,13 @@ impl Engine {
                     for m in moves.iter() {
                         if !self.execute_move(m) && self.debug {
                             let fail = format!("{}: {}", ErrNormal::NOT_LEGAL, m.clone());
-                            self.comm.send(UciOut::InfoString(fail));
+                            self.comm.send(EngineOutput::Uci(UciOut::InfoString(fail)));
                             break;
                         }
                     }
                 } else if self.debug {
                     let fail = format!("{}: {}", ErrNormal::FEN_FAILED, fen.clone());
-                    self.comm.send(UciOut::InfoString(fail));
+                    self.comm.send(EngineOutput::Uci(UciOut::InfoString(fail)));
                 }
             }
             UciIn::GoInfinite => {
@@ -82,8 +85,8 @@ impl Engine {
                 if !name.is_empty() {
                     self.setoption(name, value);
                 } else if self.debug {
-                    self.comm
-                        .send(UciOut::InfoString(String::from(ErrUci::OPTION_NO_NAME)));
+                    let message = UciOut::InfoString(String::from(ErrUci::OPTION_NO_NAME));
+                    self.comm.send(EngineOutput::Uci(message));
                 }
             }
             UciIn::Unknown(cmd) => self.unknown(cmd),
@@ -101,11 +104,9 @@ impl Engine {
             }
             _ => {
                 if self.debug {
-                    self.comm.send(UciOut::InfoString(format!(
-                        "{}: {}",
-                        ErrUci::OPTION_UNKNOWN_NAME,
-                        option
-                    )));
+                    let message =
+                        UciOut::InfoString(format!("{}: {}", ErrUci::OPTION_UNKNOWN_NAME, option));
+                    self.comm.send(EngineOutput::Uci(message));
                 }
             }
         }
@@ -115,11 +116,8 @@ impl Engine {
     // value so this has been extracted into its own function.
     fn setoption_hash(&mut self, option: Name, value: Value) {
         if value.is_none() && self.debug {
-            self.comm.send(UciOut::InfoString(format!(
-                "{}: {}",
-                ErrUci::OPTION_NO_VALUE,
-                option
-            )));
+            let message = UciOut::InfoString(format!("{}: {}", ErrUci::OPTION_NO_VALUE, option));
+            self.comm.send(EngineOutput::Uci(message));
             return;
         }
 
@@ -128,11 +126,9 @@ impl Engine {
                 self.settings.tt_size = size;
                 self.search.transposition_resize(size);
             } else if self.debug {
-                self.comm.send(UciOut::InfoString(format!(
-                    "{}: {}",
-                    ErrUci::OPTION_VALUE_NOT_INT,
-                    option
-                )));
+                let message =
+                    UciOut::InfoString(format!("{}: {}", ErrUci::OPTION_VALUE_NOT_INT, option));
+                self.comm.send(EngineOutput::Uci(message));
             }
         }
     }
@@ -144,19 +140,16 @@ impl Engine {
     //InfoString is printed.) In Rustic, the function handles "board" as a
     // custom command that is not part of the UCI-specification. It may
     // handle other incoming commands as custom in the future as well.
-    fn unknown(&self, command: String) {
-        match command {
-            cmd if cmd == "board" => {
+    fn unknown(&self, cmd: String) {
+        match cmd {
+            c if c == "board" => {
                 let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(UciOut::Custom(board));
+                self.comm.send(EngineOutput::Uci(UciOut::Custom(board)));
             }
             _ => {
                 if self.debug {
-                    self.comm.send(UciOut::InfoString(format!(
-                        "{}: {}",
-                        ErrUci::UNKNOWN_CMD,
-                        command
-                    )));
+                    let message = UciOut::InfoString(format!("{}: {}", ErrUci::UNKNOWN_CMD, cmd));
+                    self.comm.send(EngineOutput::Uci(message));
                 }
             }
         }
