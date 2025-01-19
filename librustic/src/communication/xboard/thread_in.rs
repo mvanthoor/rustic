@@ -34,6 +34,7 @@ impl XBoard {
 
         match input {
             cmd if cmd == "xboard" => XBoardIn::XBoard,
+            cmd if cmd == "new" => XBoardIn::New,
             cmd if cmd == "quit" => XBoardIn::Quit,
             _ => XBoardIn::Unknown(input),
         }

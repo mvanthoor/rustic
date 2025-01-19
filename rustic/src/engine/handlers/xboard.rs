@@ -15,7 +15,8 @@ use librustic::{
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
-            XBoardIn::XBoard => {
+            XBoardIn::XBoard => (),
+            XBoardIn::New => {
                 self.board
                     .lock()
                     .expect(ErrFatal::LOCK)
