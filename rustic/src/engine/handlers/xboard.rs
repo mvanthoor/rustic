@@ -5,6 +5,7 @@ use librustic::{
         defs::EngineOutput,
         xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
     },
+    defs::FEN_START_POSITION,
 };
 
 // This is the UCI handler. It handles the incoming UCI commands and when
@@ -14,6 +15,14 @@ use librustic::{
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
+            XBoardIn::XBoard => {
+                self.board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_setup(Some(FEN_START_POSITION))
+                    .expect(ErrFatal::NEW_GAME);
+                self.search.transposition_clear();
+            }
             XBoardIn::Quit => self.quit(),
             XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
         }

@@ -33,6 +33,7 @@ impl XBoard {
         let input = buffer.trim_end().to_string();
 
         match input {
+            cmd if cmd == "xboard" => XBoardIn::XBoard,
             cmd if cmd == "quit" => XBoardIn::Quit,
             _ => XBoardIn::Unknown(input),
         }
