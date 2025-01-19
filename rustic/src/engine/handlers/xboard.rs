@@ -1,9 +1,8 @@
 use crate::engine::Engine;
 use librustic::{
-    basetypes::error::{ErrFatal, ErrUci},
+    basetypes::error::{ErrFatal, ErrXboard},
     communication::{
         defs::EngineOutput,
-        uci::cmd_out::UciOut,
         xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
     },
 };
@@ -31,11 +30,12 @@ impl Engine {
         match cmd {
             c if c == "board" => {
                 let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(EngineOutput::Uci(UciOut::Custom(board)));
+                self.comm
+                    .send(EngineOutput::XBoard(XBoardOut::Custom(board)));
             }
             _ => {
                 if self.debug {
-                    let message = XBoardOut::Custom(format!("{}: {}", ErrUci::UNKNOWN_CMD, cmd));
+                    let message = XBoardOut::Custom(format!("{}: {}", ErrXboard::UNKNOWN_CMD, cmd));
                     self.comm.send(EngineOutput::XBoard(message));
                 }
             }

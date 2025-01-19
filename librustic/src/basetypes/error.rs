@@ -33,3 +33,8 @@ impl ErrUci {
     pub const OPTION_NO_VALUE: &str = "Value is required for option";
     pub const OPTION_VALUE_NOT_INT: &str = "Value must be integer for option";
 }
+
+pub struct ErrXboard;
+impl ErrXboard {
+    pub const UNKNOWN_CMD: &str = "Unknown command";
+}

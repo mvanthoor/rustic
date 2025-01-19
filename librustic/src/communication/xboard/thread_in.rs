@@ -1,9 +1,8 @@
 use crate::basetypes::error::ErrFatal;
 use crate::communication::defs::EngineInput;
+use crate::communication::xboard::cmd_in::XBoardIn;
 use crate::communication::xboard::XBoard;
 use std::{io, sync::mpsc::Sender, thread};
-
-use super::cmd_in::XBoardIn;
 
 impl XBoard {
     pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
@@ -33,6 +32,9 @@ impl XBoard {
     fn get_incoming_command(buffer: &str) -> XBoardIn {
         let input = buffer.trim_end().to_string();
 
-        XBoardIn::Unknown(input)
+        match input {
+            cmd if cmd == "quit" => XBoardIn::Quit,
+            _ => XBoardIn::Unknown(input),
+        }
     }
 }
