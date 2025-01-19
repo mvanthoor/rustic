@@ -20,6 +20,7 @@ use librustic::{
         defs::{EngineInput, EngineOutput, EngineState, IComm},
         feature::Feature,
         uci::{cmd_out::UciOut, Uci},
+        xboard::XBoard,
     },
     defs::{About, EngineRunResult},
     misc::perft,
@@ -67,7 +68,7 @@ impl Engine {
 
         let comm: Box<dyn IComm> = match cmdline.comm() {
             protocol if protocol == "uci" => Box::new(Uci::new(about)),
-            protocol if protocol == "xboard" => Box::new(Uci::new(about)),
+            protocol if protocol == "xboard" => Box::new(XBoard::new(about)),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
 
