@@ -19,14 +19,14 @@ impl MoveGenerator {
         for sq in RangeOf::SQUARES {
             let bb_square = BB_SQUARES[sq];
             let bb_moves =
-            (bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R8]) << 7
-            | (bb_square & !BB_RANKS[Ranks::R8]) << 8
-            | (bb_square & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R8]) << 9
-            | (bb_square & !BB_FILES[Files::H]) << 1
-            | (bb_square & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R1]) >> 7
-            | (bb_square & !BB_RANKS[Ranks::R1]) >> 8
-            | (bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R1]) >> 9
-            | (bb_square & !BB_FILES[Files::A]) >> 1;
+            ((bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R8]) << 7)
+            | ((bb_square & !BB_RANKS[Ranks::R8]) << 8)
+            | ((bb_square & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R8]) << 9)
+            | ((bb_square & !BB_FILES[Files::H]) << 1)
+            | ((bb_square & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R1]) >> 7)
+            | ((bb_square & !BB_RANKS[Ranks::R1]) >> 8)
+            | ((bb_square & !BB_FILES[Files::A] & !BB_RANKS[Ranks::R1]) >> 9)
+            | ((bb_square & !BB_FILES[Files::A]) >> 1);
             self.king[sq] = bb_moves;
         }
     }
@@ -42,14 +42,14 @@ impl MoveGenerator {
     for sq in RangeOf::SQUARES {
         let bb_square = BB_SQUARES[sq];
         let bb_moves =
-            (bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::A]) << 15
-            | (bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::H]) << 17
-            | (bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !BB_RANKS[Ranks::R8]) << 6
-            | (bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R8]) << 10
-            | (bb_square & !BB_RANKS[Ranks::R1] & !BB_RANKS[Ranks::R2] & !BB_FILES[Files::A]) >> 17
-            | (bb_square & !BB_RANKS[Ranks::R1] & !BB_RANKS[Ranks::R2] & !BB_FILES[Files::H]) >> 15
-            | (bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !BB_RANKS[Ranks::R1]) >> 10
-            | (bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R1]) >> 6;
+            ((bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::A]) << 15)
+            | ((bb_square & !BB_RANKS[Ranks::R8] & !BB_RANKS[Ranks::R7] & !BB_FILES[Files::H]) << 17)
+            | ((bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !BB_RANKS[Ranks::R8]) << 6)
+            | ((bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R8]) << 10)
+            | ((bb_square & !BB_RANKS[Ranks::R1] & !BB_RANKS[Ranks::R2] & !BB_FILES[Files::A]) >> 17)
+            | ((bb_square & !BB_RANKS[Ranks::R1] & !BB_RANKS[Ranks::R2] & !BB_FILES[Files::H]) >> 15)
+            | ((bb_square & !BB_FILES[Files::A] & !BB_FILES[Files::B] & !BB_RANKS[Ranks::R1]) >> 10)
+            | ((bb_square & !BB_FILES[Files::G] & !BB_FILES[Files::H] & !BB_RANKS[Ranks::R1]) >> 6);
         self.knight[sq] = bb_moves;
     }
 }
@@ -62,10 +62,10 @@ impl MoveGenerator {
     pub fn init_pawns(&mut self) {
         for sq in RangeOf::SQUARES {
             let bb_square = BB_SQUARES[sq];
-            let w = (bb_square & !BB_FILES[Files::A]) << 7 | (bb_square & !BB_FILES[Files::H]) << 9;
-            let b = (bb_square & !BB_FILES[Files::A]) >> 9 | (bb_square & !BB_FILES[Files::H]) >> 7;
-            self.pawns[Sides::WHITE][sq] = w;
-            self.pawns[Sides::BLACK][sq] = b;
+            self.pawns[Sides::WHITE][sq] =
+                ((bb_square & !BB_FILES[Files::A]) << 7) | ((bb_square & !BB_FILES[Files::H]) << 9);
+            self.pawns[Sides::BLACK][sq] =
+                ((bb_square & !BB_FILES[Files::A]) >> 9) | ((bb_square & !BB_FILES[Files::H]) >> 7);
         }
     }
 

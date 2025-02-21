@@ -248,12 +248,12 @@ impl MoveGenerator {
 
             // Gather all data for this move into one 64-bit integer.
             let mut move_data = (piece)
-                | from << Shift::FROM_SQ
-                | to_square << Shift::TO_SQ
-                | capture << Shift::CAPTURE
-                | (en_passant as usize) << Shift::EN_PASSANT
-                | (double_step as usize) << Shift::DOUBLE_STEP
-                | (castling as usize) << Shift::CASTLING;
+                | (from << Shift::FROM_SQ)
+                | (to_square << Shift::TO_SQ)
+                | (capture << Shift::CAPTURE)
+                | ((en_passant as usize) << Shift::EN_PASSANT)
+                | ((double_step as usize) << Shift::DOUBLE_STEP)
+                | ((castling as usize) << Shift::CASTLING);
 
             // Push the move to the piece list...
             if !promotion {
