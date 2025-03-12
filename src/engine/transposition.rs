@@ -69,6 +69,7 @@ impl PerftData {
 }
 
 #[derive(Copy, Clone)]
+#[repr(u8)]
 pub enum HashFlag {
     Nothing,
     Exact,
@@ -237,10 +238,8 @@ impl<D: IHashData + Copy> Bucket<D> {
 // Transposition Table
 pub struct TT<D> {
     tt: Vec<Bucket<D>>,
-    megabytes: usize,
     used_entries: usize,
     total_buckets: usize,
-    total_entries: usize,
 }
 
 // Public functions
@@ -249,14 +248,12 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // of type D, where D has to implement IHashData, and must be clonable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
-        let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
+        let total_buckets = Self::calculate_init_buckets(megabytes);
 
         Self {
             tt: vec![Bucket::<D>::new(); total_buckets],
-            megabytes,
             used_entries: 0,
-            total_buckets,
-            total_entries,
+            total_buckets
         }
     }
 
@@ -265,19 +262,21 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
     pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+        let total_buckets = TT::<D>::calculate_init_buckets(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
-        self.megabytes = megabytes;
+        self.resize_to_bucket_count(total_buckets);
+    }
+
+    fn resize_to_bucket_count(&mut self, buckets: usize) {
+        self.tt = vec![Bucket::<D>::new(); buckets];
         self.used_entries = 0;
-        self.total_buckets = total_buckets;
-        self.total_entries = total_entries;
+        self.total_buckets = buckets;
     }
 
     // Insert a position at the calculated index, by storing it in the
     // index's bucket.
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
-        if self.megabytes > 0 {
+        if self.total_buckets > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
             self.tt[index].store(verification, data, &mut self.used_entries);
@@ -287,7 +286,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
     pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
-        if self.megabytes > 0 {
+        if self.total_buckets > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
 
@@ -299,14 +298,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        self.resize(self.megabytes);
+        self.resize_to_bucket_count(self.total_buckets);
     }
 
     // Provides TT usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
-        if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+        if self.total_buckets > 0 {
+            ((self.used_entries as f64 / (self.total_buckets * ENTRIES_PER_BUCKET) as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -332,14 +331,11 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         (zobrist_key & LOW_FOUR_BYTES) as u32
     }
 
-    // This function calculates the values for total_buckets and
-    // total_entries. These depend on the requested TT size.
-    fn calculate_init_values(megabytes: usize) -> (usize, usize) {
-        let entry_size = std::mem::size_of::<Entry<D>>();
-        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
-        let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
-
-        (total_buckets, total_entries)
+    // This function calculates the value for total_buckets depending on the
+    // requested TT size.
+    fn calculate_init_buckets(megabytes: usize) -> usize {
+        const BUCKET_SIZE: usize = size_of::<Bucket<D>>();
+        const BUCKETS_PER_MB: usize = MEGABYTE / BUCKET_SIZE;
+        megabytes * BUCKETS_PER_MB
     }
 }
