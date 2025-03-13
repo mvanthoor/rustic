@@ -15,9 +15,7 @@ clap = "4.4.18"
 crossbeam-channel = "0.5.11"
 smallvec = "1.14.0"
 explicit_cast = "1.0.0"
-concurrent-map = "5.0.37"
-by_address = "1.2.1"
-thread_local = "1.1.8"
+dashmap = "6.1.0"
 parking_lot = "0.12.3"
 
 [features]

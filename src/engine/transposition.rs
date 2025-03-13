@@ -21,13 +21,11 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
-use std::sync::Arc;
-use parking_lot::{RwLock, Mutex};
-use by_address::ByAddress;
-use concurrent_map::ConcurrentMap;
+use parking_lot::RwLock;
+use dashmap::DashMap;
+use dashmap::Entry::Occupied;
 use explicit_cast::{Truncate, TruncateFrom};
 use smallvec::{smallvec, SmallVec};
-use thread_local::ThreadLocal;
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 use crate::board::Board;
 
@@ -475,11 +473,10 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 }
 
-type OurMap = ConcurrentMap<u32, ByAddress<Arc<RwLock<TT<SearchData>>>>>;
+type OurMap = DashMap<u32, RwLock<TT<SearchData>>>;
 
 pub struct TTree {
-    map: Mutex<OurMap>,
-    tts: Arc<ThreadLocal<OurMap>>,
+    map: OurMap,
     max_size: AtomicUsize,
     room_to_grow: AtomicIsize
 }
@@ -488,59 +485,46 @@ impl TTree {
     pub fn new(size_mb: usize) -> Self {
         let size_bytes = size_mb * MEGABYTE;
         Self {
-            tts: Arc::new(ThreadLocal::new()),
-            map: Mutex::new(ConcurrentMap::new()),
+            map: DashMap::new(),
             max_size: AtomicUsize::new(size_bytes),
             room_to_grow: AtomicIsize::new(size_bytes as isize)
         }
     }
 
     fn get_map(&self) -> &OurMap {
-        self.tts.get_or(|| self.map.lock().to_owned())
+        &self.map
     }
 
     pub fn size_bytes(&self) -> usize {
         size_of::<Self>() + self.get_map()
             .iter()
-            .map(|(_, v)| v.read().size_bytes() + size_of::<u32>())
+            .map(|v| v.value().read().size_bytes() + size_of::<u32>())
             .sum::<usize>()
     }
 
     pub fn insert(&self, board: &Board, value: SearchData) {
         let zobrist_key = board.game_state.zobrist_key;
-        let new_table_size_if_any = AtomicUsize::new(0);
-        let entry = self.get_map().update_and_fetch(board.monotonic_hash(), |entry| {
-            match entry {
-                Some(ref e) => {
-                    new_table_size_if_any.store(0, Ordering::Release);
-                    Some(ByAddress::from(Arc::clone(e)))
-                },
-                None => {
-                    let mut new_buckets: SmallVec<[RehashableBucket<SearchData>; MIN_BUCKETS_PER_TABLE]> = smallvec![RehashableBucket::<SearchData>::new(); MIN_BUCKETS_PER_TABLE];
-                    let index = zobrist_key as usize % MIN_BUCKETS_PER_TABLE;
-                    new_buckets[index].bucket[0].verification = zobrist_key;
-                    new_buckets[index].bucket[0].data = value;
-                    let new_table = TT {
-                        tt: TTCore::FullHash(new_buckets),
-                        used_entries: 1
-                    };
-                    let new_table_size = new_table.tt.size_bytes() as isize;
-                    if self.room_to_grow.fetch_sub(new_table_size, Ordering::AcqRel) - new_table_size < 0 {
-                        self.room_to_grow.fetch_add(new_table_size, Ordering::AcqRel);
-                        return None;
-                    }
-                    new_table_size_if_any.store(new_table_size as usize, Ordering::Release);
-                    Some(ByAddress::from(Arc::new(RwLock::new(new_table))))
+        let entry = self.get_map().entry(board.monotonic_hash());
+        match &entry {
+            Occupied(ref e) => {
+                e.get().write().insert(zobrist_key, value, &self.room_to_grow);
+            },
+            _ => {
+                let mut new_buckets: SmallVec<[RehashableBucket<SearchData>; MIN_BUCKETS_PER_TABLE]> = smallvec![RehashableBucket::<SearchData>::new(); MIN_BUCKETS_PER_TABLE];
+                let index = zobrist_key as usize % MIN_BUCKETS_PER_TABLE;
+                new_buckets[index].bucket[0].verification = zobrist_key;
+                new_buckets[index].bucket[0].data = value;
+                let new_table = TT {
+                    tt: TTCore::FullHash(new_buckets),
+                    used_entries: 1
+                };
+                let new_table_size = new_table.tt.size_bytes() as isize;
+                if self.room_to_grow.fetch_sub(new_table_size, Ordering::AcqRel) - new_table_size < 0 {
+                    self.room_to_grow.fetch_add(new_table_size, Ordering::AcqRel);
+                    return;
                 }
+                entry.insert(RwLock::new(new_table));
             }
-        });
-        let new_table_size = new_table_size_if_any.into_inner();
-        if new_table_size == 0 {
-            if let Some(entry) = entry {
-                entry.write().insert(zobrist_key, value, &self.room_to_grow);
-            }
-        } else {
-            self.room_to_grow.fetch_sub(new_table_size as isize, Ordering::Release);
         }
     }
 
@@ -552,18 +536,14 @@ impl TTree {
         let max_size = self.max_size.load(Ordering::Acquire);
         let current_size = self.get_map()
             .iter()
-            .map(|(_, v)| size_of::<u32>() + size_of::<NonRehashableEntry<SearchData>>() * v.read().used_entries)
+            .map(|v| size_of::<u32>() + size_of::<NonRehashableEntry<SearchData>>() * v.value().read().used_entries)
             .sum::<usize>();
         ((current_size * 1000 + 500) / max_size) as u16
     }
 
     pub fn remove_unreachable(&self, new_monotonic_hash: u32) {
-        let unreachable = (new_monotonic_hash + 1)..=u32::MAX;
-        let mut bytes_freed: usize = 0;
-        while let Some((_, tt)) = self.get_map().pop_last_in_range(unreachable.clone()) {
-            bytes_freed += tt.read().size_bytes() + size_of::<u32>();
-        }
-        self.room_to_grow.fetch_add(bytes_freed as isize, Ordering::AcqRel);
+        self.map.retain(|k, _| k <= &new_monotonic_hash);
+        self.recalculate_room_to_grow();
     }
 
     fn recalculate_room_to_grow(&self) -> isize {
@@ -573,7 +553,7 @@ impl TTree {
     }
 
     pub fn clear(&self) {
-        while self.get_map().pop_last().is_some() {}
+        self.get_map().clear();
         self.room_to_grow.store(self.max_size.load(Ordering::SeqCst) as isize, Ordering::SeqCst);
     }
 
@@ -590,14 +570,14 @@ impl TTree {
         let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::SeqCst) + size_change;
         while new_room_to_grow < 0 {
             let max_buckets = self.get_map().iter().map(
-                |(_, tt)| tt.read().tt.len()).max().unwrap();
+                |tt| tt.value().read().tt.len()).max().unwrap();
             let new_max_buckets = max_buckets / 2;
             if new_max_buckets < 1 {
                 return;
             }
             let mut bytes_freed = 0;
-            for (_, tt) in self.get_map().iter() {
-                let mut tt = tt.write();
+            for tt in self.get_map().iter() {
+                let mut tt = tt.value().write();
                 if tt.tt.len() > new_max_buckets {
                     let old_size = tt.tt.size_bytes();
                     tt.resize_to_bucket_count(new_max_buckets, &self.room_to_grow);
