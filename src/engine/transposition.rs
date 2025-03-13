@@ -491,22 +491,28 @@ impl TTree {
     }
 
     pub fn insert(&self, board: &Board, value: SearchData) {
+        let zobrist_key = board.game_state.zobrist_key;
         let new_table_size = AtomicUsize::new(0);
-        self.get_map().update_and_fetch(board.monotonic_hash(), |entry| {
+        let entry = self.get_map().update_and_fetch(board.monotonic_hash(), |entry| {
             match entry {
                 Some(ref e) => {
                     new_table_size.store(0, Ordering::Release);
-                    e.write().expect(ErrFatal::LOCK).insert(board.game_state.zobrist_key, value, &self.room_to_grow);
                     Some(ByAddress::from(e.deref().clone()))
                 },
                 None => {
-                    let new_table = TT::new_with_buckets(1);
+                    let mut new_table = TT::new_with_buckets(1);
                     new_table_size.store(new_table.tt.size_bytes(), Ordering::Release);
+                    new_table.insert(zobrist_key, value, &self.room_to_grow);
                     Some(ByAddress::from(Arc::new(RwLock::new(new_table))))
                 }
             }
         });
-        self.room_to_grow.fetch_sub(new_table_size.into_inner() as isize, Ordering::Release);
+        let new_table_size = new_table_size.into_inner();
+        if new_table_size == 0 {
+            entry.unwrap().write().expect(ErrFatal::LOCK).insert(zobrist_key, value, &self.room_to_grow);
+        } else {
+            self.room_to_grow.fetch_sub(new_table_size as isize, Ordering::Release);
+        }
     }
 
     pub fn probe(&self, board: &Board) -> Option<SearchData> {
