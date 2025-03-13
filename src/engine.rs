@@ -43,6 +43,7 @@ use crate::{
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicIsize;
 use transposition::{PerftData, TT};
 
 use crate::engine::transposition::TTree;
@@ -122,10 +123,10 @@ impl Engine {
         let tt_search: Arc<Mutex<TTree>>;
         if cmdline.perft() > 0 {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
-            tt_search = Arc::new(Mutex::new(TTree::new()));
+            tt_search = Arc::new(Mutex::new(TTree::new(0)));
         } else {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(0)));
-            tt_search = Arc::new(Mutex::new(TTree::new()));
+            tt_search = Arc::new(Mutex::new(TTree::new(tt_size)));
         };
 
         // Create the engine itself.
@@ -200,7 +201,7 @@ impl Engine {
             self.tt_perft
                 .lock()
                 .expect(ErrFatal::LOCK)
-                .resize(self.settings.tt_size);
+                .resize(self.settings.tt_size, &AtomicIsize::new(isize::MAX));
             self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
         }

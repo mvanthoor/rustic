@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicIsize, Ordering};
 use explicit_cast::{Truncate, TruncateFrom};
 use smallvec::{smallvec, SmallVec};
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
@@ -270,6 +271,13 @@ impl<D> TTCore<D> {
         }
     }
 
+    pub(crate) fn size_bytes(&self) -> usize {
+        size_of::<Self>() + match self {
+            TTCore::Growable(ref tt) => tt.len() * std::mem::size_of::<RehashableBucket<D>>(),
+            TTCore::NonGrowable(ref tt) => tt.len() * std::mem::size_of::<NonRehashableBucket<D>>(),
+        }
+    }
+
     // Calculate the index (bucket) where the data is going to be stored.
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
@@ -312,14 +320,28 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // new one. (We don't use Vec's resize function, because it clones
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
-    pub fn resize(&mut self, megabytes: usize) {
+    pub fn resize(&mut self, megabytes: usize, room_to_grow: &AtomicIsize) {
         let total_buckets = TT::<D>::calculate_init_buckets(megabytes);
 
-        self.resize_to_bucket_count(total_buckets);
+        self.resize_to_bucket_count(total_buckets, room_to_grow);
     }
 
-    fn resize_to_bucket_count(&mut self, buckets: usize) {
+    fn resize_to_bucket_count(&mut self, buckets: usize, room_to_grow: &AtomicIsize) -> bool {
         let old_bucket_count = self.tt.len();
+        let old_size_bytes = self.tt.size_bytes();
+        let new_size_bytes = size_of::<TTCore<D>>() + if buckets > PRESERVING_RESIZE_LIMIT {
+            buckets * std::mem::size_of::<RehashableBucket<D>>()
+        } else {
+            buckets * std::mem::size_of::<NonRehashableBucket<D>>()
+        };
+        if new_size_bytes > old_size_bytes {
+            if room_to_grow.fetch_sub((new_size_bytes - old_size_bytes) as isize, Ordering::AcqRel) < 0 {
+                room_to_grow.fetch_add((new_size_bytes - old_size_bytes) as isize, Ordering::AcqRel);
+                return false;
+            }
+        } else {
+            room_to_grow.fetch_add((old_size_bytes - new_size_bytes) as isize, Ordering::AcqRel);
+        }
         if buckets > PRESERVING_RESIZE_LIMIT {
             self.tt = TTCore::NonGrowable(vec![NonRehashableBucket::<D>::new(); buckets]);
             self.used_entries = 0;
@@ -344,31 +366,36 @@ impl<D: IHashData + Copy + Clone> TT<D> {
                         }
                     }
                 }
-                return;
+                return true;
             }
         }
         self.tt = TTCore::Growable(smallvec![RehashableBucket::<D>::new(); buckets]);
         self.used_entries = 0;
+        return true;
     }
 
     // Insert a position at the calculated index, by storing it in the
     // index's bucket.
-    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
+    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D, room_to_grow: &AtomicIsize) {
         if self.tt.len() > 0 {
             let verification = self.calculate_verification(zobrist_key);
             while let TTCore::Growable(ref mut tt) = self.tt {
                 let index = zobrist_key as usize % tt.len();
                 if !tt[index].store(verification, data, &mut self.used_entries, false) {
-                    self.resize_to_bucket_count(self.tt.len() * 4);
+                    if !self.resize_to_bucket_count(self.tt.len() * 4, room_to_grow) {
+                        if !self.resize_to_bucket_count(self.tt.len() * 2, room_to_grow) {
+                            break;
+                        }
+                    }
                 } else {
                     return;
                 }
             }
-            let TTCore::NonGrowable(ref mut tt) = self.tt else {
-                unreachable!();
+            let index = zobrist_key as usize % self.tt.len();
+            match self.tt {
+                TTCore::Growable(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
+                TTCore::NonGrowable(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
             };
-            let index = zobrist_key as usize % tt.len();
-            tt[index].store(verification, data, &mut self.used_entries, true);
         }
     }
 
@@ -402,7 +429,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        self.resize_to_bucket_count(self.tt.len());
+        self.tt = TTCore::Growable(smallvec![RehashableBucket::<D>::new()]);
+        self.used_entries = 0;
     }
 
     // Provides TT usage in permille (1 per 1000, as oppposed to percent,
@@ -432,45 +460,66 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 }
 
-pub struct TTree(BTreeMap<u32, TT<SearchData>>);
+pub struct TTree {
+    tts: BTreeMap<u32, TT<SearchData>>,
+    max_size: usize,
+    room_to_grow: AtomicIsize
+}
+
 impl TTree {
-    pub fn new() -> Self {
-        Self(BTreeMap::new())
+    pub fn new(size_mb: usize) -> Self {
+        let size_bytes = size_mb * MEGABYTE;
+        Self {
+            tts: BTreeMap::new(),
+            max_size: size_bytes,
+            room_to_grow: AtomicIsize::new(size_bytes as isize)
+        }
     }
 
     pub fn insert(&mut self, board: &Board, value: SearchData) {
-        let entry = self.0.entry(board.monotonic_hash()).or_insert_with(|| TT::new_with_buckets(1));
-        entry.insert(board.game_state.zobrist_key, value);
+        let entry = self.tts.entry(board.monotonic_hash()).or_insert_with(|| TT::new_with_buckets(1));
+        entry.insert(board.game_state.zobrist_key, value, &self.room_to_grow);
     }
 
     pub fn probe(&self, board: &Board) -> Option<&SearchData> {
-        self.0.get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
+        self.tts.get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
     }
 
     pub fn probe_mut(&mut self, board: &Board) -> Option<&mut SearchData> {
-        self.0.get_mut(&board.monotonic_hash())?.probe_mut(board.game_state.zobrist_key)
+        self.tts.get_mut(&board.monotonic_hash())?.probe_mut(board.game_state.zobrist_key)
     }
 
     pub fn hash_full(&self) -> u16 {
-        let total_buckets: usize = self.0.values().map(|t| t.tt.len()).sum();
-        let total_entries: usize = self.0.values().map(|t| t.used_entries).sum();
-        ((total_entries * 1000 + 500) / (total_buckets * ENTRIES_PER_BUCKET)) as u16
+        let max_buckets = (self.max_size - (self.tts.len() * size_of::<TT<SearchData>>())) / size_of::<NonRehashableBucket<SearchData>>();
+        let total_entries: usize = self.tts.values().map(|t| t.used_entries).sum();
+        ((total_entries * 1000 + 500) / (max_buckets * ENTRIES_PER_BUCKET)) as u16
     }
 
     pub fn remove_unreachable(&mut self, board: &Board) {
-        self.0.split_off(&(board.monotonic_hash() + 1));
+        self.tts.split_off(&(board.monotonic_hash() + 1));
     }
 
     pub fn clear(&mut self) {
-        self.0.clear();
+        self.tts.clear();
     }
 
-    pub fn resize_to_max(&mut self, megabytes: usize) {
-        let max_buckets = TT::<SearchData>::calculate_init_buckets(megabytes);
-        for tt in self.0.values_mut() {
-            if tt.tt.len() > max_buckets {
-                tt.resize_to_bucket_count(max_buckets);
+    pub fn resize(&mut self, megabytes: usize) {
+        let new_max_size = megabytes * MEGABYTE;
+        let size_change = new_max_size as isize - self.max_size as isize;
+        self.max_size = new_max_size;
+        let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::AcqRel);
+        while new_room_to_grow < 0 {
+            let max_buckets = self.tts.iter().map(|(_, tt)| tt.tt.len()).max().unwrap();
+            let new_max_buckets = max_buckets / 2;
+            let mut bytes_freed = 0;
+            for tt in self.tts.values_mut() {
+                if tt.tt.len() > new_max_buckets {
+                    let old_size = tt.tt.size_bytes();
+                    tt.resize_to_bucket_count(new_max_buckets, &self.room_to_grow);
+                    bytes_freed += (old_size - tt.tt.size_bytes()) as isize;
+                }
             }
+            new_room_to_grow += bytes_freed;
         }
     }
 }

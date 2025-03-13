@@ -34,6 +34,7 @@ use std::{
     sync::{Arc, Mutex},
     time::Instant,
 };
+use std::sync::atomic::AtomicIsize;
 
 // This function runs perft(), while collecting speed information.
 // It uses iterative deepening, so when running perft(7), it will output
@@ -160,6 +161,7 @@ pub fn perft(
         tt.lock().expect(ErrFatal::LOCK).insert(
             board.game_state.zobrist_key,
             PerftData::create(depth, leaf_nodes),
+            &AtomicIsize::new(isize::MAX)
         )
     }
 
