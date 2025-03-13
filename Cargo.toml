@@ -18,6 +18,7 @@ explicit_cast = "1.0.0"
 concurrent-map = "5.0.37"
 by_address = "1.2.1"
 thread_local = "1.1.8"
+parking_lot = "0.12.3"
 
 [features]
 extra = []

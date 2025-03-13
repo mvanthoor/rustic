@@ -267,6 +267,7 @@ dependencies = [
  "crossbeam-channel",
  "explicit_cast",
  "if_chain",
+ "parking_lot",
  "rand",
  "rand_chacha",
  "rand_core",
