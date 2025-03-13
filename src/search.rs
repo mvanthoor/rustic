@@ -34,7 +34,7 @@ mod utils;
 use crate::{
     board::Board,
     engine::defs::{ErrFatal, Information},
-    engine::defs::{SearchData, TT},
+    engine::defs::{TTree},
     movegen::MoveGenerator,
 };
 use crossbeam_channel::Sender;
@@ -65,7 +65,7 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
-        tt: Arc<Mutex<TT<SearchData>>>,
+        tt: Arc<Mutex<TTree>>,
         tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands

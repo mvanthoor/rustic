@@ -20,14 +20,14 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
-
+use std::collections::BTreeMap;
+use smallvec::{smallvec, SmallVec};
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
+use crate::board::Board;
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
-const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
-const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
-const SHIFT_TO_LOWER: u64 = 32;
+const PRESERVING_RESIZE_LIMIT: usize = 1024;
 
 /* ===== Data ========================================================= */
 
@@ -78,6 +78,7 @@ pub enum HashFlag {
 }
 
 #[derive(Copy, Clone)]
+#[repr(packed)]
 pub struct SearchData {
     depth: i8,
     flag: HashFlag,
@@ -172,7 +173,7 @@ impl SearchData {
 
 #[derive(Copy, Clone)]
 struct Entry<D> {
-    verification: u32,
+    verification: u64,
     data: D,
 }
 
@@ -201,7 +202,7 @@ impl<D: IHashData + Copy> Bucket<D> {
 
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
+    pub fn store(&mut self, verification: u64, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
         let mut idx_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
@@ -215,18 +216,32 @@ impl<D: IHashData + Copy> Bucket<D> {
         // used before. Count the use of this entry.
         if self.bucket[idx_lowest_depth].verification == 0 {
             *used_entries += 1;
+        } else if !overwrite {
+            // If the entry was used before, and we're not overwriting
+            // the entry, return false.
+            return false;
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+        self.bucket[idx_lowest_depth] = Entry { verification, data };
+        true
     }
 
     // Find a position in the bucket, where both the stored verification and
     // depth match the requested verification and depth.
-    pub fn find(&self, verification: u32) -> Option<&D> {
+    pub fn find(&self, verification: u64) -> Option<&D> {
         for e in self.bucket.iter() {
             if e.verification == verification {
                 return Some(&e.data);
+            }
+        }
+        None
+    }
+
+    pub fn find_mut(&mut self, verification: u64) -> Option<&mut D> {
+        for e in self.bucket.iter_mut() {
+            if e.verification == verification {
+                return Some(&mut e.data);
             }
         }
         None
@@ -237,9 +252,8 @@ impl<D: IHashData + Copy> Bucket<D> {
 
 // Transposition Table
 pub struct TT<D> {
-    tt: Vec<Bucket<D>>,
+    tt: SmallVec<[Bucket<D>; 1]>,
     used_entries: usize,
-    total_buckets: usize,
 }
 
 // Public functions
@@ -250,10 +264,13 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     pub fn new(megabytes: usize) -> Self {
         let total_buckets = Self::calculate_init_buckets(megabytes);
 
+        Self::new_with_buckets(total_buckets)
+    }
+
+    fn new_with_buckets(buckets: usize) -> TT<D> {
         Self {
-            tt: vec![Bucket::<D>::new(); total_buckets],
-            used_entries: 0,
-            total_buckets
+            tt: smallvec![Bucket::<D>::new(); buckets],
+            used_entries: 0
         }
     }
 
@@ -268,25 +285,55 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 
     fn resize_to_bucket_count(&mut self, buckets: usize) {
-        self.tt = vec![Bucket::<D>::new(); buckets];
-        self.used_entries = 0;
-        self.total_buckets = buckets;
+        let old_bucket_count = self.tt.len();
+        if buckets > old_bucket_count && buckets <= PRESERVING_RESIZE_LIMIT {
+            self.tt.resize(buckets, Bucket::<D>::new());
+            let (old_buckets, new_buckets) = self.tt.split_at_mut(old_bucket_count);
+            for (index, bucket) in old_buckets.iter_mut().enumerate() {
+                for entry in bucket.bucket.iter_mut() {
+                    if entry.verification != 0 {
+                        let zobrist_key = entry.verification;
+                        let new_index = zobrist_key as usize % buckets;
+                        if new_index != index {
+                            debug_assert!(new_index > index, "rehashing from bucket {} of {} to bucket {} of {}",
+                                          index, old_bucket_count, new_index, buckets);
+                            debug_assert!(new_index - old_bucket_count < new_buckets.len(),
+                                          "rehashing from bucket {} of {} to bucket {} of {}",
+                                          index, old_bucket_count, new_index, buckets);
+                            new_buckets[new_index - old_bucket_count].store(entry.verification, entry.data, &mut self.used_entries, false);
+                            entry.clone_from(&Entry::new());
+                        }
+                    }
+                }
+            }
+        } else {
+            self.tt = smallvec![Bucket::<D>::new(); buckets];
+            self.used_entries = 0;
+        }
     }
 
     // Insert a position at the calculated index, by storing it in the
     // index's bucket.
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
-        if self.total_buckets > 0 {
-            let index = self.calculate_index(zobrist_key);
+        if self.tt.len() > 0 {
             let verification = self.calculate_verification(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_entries);
+            while self.tt.len() < PRESERVING_RESIZE_LIMIT {
+                let index = self.calculate_index(zobrist_key);
+                if !self.tt[index].store(verification, data, &mut self.used_entries, false) {
+                    self.resize_to_bucket_count(self.tt.len() * 4);
+                } else {
+                    return;
+                }
+            }
+            let index = self.calculate_index(zobrist_key);
+            self.tt[index].store(verification, data, &mut self.used_entries, true);
         }
     }
 
     // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
     pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
-        if self.total_buckets > 0 {
+        if self.tt.len() > 0 {
             let index = self.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
 
@@ -296,16 +343,27 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
     }
 
+    pub fn probe_mut(&mut self, zobrist_key: ZobristKey) -> Option<&mut D> {
+        if self.tt.len() > 0 {
+            let index = self.calculate_index(zobrist_key);
+            let verification = self.calculate_verification(zobrist_key);
+
+            self.tt[index].find_mut(verification)
+        } else {
+            None
+        }
+    }
+
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        self.resize_to_bucket_count(self.total_buckets);
+        self.resize_to_bucket_count(self.tt.len());
     }
 
     // Provides TT usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
-        if self.total_buckets > 0 {
-            ((self.used_entries as f64 / (self.total_buckets * ENTRIES_PER_BUCKET) as f64) * 1000f64).floor() as u16
+        if self.tt.len() > 0 {
+            ((self.used_entries as f64 / (self.tt.len() * ENTRIES_PER_BUCKET) as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -318,24 +376,62 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // Use only the upper half of the Zobrist key for this, so the lower
     // half can be used to calculate a verification.
     fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
-        let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
-        let total = self.total_buckets as u64;
-
-        (key % total) as usize
+        zobrist_key as usize % self.tt.len()
     }
 
     // Many positions will end up at the same index, and thus in the same
     // bucket. Calculate a verification for the position so it can later be
     // found in the bucket. Use the other half of the Zobrist key for this.
-    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
-        (zobrist_key & LOW_FOUR_BYTES) as u32
+    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u64 {
+        zobrist_key
     }
 
     // This function calculates the value for total_buckets depending on the
     // requested TT size.
     fn calculate_init_buckets(megabytes: usize) -> usize {
-        const BUCKET_SIZE: usize = size_of::<Bucket<D>>();
-        const BUCKETS_PER_MB: usize = MEGABYTE / BUCKET_SIZE;
-        megabytes * BUCKETS_PER_MB
+        megabytes * MEGABYTE / size_of::<Bucket<D>>()
+    }
+}
+
+pub struct TTree(BTreeMap<u32, TT<SearchData>>);
+impl TTree {
+    pub fn new() -> Self {
+        Self(BTreeMap::new())
+    }
+
+    pub fn insert(&mut self, board: &Board, value: SearchData) {
+        let entry = self.0.entry(board.monotonic_hash()).or_insert_with(|| TT::new_with_buckets(1));
+        entry.insert(board.game_state.zobrist_key, value);
+    }
+
+    pub fn probe(&self, board: &Board) -> Option<&SearchData> {
+        self.0.get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
+    }
+
+    pub fn probe_mut(&mut self, board: &Board) -> Option<&mut SearchData> {
+        self.0.get_mut(&board.monotonic_hash())?.probe_mut(board.game_state.zobrist_key)
+    }
+
+    pub fn hash_full(&self) -> u16 {
+        let total_buckets: usize = self.0.values().map(|t| t.tt.len()).sum();
+        let total_entries: usize = self.0.values().map(|t| t.used_entries).sum();
+        ((total_entries * 1000 + 500) / (total_buckets * ENTRIES_PER_BUCKET)) as u16
+    }
+
+    pub fn remove_unreachable(&mut self, board: &Board) {
+        self.0.split_off(&(board.monotonic_hash() + 1));
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn resize_to_max(&mut self, megabytes: usize) {
+        let max_buckets = TT::<SearchData>::calculate_init_buckets(megabytes);
+        for tt in self.0.values_mut() {
+            if tt.tt.len() > max_buckets {
+                tt.resize_to_bucket_count(max_buckets);
+            }
+        }
     }
 }

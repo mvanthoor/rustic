@@ -67,7 +67,7 @@ impl Engine {
                 match option {
                     EngineOptionName::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
-                            self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                            self.tt_search.lock().expect(ErrFatal::LOCK).resize_to_max(v);
                         } else {
                             let msg = String::from(ErrNormal::NOT_INT);
                             self.comm.send(CommControl::InfoString(msg));

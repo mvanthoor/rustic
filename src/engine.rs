@@ -43,8 +43,9 @@ use crate::{
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
-use transposition::{PerftData, SearchData, TT};
+use transposition::{PerftData, TT};
 
+use crate::engine::transposition::TTree;
 #[cfg(feature = "extra")]
 use crate::{
     board::defs::Pieces,
@@ -61,7 +62,7 @@ pub struct Engine {
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     tt_perft: Arc<Mutex<TT<PerftData>>>,    // TT for running perft.
-    tt_search: Arc<Mutex<TT<SearchData>>>,  // TT for search information.
+    tt_search: Arc<Mutex<TTree>>,  // TT for search information.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
@@ -118,13 +119,13 @@ impl Engine {
 
         // Initialize correct TT.
         let tt_perft: Arc<Mutex<TT<PerftData>>>;
-        let tt_search: Arc<Mutex<TT<SearchData>>>;
+        let tt_search: Arc<Mutex<TTree>>;
         if cmdline.perft() > 0 {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
-            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(0)));
+            tt_search = Arc::new(Mutex::new(TTree::new()));
         } else {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(0)));
-            tt_search = Arc::new(Mutex::new(TT::<SearchData>::new(tt_size)));
+            tt_search = Arc::new(Mutex::new(TTree::new()));
         };
 
         // Create the engine itself.
@@ -200,7 +201,7 @@ impl Engine {
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .resize(self.settings.tt_size);
-            self.tt_search.lock().expect(ErrFatal::LOCK).resize(0);
+            self.tt_search.lock().expect(ErrFatal::LOCK).clear();
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
         }
         // =====================================================

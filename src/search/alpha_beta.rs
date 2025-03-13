@@ -93,7 +93,7 @@ impl Search {
                 .tt
                 .lock()
                 .expect(ErrFatal::LOCK)
-                .probe(refs.board.game_state.zobrist_key)
+                .probe(refs.board)
             {
                 let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
                 tt_value = tt_result.0;
@@ -204,7 +204,7 @@ impl Search {
             // do not search any further. Insert into TT and return beta.
             if eval_score >= beta {
                 refs.tt.lock().expect(ErrFatal::LOCK).insert(
-                    refs.board.game_state.zobrist_key,
+                    refs.board,
                     SearchData::create(
                         depth,
                         refs.search_info.ply,
@@ -256,7 +256,7 @@ impl Search {
         // We save the best move we found for us; with an ALPHA flag if we
         // didn't improve alpha, or EXACT if we did raise alpha.
         refs.tt.lock().expect(ErrFatal::LOCK).insert(
-            refs.board.game_state.zobrist_key,
+            refs.board,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );
 

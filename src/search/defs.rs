@@ -1,7 +1,7 @@
 use crate::{
     board::Board,
     defs::MAX_PLY,
-    engine::defs::{Information, SearchData, TT},
+    engine::defs::{Information},
     movegen::{
         defs::{Move, ShortMove},
         MoveGenerator,
@@ -12,7 +12,7 @@ use std::{
     sync::{Arc, Mutex},
     time::Instant,
 };
-
+use crate::engine::defs::TTree;
 pub use super::time::OVERHEAD;
 
 pub const INF: i16 = 25_000;
@@ -243,7 +243,7 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub tt: &'a Arc<Mutex<TT<SearchData>>>,
+    pub tt: &'a Arc<Mutex<TTree>>,
     pub tt_enabled: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,
