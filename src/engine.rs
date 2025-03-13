@@ -43,6 +43,7 @@ use crate::{
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
+#[cfg(feature = "extra")]
 use std::sync::atomic::AtomicIsize;
 use transposition::{PerftData, TT};
 

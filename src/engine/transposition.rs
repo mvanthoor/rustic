@@ -496,7 +496,7 @@ impl TTree {
     }
 
     pub fn remove_unreachable(&mut self, board: &Board) {
-        let bytes_freed = self.tts.split_off(&(board.monotonic_hash() + 1)).into_values().map(|tt| tt.tt.size_bytes()).sum();
+        let bytes_freed: usize = self.tts.split_off(&(board.monotonic_hash() + 1)).into_values().map(|tt| tt.tt.size_bytes()).sum();
         self.room_to_grow.fetch_add(bytes_freed as isize, Ordering::AcqRel);
     }
 
