@@ -477,7 +477,11 @@ impl TTree {
     }
 
     pub fn insert(&mut self, board: &Board, value: SearchData) {
-        let entry = self.tts.entry(board.monotonic_hash()).or_insert_with(|| TT::new_with_buckets(1));
+        let entry = self.tts.entry(board.monotonic_hash()).or_insert_with(|| {
+            let out = TT::new_with_buckets(1);
+            self.room_to_grow.fetch_sub(out.tt.size_bytes() as isize, Ordering::AcqRel);
+            out
+        });
         entry.insert(board.game_state.zobrist_key, value, &self.room_to_grow);
     }
 
