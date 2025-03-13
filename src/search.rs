@@ -126,6 +126,9 @@ impl Search {
                     // Start the search using Iterative Deepening.
                     let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
 
+                    let new_monotonic_hash = board.monotonic_hash();
+                    arc_tt.remove_unreachable(new_monotonic_hash);
+
                     // Inform the engine that the search has finished.
                     let information = Information::Search(SearchReport::Finished(best_move));
                     t_report_tx.send(information).expect(ErrFatal::CHANNEL);

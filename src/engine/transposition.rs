@@ -524,8 +524,8 @@ impl TTree {
         ((total_entries * 1000 + 500) / (max_buckets * ENTRIES_PER_BUCKET)) as u16
     }
 
-    pub fn remove_unreachable(&self, board: &Board) {
-        let unreachable = (board.monotonic_hash() + 1)..=u32::MAX;
+    pub fn remove_unreachable(&self, new_monotonic_hash: u32) {
+        let unreachable = (new_monotonic_hash + 1)..=u32::MAX;
         let mut bytes_freed: usize = 0;
         while let Some((_, tt)) = self.get_map().pop_last_in_range(unreachable.clone()) {
             bytes_freed += tt.read().tt.size_bytes();

@@ -65,9 +65,6 @@ impl Engine {
         if let Ok(ips) = is_pseudo_legal {
             let mut board = self.board.lock().expect(ErrFatal::LOCK);
             is_legal = board.make(ips, &self.mg);
-            if is_legal {
-                self.tt_search.remove_unreachable(&*board);
-            }
         }
         is_legal
     }
