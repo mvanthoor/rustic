@@ -496,11 +496,13 @@ impl TTree {
     }
 
     pub fn remove_unreachable(&mut self, board: &Board) {
-        self.tts.split_off(&(board.monotonic_hash() + 1));
+        let bytes_freed = self.tts.split_off(&(board.monotonic_hash() + 1)).into_iter().map(TTCore::size_bytes).sum();
+        self.room_to_grow.fetch_add(bytes_freed as isize, Ordering::AcqRel);
     }
 
     pub fn clear(&mut self) {
         self.tts.clear();
+        self.room_to_grow.store(self.max_size as isize, Ordering::Release);
     }
 
     pub fn resize(&mut self, megabytes: usize) {
