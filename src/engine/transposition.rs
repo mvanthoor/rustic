@@ -34,6 +34,8 @@ use crate::board::Board;
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
 const BUCKETS_FOR_PARTIAL_HASH: usize = 1 << 32;
+const MIN_BUCKETS_PER_TABLE: usize = 1;
+const EXPANSION_FACTORS: [usize; 3] = [8, 4, 2];
 
 /* ===== Data ========================================================= */
 
@@ -263,7 +265,7 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
 // Transposition Table
 #[derive(Eq, PartialEq, Clone)]
 enum TTCore<D> {
-    FullHash(SmallVec<[RehashableBucket<D>; 1]>),
+    FullHash(SmallVec<[RehashableBucket<D>; MIN_BUCKETS_PER_TABLE]>),
     HalfHash(Vec<NonRehashableBucket<D>>),
 }
 
@@ -384,14 +386,19 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D, room_to_grow: &AtomicIsize) {
         if self.tt.len() > 0 {
             let verification = self.calculate_verification(zobrist_key);
-            while let TTCore::FullHash(ref mut tt) = self.tt {
+            'try_store_or_grow: while let TTCore::FullHash(ref mut tt) = self.tt {
                 let index = zobrist_key as usize % tt.len();
                 if !tt[index].store(verification, data, &mut self.used_entries, false) {
-                    if !self.resize_to_bucket_count(self.tt.len() * 4, room_to_grow) {
-                        if !self.resize_to_bucket_count(self.tt.len() * 2, room_to_grow) {
-                            break;
+                    for expansion_factor in EXPANSION_FACTORS {
+                        let new_bucket_count = self.tt.len().checked_mul(expansion_factor);
+                        if let Some(new_bucket_count) = new_bucket_count {
+                            if self.resize_to_bucket_count(new_bucket_count, room_to_grow) {
+                                continue 'try_store_or_grow;
+                            }
                         }
+                        break 'try_store_or_grow;
                     }
+                    break;
                 } else {
                     return;
                 }
@@ -499,7 +506,7 @@ impl TTree {
                     Some(ByAddress::from(Arc::clone(e)))
                 },
                 None => {
-                    let mut new_table = TT::new_with_buckets(1);
+                    let mut new_table = TT::new_with_buckets(MIN_BUCKETS_PER_TABLE);
                     new_table_size.store(new_table.tt.size_bytes(), Ordering::Release);
                     new_table.insert(zobrist_key, value, &self.room_to_grow);
                     Some(ByAddress::from(Arc::new(RwLock::new(new_table))))
