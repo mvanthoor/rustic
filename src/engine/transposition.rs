@@ -20,7 +20,6 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
-use std::ops::Deref;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
 use parking_lot::{RwLock, Mutex};
@@ -377,7 +376,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         }
         self.tt = TTCore::FullHash(smallvec![RehashableBucket::<D>::new(); buckets]);
         self.used_entries = 0;
-        return true;
+        true
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -521,7 +520,7 @@ impl TTree {
 
     pub fn hash_full(&self) -> u16 {
         let max_buckets = (self.max_size.load(Ordering::Relaxed) - (self.get_map().len() * size_of::<TT<SearchData>>())) / size_of::<NonRehashableBucket<SearchData>>();
-        let total_entries: usize = self.get_map().iter().map(|(_, t)| t.read().deref().used_entries).sum();
+        let total_entries: usize = self.get_map().iter().map(|(_, t)| t.read().used_entries).sum();
         ((total_entries * 1000 + 500) / (max_buckets * ENTRIES_PER_BUCKET)) as u16
     }
 
