@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 use std::collections::BTreeMap;
+use explicit_cast::{Truncate, TruncateFrom};
 use smallvec::{smallvec, SmallVec};
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 use crate::board::Board;
@@ -172,15 +173,18 @@ impl SearchData {
 /* ===== Entry ======================================================== */
 
 #[derive(Copy, Clone)]
-struct Entry<D> {
-    verification: u64,
+struct Entry<V: Copy, D> {
+    verification: V,
     data: D,
 }
 
-impl<D: IHashData> Entry<D> {
-    pub fn new() -> Self {
+type RehashableEntry<D> = Entry<u64, D>;
+type NonRehashableEntry<D> = Entry<u32, D>;
+
+impl <V: Copy + TruncateFrom<u128>, D: IHashData> Entry<V, D> {
+    fn new() -> Self {
         Self {
-            verification: 0,
+            verification: 0.truncate(),
             data: D::new(),
         }
     }
@@ -189,20 +193,21 @@ impl<D: IHashData> Entry<D> {
 /* ===== Bucket ======================================================= */
 
 #[derive(Clone)]
-struct Bucket<D> {
-    bucket: [Entry<D>; ENTRIES_PER_BUCKET],
+struct Bucket<E> {
+    bucket: [E; ENTRIES_PER_BUCKET],
 }
 
-impl<D: IHashData + Copy> Bucket<D> {
-    pub fn new() -> Self {
+type RehashableBucket<D> = Bucket<RehashableEntry<D>>;
+type NonRehashableBucket<D> = Bucket<NonRehashableEntry<D>>;
+
+impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFrom<u128> {
+    fn new() -> Self {
         Self {
             bucket: [Entry::new(); ENTRIES_PER_BUCKET],
         }
     }
 
-    // Store a position in the bucket. Replace the position with the stored
-    // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u64, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
+    fn store(&mut self, verification: u64, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
         let mut idx_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
@@ -214,7 +219,7 @@ impl<D: IHashData + Copy> Bucket<D> {
 
         // If the verifiaction was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
+        if self.bucket[idx_lowest_depth].verification == 0.truncate() {
             *used_entries += 1;
         } else if !overwrite {
             // If the entry was used before, and we're not overwriting
@@ -223,13 +228,12 @@ impl<D: IHashData + Copy> Bucket<D> {
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data };
+        self.bucket[idx_lowest_depth] = Entry { verification: (verification as u128).truncate(), data };
         true
     }
 
-    // Find a position in the bucket, where both the stored verification and
-    // depth match the requested verification and depth.
-    pub fn find(&self, verification: u64) -> Option<&D> {
+    fn find(&self, verification: u64) -> Option<&D> {
+        let verification = (verification as u128).truncate();
         for e in self.bucket.iter() {
             if e.verification == verification {
                 return Some(&e.data);
@@ -238,7 +242,8 @@ impl<D: IHashData + Copy> Bucket<D> {
         None
     }
 
-    pub fn find_mut(&mut self, verification: u64) -> Option<&mut D> {
+    fn find_mut(&mut self, verification: u64) -> Option<&mut D> {
+        let verification = (verification as u128).truncate();
         for e in self.bucket.iter_mut() {
             if e.verification == verification {
                 return Some(&mut e.data);
@@ -251,8 +256,30 @@ impl<D: IHashData + Copy> Bucket<D> {
 /* ===== TT =================================================== */
 
 // Transposition Table
+
+enum TTCore<D> {
+    Growable(SmallVec<[RehashableBucket<D>; 1]>),
+    NonGrowable(Vec<NonRehashableBucket<D>>),
+}
+
+impl<D> TTCore<D> {
+    pub(crate) fn len(&self) -> usize {
+        match self {
+            TTCore::Growable(ref tt) => tt.len(),
+            TTCore::NonGrowable(ref tt) => tt.len(),
+        }
+    }
+
+    // Calculate the index (bucket) where the data is going to be stored.
+    // Use only the upper half of the Zobrist key for this, so the lower
+    // half can be used to calculate a verification.
+    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
+        zobrist_key as usize % self.len()
+    }
+}
+
 pub struct TT<D> {
-    tt: SmallVec<[Bucket<D>; 1]>,
+    tt: TTCore<D>,
     used_entries: usize,
 }
 
@@ -268,9 +295,16 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 
     fn new_with_buckets(buckets: usize) -> TT<D> {
-        Self {
-            tt: smallvec![Bucket::<D>::new(); buckets],
-            used_entries: 0
+        if buckets > PRESERVING_RESIZE_LIMIT {
+            Self {
+                tt: TTCore::Growable(smallvec![RehashableBucket::<D>::new(); buckets]),
+                used_entries: 0
+            }
+        } else {
+            Self {
+                tt: TTCore::NonGrowable(vec![NonRehashableBucket::<D>::new(); buckets]),
+                used_entries: 0
+            }
         }
     }
 
@@ -286,30 +320,35 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     fn resize_to_bucket_count(&mut self, buckets: usize) {
         let old_bucket_count = self.tt.len();
-        if buckets > old_bucket_count && buckets <= PRESERVING_RESIZE_LIMIT {
-            self.tt.resize(buckets, Bucket::<D>::new());
-            let (old_buckets, new_buckets) = self.tt.split_at_mut(old_bucket_count);
-            for (index, bucket) in old_buckets.iter_mut().enumerate() {
-                for entry in bucket.bucket.iter_mut() {
-                    if entry.verification != 0 {
-                        let zobrist_key = entry.verification;
-                        let new_index = zobrist_key as usize % buckets;
-                        if new_index != index {
-                            debug_assert!(new_index > index, "rehashing from bucket {} of {} to bucket {} of {}",
-                                          index, old_bucket_count, new_index, buckets);
-                            debug_assert!(new_index - old_bucket_count < new_buckets.len(),
-                                          "rehashing from bucket {} of {} to bucket {} of {}",
-                                          index, old_bucket_count, new_index, buckets);
-                            new_buckets[new_index - old_bucket_count].store(entry.verification, entry.data, &mut self.used_entries, false);
-                            entry.clone_from(&Entry::new());
+        if buckets > PRESERVING_RESIZE_LIMIT {
+            self.tt = TTCore::NonGrowable(vec![NonRehashableBucket::<D>::new(); buckets]);
+            self.used_entries = 0;
+        } else if buckets > old_bucket_count {
+            if let TTCore::Growable(ref mut tt) = self.tt {
+                tt.resize(buckets, RehashableBucket::<D>::new());
+                let (old_buckets, new_buckets) = tt.split_at_mut(old_bucket_count);
+                for (index, bucket) in old_buckets.iter_mut().enumerate() {
+                    for entry in bucket.bucket.iter_mut() {
+                        if entry.verification != 0 {
+                            let zobrist_key = entry.verification;
+                            let new_index = zobrist_key as usize % buckets;
+                            if new_index != index {
+                                debug_assert!(new_index > index, "rehashing from bucket {} of {} to bucket {} of {}",
+                                              index, old_bucket_count, new_index, buckets);
+                                debug_assert!(new_index - old_bucket_count < new_buckets.len(),
+                                              "rehashing from bucket {} of {} to bucket {} of {}",
+                                              index, old_bucket_count, new_index, buckets);
+                                new_buckets[new_index - old_bucket_count].store(entry.verification, entry.data, &mut self.used_entries, false);
+                                entry.clone_from(&RehashableEntry::new());
+                            }
                         }
                     }
                 }
+                return;
             }
-        } else {
-            self.tt = smallvec![Bucket::<D>::new(); buckets];
-            self.used_entries = 0;
         }
+        self.tt = TTCore::Growable(smallvec![RehashableBucket::<D>::new(); buckets]);
+        self.used_entries = 0;
     }
 
     // Insert a position at the calculated index, by storing it in the
@@ -317,16 +356,19 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
         if self.tt.len() > 0 {
             let verification = self.calculate_verification(zobrist_key);
-            while self.tt.len() < PRESERVING_RESIZE_LIMIT {
-                let index = self.calculate_index(zobrist_key);
-                if !self.tt[index].store(verification, data, &mut self.used_entries, false) {
+            while let TTCore::Growable(ref mut tt) = self.tt {
+                let index = zobrist_key as usize % tt.len();
+                if !tt[index].store(verification, data, &mut self.used_entries, false) {
                     self.resize_to_bucket_count(self.tt.len() * 4);
                 } else {
                     return;
                 }
             }
-            let index = self.calculate_index(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_entries, true);
+            let TTCore::NonGrowable(ref mut tt) = self.tt else {
+                unreachable!();
+            };
+            let index = zobrist_key as usize % tt.len();
+            tt[index].store(verification, data, &mut self.used_entries, true);
         }
     }
 
@@ -334,10 +376,12 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // match for the position to be the correct one we're looking for.
     pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
         if self.tt.len() > 0 {
-            let index = self.calculate_index(zobrist_key);
+            let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-
-            self.tt[index].find(verification)
+            match self.tt {
+                TTCore::Growable(ref tt) => tt[index].find(verification),
+                TTCore::NonGrowable(ref tt) => tt[index].find(verification),
+            }
         } else {
             None
         }
@@ -345,10 +389,12 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     pub fn probe_mut(&mut self, zobrist_key: ZobristKey) -> Option<&mut D> {
         if self.tt.len() > 0 {
-            let index = self.calculate_index(zobrist_key);
+            let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-
-            self.tt[index].find_mut(verification)
+            match &mut self.tt{
+                TTCore::Growable(ref mut tt) => tt[index].find_mut(verification),
+                TTCore::NonGrowable(ref mut tt) => tt[index].find_mut(verification)
+            }
         } else {
             None
         }
@@ -372,13 +418,6 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
 // Private functions
 impl<D: IHashData + Copy + Clone> TT<D> {
-    // Calculate the index (bucket) where the data is going to be stored.
-    // Use only the upper half of the Zobrist key for this, so the lower
-    // half can be used to calculate a verification.
-    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
-        zobrist_key as usize % self.tt.len()
-    }
-
     // Many positions will end up at the same index, and thus in the same
     // bucket. Calculate a verification for the position so it can later be
     // found in the bucket. Use the other half of the Zobrist key for this.
@@ -389,7 +428,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // This function calculates the value for total_buckets depending on the
     // requested TT size.
     fn calculate_init_buckets(megabytes: usize) -> usize {
-        megabytes * MEGABYTE / size_of::<Bucket<D>>()
+        megabytes * MEGABYTE / size_of::<RehashableBucket<D>>()
     }
 }
 
