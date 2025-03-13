@@ -497,7 +497,7 @@ impl TTree {
             match entry {
                 Some(ref e) => {
                     new_table_size.store(0, Ordering::Release);
-                    Some(ByAddress::from(e.deref().clone()))
+                    Some(ByAddress::from(Arc::clone(e)))
                 },
                 None => {
                     let mut new_table = TT::new_with_buckets(1);
