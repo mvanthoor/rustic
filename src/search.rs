@@ -65,7 +65,7 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
-        tt: Arc<Mutex<TTree>>,
+        tt: Arc<TTree>,
         tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands

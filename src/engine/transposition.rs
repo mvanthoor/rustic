@@ -20,12 +20,17 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
-use std::collections::BTreeMap;
-use std::sync::atomic::{AtomicIsize, Ordering};
+use std::ops::Deref;
+use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
+use by_address::ByAddress;
+use concurrent_map::ConcurrentMap;
 use explicit_cast::{Truncate, TruncateFrom};
 use smallvec::{smallvec, SmallVec};
+use thread_local::ThreadLocal;
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
 use crate::board::Board;
+use crate::engine::defs::ErrFatal;
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
@@ -70,7 +75,7 @@ impl PerftData {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 #[repr(u8)]
 pub enum HashFlag {
     Nothing,
@@ -79,7 +84,7 @@ pub enum HashFlag {
     Beta,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 #[repr(packed)]
 pub struct SearchData {
     depth: i8,
@@ -173,7 +178,7 @@ impl SearchData {
 
 /* ===== Entry ======================================================== */
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 struct Entry<V: Copy, D> {
     verification: V,
     data: D,
@@ -193,7 +198,7 @@ impl <V: Copy + TruncateFrom<u128>, D: IHashData> Entry<V, D> {
 
 /* ===== Bucket ======================================================= */
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 struct Bucket<E> {
     bucket: [E; ENTRIES_PER_BUCKET],
 }
@@ -257,7 +262,7 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
 /* ===== TT =================================================== */
 
 // Transposition Table
-
+#[derive(Eq, PartialEq, Clone)]
 enum TTCore<D> {
     FullHash(SmallVec<[RehashableBucket<D>; 1]>),
     HalfHash(Vec<NonRehashableBucket<D>>),
@@ -286,6 +291,7 @@ impl<D> TTCore<D> {
     }
 }
 
+#[derive(Eq, PartialEq, Clone)]
 pub struct TT<D> {
     tt: TTCore<D>,
     used_entries: usize,
@@ -460,9 +466,12 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 }
 
+type OurMap = ConcurrentMap<u32, ByAddress<Arc<RwLock<TT<SearchData>>>>>;
+
 pub struct TTree {
-    tts: BTreeMap<u32, TT<SearchData>>,
-    max_size: usize,
+    map: Mutex<OurMap>,
+    tts: Arc<ThreadLocal<OurMap>>,
+    max_size: AtomicUsize,
     room_to_grow: AtomicIsize
 }
 
@@ -470,55 +479,81 @@ impl TTree {
     pub fn new(size_mb: usize) -> Self {
         let size_bytes = size_mb * MEGABYTE;
         Self {
-            tts: BTreeMap::new(),
-            max_size: size_bytes,
+            tts: Arc::new(ThreadLocal::new()),
+            map: Mutex::new(ConcurrentMap::new()),
+            max_size: AtomicUsize::new(size_bytes),
             room_to_grow: AtomicIsize::new(size_bytes as isize)
         }
     }
 
-    pub fn insert(&mut self, board: &Board, value: SearchData) {
-        let entry = self.tts.entry(board.monotonic_hash()).or_insert_with(|| {
-            let out = TT::new_with_buckets(1);
-            self.room_to_grow.fetch_sub(out.tt.size_bytes() as isize, Ordering::AcqRel);
-            out
+    fn get_map(&self) -> &OurMap {
+        self.tts.get_or(|| self.map.lock().expect(ErrFatal::LOCK).to_owned())
+    }
+
+    pub fn insert(&self, board: &Board, value: SearchData) {
+        let new_table_size = AtomicUsize::new(0);
+        self.get_map().update_and_fetch(board.monotonic_hash(), |entry| {
+            match entry {
+                Some(ref e) => {
+                    new_table_size.store(0, Ordering::Release);
+                    e.write().expect(ErrFatal::LOCK).insert(board.game_state.zobrist_key, value, &self.room_to_grow);
+                    Some(ByAddress::from(e.deref().clone()))
+                },
+                None => {
+                    let new_table = TT::new_with_buckets(1);
+                    new_table_size.store(new_table.tt.size_bytes(), Ordering::Release);
+                    Some(ByAddress::from(Arc::new(RwLock::new(new_table))))
+                }
+            }
         });
-        entry.insert(board.game_state.zobrist_key, value, &self.room_to_grow);
+        self.room_to_grow.fetch_sub(new_table_size.into_inner() as isize, Ordering::Release);
     }
 
-    pub fn probe(&self, board: &Board) -> Option<&SearchData> {
-        self.tts.get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
-    }
-
-    pub fn probe_mut(&mut self, board: &Board) -> Option<&mut SearchData> {
-        self.tts.get_mut(&board.monotonic_hash())?.probe_mut(board.game_state.zobrist_key)
+    pub fn probe(&self, board: &Board) -> Option<SearchData> {
+        self.get_map().get(&board.monotonic_hash())?.read().expect(ErrFatal::LOCK).probe(board.game_state.zobrist_key).cloned()
     }
 
     pub fn hash_full(&self) -> u16 {
-        let max_buckets = (self.max_size - (self.tts.len() * size_of::<TT<SearchData>>())) / size_of::<NonRehashableBucket<SearchData>>();
-        let total_entries: usize = self.tts.values().map(|t| t.used_entries).sum();
+        let max_buckets = (self.max_size.load(Ordering::Relaxed) - (self.get_map().len() * size_of::<TT<SearchData>>())) / size_of::<NonRehashableBucket<SearchData>>();
+        let total_entries: usize = self.get_map().iter().map(|(_, t)| t.read().expect(ErrFatal::LOCK).deref().used_entries).sum();
         ((total_entries * 1000 + 500) / (max_buckets * ENTRIES_PER_BUCKET)) as u16
     }
 
-    pub fn remove_unreachable(&mut self, board: &Board) {
-        let bytes_freed: usize = self.tts.split_off(&(board.monotonic_hash() + 1)).into_values().map(|tt| tt.tt.size_bytes()).sum();
+    pub fn remove_unreachable(&self, board: &Board) {
+        let unreachable = (board.monotonic_hash() + 1)..=u32::MAX;
+        let mut bytes_freed: usize = 0;
+        while let Some((_, tt)) = self.get_map().pop_last_in_range(unreachable.clone()) {
+            bytes_freed += tt.read().expect(ErrFatal::LOCK).tt.size_bytes();
+        }
         self.room_to_grow.fetch_add(bytes_freed as isize, Ordering::AcqRel);
     }
 
-    pub fn clear(&mut self) {
-        self.tts.clear();
-        self.room_to_grow.store(self.max_size as isize, Ordering::Release);
+    pub fn clear(&self) {
+        while self.get_map().pop_last().is_some() {}
+        self.room_to_grow.store(self.max_size.load(Ordering::SeqCst) as isize, Ordering::SeqCst);
     }
 
-    pub fn resize(&mut self, megabytes: usize) {
+    pub fn resize(&self, megabytes: usize) {
         let new_max_size = megabytes * MEGABYTE;
-        let size_change = new_max_size as isize - self.max_size as isize;
-        self.max_size = new_max_size;
-        let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::AcqRel);
+        let mut size_change: isize;
+        loop {
+            let old_max_size = self.max_size.load(Ordering::Acquire);
+            size_change = new_max_size as isize - old_max_size as isize;
+            if self.max_size.compare_exchange(old_max_size, new_max_size, Ordering::SeqCst, Ordering::Acquire).is_ok() {
+                break;
+            }
+        }
+        let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::SeqCst);
         while new_room_to_grow < 0 {
-            let max_buckets = self.tts.iter().map(|(_, tt)| tt.tt.len()).max().unwrap();
+            let max_buckets = self.get_map().iter().map(
+                |(_, tt)| tt.read().expect(ErrFatal::LOCK).tt.len()).max().unwrap();
             let new_max_buckets = max_buckets / 2;
+            if new_max_buckets < 1 {
+                return;
+            }
             let mut bytes_freed = 0;
-            for tt in self.tts.values_mut() {
+            for (_, tt) in self.get_map().iter() {
+                let mut tt = tt.write().expect(ErrFatal::LOCK);
                 if tt.tt.len() > new_max_buckets {
                     let old_size = tt.tt.size_bytes();
                     tt.resize_to_bucket_count(new_max_buckets, &self.room_to_grow);

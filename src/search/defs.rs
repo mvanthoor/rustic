@@ -9,7 +9,7 @@ use crate::{
 };
 use crossbeam_channel::{Receiver, Sender};
 use std::{
-    sync::{Arc, Mutex},
+    sync::Arc,
     time::Instant,
 };
 use crate::engine::defs::TTree;
@@ -243,7 +243,7 @@ impl SearchStats {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub tt: &'a Arc<Mutex<TTree>>,
+    pub tt: &'a Arc<TTree>,
     pub tt_enabled: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,

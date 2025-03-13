@@ -64,7 +64,7 @@ pub struct Engine {
     comm: Box<dyn IComm>,                   // Communications (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     tt_perft: Arc<Mutex<TT<PerftData>>>,    // TT for running perft.
-    tt_search: Arc<Mutex<TTree>>,  // TT for search information.
+    tt_search: Arc<TTree>,  // TT for search information.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: Search,                         // Search object (active).
@@ -121,13 +121,13 @@ impl Engine {
 
         // Initialize correct TT.
         let tt_perft: Arc<Mutex<TT<PerftData>>>;
-        let tt_search: Arc<Mutex<TTree>>;
+        let tt_search: Arc<TTree>;
         if cmdline.perft() > 0 {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(tt_size)));
-            tt_search = Arc::new(Mutex::new(TTree::new(0)));
+            tt_search = Arc::new(TTree::new(0));
         } else {
             tt_perft = Arc::new(Mutex::new(TT::<PerftData>::new(0)));
-            tt_search = Arc::new(Mutex::new(TTree::new(tt_size)));
+            tt_search = Arc::new(TTree::new(tt_size));
         };
 
         // Create the engine itself.
@@ -203,7 +203,7 @@ impl Engine {
                 .lock()
                 .expect(ErrFatal::LOCK)
                 .resize(self.settings.tt_size, &AtomicIsize::new(isize::MAX));
-            self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+            self.tt_search.clear();
             testsuite::run(Arc::clone(&self.tt_perft), self.settings.tt_size > 0);
         }
         // =====================================================

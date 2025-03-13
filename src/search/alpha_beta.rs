@@ -28,7 +28,7 @@ use super::{
 use crate::{
     board::defs::Pieces,
     defs::MAX_PLY,
-    engine::defs::{ErrFatal, HashFlag, SearchData},
+    engine::defs::{HashFlag, SearchData},
     evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
 };
@@ -91,8 +91,6 @@ impl Search {
         if refs.tt_enabled {
             if let Some(data) = refs
                 .tt
-                .lock()
-                .expect(ErrFatal::LOCK)
                 .probe(refs.board)
             {
                 let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
@@ -203,7 +201,7 @@ impl Search {
             // Beta cutoff: this move is so good for our opponent, that we
             // do not search any further. Insert into TT and return beta.
             if eval_score >= beta {
-                refs.tt.lock().expect(ErrFatal::LOCK).insert(
+                refs.tt.insert(
                     refs.board,
                     SearchData::create(
                         depth,
@@ -255,7 +253,7 @@ impl Search {
 
         // We save the best move we found for us; with an ALPHA flag if we
         // didn't improve alpha, or EXACT if we did raise alpha.
-        refs.tt.lock().expect(ErrFatal::LOCK).insert(
+        refs.tt.insert(
             refs.board,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );
