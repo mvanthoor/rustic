@@ -29,7 +29,7 @@ use crate::board::Board;
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
-const PRESERVING_RESIZE_LIMIT: usize = 1024;
+const BUCKETS_FOR_PARTIAL_HASH: usize = 1 << 32;
 
 /* ===== Data ========================================================= */
 
@@ -259,22 +259,22 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
 // Transposition Table
 
 enum TTCore<D> {
-    Growable(SmallVec<[RehashableBucket<D>; 1]>),
-    NonGrowable(Vec<NonRehashableBucket<D>>),
+    FullHash(SmallVec<[RehashableBucket<D>; 1]>),
+    HalfHash(Vec<NonRehashableBucket<D>>),
 }
 
 impl<D> TTCore<D> {
     pub(crate) fn len(&self) -> usize {
         match self {
-            TTCore::Growable(ref tt) => tt.len(),
-            TTCore::NonGrowable(ref tt) => tt.len(),
+            TTCore::FullHash(ref tt) => tt.len(),
+            TTCore::HalfHash(ref tt) => tt.len(),
         }
     }
 
     pub(crate) fn size_bytes(&self) -> usize {
         size_of::<Self>() + match self {
-            TTCore::Growable(ref tt) => tt.len() * std::mem::size_of::<RehashableBucket<D>>(),
-            TTCore::NonGrowable(ref tt) => tt.len() * std::mem::size_of::<NonRehashableBucket<D>>(),
+            TTCore::FullHash(ref tt) => tt.len() * std::mem::size_of::<RehashableBucket<D>>(),
+            TTCore::HalfHash(ref tt) => tt.len() * std::mem::size_of::<NonRehashableBucket<D>>(),
         }
     }
 
@@ -303,14 +303,14 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 
     fn new_with_buckets(buckets: usize) -> TT<D> {
-        if buckets > PRESERVING_RESIZE_LIMIT {
+        if buckets >= BUCKETS_FOR_PARTIAL_HASH {
             Self {
-                tt: TTCore::Growable(smallvec![RehashableBucket::<D>::new(); buckets]),
+                tt: TTCore::FullHash(smallvec![RehashableBucket::<D>::new(); buckets]),
                 used_entries: 0
             }
         } else {
             Self {
-                tt: TTCore::NonGrowable(vec![NonRehashableBucket::<D>::new(); buckets]),
+                tt: TTCore::HalfHash(vec![NonRehashableBucket::<D>::new(); buckets]),
                 used_entries: 0
             }
         }
@@ -329,7 +329,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     fn resize_to_bucket_count(&mut self, buckets: usize, room_to_grow: &AtomicIsize) -> bool {
         let old_bucket_count = self.tt.len();
         let old_size_bytes = self.tt.size_bytes();
-        let new_size_bytes = size_of::<TTCore<D>>() + if buckets > PRESERVING_RESIZE_LIMIT {
+        let new_size_bytes = size_of::<TTCore<D>>() + if buckets >= BUCKETS_FOR_PARTIAL_HASH {
             buckets * std::mem::size_of::<RehashableBucket<D>>()
         } else {
             buckets * std::mem::size_of::<NonRehashableBucket<D>>()
@@ -342,11 +342,11 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         } else {
             room_to_grow.fetch_add((old_size_bytes - new_size_bytes) as isize, Ordering::AcqRel);
         }
-        if buckets > PRESERVING_RESIZE_LIMIT {
-            self.tt = TTCore::NonGrowable(vec![NonRehashableBucket::<D>::new(); buckets]);
+        if buckets >= BUCKETS_FOR_PARTIAL_HASH {
+            self.tt = TTCore::HalfHash(vec![NonRehashableBucket::<D>::new(); buckets]);
             self.used_entries = 0;
         } else if buckets > old_bucket_count {
-            if let TTCore::Growable(ref mut tt) = self.tt {
+            if let TTCore::FullHash(ref mut tt) = self.tt {
                 tt.resize(buckets, RehashableBucket::<D>::new());
                 let (old_buckets, new_buckets) = tt.split_at_mut(old_bucket_count);
                 for (index, bucket) in old_buckets.iter_mut().enumerate() {
@@ -369,7 +369,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
                 return true;
             }
         }
-        self.tt = TTCore::Growable(smallvec![RehashableBucket::<D>::new(); buckets]);
+        self.tt = TTCore::FullHash(smallvec![RehashableBucket::<D>::new(); buckets]);
         self.used_entries = 0;
         return true;
     }
@@ -379,7 +379,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D, room_to_grow: &AtomicIsize) {
         if self.tt.len() > 0 {
             let verification = self.calculate_verification(zobrist_key);
-            while let TTCore::Growable(ref mut tt) = self.tt {
+            while let TTCore::FullHash(ref mut tt) = self.tt {
                 let index = zobrist_key as usize % tt.len();
                 if !tt[index].store(verification, data, &mut self.used_entries, false) {
                     if !self.resize_to_bucket_count(self.tt.len() * 4, room_to_grow) {
@@ -393,8 +393,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
             }
             let index = zobrist_key as usize % self.tt.len();
             match self.tt {
-                TTCore::Growable(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
-                TTCore::NonGrowable(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
+                TTCore::FullHash(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
+                TTCore::HalfHash(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
             };
         }
     }
@@ -406,8 +406,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
             let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
             match self.tt {
-                TTCore::Growable(ref tt) => tt[index].find(verification),
-                TTCore::NonGrowable(ref tt) => tt[index].find(verification),
+                TTCore::FullHash(ref tt) => tt[index].find(verification),
+                TTCore::HalfHash(ref tt) => tt[index].find(verification),
             }
         } else {
             None
@@ -419,8 +419,8 @@ impl<D: IHashData + Copy + Clone> TT<D> {
             let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
             match &mut self.tt{
-                TTCore::Growable(ref mut tt) => tt[index].find_mut(verification),
-                TTCore::NonGrowable(ref mut tt) => tt[index].find_mut(verification)
+                TTCore::FullHash(ref mut tt) => tt[index].find_mut(verification),
+                TTCore::HalfHash(ref mut tt) => tt[index].find_mut(verification)
             }
         } else {
             None
@@ -429,7 +429,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        self.tt = TTCore::Growable(smallvec![RehashableBucket::<D>::new()]);
+        self.tt = TTCore::FullHash(smallvec![RehashableBucket::<D>::new()]);
         self.used_entries = 0;
     }
 
