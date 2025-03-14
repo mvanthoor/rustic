@@ -32,8 +32,8 @@ use crate::board::Board;
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
 const BUCKETS_FOR_PARTIAL_HASH: usize = 1 << 32;
-const MIN_BUCKETS_PER_TABLE: usize = 1;
-const EXPANSION_FACTORS: [usize; 1] = [2];
+const MIN_BUCKETS_PER_TABLE: usize = 16;
+const EXPANSION_FACTORS: [usize; 2] = [8, 2];
 
 /* ===== Data ========================================================= */
 
