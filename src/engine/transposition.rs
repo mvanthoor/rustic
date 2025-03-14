@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
-use parking_lot::RwLock;
 use dashmap::DashMap;
 use dashmap::Entry::Occupied;
 use explicit_cast::{Truncate, TruncateFrom};
@@ -470,7 +469,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 }
 
-type OurMap = DashMap<u32, RwLock<TT<SearchData>>>;
+type OurMap = DashMap<u32, TT<SearchData>>;
 
 pub struct TTree {
     map: OurMap,
@@ -488,27 +487,21 @@ impl TTree {
         }
     }
 
-    fn get_map(&self) -> &OurMap {
-        &self.map
-    }
-
     pub fn occupied_bytes(&self) -> usize {
-        self.get_map()
+        (&self.map)
             .iter()
-            .map(|v| v.value().read().occupied_bytes()
+            .map(|v| v.value().occupied_bytes()
                 + size_of::<u32>() // map stores each key
-                + size_of::<RwLock<TT<SearchData>>>() - size_of::<TT<SearchData>>()
                  // FIXME: This ignores DashMap overhead
             )
             .sum::<usize>()
     }
 
     pub fn size_bytes(&self) -> usize {
-        size_of::<Self>() + self.get_map()
+        size_of::<Self>() + (&self.map)
             .iter()
-            .map(|v| v.value().read().size_bytes()
+            .map(|v| v.value().size_bytes()
                 + size_of::<u32>() // map stores each key
-                + size_of::<RwLock<TT<SearchData>>>() - size_of::<TT<SearchData>>()
                 // FIXME: This ignores DashMap overhead
             )
             .sum::<usize>()
@@ -516,10 +509,10 @@ impl TTree {
 
     pub fn insert(&self, board: &Board, value: SearchData) {
         let zobrist_key = board.game_state.zobrist_key;
-        let entry = self.get_map().entry(board.monotonic_hash());
-        match &entry {
-            Occupied(ref e) => {
-                e.get().write().insert(zobrist_key, value, &self.room_to_grow);
+        let mut entry = self.map.entry(board.monotonic_hash());
+        match &mut entry {
+            Occupied(ref mut e) => {
+                e.get_mut().insert(zobrist_key, value, &self.room_to_grow);
             },
             _ => {
                 let mut new_buckets: SmallVec<[RehashableBucket<SearchData>; MIN_BUCKETS_PER_TABLE]> = smallvec![RehashableBucket::<SearchData>::new(); MIN_BUCKETS_PER_TABLE];
@@ -535,13 +528,13 @@ impl TTree {
                     self.room_to_grow.fetch_add(new_table_size, Ordering::AcqRel);
                     return;
                 }
-                entry.insert(RwLock::new(new_table));
+                entry.insert(new_table);
             }
         }
     }
 
     pub fn probe(&self, board: &Board) -> Option<SearchData> {
-        self.get_map().get(&board.monotonic_hash())?.read().probe(board.game_state.zobrist_key)
+        (&self.map).get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
     }
 
     pub fn hash_full(&self) -> u16 {
@@ -562,7 +555,7 @@ impl TTree {
     }
 
     pub fn clear(&self) {
-        self.get_map().clear();
+        (&self.map).clear();
         self.room_to_grow.store(self.max_size.load(Ordering::SeqCst) as isize, Ordering::SeqCst);
     }
 
@@ -578,15 +571,15 @@ impl TTree {
         }
         let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::SeqCst) + size_change;
         while new_room_to_grow < 0 {
-            let max_buckets = self.get_map().iter().map(
-                |tt| tt.value().read().tt.len()).max().unwrap();
+            let max_buckets = (&self.map).iter().map(
+                |tt| tt.value().tt.len()).max().unwrap();
             let new_max_buckets = max_buckets / 2;
             if new_max_buckets < 1 {
                 return;
             }
             let mut bytes_freed = 0;
-            for tt in self.get_map().iter() {
-                let mut tt = tt.value().write();
+            for mut tt in (&self.map).iter_mut() {
+                let tt = tt.value_mut();
                 if tt.tt.len() > new_max_buckets {
                     let old_size = tt.tt.size_bytes();
                     tt.resize_to_bucket_count(new_max_buckets, &self.room_to_grow);
