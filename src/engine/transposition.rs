@@ -320,13 +320,19 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     }
 
     pub(crate) fn size_bytes(&self) -> usize {
-        (size_of::<Self>() - size_of::<TTCore<D>>()) + self.tt.size_bytes()
+        size_of::<Self>() + match &self.tt {
+            TTCore::FullHash(tt) => tt.len().saturating_sub(MIN_BUCKETS_PER_TABLE)
+                * size_of::<RehashableBucket<D>>(),
+            TTCore::HalfHash(tt) => tt.len() * size_of::<NonRehashableEntry<D>>(),
+        }
     }
 
     pub(crate) fn occupied_bytes(&self) -> usize {
-        (size_of::<Self>() - size_of::<TTCore<D>>()) + self.used_entries * match self.tt {
-            TTCore::FullHash(_) => size_of::<RehashableEntry<D>>(),
-            TTCore::HalfHash(_) => size_of::<NonRehashableEntry<D>>(),
+        size_of::<Self>() + match self.tt {
+            // smallvec includes MIN_BUCKETS_PER_TABLE buckets inline.
+            TTCore::FullHash(_) => self.used_entries.saturating_sub(MIN_BUCKETS_PER_TABLE * ENTRIES_PER_BUCKET)
+                * size_of::<RehashableEntry<D>>(),
+            TTCore::HalfHash(_) => self.used_entries * size_of::<NonRehashableEntry<D>>(),
         }
     }
 
@@ -486,10 +492,25 @@ impl TTree {
         &self.map
     }
 
+    pub fn occupied_bytes(&self) -> usize {
+        self.get_map()
+            .iter()
+            .map(|v| v.value().read().occupied_bytes()
+                + size_of::<u32>() // map stores each key
+                + size_of::<RwLock<TT<SearchData>>>() - size_of::<TT<SearchData>>()
+                 // FIXME: This ignores DashMap overhead
+            )
+            .sum::<usize>()
+    }
+
     pub fn size_bytes(&self) -> usize {
         size_of::<Self>() + self.get_map()
             .iter()
-            .map(|v| v.value().read().size_bytes() + size_of::<u32>())
+            .map(|v| v.value().read().size_bytes()
+                + size_of::<u32>() // map stores each key
+                + size_of::<RwLock<TT<SearchData>>>() - size_of::<TT<SearchData>>()
+                // FIXME: This ignores DashMap overhead
+            )
             .sum::<usize>()
     }
 
@@ -509,7 +530,7 @@ impl TTree {
                     tt: TTCore::FullHash(new_buckets),
                     used_entries: 1
                 };
-                let new_table_size = new_table.tt.size_bytes() as isize;
+                let new_table_size = new_table.size_bytes() as isize;
                 if self.room_to_grow.fetch_sub(new_table_size, Ordering::AcqRel) - new_table_size < 0 {
                     self.room_to_grow.fetch_add(new_table_size, Ordering::AcqRel);
                     return;
@@ -525,10 +546,7 @@ impl TTree {
 
     pub fn hash_full(&self) -> u16 {
         let max_size = self.max_size.load(Ordering::Acquire);
-        let current_size = self.get_map()
-            .iter()
-            .map(|v| size_of::<u32>() + v.read().occupied_bytes())
-            .sum::<usize>();
+        let current_size = self.occupied_bytes();
         ((current_size * 1000 + 500) / max_size) as u16
     }
 
