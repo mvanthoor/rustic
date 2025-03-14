@@ -179,6 +179,7 @@ impl SearchData {
 /* ===== Entry ======================================================== */
 
 #[derive(Copy, Clone, Eq, PartialEq)]
+#[repr(packed)]
 struct Entry<V: Copy, D> {
     verification: V,
     data: D,
@@ -213,19 +214,21 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
         }
     }
 
-    fn store(&mut self, verification: u64, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
+    fn store(&mut self, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
         let mut idx_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
         for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
+            let existing_data = self.bucket[entry].data;
+            if existing_data.depth() < data.depth() {
                 idx_lowest_depth = entry
             }
         }
 
         // If the verifiaction was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0.truncate() {
+        let verification = self.bucket[idx_lowest_depth].verification;
+        if verification == 0.truncate() {
             *used_entries += 1;
         } else if !overwrite {
             // If the entry was used before, and we're not overwriting
@@ -234,25 +237,18 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification: (verification as u128).truncate(), data };
+        self.bucket[idx_lowest_depth] = Entry { verification, data };
         true
     }
 
-    fn find(&self, verification: u64) -> Option<&D> {
+    fn find(&self, verification: u64) -> Option<D> {
         let verification = (verification as u128).truncate();
-        for e in self.bucket.iter() {
-            if e.verification == verification {
-                return Some(&e.data);
-            }
-        }
-        None
-    }
-
-    fn find_mut(&mut self, verification: u64) -> Option<&mut D> {
-        let verification = (verification as u128).truncate();
-        for e in self.bucket.iter_mut() {
-            if e.verification == verification {
-                return Some(&mut e.data);
+        let bucket = self.bucket;
+        for e in bucket.iter() {
+            let e_verification = e.verification;
+            if e_verification == verification {
+                let e_data = e.data;
+                return Some(e_data.clone());
             }
         }
         None
@@ -263,12 +259,13 @@ impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFro
 
 // Transposition Table
 #[derive(Eq, PartialEq, Clone)]
-enum TTCore<D> {
+#[repr(u8)]
+enum TTCore<D: Copy> {
     FullHash(SmallVec<[RehashableBucket<D>; MIN_BUCKETS_PER_TABLE]>),
     HalfHash(Vec<NonRehashableBucket<D>>),
 }
 
-impl<D> TTCore<D> {
+impl<D: Copy> TTCore<D> {
     pub(crate) fn len(&self) -> usize {
         match self {
             TTCore::FullHash(ref tt) => tt.len(),
@@ -292,7 +289,7 @@ impl<D> TTCore<D> {
 }
 
 #[derive(Eq, PartialEq, Clone)]
-pub struct TT<D> {
+pub struct TT<D: Copy> {
     tt: TTCore<D>,
     used_entries: usize,
 }
@@ -377,7 +374,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
                                 debug_assert!(new_index - old_bucket_count < new_buckets.len(),
                                               "rehashing from bucket {} of {} to bucket {} of {}",
                                               index, old_bucket_count, new_index, buckets);
-                                new_buckets[new_index - old_bucket_count].store(entry.verification, entry.data, &mut self.used_entries, false);
+                                new_buckets[new_index - old_bucket_count].store(entry.data, &mut self.used_entries, false);
                                 entry.clone_from(&RehashableEntry::new());
                             }
                         }
@@ -395,10 +392,9 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // index's bucket.
     pub fn insert(&mut self, zobrist_key: ZobristKey, data: D, room_to_grow: &AtomicIsize) {
         if self.tt.len() > 0 {
-            let verification = self.calculate_verification(zobrist_key);
             'try_store_or_grow: while let TTCore::FullHash(ref mut tt) = self.tt {
                 let index = zobrist_key as usize % tt.len();
-                if tt[index].store(verification, data, &mut self.used_entries, false) {
+                if tt[index].store(data, &mut self.used_entries, false) {
                     return;
                 }
                 for expansion_factor in EXPANSION_FACTORS {
@@ -414,34 +410,21 @@ impl<D: IHashData + Copy + Clone> TT<D> {
             }
             let index = zobrist_key as usize % self.tt.len();
             match self.tt {
-                TTCore::FullHash(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
-                TTCore::HalfHash(ref mut tt) => tt[index].store(verification, data, &mut self.used_entries, true),
+                TTCore::FullHash(ref mut tt) => tt[index].store(data, &mut self.used_entries, true),
+                TTCore::HalfHash(ref mut tt) => tt[index].store(data, &mut self.used_entries, true),
             };
         }
     }
 
     // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
-    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
+    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<D> {
         if self.tt.len() > 0 {
             let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
             match self.tt {
                 TTCore::FullHash(ref tt) => tt[index].find(verification),
                 TTCore::HalfHash(ref tt) => tt[index].find(verification),
-            }
-        } else {
-            None
-        }
-    }
-
-    pub fn probe_mut(&mut self, zobrist_key: ZobristKey) -> Option<&mut D> {
-        if self.tt.len() > 0 {
-            let index = self.tt.calculate_index(zobrist_key);
-            let verification = self.calculate_verification(zobrist_key);
-            match &mut self.tt{
-                TTCore::FullHash(ref mut tt) => tt[index].find_mut(verification),
-                TTCore::HalfHash(ref mut tt) => tt[index].find_mut(verification)
             }
         } else {
             None
@@ -537,7 +520,7 @@ impl TTree {
     }
 
     pub fn probe(&self, board: &Board) -> Option<SearchData> {
-        self.get_map().get(&board.monotonic_hash())?.read().probe(board.game_state.zobrist_key).cloned()
+        self.get_map().get(&board.monotonic_hash())?.read().probe(board.game_state.zobrist_key)
     }
 
     pub fn hash_full(&self) -> u16 {
