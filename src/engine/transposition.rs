@@ -141,6 +141,7 @@ impl SearchData {
             match self.flag {
                 HashFlag::Exact => {
                     // Get the value from the data. We don't want to change
+                    // Get the value from the data. We don't want to change
                     // the value that is in the TT.
                     let mut v = self.value;
 
@@ -341,7 +342,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         let new_size_bytes = size_of::<TTCore<D>>() + if buckets >= BUCKETS_FOR_PARTIAL_HASH {
             buckets * std::mem::size_of::<NonRehashableBucket<D>>()
         } else {
-            buckets * std::mem::size_of::<RehashableBucket<D>>()
+            (buckets - MIN_BUCKETS_PER_TABLE) * std::mem::size_of::<RehashableBucket<D>>()
         };
         if new_size_bytes > old_size_bytes {
             let bytes_added = (new_size_bytes - old_size_bytes) as isize;
