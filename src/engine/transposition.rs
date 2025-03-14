@@ -326,6 +326,13 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         (size_of::<Self>() - size_of::<TTCore<D>>()) + self.tt.size_bytes()
     }
 
+    pub(crate) fn occupied_bytes(&self) -> usize {
+        (size_of::<Self>() - size_of::<TTCore<D>>()) + self.used_entries * match self.tt {
+            TTCore::FullHash(_) => size_of::<RehashableEntry<D>>(),
+            TTCore::HalfHash(_) => size_of::<NonRehashableEntry<D>>(),
+        }
+    }
+
     // Resizes the TT by replacing the current TT with a
     // new one. (We don't use Vec's resize function, because it clones
     // elements. This can be problematic if TT sizes push the
@@ -537,7 +544,7 @@ impl TTree {
         let max_size = self.max_size.load(Ordering::Acquire);
         let current_size = self.get_map()
             .iter()
-            .map(|v| size_of::<u32>() + size_of::<NonRehashableEntry<SearchData>>() * v.value().read().used_entries)
+            .map(|v| size_of::<u32>() + v.read().occupied_bytes())
             .sum::<usize>();
         ((current_size * 1000 + 500) / max_size) as u16
     }
