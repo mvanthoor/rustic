@@ -108,6 +108,11 @@ impl Search {
                     let mut board = mtx_board.clone();
                     std::mem::drop(mtx_board);
 
+                    // Delete positions in the TT if the opponent's move made them unreachable
+                    let monotonic_hash = board.monotonic_hash();
+                    arc_tt.remove_unreachable(monotonic_hash);
+
+
                     // Create a place to put search information
                     let mut search_info = SearchInfo::new();
 
@@ -125,9 +130,6 @@ impl Search {
 
                     // Start the search using Iterative Deepening.
                     let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
-
-                    let new_monotonic_hash = board.monotonic_hash();
-                    arc_tt.remove_unreachable(new_monotonic_hash);
 
                     // Inform the engine that the search has finished.
                     let information = Information::Search(SearchReport::Finished(best_move));
