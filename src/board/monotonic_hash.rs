@@ -2,17 +2,21 @@ use crate::board::Board;
 use crate::board::defs::{Pieces, BB_RANKS};
 use crate::defs::{Bitboard, Sides};
 
-/// A hash function that monotonically decreases whenever a pawn moves, a piece is captured, or a
-/// player castles or gives up the right to castle. Used to quickly eliminate unreachable positions
-/// from the transposition table.
 impl Board {
+    /// A hash function that monotonically decreases whenever a pawn moves, a piece is captured, or a
+    /// player castles or gives up the right to castle. Used to quickly eliminate unreachable positions
+    /// from the transposition table.
     pub fn monotonic_hash(&self) -> u32 {
         // Decreasing multipliers for stronger pieces
         // Each side can have 0..=8 pawns and usually has 0..=1 or 0..=2 of each other piece,
-        // which works out to only 419903 reasonably likely values for each side. But "unreasonable"
-        // numbers of all pieces except pawns can happen because of underpromotion, so we round up
-        // to the next prime.
-        // The maximum is 46691*8+5189*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 = 420252.
+        // which works out to only 419_903 reasonably likely values for each side. But "unreasonable"
+        // numbers of all pieces except pawns can happen because of pawn promotions in excess of
+        // those needed to replace captured pieces. To give these unreasonable numbers a chance of
+        // not colliding with reasonable ones, we round up each multiplier generated on this basis
+        // to the next prime. (The "raw" values in the comments below are the values we'd be using
+        // with no such rounding.)
+        //
+        // The maximum is 46_691*8+5189*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 = 420_252.
         const PAWN_MULT: [u32; 2] = [5189, 46691]; // usually 0..=8; raw: [5184, 46656]
         const KNIGHT_MULT: [u32; 2] = [1733, 577]; // usually 0..=2; raw: [1728, 576]
         const LIGHT_BISHOP_MULT: [u32; 2] = [149, 293]; // usually 0..=1; raw: [144, 288]
