@@ -53,6 +53,12 @@ impl Board {
         // Maximum castling key is 420_271 * 15 because only the lower 4 bits are used.
         let castling_key = self.game_state.castling as u32 * 420271;
 
+        // Maximum en passant key is 97, since en passant captures only happen on ranks 3 and 6.
+        // It increases to 127 if we've read an invalid target from FEN input.
+        // Must be smaller than the difference between either side's pawn_key multipliers for their
+        // second and fourth ranks.
+        let en_passant_key = self.game_state.en_passant.map_or(0, |ep| ((ep as u32) << 1) + 1);
+
         // Use multipliers for rank weights
         // Largest possible rank value is 255 for each side
         // and the piece and castling keys leave a maximum value of 4288243248 for the pawn key,
@@ -61,7 +67,7 @@ impl Board {
         // x.pow(10) + x.pow(11) == 4288243248.0/255.0, which is
         // 4.455443274968434891800999910616226042276, excluding primes already used as multipliers
         // above and adjusting the largest few to minimize the residual.
-        // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_288_242_690
+        // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_28-8_242_690
         let mut pawns_key = 0u32;
 
         // Both multipliers decrease as the pawns advance.
@@ -75,8 +81,9 @@ impl Board {
             pawns_key += white_pawn_rank_key + black_pawn_rank_key;
         }
 
-        // Maximum total key is 420_412 + 420_271 * 15 + 4_288_242_690 == 4_294_967_167 u32::MAX - 128
-        pawns_key + pieces_keys[0] + pieces_keys[1] + castling_key
+        // Maximum total key is 4_288_242_690 + 420_412 + 420_271 * 15 + 97 == 4_294_967_264
+        // == u32::MAX - 31
+        pawns_key + pieces_keys[0] + pieces_keys[1] + castling_key + en_passant_key
     }
 }
 
