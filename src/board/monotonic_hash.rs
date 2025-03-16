@@ -67,7 +67,7 @@ impl Board {
         // x.pow(10) + x.pow(11) == 4288243248.0/255.0, which is
         // 4.455443274968434891800999910616226042276, excluding primes already used as multipliers
         // above and adjusting the largest few to minimize the residual.
-        // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_28-8_242_690
+        // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_288_242_690
         let mut pawns_key = 0u32;
 
         // Both multipliers decrease as the pawns advance.
