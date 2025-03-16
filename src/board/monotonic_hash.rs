@@ -63,13 +63,15 @@ impl Board {
         // above and adjusting the largest few to minimize the residual.
         // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_288_242_690
         let mut pawns_key = 0u32;
-        const WHITE_RANK_MULTIPLIERS: [u32; 6] = [13734121, 155291, 34849, 397, 89, 2];
-        const BLACK_RANK_MULTIPLIERS: [u32; 6] = [3082517, 691878, 7823, 1753, 19, 7];
-        for ranks_advanced in 0..=5 {
-            let white_pawn_rank_key = (white_pawns & BB_RANKS[1 + ranks_advanced]) as u32
-                * WHITE_RANK_MULTIPLIERS[ranks_advanced];
-            let black_pawn_rank_key = (black_pawns & BB_RANKS[6 - ranks_advanced]) as u32
-                * BLACK_RANK_MULTIPLIERS[ranks_advanced];
+
+        // Both multipliers decrease as the pawns advance.
+        const WHITE_RANK_MULTIPLIERS: [u32; 7] = [0, 13734121, 155291, 34849, 397, 89, 2];
+        const BLACK_RANK_MULTIPLIERS: [u32; 7] = [0, 7, 19, 1753, 7823, 691878, 3082517];
+        for rank in 1..=6 {
+            let white_pawn_rank_key = (white_pawns & BB_RANKS[rank]) as u32
+                * WHITE_RANK_MULTIPLIERS[rank];
+            let black_pawn_rank_key = (black_pawns & BB_RANKS[rank]) as u32
+                * BLACK_RANK_MULTIPLIERS[rank];
             pawns_key += white_pawn_rank_key + black_pawn_rank_key;
         }
 
