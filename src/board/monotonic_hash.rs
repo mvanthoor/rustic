@@ -16,7 +16,8 @@ impl Board {
         // to the next prime. (The "raw" values in the comments below are the values we'd be using
         // with no such rounding.)
         //
-        // The maximum is 46_691*8+5189*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 = 420_252.
+        // The maximum sum of both pieces keys is
+        // 46_691*8+5189*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 == 420_252.
         const PAWN_MULT: [u32; 2] = [5189, 46691]; // usually 0..=8; raw: [5184, 46656]
         const KNIGHT_MULT: [u32; 2] = [1733, 577]; // usually 0..=2; raw: [1728, 576]
         const LIGHT_BISHOP_MULT: [u32; 2] = [149, 293]; // usually 0..=1; raw: [144, 288]
@@ -60,6 +61,7 @@ impl Board {
         // x.pow(10) + x.pow(11) == 4288243248.0/255.0, which is
         // 4.455443274968434891800999910616226042276, excluding primes already used as multipliers
         // above and adjusting the largest few to minimize the residual.
+        // Maximum pawn key is (13_734_121 + 3_082_517)*255 == 4_288_242_690
         let mut pawns_key = 0u32;
         const WHITE_RANK_MULTIPLIERS: [u32; 6] = [13734121, 155291, 34849, 397, 89, 2];
         const BLACK_RANK_MULTIPLIERS: [u32; 6] = [3082517, 691878, 7823, 1753, 19, 7];
@@ -71,6 +73,7 @@ impl Board {
             pawns_key += white_pawn_rank_key + black_pawn_rank_key;
         }
 
+        // Maximum total key is 420_252 + 420_253 * 15 + 4_288_242_690 == u32::MAX - 558
         pawns_key + pieces_keys[0] + pieces_keys[1] + castling_key
     }
 }
