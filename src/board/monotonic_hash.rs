@@ -17,8 +17,8 @@ impl Board {
         // with no such rounding.)
         //
         // The maximum sum of both pieces keys is
-        // 46_691*8+5189*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 == 420_252.
-        const PAWN_MULT: [u32; 2] = [5189, 46691]; // usually 0..=8; raw: [5184, 46656]
+        // 46_703*8+5197*8+1733*2+577*2+293+149+73+37+13*2+5*2+3+1 == 420_412.
+        const PAWN_MULT: [u32; 2] = [5197, 46703]; // usually 0..=8; raw: [5184, 46656]
         const KNIGHT_MULT: [u32; 2] = [1733, 577]; // usually 0..=2; raw: [1728, 576]
         const LIGHT_BISHOP_MULT: [u32; 2] = [149, 293]; // usually 0..=1; raw: [144, 288]
         const DARK_BISHOP_MULT: [u32; 2] = [73, 37]; // usually 0..=1; raw: [72, 36]
@@ -50,8 +50,8 @@ impl Board {
                     queens * QUEEN_MULT[side as usize];
         }
 
-        // Maximum castling key is 420253 * 15 because only the lower 4 bits are used.
-        let castling_key = self.game_state.castling as u32 * 420253;
+        // Maximum castling key is 420_271 * 15 because only the lower 4 bits are used.
+        let castling_key = self.game_state.castling as u32 * 420271;
 
         // Use multipliers for rank weights
         // Largest possible rank value is 255 for each side
@@ -73,7 +73,7 @@ impl Board {
             pawns_key += white_pawn_rank_key + black_pawn_rank_key;
         }
 
-        // Maximum total key is 420_252 + 420_253 * 15 + 4_288_242_690 == u32::MAX - 558
+        // Maximum total key is 420_412 + 420_271 * 15 + 4_288_242_690 == 4_294_967_167 u32::MAX - 128
         pawns_key + pieces_keys[0] + pieces_keys[1] + castling_key
     }
 }
