@@ -322,7 +322,7 @@ impl<D: IHashData + Copy + Clone> TT<D> {
         size_of::<Self>() + match &self.tt {
             TTCore::FullHash(tt) => tt.len().saturating_sub(MIN_BUCKETS_PER_TABLE)
                 * size_of::<RehashableBucket<D>>(),
-            TTCore::HalfHash(tt) => tt.len() * size_of::<NonRehashableEntry<D>>(),
+            TTCore::HalfHash(tt) => tt.len() * size_of::<NonRehashableBucket<D>>(),
         }
     }
 
