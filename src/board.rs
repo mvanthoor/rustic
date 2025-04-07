@@ -28,6 +28,7 @@ mod history;
 mod playmove;
 mod utils;
 mod zobrist;
+mod monotonic_hash;
 
 use self::{
     defs::{Pieces, BB_SQUARES},

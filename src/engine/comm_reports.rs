@@ -58,7 +58,7 @@ impl Engine {
                     .expect(ErrFatal::LOCK)
                     .fen_read(Some(FEN_START_POSITION))
                     .expect(ErrFatal::NEW_GAME);
-                self.tt_search.lock().expect(ErrFatal::LOCK).clear();
+                self.tt_search.clear();
             }
 
             UciReport::IsReady => self.comm.send(CommControl::Ready),
@@ -67,7 +67,7 @@ impl Engine {
                 match option {
                     EngineOptionName::Hash(value) => {
                         if let Ok(v) = value.parse::<usize>() {
-                            self.tt_search.lock().expect(ErrFatal::LOCK).resize(v);
+                            self.tt_search.resize(v);
                         } else {
                             let msg = String::from(ErrNormal::NOT_INT);
                             self.comm.send(CommControl::InfoString(msg));
@@ -75,7 +75,7 @@ impl Engine {
                     }
 
                     EngineOptionName::ClearHash => {
-                        self.tt_search.lock().expect(ErrFatal::LOCK).clear()
+                        self.tt_search.clear()
                     }
 
                     EngineOptionName::Nothing => (),

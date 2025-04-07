@@ -20,14 +20,19 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
-
+use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
+use dashmap::DashMap;
+use dashmap::Entry::Occupied;
+use explicit_cast::{Truncate, TruncateFrom};
+use smallvec::{smallvec, SmallVec};
 use crate::{board::defs::ZobristKey, movegen::defs::ShortMove, search::defs::CHECKMATE_THRESHOLD};
+use crate::board::Board;
 
 const MEGABYTE: usize = 1024 * 1024;
 const ENTRIES_PER_BUCKET: usize = 4;
-const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
-const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
-const SHIFT_TO_LOWER: u64 = 32;
+const BUCKETS_FOR_PARTIAL_HASH: usize = 1 << 32;
+const MIN_BUCKETS_PER_TABLE: usize = 16;
+const EXPANSION_FACTORS: [usize; 2] = [8, 2];
 
 /* ===== Data ========================================================= */
 
@@ -68,7 +73,8 @@ impl PerftData {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
+#[repr(u8)]
 pub enum HashFlag {
     Nothing,
     Exact,
@@ -76,7 +82,8 @@ pub enum HashFlag {
     Beta,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
+#[repr(packed)]
 pub struct SearchData {
     depth: i8,
     flag: HashFlag,
@@ -133,6 +140,7 @@ impl SearchData {
             match self.flag {
                 HashFlag::Exact => {
                     // Get the value from the data. We don't want to change
+                    // Get the value from the data. We don't want to change
                     // the value that is in the TT.
                     let mut v = self.value;
 
@@ -169,16 +177,20 @@ impl SearchData {
 
 /* ===== Entry ======================================================== */
 
-#[derive(Copy, Clone)]
-struct Entry<D> {
-    verification: u32,
+#[derive(Copy, Clone, Eq, PartialEq)]
+#[repr(packed)]
+struct Entry<V: Copy, D> {
+    verification: V,
     data: D,
 }
 
-impl<D: IHashData> Entry<D> {
-    pub fn new() -> Self {
+type RehashableEntry<D> = Entry<u64, D>;
+type NonRehashableEntry<D> = Entry<u32, D>;
+
+impl <V: Copy + TruncateFrom<u128>, D: IHashData> Entry<V, D> {
+    fn new() -> Self {
         Self {
-            verification: 0,
+            verification: 0.truncate(),
             data: D::new(),
         }
     }
@@ -186,46 +198,56 @@ impl<D: IHashData> Entry<D> {
 
 /* ===== Bucket ======================================================= */
 
-#[derive(Clone)]
-struct Bucket<D> {
-    bucket: [Entry<D>; ENTRIES_PER_BUCKET],
+#[derive(Clone, Eq, PartialEq)]
+struct Bucket<E> {
+    bucket: [E; ENTRIES_PER_BUCKET],
 }
 
-impl<D: IHashData + Copy> Bucket<D> {
-    pub fn new() -> Self {
+type RehashableBucket<D> = Bucket<RehashableEntry<D>>;
+type NonRehashableBucket<D> = Bucket<NonRehashableEntry<D>>;
+
+impl<D: IHashData + Copy, V: Eq + Copy> Bucket<Entry<V, D>> where V: TruncateFrom<u128> {
+    fn new() -> Self {
         Self {
             bucket: [Entry::new(); ENTRIES_PER_BUCKET],
         }
     }
 
-    // Store a position in the bucket. Replace the position with the stored
-    // lowest depth, as positions with higher depth are more valuable.
-    pub fn store(&mut self, verification: u32, data: D, used_entries: &mut usize) {
+    fn store(&mut self, data: D, used_entries: &mut usize, overwrite: bool) -> bool {
         let mut idx_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
         for entry in 1..ENTRIES_PER_BUCKET {
-            if self.bucket[entry].data.depth() < data.depth() {
+            let existing_data = self.bucket[entry].data;
+            if existing_data.depth() < data.depth() {
                 idx_lowest_depth = entry
             }
         }
 
         // If the verifiaction was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
-        if self.bucket[idx_lowest_depth].verification == 0 {
+        let verification = self.bucket[idx_lowest_depth].verification;
+        if verification == 0.truncate() {
             *used_entries += 1;
+        } else if !overwrite {
+            // If the entry was used before, and we're not overwriting
+            // the entry, return false.
+            return false;
         }
 
         // Store.
-        self.bucket[idx_lowest_depth] = Entry { verification, data }
+        self.bucket[idx_lowest_depth] = Entry { verification, data };
+        true
     }
 
-    // Find a position in the bucket, where both the stored verification and
-    // depth match the requested verification and depth.
-    pub fn find(&self, verification: u32) -> Option<&D> {
-        for e in self.bucket.iter() {
-            if e.verification == verification {
-                return Some(&e.data);
+    fn find(&self, verification: u64) -> Option<D> {
+        let verification = (verification as u128).truncate();
+        let bucket = self.bucket;
+        for e in bucket.iter() {
+            let e_verification = e.verification;
+            if e_verification == verification {
+                let e_data = e.data;
+                return Some(e_data.clone());
             }
         }
         None
@@ -235,12 +257,40 @@ impl<D: IHashData + Copy> Bucket<D> {
 /* ===== TT =================================================== */
 
 // Transposition Table
-pub struct TT<D> {
-    tt: Vec<Bucket<D>>,
-    megabytes: usize,
+#[derive(Eq, PartialEq, Clone)]
+#[repr(u8)]
+enum TTCore<D: Copy> {
+    FullHash(SmallVec<[RehashableBucket<D>; MIN_BUCKETS_PER_TABLE]>),
+    HalfHash(Vec<NonRehashableBucket<D>>),
+}
+
+impl<D: Copy> TTCore<D> {
+    pub(crate) fn len(&self) -> usize {
+        match self {
+            TTCore::FullHash(ref tt) => tt.len(),
+            TTCore::HalfHash(ref tt) => tt.len(),
+        }
+    }
+
+    pub(crate) fn size_bytes(&self) -> usize {
+        size_of::<Self>() + match self {
+            TTCore::FullHash(ref tt) => (tt.len().saturating_sub(tt.inline_size())) * std::mem::size_of::<RehashableBucket<D>>(),
+            TTCore::HalfHash(ref tt) => tt.len() * std::mem::size_of::<NonRehashableBucket<D>>(),
+        }
+    }
+
+    // Calculate the index (bucket) where the data is going to be stored.
+    // Use only the upper half of the Zobrist key for this, so the lower
+    // half can be used to calculate a verification.
+    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
+        zobrist_key as usize % self.len()
+    }
+}
+
+#[derive(Eq, PartialEq, Clone)]
+pub struct TT<D: Copy> {
+    tt: TTCore<D>,
     used_entries: usize,
-    total_buckets: usize,
-    total_entries: usize,
 }
 
 // Public functions
@@ -249,14 +299,39 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // of type D, where D has to implement IHashData, and must be clonable
     // and copyable.
     pub fn new(megabytes: usize) -> Self {
-        let (total_buckets, total_entries) = Self::calculate_init_values(megabytes);
+        let total_buckets = Self::calculate_init_buckets(megabytes);
 
-        Self {
-            tt: vec![Bucket::<D>::new(); total_buckets],
-            megabytes,
-            used_entries: 0,
-            total_buckets,
-            total_entries,
+        Self::new_with_buckets(total_buckets)
+    }
+
+    fn new_with_buckets(buckets: usize) -> TT<D> {
+        if buckets >= BUCKETS_FOR_PARTIAL_HASH {
+            Self {
+                tt: TTCore::FullHash(smallvec![RehashableBucket::<D>::new(); buckets]),
+                used_entries: 0
+            }
+        } else {
+            Self {
+                tt: TTCore::HalfHash(vec![NonRehashableBucket::<D>::new(); buckets]),
+                used_entries: 0
+            }
+        }
+    }
+
+    pub(crate) fn size_bytes(&self) -> usize {
+        size_of::<Self>() + match &self.tt {
+            TTCore::FullHash(tt) => tt.len().saturating_sub(MIN_BUCKETS_PER_TABLE)
+                * size_of::<RehashableBucket<D>>(),
+            TTCore::HalfHash(tt) => tt.len() * size_of::<NonRehashableBucket<D>>(),
+        }
+    }
+
+    pub(crate) fn occupied_bytes(&self) -> usize {
+        size_of::<Self>() + match self.tt {
+            // smallvec includes MIN_BUCKETS_PER_TABLE buckets inline.
+            TTCore::FullHash(_) => self.used_entries.saturating_sub(MIN_BUCKETS_PER_TABLE * ENTRIES_PER_BUCKET)
+                * size_of::<RehashableEntry<D>>(),
+            TTCore::HalfHash(_) => self.used_entries * size_of::<NonRehashableEntry<D>>(),
         }
     }
 
@@ -264,34 +339,98 @@ impl<D: IHashData + Copy + Clone> TT<D> {
     // new one. (We don't use Vec's resize function, because it clones
     // elements. This can be problematic if TT sizes push the
     // computer's memory limits.)
-    pub fn resize(&mut self, megabytes: usize) {
-        let (total_buckets, total_entries) = TT::<D>::calculate_init_values(megabytes);
+    pub fn resize(&mut self, megabytes: usize, room_to_grow: &AtomicIsize) {
+        let total_buckets = TT::<D>::calculate_init_buckets(megabytes);
 
-        self.tt = vec![Bucket::<D>::new(); total_buckets];
-        self.megabytes = megabytes;
+        self.resize_to_bucket_count(total_buckets, room_to_grow);
+    }
+
+    fn resize_to_bucket_count(&mut self, buckets: usize, room_to_grow: &AtomicIsize) -> bool {
+        let old_bucket_count = self.tt.len();
+        let old_size_bytes = self.tt.size_bytes();
+        let new_size_bytes = size_of::<TTCore<D>>() + if buckets >= BUCKETS_FOR_PARTIAL_HASH {
+            buckets * std::mem::size_of::<NonRehashableBucket<D>>()
+        } else {
+            (buckets - MIN_BUCKETS_PER_TABLE) * std::mem::size_of::<RehashableBucket<D>>()
+        };
+        if new_size_bytes > old_size_bytes {
+            let bytes_added = (new_size_bytes - old_size_bytes) as isize;
+            if room_to_grow.fetch_sub(bytes_added, Ordering::AcqRel) - bytes_added < 0 {
+                room_to_grow.fetch_add(bytes_added, Ordering::AcqRel);
+                return false;
+            }
+        } else {
+            room_to_grow.fetch_add((old_size_bytes - new_size_bytes) as isize, Ordering::AcqRel);
+        }
+        if buckets >= BUCKETS_FOR_PARTIAL_HASH {
+            self.tt = TTCore::HalfHash(vec![NonRehashableBucket::<D>::new(); buckets]);
+            self.used_entries = 0;
+        } else if buckets > old_bucket_count {
+            if let TTCore::FullHash(ref mut tt) = self.tt {
+                tt.resize(buckets, RehashableBucket::<D>::new());
+                let (old_buckets, new_buckets) = tt.split_at_mut(old_bucket_count);
+                for (index, bucket) in old_buckets.iter_mut().enumerate() {
+                    for entry in bucket.bucket.iter_mut() {
+                        if entry.verification != 0 {                            let zobrist_key = entry.verification;
+                            let new_index = zobrist_key as usize % buckets;
+                            if new_index != index {
+                                debug_assert!(new_index > index, "rehashing from bucket {} of {} to bucket {} of {}",
+                                              index, old_bucket_count, new_index, buckets);
+                                debug_assert!(new_index - old_bucket_count < new_buckets.len(),
+                                              "rehashing from bucket {} of {} to bucket {} of {}",
+                                              index, old_bucket_count, new_index, buckets);
+                                new_buckets[new_index - old_bucket_count].store(entry.data, &mut self.used_entries, false);
+                                entry.clone_from(&RehashableEntry::new());
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        self.tt = TTCore::FullHash(smallvec![RehashableBucket::<D>::new(); buckets]);
         self.used_entries = 0;
-        self.total_buckets = total_buckets;
-        self.total_entries = total_entries;
+        true
     }
 
     // Insert a position at the calculated index, by storing it in the
     // index's bucket.
-    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D) {
-        if self.megabytes > 0 {
-            let index = self.calculate_index(zobrist_key);
-            let verification = self.calculate_verification(zobrist_key);
-            self.tt[index].store(verification, data, &mut self.used_entries);
+    pub fn insert(&mut self, zobrist_key: ZobristKey, data: D, room_to_grow: &AtomicIsize) {
+        if self.tt.len() > 0 {
+            'try_store_or_grow: while let TTCore::FullHash(ref mut tt) = self.tt {
+                let index = zobrist_key as usize % tt.len();
+                if tt[index].store(data, &mut self.used_entries, false) {
+                    return;
+                }
+                for expansion_factor in EXPANSION_FACTORS {
+                    let new_bucket_count = self.tt.len().checked_mul(expansion_factor);
+                    if let Some(new_bucket_count) = new_bucket_count {
+                        if self.resize_to_bucket_count(new_bucket_count, room_to_grow) {
+                            continue 'try_store_or_grow;
+                        }
+                    }
+                    break 'try_store_or_grow;
+                }
+                break;
+            }
+            let index = zobrist_key as usize % self.tt.len();
+            match self.tt {
+                TTCore::FullHash(ref mut tt) => tt[index].store(data, &mut self.used_entries, true),
+                TTCore::HalfHash(ref mut tt) => tt[index].store(data, &mut self.used_entries, true),
+            };
         }
     }
 
     // Probe the TT by both verification and depth. Both have to
     // match for the position to be the correct one we're looking for.
-    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<&D> {
-        if self.megabytes > 0 {
-            let index = self.calculate_index(zobrist_key);
+    pub fn probe(&self, zobrist_key: ZobristKey) -> Option<D> {
+        if self.tt.len() > 0 {
+            let index = self.tt.calculate_index(zobrist_key);
             let verification = self.calculate_verification(zobrist_key);
-
-            self.tt[index].find(verification)
+            match self.tt {
+                TTCore::FullHash(ref tt) => tt[index].find(verification),
+                TTCore::HalfHash(ref tt) => tt[index].find(verification),
+            }
         } else {
             None
         }
@@ -299,14 +438,15 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
     // Clear TT by replacing it with a new one.
     pub fn clear(&mut self) {
-        self.resize(self.megabytes);
+        self.tt = TTCore::FullHash(smallvec![RehashableBucket::<D>::new()]);
+        self.used_entries = 0;
     }
 
     // Provides TT usage in permille (1 per 1000, as oppposed to percent,
     // which is 1 per 100.)
     pub fn hash_full(&self) -> u16 {
-        if self.megabytes > 0 {
-            ((self.used_entries as f64 / self.total_entries as f64) * 1000f64).floor() as u16
+        if self.tt.len() > 0 {
+            ((self.used_entries as f64 / (self.tt.len() * ENTRIES_PER_BUCKET) as f64) * 1000f64).floor() as u16
         } else {
             0
         }
@@ -315,31 +455,139 @@ impl<D: IHashData + Copy + Clone> TT<D> {
 
 // Private functions
 impl<D: IHashData + Copy + Clone> TT<D> {
-    // Calculate the index (bucket) where the data is going to be stored.
-    // Use only the upper half of the Zobrist key for this, so the lower
-    // half can be used to calculate a verification.
-    fn calculate_index(&self, zobrist_key: ZobristKey) -> usize {
-        let key = (zobrist_key & HIGH_FOUR_BYTES) >> SHIFT_TO_LOWER;
-        let total = self.total_buckets as u64;
-
-        (key % total) as usize
-    }
-
     // Many positions will end up at the same index, and thus in the same
     // bucket. Calculate a verification for the position so it can later be
     // found in the bucket. Use the other half of the Zobrist key for this.
-    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u32 {
-        (zobrist_key & LOW_FOUR_BYTES) as u32
+    fn calculate_verification(&self, zobrist_key: ZobristKey) -> u64 {
+        zobrist_key
     }
 
-    // This function calculates the values for total_buckets and
-    // total_entries. These depend on the requested TT size.
-    fn calculate_init_values(megabytes: usize) -> (usize, usize) {
-        let entry_size = std::mem::size_of::<Entry<D>>();
-        let bucket_size = entry_size * ENTRIES_PER_BUCKET;
-        let total_buckets = MEGABYTE / bucket_size * megabytes;
-        let total_entries = total_buckets * ENTRIES_PER_BUCKET;
+    // This function calculates the value for total_buckets depending on the
+    // requested TT size.
+    fn calculate_init_buckets(megabytes: usize) -> usize {
+        megabytes * MEGABYTE / size_of::<RehashableBucket<D>>()
+    }
+}
 
-        (total_buckets, total_entries)
+type OurMap = DashMap<u32, TT<SearchData>>;
+
+pub struct TTree {
+    map: OurMap,
+    max_size: AtomicUsize,
+    room_to_grow: AtomicIsize
+}
+
+impl TTree {
+    pub fn new(size_mb: usize) -> Self {
+        let size_bytes = size_mb * MEGABYTE;
+        Self {
+            map: DashMap::new(),
+            max_size: AtomicUsize::new(size_bytes),
+            room_to_grow: AtomicIsize::new(size_bytes as isize)
+        }
+    }
+
+    pub fn occupied_bytes(&self) -> usize {
+        (&self.map)
+            .iter()
+            .map(|v| v.value().occupied_bytes()
+                + size_of::<u32>() // map stores each key
+                 // FIXME: This ignores DashMap overhead
+            )
+            .sum::<usize>()
+    }
+
+    pub fn size_bytes(&self) -> usize {
+        size_of::<Self>() + (&self.map)
+            .iter()
+            .map(|v| v.value().size_bytes()
+                + size_of::<u32>() // map stores each key
+                // FIXME: This ignores DashMap overhead
+            )
+            .sum::<usize>()
+    }
+
+    pub fn insert(&self, board: &Board, value: SearchData) {
+        let zobrist_key = board.game_state.zobrist_key;
+        let mut entry = self.map.entry(board.monotonic_hash());
+        match &mut entry {
+            Occupied(ref mut e) => {
+                e.get_mut().insert(zobrist_key, value, &self.room_to_grow);
+            },
+            _ => {
+                let mut new_buckets: SmallVec<[RehashableBucket<SearchData>; MIN_BUCKETS_PER_TABLE]> = smallvec![RehashableBucket::<SearchData>::new(); MIN_BUCKETS_PER_TABLE];
+                let index = zobrist_key as usize % MIN_BUCKETS_PER_TABLE;
+                new_buckets[index].bucket[0].verification = zobrist_key;
+                new_buckets[index].bucket[0].data = value;
+                let new_table = TT {
+                    tt: TTCore::FullHash(new_buckets),
+                    used_entries: 1
+                };
+                let new_table_size = new_table.size_bytes() as isize;
+                if self.room_to_grow.fetch_sub(new_table_size, Ordering::AcqRel) - new_table_size < 0 {
+                    self.room_to_grow.fetch_add(new_table_size, Ordering::AcqRel);
+                    return;
+                }
+                entry.insert(new_table);
+            }
+        }
+    }
+
+    pub fn probe(&self, board: &Board) -> Option<SearchData> {
+        (&self.map).get(&board.monotonic_hash())?.probe(board.game_state.zobrist_key)
+    }
+
+    pub fn hash_full(&self) -> u16 {
+        let max_size = self.max_size.load(Ordering::Acquire);
+        let current_size = self.occupied_bytes();
+        ((current_size * 1000 + 500) / max_size) as u16
+    }
+
+    pub fn remove_unreachable(&self, new_monotonic_hash: u32) {
+        self.map.retain(|k, _| k <= &new_monotonic_hash);
+        self.recalculate_room_to_grow();
+    }
+
+    fn recalculate_room_to_grow(&self) -> isize {
+        let new_room_to_grow = self.max_size.load(Ordering::SeqCst) as isize - self.size_bytes() as isize;
+        self.room_to_grow.store(new_room_to_grow, Ordering::SeqCst);
+        new_room_to_grow
+    }
+
+    pub fn clear(&self) {
+        (&self.map).clear();
+        self.room_to_grow.store(self.max_size.load(Ordering::SeqCst) as isize, Ordering::SeqCst);
+    }
+
+    pub fn resize(&self, megabytes: usize) {
+        let new_max_size = megabytes * MEGABYTE;
+        let mut size_change: isize;
+        loop {
+            let old_max_size = self.max_size.load(Ordering::Acquire);
+            size_change = new_max_size as isize - old_max_size as isize;
+            if self.max_size.compare_exchange(old_max_size, new_max_size, Ordering::SeqCst, Ordering::Acquire).is_ok() {
+                break;
+            }
+        }
+        let mut new_room_to_grow = self.room_to_grow.fetch_add(size_change, Ordering::SeqCst) + size_change;
+        while new_room_to_grow < 0 {
+            let max_buckets = (&self.map).iter().map(
+                |tt| tt.value().tt.len()).max().unwrap();
+            let new_max_buckets = max_buckets / 2;
+            if new_max_buckets < 1 {
+                return;
+            }
+            let mut bytes_freed = 0;
+            for mut tt in (&self.map).iter_mut() {
+                let tt = tt.value_mut();
+                if tt.tt.len() > new_max_buckets {
+                    let old_size = tt.tt.size_bytes();
+                    tt.resize_to_bucket_count(new_max_buckets, &self.room_to_grow);
+                    bytes_freed += (old_size - tt.tt.size_bytes()) as isize;
+                }
+            }
+            new_room_to_grow += bytes_freed;
+            self.room_to_grow.fetch_add(bytes_freed, Ordering::SeqCst);
+        }
     }
 }

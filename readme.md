@@ -178,7 +178,7 @@ OPTIONS:
     -c, --comm <comm>          Select communication protocol to use [default: uci]  [possible values: uci, xboard]
     -f, --fen <fen>            Set up the given position [default: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
                                0 1]
-    -h, --hash <hash>          Transposition Table size in MB [default: 32]
+    -m, --hash <hash>          Transposition Table size in MB [default: 32]
     -p, --perft <perft>        Run perft to the given depth [default: 0]
     -t, --threads <threads>    Number of CPU-threads to use [default: 1]
 ```

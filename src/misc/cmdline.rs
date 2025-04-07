@@ -56,7 +56,7 @@ impl CmdLineArgs {
     const THREADS_DEFAULT: usize = 1;
 
     const HASH_LONG: &'static str = "hash";
-    const HASH_SHORT: char = 'h';
+    const HASH_SHORT: char = 'm';
     const HASH_HELP: &'static str = "Transposition Table size in MB";
     const HASH_DEFAULT: usize = EngineOptionDefaults::HASH_DEFAULT;
 

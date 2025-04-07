@@ -63,7 +63,8 @@ impl Engine {
         let mut is_legal = false;
 
         if let Ok(ips) = is_pseudo_legal {
-            is_legal = self.board.lock().expect(ErrFatal::LOCK).make(ips, &self.mg);
+            let mut board = self.board.lock().expect(ErrFatal::LOCK);
+            is_legal = board.make(ips, &self.mg);
         }
         is_legal
     }

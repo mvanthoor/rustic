@@ -169,7 +169,7 @@ impl Move {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct ShortMove {
     data: u32,
 }
