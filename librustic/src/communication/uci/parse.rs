@@ -95,13 +95,7 @@ pub fn go(cmd: &str) -> UciIn {
                 Tokens::BTime => game_time.btime = s.parse::<u128>().unwrap_or(0),
                 Tokens::WInc => game_time.winc = s.parse::<u128>().unwrap_or(0),
                 Tokens::BInc => game_time.binc = s.parse::<u128>().unwrap_or(0),
-                Tokens::MovesToGo => {
-                    game_time.moves_to_go = if let Ok(x) = s.parse::<usize>() {
-                        Some(x)
-                    } else {
-                        None
-                    }
-                }
+                Tokens::MovesToGo => game_time.moves_to_go = s.parse::<usize>().ok(),
             },
         }
     }
