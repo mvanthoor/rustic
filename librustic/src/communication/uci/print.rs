@@ -17,7 +17,7 @@ pub fn readyok() {
     println!("readyok");
 }
 
-pub fn info_string(message: &String) {
+pub fn info_string(message: &str) {
     println!("info string {message}");
 }
 
@@ -64,7 +64,7 @@ pub fn uciok() {
     println!("uciok");
 }
 
-pub fn custom(message: &String) {
+pub fn custom(message: &str) {
     println!("{message}");
 }
 
