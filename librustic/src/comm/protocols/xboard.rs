@@ -17,7 +17,7 @@ use crate::{
 use std::{
     fmt::{self, Display},
     io,
-    sync::{mpsc::channel, mpsc::Sender, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc::Sender, mpsc::channel},
     thread::{self, JoinHandle},
 };
 
@@ -673,9 +673,6 @@ impl XBoard {
                     CommOut::PrintEval(eval, phase) => Shared::print_eval(eval, phase),
                     CommOut::PrintState(state) => Shared::print_state(&state),
                     CommOut::PrintHelp => Shared::print_help(CommType::XBOARD),
-
-                    // Ignore everything else
-                    _ => (),
                 }
             }
         });
