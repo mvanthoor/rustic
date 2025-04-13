@@ -1,20 +1,20 @@
 pub trait IFeature<'a> {
     fn get_name(&self) -> &'a str;
 
-    fn get_ui_element(&self) -> &Option<UiElement> {
-        &None
+    fn get_ui_element(&self) -> Option<&UiElement> {
+        None
     }
 
-    fn get_default(&self) -> &Option<String> {
-        &None
+    fn get_default(&self) -> Option<&String> {
+        None
     }
 
-    fn get_min(&self) -> &Option<String> {
-        &None
+    fn get_min(&self) -> Option<&String> {
+        None
     }
 
-    fn get_max(&self) -> &Option<String> {
-        &None
+    fn get_max(&self) -> Option<&String> {
+        None
     }
 }
 
@@ -49,20 +49,20 @@ impl<'a> IFeature<'a> for Feature {
         self.name
     }
 
-    fn get_ui_element(&self) -> &Option<UiElement> {
-        &self.ui_element
+    fn get_ui_element(&self) -> Option<&UiElement> {
+        self.ui_element.as_ref()
     }
 
-    fn get_default(&self) -> &Option<String> {
-        &self.default
+    fn get_default(&self) -> Option<&String> {
+        self.default.as_ref()
     }
 
-    fn get_min(&self) -> &Option<String> {
-        &self.min
+    fn get_min(&self) -> Option<&String> {
+        self.min.as_ref()
     }
 
-    fn get_max(&self) -> &Option<String> {
-        &self.max
+    fn get_max(&self) -> Option<&String> {
+        self.max.as_ref()
     }
 }
 
