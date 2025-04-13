@@ -9,6 +9,8 @@ use crate::{
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 
+const RNG_SEED: [u8; 32] = [96; 32];
+
 // The find_magics function can be used by compiling the "wizardry"
 // executable crate in Rustic's workspace and running it on the
 // commandline. This function generates magic numbers for the rooks and
@@ -24,7 +26,7 @@ pub fn find_magics(piece: Piece) {
     let is_rook = piece == Pieces::ROOK;
     let mut rook_table: Vec<Bitboard> = vec![EMPTY; ROOK_TABLE_SIZE];
     let mut bishop_table: Vec<Bitboard> = vec![EMPTY; BISHOP_TABLE_SIZE];
-    let mut random = ChaChaRng::from_entropy();
+    let mut random = ChaChaRng::from_seed(RNG_SEED);
     let mut offset = 0;
 
     println!("Finding magics for: {}", PIECE_NAME[piece]);
@@ -64,7 +66,7 @@ pub fn find_magics(piece: Piece) {
             found = true; // Assume this new magic will work.
 
             // Create a random magic number to test.
-            try_this.nr = random.gen::<u64>() & random.gen::<u64>() & random.gen::<u64>();
+            try_this.nr = random.random::<u64>() & random.random::<u64>() & random.random::<u64>();
 
             // Now try all possible permutations of blocker boards on this square.
             for i in 0..permutations {
