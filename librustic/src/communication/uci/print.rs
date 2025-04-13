@@ -35,19 +35,19 @@ pub fn features(features: &Arc<Vec<Feature>>) {
         };
 
         let value_default = if let Some(v) = feature.get_default() {
-            format!("default {}", (*v).clone())
+            format!("default {}", v)
         } else {
             String::from("")
         };
 
         let value_min = if let Some(v) = feature.get_min() {
-            format!("min {}", (*v).clone())
+            format!("min {}", v)
         } else {
             String::from("")
         };
 
         let value_max = if let Some(v) = feature.get_max() {
-            format!("max {}", (*v).clone())
+            format!("max {}", v)
         } else {
             String::from("")
         };

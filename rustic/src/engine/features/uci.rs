@@ -4,9 +4,9 @@ pub fn hash() -> Feature {
     Feature::new(
         "Hash",
         Some(UiElement::Spin),
-        Some(String::from("32")),
-        Some(String::from("0")),
-        Some(String::from("65535")),
+        Some("32"),
+        Some("0"),
+        Some("65535"),
     )
 }
 
