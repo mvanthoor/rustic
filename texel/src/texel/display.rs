@@ -14,15 +14,12 @@ impl Tuner {
                 .into_string()
                 .unwrap_or_default()
         );
-        println!("Lines read: {}", data_file_store.count_all_lines());
-        println!(
-            "Lines successful: {}",
-            data_file_store.count_successful_lines()
-        );
+        println!("Lines read: {}", data_file_store.count_all());
+        println!("Lines successful: {}", data_file_store.count_successful());
 
-        if data_file_store.count_failed_lines() > 0 {
-            println!("Lines failed: {}", data_file_store.count_failed_lines());
-            for line in data_file_store.get_failed_lines() {
+        if data_file_store.count_failed() > 0 {
+            println!("Lines failed: {}", data_file_store.count_failed());
+            for line in data_file_store.get_failed() {
                 println!("\tLine number: {}", line.get_nr());
             }
         }

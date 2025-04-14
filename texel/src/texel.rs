@@ -8,7 +8,7 @@ mod result_types;
 
 use data_file::{Line, LineParseError};
 use data_point::DataPoint;
-use librustic::board::{defs::fen_setup_fast, Board};
+use librustic::board::{Board, defs::fen_setup_fast};
 use result_types::{DataFileLineParseResult, DataFileLoadResult, TunerLoadError, TunerLoadResult};
 use std::{
     fs::File,
@@ -45,7 +45,7 @@ impl Tuner {
 
         self.print_data_file_read_result(&data_file_store);
 
-        let lines = data_file_store.get_successful_lines();
+        let lines = data_file_store.get_successful();
         let data_point_store = self.convert_lines_to_data_points(lines);
         self.data_points = data_point_store.get_successful().to_vec();
 
@@ -86,18 +86,18 @@ impl Tuner {
             let line = match line_result {
                 Ok(line) => line,
                 Err(_) => {
-                    data_file_store.insert_failed_line(Line::new(i, String::from("")));
+                    data_file_store.insert_failed(Line::new(i, String::from("")));
                     continue;
                 }
             };
 
-            data_file_store.insert_successful_line(Line::new(i, line));
+            data_file_store.insert_successful(Line::new(i, line));
         }
 
         Ok(data_file_store)
     }
 
-    fn convert_lines_to_data_points(&mut self, lines: &Vec<Line>) -> data_point::Store {
+    fn convert_lines_to_data_points(&mut self, lines: &[Line]) -> data_point::Store {
         let mut data_point_store = data_point::Store::new();
 
         for line in lines {

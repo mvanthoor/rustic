@@ -62,11 +62,11 @@ impl Store {
         self.failed.push(s);
     }
 
-    pub fn get_successful(&self) -> &Vec<DataPoint> {
+    pub fn get_successful(&self) -> &[DataPoint] {
         &self.successful
     }
 
-    pub fn get_failed(&self) -> &Vec<String> {
+    pub fn get_failed(&self) -> &[String] {
         &self.failed
     }
 }

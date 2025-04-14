@@ -60,31 +60,31 @@ impl Store {
         }
     }
 
-    pub fn count_successful_lines(&self) -> usize {
+    pub fn count_successful(&self) -> usize {
         self.successful.len()
     }
 
-    pub fn count_failed_lines(&self) -> usize {
+    pub fn count_failed(&self) -> usize {
         self.failed.len()
     }
 
-    pub fn count_all_lines(&self) -> usize {
+    pub fn count_all(&self) -> usize {
         self.successful.len() + self.failed.len()
     }
 
-    pub fn insert_successful_line(&mut self, line: Line) {
+    pub fn insert_successful(&mut self, line: Line) {
         self.successful.push(line);
     }
 
-    pub fn insert_failed_line(&mut self, line: Line) {
+    pub fn insert_failed(&mut self, line: Line) {
         self.failed.push(line);
     }
 
-    pub fn get_successful_lines(&self) -> &Vec<Line> {
+    pub fn get_successful(&self) -> &[Line] {
         &self.successful
     }
 
-    pub fn get_failed_lines(&self) -> &Vec<Line> {
+    pub fn get_failed(&self) -> &[Line] {
         &self.failed
     }
 }
