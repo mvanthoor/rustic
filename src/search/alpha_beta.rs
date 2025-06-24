@@ -175,6 +175,7 @@ impl Search {
 
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
+                    Search::update_history_heuristic(current_move, depth, refs);
                 }
 
                 return beta;

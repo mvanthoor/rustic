@@ -1,7 +1,7 @@
 [package]
-name = "rustic-alpha"
+name = "rustic-sharp"
 version = "3.0.5"
-authors = ["Marcel Vanthoor"]
+authors = ["Marcel Vanthoor, Matt Voce"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

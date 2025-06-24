@@ -214,4 +214,13 @@ impl Search {
             refs.search_info.killer_moves[ply][0] = current_move.to_short_move();
         }
     }
+
+    pub fn update_history_heuristic(current_move: Move, depth: i8, refs: &mut SearchRefs) {
+        let side = refs.board.us();
+        let piece = current_move.piece();
+        let to = current_move.to();
+        let inc = (depth as u32).saturating_mul(depth as u32);
+        let entry = &mut refs.search_info.history_heuristic[side][piece][to];
+        *entry = entry.saturating_add(inc);
+    }
 }

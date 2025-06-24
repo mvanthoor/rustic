@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    defs::MAX_PLY,
+    defs::{MAX_PLY, NrOf, Sides},
     engine::defs::{Information, SearchData, TT},
     movegen::{
         defs::{Move, ShortMove},
@@ -119,6 +119,7 @@ pub struct SearchInfo {
     pub ply: i8,
     pub killer_moves: KillerMoves,
     pub last_stats_sent: u128,
+    pub history_heuristic: [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
     pub last_curr_move_sent: u128,
     pub allocated_time: u128,
     pub terminate: SearchTerminate,
@@ -134,6 +135,7 @@ impl SearchInfo {
             nodes: 0,
             ply: 0,
             killer_moves: [[ShortMove::new(0); MAX_KILLER_MOVES]; MAX_PLY as usize],
+            history_heuristic: [[[0u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,

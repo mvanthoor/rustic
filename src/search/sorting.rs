@@ -70,14 +70,14 @@ impl Search {
                 }
             }
 
-            /*
-                // If still not sorted, try to sort by history heuristic.
-                if value == 0 {
-                    let piece = m.piece();
-                    let to = m.to();
-                    value = refs.search_info.history_heuristic[refs.board.us()][piece][to];
-                }
-            */
+            
+            // If still not sorted, try to sort by history heuristic.
+            if value == 0 {
+                let piece = m.piece();
+                let to = m.to();
+                value = refs.search_info.history_heuristic[refs.board.us()][piece][to];
+            }
+            
 
             m.set_sort_score(value);
         }
@@ -91,5 +91,55 @@ impl Search {
                 ml.swap(start_index as usize, i as usize);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        board::Board,
+        engine::defs::{Information, SearchData, TT},
+        movegen::{MoveGenerator, defs::{MoveList, MoveType}},
+        search::defs::{SearchControl, SearchInfo, SearchParams, SearchRefs},
+    };
+    use crossbeam_channel::unbounded;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn history_heuristic_affects_scoring() {
+        let mut board = Board::new();
+        let mg = Arc::new(MoveGenerator::new());
+        let tt: Arc<Mutex<TT<SearchData>>> = Arc::new(Mutex::new(TT::new(0)));
+        let (_ct, crx) = unbounded::<SearchControl>();
+        let (rtx, _rrx) = unbounded::<Information>();
+        let mut sp = SearchParams::new();
+        let mut si = SearchInfo::new();
+
+        board.fen_read(None).unwrap();
+        let mut ml = MoveList::new();
+        mg.generate_moves(&board, &mut ml, MoveType::All);
+
+        assert!(ml.len() > 1);
+        let mv0 = ml.get_move(0);
+        let side = board.us();
+
+        let refs = SearchRefs {
+            board: &mut board,
+            mg: &mg,
+            tt: &tt,
+            tt_enabled: false,
+            search_params: &mut sp,
+            search_info: &mut si,
+            control_rx: &crx,
+            report_tx: &rtx,
+        };
+
+        refs.search_info.history_heuristic[side][mv0.piece()][mv0.to()] = 500;
+
+        Search::score_moves(&mut ml, ShortMove::new(0), &refs);
+        Search::pick_move(&mut ml, 0);
+
+        assert_eq!(ml.get_move(0).get_move(), mv0.get_move());
     }
 }
