@@ -22,7 +22,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 ======================================================================= */
 
 use super::{
-    defs::{SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW, INF, SEND_STATS, STALEMATE},
+    defs::{
+        RootMoveAnalysis, SHARP_MARGIN, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
+        INF, SEND_STATS, STALEMATE,
+    },
     Search, SearchRefs,
 };
 use crate::{
@@ -189,6 +192,20 @@ impl Search {
                 }
             }
 
+            // Count good replies in root position.
+            if is_root {
+                let gr = if depth > 1 {
+                    Search::count_good_replies(depth - 1, alpha, beta, refs)
+                } else {
+                    0
+                };
+                refs.search_info.root_analysis.push(RootMoveAnalysis {
+                    mv: current_move,
+                    eval: eval_score,
+                    good_replies: gr,
+                });
+            }
+
             // Take back the move, and decrease ply accordingly.
             refs.board.unmake();
             refs.search_info.ply -= 1;
@@ -263,5 +280,40 @@ impl Search {
         // We have traversed the entire move list and found the best
         // possible move/eval_score for us.
         alpha
+    }
+
+    // Count opponent replies that keep the evaluation near the best value.
+    fn count_good_replies(
+        depth: i8,
+        alpha: i16,
+        beta: i16,
+        refs: &mut SearchRefs,
+    ) -> usize {
+        let mut move_list = MoveList::new();
+        refs.mg.generate_moves(refs.board, &mut move_list, MoveType::All);
+
+        let mut evals: Vec<i16> = Vec::new();
+        let mut best_eval = INF;
+
+        for i in 0..move_list.len() {
+            let mv = move_list.get_move(i);
+            if refs.board.make(mv, refs.mg) {
+                refs.search_info.ply += 1;
+                let mut node_pv: Vec<Move> = Vec::new();
+                let score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                refs.board.unmake();
+                refs.search_info.ply -= 1;
+
+                if score < best_eval {
+                    best_eval = score;
+                }
+                evals.push(score);
+            }
+        }
+
+        evals
+            .into_iter()
+            .filter(|e| *e <= best_eval + SHARP_MARGIN)
+            .count()
     }
 }

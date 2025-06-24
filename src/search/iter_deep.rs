@@ -70,6 +70,7 @@ impl Search {
         while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
             // Set the current depth
             refs.search_info.depth = depth;
+            refs.search_info.root_analysis.clear();
 
             // Get the evaluation for this depth.
             let eval = Search::alpha_beta(depth, alpha, beta, &mut root_pv, refs);
@@ -85,6 +86,20 @@ impl Search {
                 let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
                 let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
+                let forced: Vec<Move> = refs
+                    .search_info
+                    .root_analysis
+                    .iter()
+                    .filter(|a| a.good_replies == 1)
+                    .map(|a| a.mv)
+                    .collect();
+
+                let pv_to_send = if !forced.is_empty() {
+                    forced
+                } else {
+                    root_pv.clone()
+                };
+
                 let summary = SearchSummary {
                     depth,
                     seldepth: refs.search_info.seldepth,
@@ -94,7 +109,7 @@ impl Search {
                     nodes,
                     nps: Search::nodes_per_second(nodes, elapsed),
                     hash_full,
-                    pv: root_pv.clone(),
+                    pv: pv_to_send,
                 };
 
                 // Create information for the engine
