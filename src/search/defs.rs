@@ -21,6 +21,7 @@ pub const CHECKMATE: i16 = 24_000;
 pub const CHECKMATE_THRESHOLD: i16 = 23_900;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
+pub const SHARP_MARGIN: i16 = 30; // centipawn window for good replies
 pub const CHECK_TERMINATION: usize = 0x7FF; // 2.047 nodes
 pub const SEND_STATS: usize = 0x7FFFF; // 524.287 nodes
 pub const MIN_TIME_STATS: u128 = 2_000; // Minimum time for sending stats
@@ -131,6 +132,7 @@ pub struct SearchInfo {
     pub last_curr_move_sent: u128,  // When last current move was sent
     pub allocated_time: u128,       // Allotted msecs to spend on move
     pub terminate: SearchTerminate, // Terminate flag
+    pub root_analysis: Vec<RootMoveAnalysis>,
 }
 
 impl SearchInfo {
@@ -146,6 +148,7 @@ impl SearchInfo {
             last_curr_move_sent: 0,
             allocated_time: 0,
             terminate: SearchTerminate::Nothing,
+            root_analysis: Vec::new(),
         }
     }
 
@@ -233,6 +236,15 @@ impl SearchStats {
     }
 }
 
+// Holds information about each root move.
+#[derive(PartialEq, Clone)]
+pub struct RootMoveAnalysis {
+    pub mv: Move,
+    pub eval: i16,
+    pub good_replies: usize,
+    pub reply: Option<Move>,
+}
+
 // The search process needs references to a lot of data, such as a copy of
 // the current board to make moves on, the move generator, search paramters
 // (depth, time available, etc...), SearchInfo to put the results. It also
@@ -258,4 +270,5 @@ pub enum SearchReport {
     SearchSummary(SearchSummary),         // Periodic intermediate results.
     SearchCurrentMove(SearchCurrentMove), // Move currently searched.
     SearchStats(SearchStats),             // General search statistics
+    InfoString(String),                   // Informational string to GUI
 }

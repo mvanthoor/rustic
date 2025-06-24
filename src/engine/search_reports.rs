@@ -43,6 +43,10 @@ impl Engine {
             SearchReport::SearchStats(stats) => {
                 self.comm.send(CommControl::SearchStats(*stats));
             }
+
+            SearchReport::InfoString(msg) => {
+                self.comm.send(CommControl::InfoString(msg.clone()));
+            }
         }
     }
 }
