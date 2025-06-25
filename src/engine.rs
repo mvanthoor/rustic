@@ -38,7 +38,7 @@ use crate::{
         UiElement,
     },
     misc::{cmdline::CmdLine, perft},
-    movegen::MoveGenerator,
+    movegen::{MoveGenerator, defs::Move},
     search::{defs::SearchControl, SearchManager},
 };
 use crossbeam_channel::Receiver;
@@ -66,6 +66,8 @@ pub struct Engine {
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
     search: SearchManager,                  // Search manager (active).
     tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
+    pondering: bool,                        // If ponder is active
+    delayed_bestmove: Option<Move>,         // 
 }
 
 impl Engine {
@@ -153,6 +155,8 @@ impl Engine {
             info_rx: None,
             search: SearchManager::new(threads),
             tmp_no_xboard: is_xboard,
+            pondering: false,
+            delayed_bestmove: None,
         }
     }
 

@@ -64,6 +64,7 @@ pub enum SearchMode {
     MoveTime,
     Nodes,
     GameTime,
+    Ponder,
     Infinite,
     Nothing,
 }
@@ -120,7 +121,7 @@ impl SearchParams {
     }
 
     pub fn is_game_time(&self) -> bool {
-        self.search_mode == SearchMode::GameTime
+        matches!(self.search_mode, SearchMode::GameTime | SearchMode::Ponder)
     }
 }
 

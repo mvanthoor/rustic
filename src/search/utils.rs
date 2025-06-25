@@ -112,7 +112,7 @@ impl Search {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }
             }
-            SearchMode::GameTime => {
+            SearchMode::GameTime | SearchMode::Ponder => {
                 if Search::out_of_time(refs) {
                     refs.search_info.terminate = SearchTerminate::Stop
                 }

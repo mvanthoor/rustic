@@ -28,8 +28,12 @@ impl Engine {
     pub fn search_reports(&mut self, search_report: &SearchReport) {
         match search_report {
             SearchReport::Finished(m) => {
-                self.comm.send(CommControl::BestMove(*m));
-                self.comm.send(CommControl::Update);
+                if self.pondering {
+                    self.delayed_bestmove = Some(*m);
+                } else {
+                    self.comm.send(CommControl::BestMove(*m));
+                    self.comm.send(CommControl::Update);
+                }
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {

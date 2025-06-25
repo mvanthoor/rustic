@@ -56,7 +56,9 @@ pub enum UciReport {
     GoMoveTime(u128),
     GoNodes(usize),
     GoGameTime(GameTime),
+    GoPonder(GameTime),
     Stop,
+    PonderHit,
     Quit,
 
     // Custom commands
@@ -235,6 +237,7 @@ impl Uci {
             cmd if cmd == "ucinewgame" => CommReport::Uci(UciReport::UciNewGame),
             cmd if cmd == "isready" => CommReport::Uci(UciReport::IsReady),
             cmd if cmd == "stop" => CommReport::Uci(UciReport::Stop),
+            cmd if cmd == "ponderhit" => CommReport::Uci(UciReport::PonderHit),
             cmd if cmd == "quit" || cmd == "exit" => CommReport::Uci(UciReport::Quit),
             cmd if cmd.starts_with("setoption") => Uci::parse_setoption(&cmd),
             cmd if cmd.starts_with("position") => Uci::parse_position(&cmd),
@@ -304,10 +307,12 @@ impl Uci {
         let mut report = CommReport::Uci(UciReport::Unknown);
         let mut token = Tokens::Nothing;
         let mut game_time = GameTime::new(0, 0, 0, 0, None);
+        let mut ponder = false;
 
         for p in parts {
             match p {
                 t if t == "go" => report = CommReport::Uci(UciReport::GoInfinite),
+                t if t == "ponder" => ponder = true,
                 t if t == "infinite" => break, // Already Infinite; nothing more to do.
                 t if t == "depth" => token = Tokens::Depth,
                 t if t == "movetime" => token = Tokens::MoveTime,
@@ -357,7 +362,11 @@ impl Uci {
         let has_inc = game_time.winc > 0 || game_time.binc > 0;
         let is_game_time = has_time || has_inc;
         if is_default_mode && is_game_time {
-            report = CommReport::Uci(UciReport::GoGameTime(game_time));
+            if ponder {
+                report = CommReport::Uci(UciReport::GoPonder(game_time));
+            } else {
+                report = CommReport::Uci(UciReport::GoGameTime(game_time));
+            }
         }
 
         report

@@ -144,6 +144,21 @@ impl Engine {
             UciReport::Stop => self.search.send(SearchControl::Stop),
             UciReport::Quit => self.quit(),
 
+            UciReport::GoPonder(gt) => {
+                sp.game_time = *gt;
+                sp.search_mode = SearchMode::Ponder;
+                self.pondering = true;
+                self.search.send(SearchControl::Start(sp));
+            }
+
+            UciReport::PonderHit => {
+                self.pondering = false;
+                if let Some(m) = self.delayed_bestmove.take() {
+                    self.comm.send(CommControl::BestMove(m));
+                    self.comm.send(CommControl::Update);
+                }
+            }
+
             // Custom commands
             UciReport::Board => self.comm.send(CommControl::PrintBoard),
             UciReport::History => self.comm.send(CommControl::PrintHistory),

@@ -29,6 +29,7 @@
 - Engine considers the evaluation of opponent move sequences when chosing the move.
   Root analysis now records the entire forced reply sequence.
 - Iterative deepening output lists full sharp lines.
+- Added UCI support for pondering
 
 ## January 21, 2024 - Rustic Alpha 3.0.5
 
