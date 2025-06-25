@@ -49,6 +49,10 @@ impl Search {
         elapsed >= (overshoot_factor * allocated as f64).round() as u128
     }
 
+    pub fn time_up(refs: &mut SearchRefs) -> bool {
+        Search::out_of_time(refs) || refs.search_info.interrupted()
+    }
+
     // Calculates the time the engine allocates for searching a single
     // move. This depends on the number of moves still to go in the game.
     pub fn calculate_time_slice(refs: &SearchRefs) -> u128 {
