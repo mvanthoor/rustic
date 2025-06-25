@@ -48,6 +48,7 @@ impl Engine {
         // Setup default variables.
         let mut sp = SearchParams::new();
         sp.quiet = self.settings.quiet;
+        sp.sharp_margin = self.settings.sharp_margin;
 
         match u {
             UciReport::Uci => self.comm.send(CommControl::Identify),
@@ -76,6 +77,15 @@ impl Engine {
 
                     EngineOptionName::ClearHash => {
                         self.tt_search.lock().expect(ErrFatal::LOCK).clear()
+                    }
+
+                    EngineOptionName::SharpMargin(value) => {
+                        if let Ok(v) = value.parse::<i16>() {
+                            self.settings.sharp_margin = v;
+                        } else {
+                            let msg = String::from(ErrNormal::NOT_INT);
+                            self.comm.send(CommControl::InfoString(msg));
+                        }
                     }
 
                     EngineOptionName::Nothing => (),

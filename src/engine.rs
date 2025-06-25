@@ -114,6 +114,13 @@ impl Engine {
                 None,
                 None,
             ),
+            EngineOption::new(
+                EngineOptionName::SHARP_MARGIN,
+                UiElement::Spin,
+                Some(EngineOptionDefaults::SHARP_MARGIN_DEFAULT.to_string()),
+                Some(EngineOptionDefaults::SHARP_MARGIN_MIN.to_string()),
+                Some(EngineOptionDefaults::SHARP_MARGIN_MAX.to_string()),
+            ),
         ];
 
         // Initialize correct TT.
@@ -134,6 +141,7 @@ impl Engine {
                 threads,
                 quiet,
                 tt_size,
+                sharp_margin: EngineOptionDefaults::SHARP_MARGIN_DEFAULT,
             },
             options: Arc::new(options),
             cmdline,

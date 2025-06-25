@@ -94,6 +94,7 @@ pub struct SearchParams {
     pub game_time: GameTime,
     pub search_mode: SearchMode,
     pub quiet: bool,
+    pub sharp_margin: i16,
 }
 
 impl SearchParams {
@@ -105,6 +106,7 @@ impl SearchParams {
             game_time: GameTime::new(0, 0, 0, 0, None),
             search_mode: SearchMode::Nothing,
             quiet: false,
+            sharp_margin: SHARP_MARGIN,
         }
     }
 

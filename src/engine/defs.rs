@@ -51,6 +51,7 @@ pub struct Settings {
     pub threads: usize,
     pub quiet: bool,
     pub tt_size: usize,
+    pub sharp_margin: i16,
 }
 
 // This enum provides informatin to the engine, with regard to incoming
@@ -96,11 +97,13 @@ impl EngineOption {
 pub enum EngineOptionName {
     Hash(String),
     ClearHash,
+    SharpMargin(String),
     Nothing,
 }
 impl EngineOptionName {
     pub const HASH: &'static str = "Hash";
     pub const CLEAR_HASH: &'static str = "Clear Hash";
+    pub const SHARP_MARGIN: &'static str = "Sharp Margin";
 }
 
 pub struct EngineOptionDefaults;
@@ -109,4 +112,7 @@ impl EngineOptionDefaults {
     pub const HASH_MIN: usize = 0;
     pub const HASH_MAX_64_BIT: usize = 65536;
     pub const HASH_MAX_32_BIT: usize = 2048;
+    pub const SHARP_MARGIN_DEFAULT: i16 = 30;
+    pub const SHARP_MARGIN_MIN: i16 = 0;
+    pub const SHARP_MARGIN_MAX: i16 = 100;
 }

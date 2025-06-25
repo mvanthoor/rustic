@@ -23,7 +23,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{
     defs::{
-        RootMoveAnalysis, SHARP_MARGIN, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
+        RootMoveAnalysis, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
         INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION, LMR_REDUCTION, LMR_MOVE_THRESHOLD,
     },
     Search, SearchRefs,
@@ -279,7 +279,7 @@ impl Search {
 
         let good: Vec<Move> = evals
             .iter()
-            .filter(|(_, e)| *e <= best_eval + SHARP_MARGIN)
+            .filter(|(_, e)| *e <= best_eval + refs.search_params.sharp_margin)
             .map(|(m, _)| *m)
             .collect();
 

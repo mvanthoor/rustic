@@ -395,6 +395,7 @@ impl Uci {
             match &name[..] {
                 "hash" => eon = EngineOptionName::Hash(value),
                 "clear hash" => eon = EngineOptionName::ClearHash,
+                "sharp margin" => eon = EngineOptionName::SharpMargin(value),
                 _ => (),
             }
         }

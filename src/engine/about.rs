@@ -51,6 +51,7 @@ impl Engine {
             format!("{} MB", s.tt_size)
         };
         let threads = format!("{}", s.threads);
+        let sharp = format!("{}", s.sharp_margin);
 
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
         println!("{:<10} {}", "Author:", About::AUTHOR);
@@ -59,6 +60,7 @@ impl Engine {
         println!("{:<10} {bits}-bit", "Type:");
         println!("{:<10} {hash}", "Hash:");
         println!("{:<10} {threads}", "Threads:");
+        println!("{:<10} {sharp}", "SharpMargin:");
 
         #[cfg(debug_assertions)]
         println!("{NOTICE_DEBUG_MODE}");
