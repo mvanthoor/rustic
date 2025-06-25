@@ -43,6 +43,7 @@ The current feature-set for Rustic Alpha 3.0.0 is:
   - Fancy Magic bitboard move generator
   - Transposition Table
   - UCI-protocol
+  - Multi-threaded search
 - Search
   - Alpha/Beta search
   - Quiescence search
@@ -182,6 +183,9 @@ OPTIONS:
     -p, --perft <perft>        Run perft to the given depth [default: 0]
     -t, --threads <threads>    Number of CPU-threads to use [default: 1]
 ```
+The thread count determines how many search workers Sharp-Rustic will start. Each
+worker runs on a clone of the current board and shares the transposition table.
+For example, running `./rustic -t 4` spawns four worker threads.
 
 Please note that the -e (--epdtest) and -w (--wizardry) options are only
 available if the "extra" module is compiled into the engine.

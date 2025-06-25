@@ -166,3 +166,50 @@ impl Search {
         }
     }
 }
+
+pub struct SearchManager {
+    workers: Vec<Search>,
+}
+
+impl SearchManager {
+    pub fn new(threads: usize) -> Self {
+        let mut workers = Vec::with_capacity(threads);
+        for _ in 0..threads {
+            workers.push(Search::new());
+        }
+
+        Self { workers }
+    }
+
+    pub fn init(
+        &mut self,
+        report_tx: Sender<Information>,
+        board: Arc<Mutex<Board>>,
+        mg: Arc<MoveGenerator>,
+        tt: Arc<Mutex<TT<SearchData>>>,
+        tt_enabled: bool,
+    ) {
+        for w in self.workers.iter_mut() {
+            w.init(
+                report_tx.clone(),
+                Arc::clone(&board),
+                Arc::clone(&mg),
+                Arc::clone(&tt),
+                tt_enabled,
+            );
+        }
+    }
+
+    pub fn send(&self, cmd: SearchControl) {
+        for w in self.workers.iter() {
+            let c = cmd.clone();
+            w.send(c);
+        }
+    }
+
+    pub fn wait_for_shutdown(&mut self) {
+        for w in self.workers.iter_mut() {
+            w.wait_for_shutdown();
+        }
+    }
+}

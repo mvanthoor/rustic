@@ -34,7 +34,7 @@ pub const LMR_MOVE_THRESHOLD: u8 = 3;
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum SearchControl {
     Start(SearchParams),
     Stop,

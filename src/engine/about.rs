@@ -50,11 +50,7 @@ impl Engine {
         } else {
             format!("{} MB", s.tt_size)
         };
-        let threads = if s.threads == 1 {
-            String::from("1")
-        } else {
-            format!("{} (unused, always 1)", s.threads)
-        };
+        let threads = format!("{}", s.threads);
 
         println!("{:<10} {} {}", "Engine:", About::ENGINE, About::VERSION);
         println!("{:<10} {}", "Author:", About::AUTHOR);

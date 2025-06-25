@@ -39,7 +39,7 @@ use crate::{
     },
     misc::{cmdline::CmdLine, perft},
     movegen::MoveGenerator,
-    search::{defs::SearchControl, Search},
+    search::{defs::SearchControl, SearchManager},
 };
 use crossbeam_channel::Receiver;
 use std::sync::{Arc, Mutex};
@@ -64,7 +64,7 @@ pub struct Engine {
     tt_search: Arc<Mutex<TT<SearchData>>>,  // TT for search information.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<Information>>, // Receiver for incoming information.
-    search: Search,                         // Search object (active).
+    search: SearchManager,                  // Search manager (active).
     tmp_no_xboard: bool,                    // Temporary variable to disable xBoard
 }
 
@@ -143,7 +143,7 @@ impl Engine {
             tt_perft,
             tt_search,
             info_rx: None,
-            search: Search::new(),
+            search: SearchManager::new(threads),
             tmp_no_xboard: is_xboard,
         }
     }
