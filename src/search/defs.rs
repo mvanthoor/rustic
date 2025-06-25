@@ -228,6 +228,7 @@ pub struct RootMoveAnalysis {
     pub eval: i16,
     pub good_replies: usize,
     pub reply: Option<Move>,
+    pub reply_sequence: Vec<Move>,
 }
 
 pub struct SearchRefs<'a> {

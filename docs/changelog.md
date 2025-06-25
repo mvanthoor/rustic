@@ -3,6 +3,7 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
+  - [25 June, 2025 - Sharp Rustic 0.0.1](#march-22-2024---sharp-rustic--001)
   - [January 21, 2024 - Rustic Alpha 3.0.5](#january-21-2024---rustic-alpha-305)
   - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
   - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
@@ -22,6 +23,12 @@
 <!-- /code_chunk_output -->
 
 # Changelog
+
+## March 22, 2024 - Sharp Rustic 0.0.1
+
+- Engine considers the evaluation of opponent move sequences when chosing the move.
+  Root analysis now records the entire forced reply sequence.
+- Iterative deepening output lists full sharp lines.
 
 ## January 21, 2024 - Rustic Alpha 3.0.5
 

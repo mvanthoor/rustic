@@ -185,16 +185,17 @@ impl Search {
             }
 
             if is_root {
-                let (gr, reply) = if depth > 1 {
-                    Search::count_good_replies(depth - 1, alpha, beta, refs)
+                let (gr, reply, seq) = if depth > 1 {
+                    Search::collect_sharp_sequence(depth - 1, alpha, beta, refs)
                 } else {
-                    (0, None)
+                    (0, None, Vec::new())
                 };
                 refs.search_info.root_analysis.push(RootMoveAnalysis {
                     mv: current_move,
                     eval: eval_score,
                     good_replies: gr,
                     reply,
+                    reply_sequence: seq,
                 });
             }
 
@@ -246,12 +247,12 @@ impl Search {
         alpha
     }
 
-    fn count_good_replies(
+    fn collect_sharp_sequence(
         depth: i8,
         alpha: i16,
         beta: i16,
         refs: &mut SearchRefs,
-    ) -> (usize, Option<Move>) {
+    ) -> (usize, Option<Move>, Vec<Move>) {
         let mut move_list = MoveList::new();
         refs.mg.generate_moves(refs.board, &mut move_list, MoveType::All);
 
@@ -277,13 +278,42 @@ impl Search {
         }
 
         let good: Vec<Move> = evals
-            .into_iter()
+            .iter()
             .filter(|(_, e)| *e <= best_eval + SHARP_MARGIN)
-            .map(|(m, _)| m)
+            .map(|(m, _)| *m)
             .collect();
 
         let reply = if good.len() == 1 { Some(good[0]) } else { best_move };
 
-        (good.len(), reply)
+        if good.len() != 1 || depth <= 1 || reply.is_none() {
+            return (good.len(), reply, Vec::new());
+        }
+
+        let forced = good[0];
+        let mut sequence: Vec<Move> = vec![forced];
+
+        if refs.board.make(forced, refs.mg) {
+            refs.search_info.ply += 1;
+            let mut pv: Vec<Move> = Vec::new();
+            Search::alpha_beta(depth - 1, alpha, beta, &mut pv, refs);
+
+            if depth > 2 {
+                if let Some(my_move) = pv.get(0).cloned() {
+                    if refs.board.make(my_move, refs.mg) {
+                        refs.search_info.ply += 1;
+                        let (_, _, mut next_seq) =
+                            Search::collect_sharp_sequence(depth - 2, alpha, beta, refs);
+                        sequence.append(&mut next_seq);
+                        refs.board.unmake();
+                        refs.search_info.ply -= 1;
+                    }
+                }
+            }
+
+            refs.board.unmake();
+            refs.search_info.ply -= 1;
+        }
+
+        (good.len(), reply, sequence)
     }
 }

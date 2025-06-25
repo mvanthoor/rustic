@@ -27,10 +27,10 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pub struct About;
 impl About {
-    pub const ENGINE: &'static str = "Rustic Alpha";
+    pub const ENGINE: &'static str = "Sharp Rustic";
     pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-    pub const AUTHOR: &'static str = "Marcel Vanthoor";
-    pub const EMAIL: &'static str = "mail@marcelvanthoor.nl";
+    pub const AUTHOR: &'static str = "Marcel Vanthoor, Matt Voce";
+    pub const EMAIL: &'static str = "";
     pub const WEBSITE: &'static str = "https://rustic-chess.org/";
 }
 

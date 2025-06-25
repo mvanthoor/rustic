@@ -91,12 +91,12 @@ impl Search {
                 let nodes = refs.search_info.nodes;
                 let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
 
-                let forced_lines: Vec<(Move, Move)> = refs
+                let forced_lines: Vec<(Move, Vec<Move>)> = refs
                     .search_info
                     .root_analysis
                     .iter()
                     .filter(|a| a.good_replies == 1)
-                    .filter_map(|a| a.reply.map(|r| (a.mv, r)))
+                    .map(|a| (a.mv, a.reply_sequence.clone()))
                     .collect();
 
                 let forced_moves: Vec<Move> = forced_lines.iter().map(|(m, _)| *m).collect();
@@ -125,8 +125,13 @@ impl Search {
 
                 if !forced_lines.is_empty() {
                     let mut parts: Vec<String> = Vec::new();
-                    for (mv, reply) in forced_lines.iter() {
-                        parts.push(format!("{} -> {}", mv.as_string(), reply.as_string()));
+                    for (mv, seq) in forced_lines.iter() {
+                        let seq_str = seq
+                            .iter()
+                            .map(|m| m.as_string())
+                            .collect::<Vec<String>>()
+                            .join(" ");
+                        parts.push(format!("{} -> {}", mv.as_string(), seq_str));
                     }
                     let msg = format!("sharp lines: {}", parts.join(" | "));
                     let report = SearchReport::InfoString(msg);
