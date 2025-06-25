@@ -174,6 +174,10 @@ impl Search {
         let mut root_analysis: Vec<RootMoveAnalysis> = Vec::new();
 
         for i in 0..move_list.len() {
+            if Search::time_up(refs) {
+                break;
+            }
+
             Search::pick_move(&mut move_list, i);
             let current_move = move_list.get_move(i);
 
@@ -222,17 +226,41 @@ impl Search {
 
                 if do_pvs {
                     eval_score = -Search::alpha_beta(depth - 1 - r + ext, -alpha - 1, -alpha, &mut node_pv, refs);
+                    if Search::time_up(refs) {
+                        refs.board.unmake();
+                        refs.search_info.ply -= 1;
+                        return eval_score;
+                    }
 
                     if (eval_score > alpha) && (eval_score < beta) {
-
                         eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
+                        if Search::time_up(refs) {
+                            refs.board.unmake();
+                            refs.search_info.ply -= 1;
+                            return eval_score;
+                        }
                     } else if apply_lmr && eval_score > alpha {
                         eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
-                    } 
+                        if Search::time_up(refs) {
+                            refs.board.unmake();
+                            refs.search_info.ply -= 1;
+                            return eval_score;
+                        }
+                    }
                 } else {
                     eval_score = -Search::alpha_beta(depth - 1 - r + ext, -beta, -alpha, &mut node_pv, refs);
+                    if Search::time_up(refs) {
+                        refs.board.unmake();
+                        refs.search_info.ply -= 1;
+                        return eval_score;
+                    }
                     if apply_lmr && eval_score > alpha {
                         eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
+                        if Search::time_up(refs) {
+                            refs.board.unmake();
+                            refs.search_info.ply -= 1;
+                            return eval_score;
+                        }
                     }
                 }
             }
@@ -294,6 +322,11 @@ impl Search {
                         refs.search_info.ply += 1;
                         let (gr, reply, seq) =
                             Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
+                        if Search::time_up(refs) {
+                            refs.board.unmake();
+                            refs.search_info.ply -= 1;
+                            return alpha;
+                        }
                         refs.board.unmake();
                         refs.search_info.ply -= 1;
                         root_analysis[idx].good_replies = gr;
@@ -306,6 +339,11 @@ impl Search {
                     refs.search_info.ply += 1;
                     let (gr, reply, seq) =
                         Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
+                    if Search::time_up(refs) {
+                        refs.board.unmake();
+                        refs.search_info.ply -= 1;
+                        return alpha;
+                    }
                     refs.board.unmake();
                     refs.search_info.ply -= 1;
                     root_analysis[best_index].good_replies = gr;
@@ -346,11 +384,20 @@ impl Search {
         let mut best_move: Option<Move> = None;
 
         for i in 0..move_list.len() {
+            if Search::time_up(refs) {
+                break;
+            }
+
             let mv = move_list.get_move(i);
             if refs.board.make(mv, refs.mg) {
                 refs.search_info.ply += 1;
                 let mut node_pv: Vec<Move> = Vec::new();
                 let score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                if Search::time_up(refs) {
+                    refs.board.unmake();
+                    refs.search_info.ply -= 1;
+                    return (0, None, Vec::new());
+                }
                 refs.board.unmake();
                 refs.search_info.ply -= 1;
 
@@ -381,6 +428,11 @@ impl Search {
             refs.search_info.ply += 1;
             let mut pv: Vec<Move> = Vec::new();
             Search::alpha_beta(depth - 1, alpha, beta, &mut pv, refs);
+            if Search::time_up(refs) {
+                refs.board.unmake();
+                refs.search_info.ply -= 1;
+                return (0, None, sequence);
+            }
 
             if depth > 2 {
                 if let Some(my_move) = pv.get(0).cloned() {
@@ -388,6 +440,11 @@ impl Search {
                         refs.search_info.ply += 1;
                         let (_, _, mut next_seq) =
                             Search::collect_sharp_sequence(depth - 2, alpha, beta, refs);
+                        if Search::time_up(refs) {
+                            refs.board.unmake();
+                            refs.search_info.ply -= 1;
+                            return (0, Some(forced), sequence);
+                        }
                         sequence.append(&mut next_seq);
                         refs.board.unmake();
                         refs.search_info.ply -= 1;
