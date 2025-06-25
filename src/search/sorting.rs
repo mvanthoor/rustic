@@ -113,13 +113,13 @@ mod tests {
         search::defs::{SearchControl, SearchInfo, SearchParams, SearchRefs},
     };
     use crossbeam_channel::unbounded;
-    use std::sync::{Arc, Mutex};
+    use std::sync::{Arc, RwLock};
 
     #[test]
     fn history_heuristic_affects_scoring() {
         let mut board = Board::new();
         let mg = Arc::new(MoveGenerator::new());
-        let tt: Arc<Mutex<TT<SearchData>>> = Arc::new(Mutex::new(TT::new(0)));
+        let tt: Arc<RwLock<TT<SearchData>>> = Arc::new(RwLock::new(TT::new(0)));
         let (_ct, crx) = unbounded::<SearchControl>();
         let (rtx, _rrx) = unbounded::<Information>();
         let mut sp = SearchParams::new();

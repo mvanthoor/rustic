@@ -55,7 +55,7 @@ impl Search {
         let last_stats = refs.search_info.last_stats_sent;
 
         if elapsed >= last_stats + MIN_TIME_STATS {
-            let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
+            let hash_full = refs.tt.read().expect(ErrFatal::LOCK).hash_full();
             let msecs = refs.search_info.timer_elapsed();
             let nps = Search::nodes_per_second(refs.search_info.nodes, msecs);
             let stats = SearchStats::new(msecs, refs.search_info.nodes, nps, hash_full);

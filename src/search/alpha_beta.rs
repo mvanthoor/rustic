@@ -84,7 +84,7 @@ impl Search {
         if refs.tt_enabled {
             if let Some(data) = refs
                 .tt
-                .lock()
+                .read()
                 .expect(ErrFatal::LOCK)
                 .probe(refs.board.game_state.zobrist_key)
             {
@@ -255,7 +255,7 @@ impl Search {
             }
 
             if eval_score >= beta {
-                refs.tt.lock().expect(ErrFatal::LOCK).insert(
+                refs.tt.write().expect(ErrFatal::LOCK).insert(
                     refs.board.game_state.zobrist_key,
                     SearchData::create(depth, refs.search_info.ply, HashFlag::Beta, beta, best_move),
                 );
@@ -291,7 +291,7 @@ impl Search {
             }
         }
 
-        refs.tt.lock().expect(ErrFatal::LOCK).insert(
+        refs.tt.write().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );

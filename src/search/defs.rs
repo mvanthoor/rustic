@@ -9,7 +9,7 @@ use crate::{
 };
 use crossbeam_channel::{Receiver, Sender};
 use std::{
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
     time::Instant,
 };
 
@@ -248,7 +248,7 @@ pub struct RootMoveAnalysis {
 pub struct SearchRefs<'a> {
     pub board: &'a mut Board,
     pub mg: &'a Arc<MoveGenerator>,
-    pub tt: &'a Arc<Mutex<TT<SearchData>>>,
+    pub tt: &'a Arc<RwLock<TT<SearchData>>>,
     pub tt_enabled: bool,
     pub search_params: &'a mut SearchParams,
     pub search_info: &'a mut SearchInfo,

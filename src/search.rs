@@ -43,7 +43,7 @@ use defs::{
     SearchTerminate,
 };
 use std::{
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
     thread::{self, JoinHandle},
 };
 
@@ -65,7 +65,7 @@ impl Search {
         report_tx: Sender<Information>, // Used to send information to engine.
         board: Arc<Mutex<Board>>,       // Arc pointer to engine's board.
         mg: Arc<MoveGenerator>,         // Arc pointer to engine's move generator.
-        tt: Arc<Mutex<TT<SearchData>>>,
+        tt: Arc<RwLock<TT<SearchData>>>,
         tt_enabled: bool,
     ) {
         // Set up a channel for incoming commands
@@ -186,7 +186,7 @@ impl SearchManager {
         report_tx: Sender<Information>,
         board: Arc<Mutex<Board>>,
         mg: Arc<MoveGenerator>,
-        tt: Arc<Mutex<TT<SearchData>>>,
+        tt: Arc<RwLock<TT<SearchData>>>,
         tt_enabled: bool,
     ) {
         for w in self.workers.iter_mut() {

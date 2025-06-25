@@ -89,7 +89,7 @@ impl Search {
 
                 let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
-                let hash_full = refs.tt.lock().expect(ErrFatal::LOCK).hash_full();
+                let hash_full = refs.tt.read().expect(ErrFatal::LOCK).hash_full();
 
                 let forced_lines: Vec<(Move, Vec<Move>)> = refs
                     .search_info
