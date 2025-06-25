@@ -39,7 +39,7 @@ impl Search {
 
         if is_game_time {
             let time_slice = Search::calculate_time_slice(refs);
-            let factor = 0.40;
+            let factor = Search::dynamic_time_factor(refs);
 
             if time_slice > 0 {
                 refs.search_info.allocated_time = (time_slice as f64 * factor).round() as u128;
@@ -101,11 +101,7 @@ impl Search {
 
                 let forced_moves: Vec<Move> = forced_lines.iter().map(|(m, _)| *m).collect();
 
-                let pv_to_send = if !forced_moves.is_empty() {
-                    forced_moves.clone()
-                } else {
-                    root_pv.clone()
-                };
+                let pv_to_send = root_pv.clone();
 
                 let summary = SearchSummary {
                     depth,

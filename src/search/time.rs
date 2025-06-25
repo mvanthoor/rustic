@@ -75,6 +75,23 @@ impl Search {
         }
     }
 
+    // Determine a factor for how much of the available time for a move
+    // should actually be used. The idea is to spend more time when there
+    // is plenty on the clock and reduce thinking time in critical stages.
+    pub fn dynamic_time_factor(refs: &SearchRefs) -> f64 {
+        let gt = &refs.search_params.game_time;
+        let white = refs.board.us() == Sides::WHITE;
+        let clock = if white { gt.wtime } else { gt.btime } as f64;
+
+        // Up to one minute on the clock scales linearly between 0.3 and 0.6.
+        let base = 0.3_f64;
+        let max_add = 0.3_f64;
+        let max_clock = 60_000_f64; // cap at a minute
+        let capped = if clock > max_clock { max_clock } else { clock };
+
+        base + (capped / max_clock) * max_add
+    }
+
     // Here we try to come up with some sort of sensible value for "moves
     // to go", if this value is not supplied.
     fn moves_to_go(refs: &SearchRefs) -> usize {
