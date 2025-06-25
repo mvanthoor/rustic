@@ -30,7 +30,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::defs::Move;
 use crate::defs::MAX_LEGAL_MOVES;
-use std::mem;
+
 
 // Movelist struct holden the array and counter.
 #[derive(Copy, Clone)]
@@ -40,22 +40,13 @@ pub struct MoveList {
 }
 
 impl MoveList {
-    // Creates a new move list. YES, I know that the use of MaybeUninit
-    // directly followed by assume_init() is, officially speaking,
-    // incorrect because it DOES create a memory block with uninitialized
-    // variables. The memory doesn't need to be initialized, because the
-    // next step after creating the move list will always be to generate
-    // moves and store them in the list beginning at index 0. This would
-    // overwrite the initialization and make it useless. Initializing the
-    // move list with 0's massively slows down the program. Maybe in the
+    // Creates a new move list. 
+    // Maybe in the
     // future, I'll rewrite the move generator function to create and fill
     // in the list by itself, without taking a reference to an empty list.
     pub fn new() -> Self {
         Self {
-            list: unsafe {
-                let block = mem::MaybeUninit::uninit();
-                block.assume_init()
-            },
+            list: [Move::new(0); MAX_LEGAL_MOVES as usize],
             count: 0,
         }
     }

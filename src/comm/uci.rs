@@ -536,7 +536,11 @@ impl Uci {
     }
 
     fn best_move(m: &Move) {
-        println!("bestmove {}", m.as_string());
+        if m.get_move() == 0 {
+            println!("bestmove 0000");
+        } else {
+            println!("bestmove {}", m.as_string());
+        }
     }
 }
 
