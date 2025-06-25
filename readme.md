@@ -10,6 +10,10 @@ concepts that have been well-known in chess programming for many decades;
 therefore, the engine still stands on the shoulders of the giants of the
 past.
 
+This repo has been extended to change the engine focus to moves which
+the opponent has limited replies to in order to gain or maintain an
+advantage. README will be updated.
+
 # User interface
 
 The engine does not provide its own user interface. It uses the UCI and
