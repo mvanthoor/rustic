@@ -30,6 +30,15 @@ pub const MAX_KILLER_MOVES: usize = 2;
 pub const NULL_MOVE_REDUCTION: i8 = 3;
 pub const LMR_REDUCTION: i8 = 1;
 pub const LMR_MOVE_THRESHOLD: u8 = 3;
+pub const LMR_LATE_THRESHOLD: u8 = 6;
+pub const LMR_LATE_REDUCTION: i8 = 2;
+
+pub const MULTICUT_DEPTH: i8 = 4;
+pub const MULTICUT_REDUCTION: i8 = 3;
+pub const MULTICUT_CUTOFFS: u8 = 2;
+pub const MULTICUT_MOVES: u8 = 4;
+
+pub const RECAPTURE_EXTENSION: i8 = 1;
 
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
@@ -125,6 +134,7 @@ pub struct SearchInfo {
     pub killer_moves: KillerMoves,
     pub last_stats_sent: u128,
     pub history_heuristic: [[[u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
+    pub counter_moves: [[[ShortMove; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
     pub last_curr_move_sent: u128,
     pub allocated_time: u128,
     pub terminate: SearchTerminate,
@@ -141,6 +151,7 @@ impl SearchInfo {
             ply: 0,
             killer_moves: [[ShortMove::new(0); MAX_KILLER_MOVES]; MAX_PLY as usize],
             history_heuristic: [[[0u32; NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
+            counter_moves: [[[ShortMove::new(0); NrOf::SQUARES]; NrOf::PIECE_TYPES]; Sides::BOTH],
             last_stats_sent: 0,
             last_curr_move_sent: 0,
             allocated_time: 0,

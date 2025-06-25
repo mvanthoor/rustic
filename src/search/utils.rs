@@ -228,4 +228,11 @@ impl Search {
         let entry = &mut refs.search_info.history_heuristic[side][piece][to];
         *entry = entry.saturating_add(inc);
     }
+
+    pub fn store_counter_move(prev: Move, reply: Move, refs: &mut SearchRefs) {
+        let side = refs.board.us();
+        let piece = prev.piece();
+        let to = prev.to();
+        refs.search_info.counter_moves[side][piece][to] = reply.to_short_move();
+    }
 }

@@ -32,6 +32,7 @@ use crate::{board::defs::Pieces, defs::NrOf, movegen::defs::MoveList, movegen::d
 const MVV_LVA_OFFSET: u32 = u32::MAX - 256;
 const TTMOVE_SORT_VALUE: u32 = 60;
 const KILLER_VALUE: u32 = 10;
+const COUNTER_VALUE: u32 = 15;
 
 // MVV_VLA[victim][attacker]
 pub const MVV_LVA: [[u16; NrOf::PIECE_TYPES + 1]; NrOf::PIECE_TYPES + 1] = [
@@ -67,6 +68,14 @@ impl Search {
                         value = MVV_LVA_OFFSET - ((i as u32 + 1) * KILLER_VALUE);
                     }
                     n += 1;
+                }
+
+                if value == 0 && refs.board.history.len() > 0 {
+                    let prev = refs.board.history.get_ref(refs.board.history.len() - 1).next_move;
+                    let cm = refs.search_info.counter_moves[refs.board.us()][prev.piece()][prev.to()];
+                    if m.get_move() == cm.get_move() {
+                        value = MVV_LVA_OFFSET - ((i as u32 + 1) * COUNTER_VALUE);
+                    }
                 }
             }
 

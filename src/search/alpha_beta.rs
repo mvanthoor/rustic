@@ -25,6 +25,8 @@ use super::{
     defs::{
         RootMoveAnalysis, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
         INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION, LMR_REDUCTION, LMR_MOVE_THRESHOLD,
+        LMR_LATE_THRESHOLD, LMR_LATE_REDUCTION, RECAPTURE_EXTENSION,
+        MULTICUT_DEPTH, MULTICUT_REDUCTION, MULTICUT_CUTOFFS, MULTICUT_MOVES,
     },
     Search, SearchRefs,
 };
@@ -128,6 +130,35 @@ impl Search {
 
         Search::score_moves(&mut move_list, tt_move, refs);
 
+        if !is_root && depth >= MULTICUT_DEPTH && !is_check {
+            let max_moves = std::cmp::min(MULTICUT_MOVES as usize, move_list.len() as usize);
+            let mut cutoffs = 0;
+            for j in 0..max_moves {
+                Search::pick_move(&mut move_list, j as u8);
+                let mcut = move_list.get_move(j as u8);
+                if !refs.board.make(mcut, refs.mg) {
+                    continue;
+                }
+                refs.search_info.ply += 1;
+                let mut tmp_pv: Vec<Move> = Vec::new();
+                let score = -Search::alpha_beta(
+                    depth - 1 - MULTICUT_REDUCTION,
+                    -beta,
+                    -beta + 1,
+                    &mut tmp_pv,
+                    refs,
+                );
+                refs.board.unmake();
+                refs.search_info.ply -= 1;
+                if score >= beta {
+                    cutoffs += 1;
+                    if cutoffs >= MULTICUT_CUTOFFS as usize {
+                        return beta;
+                    }
+                }
+            }
+        }
+
         if !quiet && (refs.search_info.nodes & SEND_STATS == 0) {
             Search::send_stats_to_gui(refs);
         }
@@ -166,20 +197,36 @@ impl Search {
                     && !is_check
                     && is_quiet
                     && i >= LMR_MOVE_THRESHOLD;
+                
+                let mut r = if apply_lmr { LMR_REDUCTION } else { 0 };
+                if apply_lmr && i >= LMR_LATE_THRESHOLD {
+                    r = LMR_LATE_REDUCTION;
+                }
 
-                let r = if apply_lmr { LMR_REDUCTION } else { 0 };
+                let mut ext = 0;
+                if refs.board.history.len() > 0 {
+                    let prev = refs.board.history.get_ref(refs.board.history.len() - 1).next_move;
+                    if prev.captured() != Pieces::NONE
+                        && current_move.captured() != Pieces::NONE
+                        && prev.to() == current_move.to()
+                    {
+                        ext = RECAPTURE_EXTENSION;
+                    }
+                }
 
                 if do_pvs {
-                    eval_score = -Search::alpha_beta(depth - 1 - r, -alpha - 1, -alpha, &mut node_pv, refs);
+                    eval_score = -Search::alpha_beta(depth - 1 - r + ext, -alpha - 1, -alpha, &mut node_pv, refs);
+
                     if (eval_score > alpha) && (eval_score < beta) {
-                        eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+
+                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
                     } else if apply_lmr && eval_score > alpha {
-                        eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
                     } 
                 } else {
-                    eval_score = -Search::alpha_beta(depth - 1 - r, -beta, -alpha, &mut node_pv, refs);
+                    eval_score = -Search::alpha_beta(depth - 1 - r + ext, -beta, -alpha, &mut node_pv, refs);
                     if apply_lmr && eval_score > alpha {
-                        eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
                     }
                 }
             }
@@ -216,6 +263,11 @@ impl Search {
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
                     Search::update_history_heuristic(current_move, depth, refs);
+                }
+
+                if refs.board.history.len() > 0 {
+                    let prev = refs.board.history.get_ref(refs.board.history.len() - 1).next_move;
+                    Search::store_counter_move(prev, current_move, refs);
                 }
 
                 return beta;
