@@ -219,6 +219,30 @@ impl Board {
             put_piece(self, opponent, Pieces::PAWN, to ^ 8);
         }
     }
+
+    // null-move support so the engine can pass a move and prune unpromising branches faster
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn make_null_move(&mut self) {
+        let us = self.us();
+        let state = self.game_state;
+        self.history.push(state);
+        self.game_state.next_move = Move::new(0);
+        if self.game_state.en_passant.is_some() {
+            self.clear_ep_square();
+        }
+        self.game_state.halfmove_clock += 1;
+        if us == Sides::BLACK {
+            self.game_state.fullmove_number += 1;
+        }
+        self.swap_side();
+    }
+
+    #[cfg_attr(debug_assertions, inline(never))]
+    #[cfg_attr(not(debug_assertions), inline(always))]
+    pub fn unmake_null_move(&mut self) {
+        self.game_state = self.history.pop();
+    }
 }
 
 /*** Functions local to playmove.rs ====================================================== ***/

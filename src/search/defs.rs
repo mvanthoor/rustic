@@ -27,6 +27,9 @@ pub const SEND_STATS: usize = 0x7FFFF;
 pub const MIN_TIME_STATS: u128 = 2_000;
 pub const MIN_TIME_CURR_MOVE: u128 = 1_000;
 pub const MAX_KILLER_MOVES: usize = 2;
+pub const NULL_MOVE_REDUCTION: i8 = 3;
+pub const LMR_REDUCTION: i8 = 1;
+pub const LMR_MOVE_THRESHOLD: u8 = 3;
 
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];

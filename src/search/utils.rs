@@ -35,6 +35,9 @@ use crate::{
     movegen::defs::Move,
 };
 
+const DARK_SQUARES: u64 = 0xAA55_AA55_AA55_AA55;
+const LIGHT_SQUARES: u64 = 0x55AA_55AA_55AA_55AA;
+
 impl Search {
     // This function calculates the number of nodes per second.
     pub fn nodes_per_second(nodes: usize, msecs: u128) -> usize {
@@ -171,9 +174,11 @@ impl Search {
         let w_r = refs.board.get_pieces(Pieces::ROOK, Sides::WHITE).count_ones() > 0;
         let b_r = refs.board.get_pieces(Pieces::ROOK, Sides::BLACK).count_ones() > 0;
         // ...or two bishops for one side.
-        // FIXME : Bishops must be on squares of different color
-        let w_b = refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 1;
-        let b_b = refs.board.get_pieces(Pieces::BISHOP, Sides::BLACK).count_ones() > 1;
+        let w_b_bb = refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE);
+        let b_b_bb = refs.board.get_pieces(Pieces::BISHOP, Sides::BLACK);
+        // ...or two bishops for one side on opposite-colored squares.
+        let w_b = (w_b_bb & DARK_SQUARES != 0) && (w_b_bb & LIGHT_SQUARES != 0);
+        let b_b = (b_b_bb & DARK_SQUARES != 0) && (b_b_bb & LIGHT_SQUARES != 0);
         // ... or a bishop+knight for at least one side.
         let w_bn =
             refs.board.get_pieces(Pieces::BISHOP, Sides::WHITE).count_ones() > 0 &&

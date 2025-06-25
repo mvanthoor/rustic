@@ -24,7 +24,7 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 use super::{
     defs::{
         RootMoveAnalysis, SHARP_MARGIN, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
-        INF, SEND_STATS, STALEMATE,
+        INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION, LMR_REDUCTION, LMR_MOVE_THRESHOLD,
     },
     Search, SearchRefs,
 };
@@ -98,6 +98,30 @@ impl Search {
             }
         }
 
+        // cut off branches early when a null move proves sufficient
+        if !is_root
+            && depth > NULL_MOVE_REDUCTION
+            && !is_check
+            && !Search::is_insufficient_material(refs)
+        {
+            refs.board.make_null_move();
+            refs.search_info.ply += 1;
+            let mut tmp_pv: Vec<Move> = Vec::new();
+            let score = -Search::alpha_beta(
+                depth - 1 - NULL_MOVE_REDUCTION,
+                -beta,
+                -beta + 1,
+                &mut tmp_pv,
+                refs,
+            );
+            refs.board.unmake_null_move();
+            refs.search_info.ply -= 1;
+
+            if score >= beta {
+                return beta;
+            }
+        }
+
         let mut legal_moves_found = 0;
         let mut move_list = MoveList::new();
         refs.mg.generate_moves(refs.board, &mut move_list, MoveType::All);
@@ -135,13 +159,28 @@ impl Search {
             let mut eval_score = DRAW;
 
             if !Search::is_draw(refs) {
+
+                let is_quiet = current_move.captured() == Pieces::NONE;
+                let apply_lmr = !is_root
+                    && depth > 2
+                    && !is_check
+                    && is_quiet
+                    && i >= LMR_MOVE_THRESHOLD;
+
+                let r = if apply_lmr { LMR_REDUCTION } else { 0 };
+
                 if do_pvs {
-                    eval_score = -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut node_pv, refs);
+                    eval_score = -Search::alpha_beta(depth - 1 - r, -alpha - 1, -alpha, &mut node_pv, refs);
                     if (eval_score > alpha) && (eval_score < beta) {
                         eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
-                    }
+                    } else if apply_lmr && eval_score > alpha {
+                        eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    } 
                 } else {
-                    eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    eval_score = -Search::alpha_beta(depth - 1 - r, -beta, -alpha, &mut node_pv, refs);
+                    if apply_lmr && eval_score > alpha {
+                        eval_score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut node_pv, refs);
+                    }
                 }
             }
 
