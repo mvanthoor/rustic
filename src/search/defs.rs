@@ -22,6 +22,7 @@ pub const CHECKMATE_THRESHOLD: i16 = 23_900;
 pub const STALEMATE: i16 = 0;
 pub const DRAW: i16 = 0;
 pub const SHARP_MARGIN: i16 = 30;
+pub const SHARP_SEQUENCE_DEPTH_CAP: i8 = 3;
 pub const CHECK_TERMINATION: usize = 0x7FF;
 pub const SEND_STATS: usize = 0x7FFFF;
 pub const MIN_TIME_STATS: u128 = 2_000;

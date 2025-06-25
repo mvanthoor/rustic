@@ -27,6 +27,7 @@ use super::{
         INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION, LMR_REDUCTION, LMR_MOVE_THRESHOLD,
         LMR_LATE_THRESHOLD, LMR_LATE_REDUCTION, RECAPTURE_EXTENSION,
         MULTICUT_DEPTH, MULTICUT_REDUCTION, MULTICUT_CUTOFFS, MULTICUT_MOVES,
+        SHARP_SEQUENCE_DEPTH_CAP,
     },
     Search, SearchRefs,
 };
@@ -166,6 +167,11 @@ impl Search {
         let mut best_eval_score = -INF;
         let mut hash_flag = HashFlag::Alpha;
         let mut best_move: ShortMove = ShortMove::new(0);
+        let mut best_index: usize = 0;
+
+        // Store evaluated root moves so sharp sequences can be collected later.
+        let mut root_moves: Vec<(Move, i16, i16)> = Vec::new();
+        let mut root_analysis: Vec<RootMoveAnalysis> = Vec::new();
 
         for i in 0..move_list.len() {
             Search::pick_move(&mut move_list, i);
@@ -232,17 +238,13 @@ impl Search {
             }
 
             if is_root {
-                let (gr, reply, seq) = if depth > 1 {
-                    Search::collect_sharp_sequence(depth - 1, alpha, beta, refs)
-                } else {
-                    (0, None, Vec::new())
-                };
-                refs.search_info.root_analysis.push(RootMoveAnalysis {
+                root_moves.push((current_move, eval_score, alpha));
+                root_analysis.push(RootMoveAnalysis {
                     mv: current_move,
                     eval: eval_score,
-                    good_replies: gr,
-                    reply,
-                    reply_sequence: seq,
+                    good_replies: 0,
+                    reply: None,
+                    reply_sequence: Vec::new(),
                 });
             }
 
@@ -252,6 +254,7 @@ impl Search {
             if eval_score > best_eval_score {
                 best_eval_score = eval_score;
                 best_move = current_move.to_short_move();
+                best_index = root_moves.len() - 1;
             }
 
             if eval_score >= beta {
@@ -281,6 +284,36 @@ impl Search {
                 pv.push(current_move);
                 pv.append(&mut node_pv);
             }
+        }
+
+        if is_root && depth > 1 {
+            let seq_depth = std::cmp::min(depth - 1, SHARP_SEQUENCE_DEPTH_CAP);
+            if depth <= SHARP_SEQUENCE_DEPTH_CAP {
+                for (idx, (mv, _, a)) in root_moves.iter().enumerate() {
+                    if refs.board.make(*mv, refs.mg) {
+                        refs.search_info.ply += 1;
+                        let (gr, reply, seq) =
+                            Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
+                        refs.board.unmake();
+                        refs.search_info.ply -= 1;
+                        root_analysis[idx].good_replies = gr;
+                        root_analysis[idx].reply = reply;
+                        root_analysis[idx].reply_sequence = seq;
+                    }
+                }
+            } else if let Some((mv, _, a)) = root_moves.get(best_index) {
+                if refs.board.make(*mv, refs.mg) {
+                    refs.search_info.ply += 1;
+                    let (gr, reply, seq) =
+                        Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
+                    refs.board.unmake();
+                    refs.search_info.ply -= 1;
+                    root_analysis[best_index].good_replies = gr;
+                    root_analysis[best_index].reply = reply;
+                    root_analysis[best_index].reply_sequence = seq;
+                }
+            }
+            refs.search_info.root_analysis.append(&mut root_analysis);
         }
 
         if legal_moves_found == 0 {

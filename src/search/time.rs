@@ -40,7 +40,7 @@ impl Search {
         // allocated search time. The more time the engine has, the larger
         // the overshoot-factor can be.
         let overshoot_factor = match allocated {
-            x if x > OK_TIME => 2.0,                       // Allow large overshoot.
+            x if x > OK_TIME => 1.0,                       // Allow large overshoot.
             x if x > CRITICAL_TIME && x <= OK_TIME => 1.5, // Low on time. Reduce overshoot.
             x if x <= CRITICAL_TIME => 1.0,                // Critical time. Don't overshoot.
             _ => 1.0,                                      // This case shouldn't happen.
