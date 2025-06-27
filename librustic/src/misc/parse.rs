@@ -2,7 +2,6 @@ use crate::{
     board::defs::{Pieces, SQUARE_NAME},
     defs::{Piece, Square},
 };
-use if_chain::if_chain;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -37,18 +36,17 @@ pub fn algebraic_move_to_numbers(m: &str) -> ParseMoveResult {
     }
 
     // Get the "from" and "to" squares from the move string.
-    if_chain! {
-        // If conversion from algebraic square to number succeeds...
-        if let Some(from) = algebraic_square_to_number(&lower_case_move[0..=1]);
-        if let Some(to) = algebraic_square_to_number(&lower_case_move[2..=3]);
-        then {
-            // ...save the result
-            converted_move.0 = from;
-            converted_move.1 = to;
-        } else {
-            return Err(ParseMoveError::CannotConvertSquare)
-        }
-    };
+
+    // If conversion from algebraic square to number succeeds...
+    if let Some(from) = algebraic_square_to_number(&lower_case_move[0..=1])
+        && let Some(to) = algebraic_square_to_number(&lower_case_move[2..=3])
+    {
+        // ...save the result
+        converted_move.0 = from;
+        converted_move.1 = to;
+    } else {
+        return Err(ParseMoveError::CannotConvertSquare);
+    }
 
     // Keep parsing if there are 5 characters.
     if m.len() == 5 {

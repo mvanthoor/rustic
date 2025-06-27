@@ -1,13 +1,12 @@
 use crate::{
-    board::defs::FenResult,
     board::Board,
+    board::defs::FenResult,
     movegen::{
-        defs::{MoveList, MoveType},
         MoveGenerator,
+        defs::{MoveList, MoveType},
     },
     search::defs::{HashData, Transposition},
 };
-use if_chain::if_chain;
 use std::{sync::Arc, time::Instant};
 
 // Implement required data for Perft
@@ -111,13 +110,11 @@ pub fn perft(
 
     // See if the current position is in the TT, and if so, get the
     // number of leaf nodes that were previously calculated for it.
-    if_chain! {
-        if tt_enabled;
-        if let Some(data) = transposition.probe(board.game_state.zobrist_key);
-        if let Some(leaf_nodes) = data.get_leaf_nodes(depth);
-        then {
-            return leaf_nodes;
-        }
+    if tt_enabled
+        && let Some(data) = transposition.probe(board.game_state.zobrist_key)
+        && let Some(leaf_nodes) = data.get_leaf_nodes(depth)
+    {
+        return leaf_nodes;
     }
 
     let mut move_list = MoveList::new();
