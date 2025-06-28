@@ -81,12 +81,20 @@ impl Search {
             }
             prev_eval = eval;
 
+            // Always update best_move if we have a valid PV, even if interrupted
+            if !root_pv.is_empty() {
+                best_move = root_pv[0];
+            } else if !refs.search_info.root_analysis.is_empty() {
+                // Fallback: if we have evaluated moves but no PV (interrupted early), 
+                // use the first evaluated move as best move
+                best_move = refs.search_info.root_analysis[0].mv;
+            } else if best_move.get_move() == 0 && !refs.search_info.root_analysis.is_empty() {
+                // Additional fallback: if best_move is still null but we have root analysis,
+                // use the first move from root analysis
+                best_move = refs.search_info.root_analysis[0].mv;
+            }
 
             if !refs.search_info.interrupted() {
-                if !root_pv.is_empty() {
-                    best_move = root_pv[0];
-                }
-
                 let elapsed = refs.search_info.timer_elapsed();
                 let nodes = refs.search_info.nodes;
                 let hash_full = refs.tt.read().expect(ErrFatal::LOCK).hash_full();
@@ -145,6 +153,21 @@ impl Search {
             };
 
             stop = refs.search_info.interrupted() || time_up;
+        }
+
+        // Final fallback: if we still don't have a valid move, generate moves and use the first legal one
+        if best_move.get_move() == 0 {
+            let mut move_list = crate::movegen::defs::MoveList::new();
+            refs.mg.generate_moves(refs.board, &mut move_list, crate::movegen::defs::MoveType::All);
+            
+            for i in 0..move_list.len() {
+                let mv = move_list.get_move(i);
+                if refs.board.make(mv, refs.mg) {
+                    refs.board.unmake();
+                    best_move = mv;
+                    break;
+                }
+            }
         }
 
         (best_move, refs.search_info.terminate)
