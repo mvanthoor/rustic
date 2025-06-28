@@ -1,5 +1,4 @@
 use crate::engine::Engine;
-use if_chain::if_chain;
 use librustic::{
     basetypes::error::ErrFatal,
     defs::FEN_KIWIPETE_POSITION,
@@ -53,13 +52,12 @@ impl Engine {
         // when executing the move.
         for i in 0..move_list.len() {
             let m = move_list.get_move(i);
-            if_chain! {
-                if converted_move.0 == m.from();
-                if converted_move.1 == m.to();
-                if converted_move.2 == m.promoted();
-                then {
-                    return Some(m);
-                }
+
+            if converted_move.0 == m.from()
+                && converted_move.1 == m.to()
+                && converted_move.2 == m.promoted()
+            {
+                return Some(m);
             }
         }
 

@@ -53,6 +53,7 @@ consider to be the basics have been implemented.
   - pick_move() speed improvement (+3 Elo).
   - Remove unsafe code in move list swap function (0 Elo, +/- 3).
 - Refactor:
+  - Minimum Rust version required: 1.88 (because of if-let chains)
   - _FINALLY_ fixed the (potential) undefined behavior in MoveList.
   - Restructured Comm to be in line with the rest of the modules.
   - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
@@ -70,6 +71,7 @@ consider to be the basics have been implemented.
 - Updated all the libraries
 - Dropped crossbeam_channel and crossbeam_utils
 - Dropped the extra module: those functions are now separate executables.
+- Dropped if_chain: Rust >= 1.88 now includes if-let chains
 - Rustic has been converted into an engine executable + librustic library.
 - Fixes
   - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
