@@ -1,7 +1,7 @@
 use crate::{
-    board::Board,
+    board::{Board, defs::ZobristKey},
     defs::{MAX_PLY, NrOf, Sides},
-    engine::defs::{Information, SearchData, TT},
+    engine::defs::{Information, SearchData, TT, LocalTTCache},
     movegen::{
         defs::{Move, ShortMove},
         MoveGenerator,
@@ -43,6 +43,51 @@ pub const RECAPTURE_EXTENSION: i8 = 1;
 
 pub type SearchResult = (Move, SearchTerminate);
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
+
+// Batch TT updates to reduce write lock frequency
+const TT_BATCH_SIZE: usize = 16;
+
+#[derive(Clone)]
+pub struct TTUpdate {
+    pub zobrist_key: ZobristKey,
+    pub data: SearchData,
+}
+
+pub struct TTBatch {
+    pub updates: Vec<TTUpdate>,
+    pub size: usize,
+}
+
+impl TTBatch {
+    pub fn new() -> Self {
+        Self {
+            updates: Vec::with_capacity(TT_BATCH_SIZE),
+            size: TT_BATCH_SIZE,
+        }
+    }
+
+    pub fn add(&mut self, zobrist_key: ZobristKey, data: SearchData) {
+        self.updates.push(TTUpdate { zobrist_key, data });
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.updates.len() >= self.size
+    }
+
+    pub fn clear(&mut self) {
+        self.updates.clear();
+    }
+
+    pub fn len(&self) -> usize {
+        self.updates.len()
+    }
+}
+
+impl PartialEq for TTBatch {
+    fn eq(&self, other: &Self) -> bool {
+        self.size == other.size && self.updates.len() == other.updates.len()
+    }
+}
 
 #[derive(PartialEq, Clone)]
 pub enum SearchControl {
@@ -141,6 +186,8 @@ pub struct SearchInfo {
     pub allocated_time: u128,
     pub terminate: SearchTerminate,
     pub root_analysis: Vec<RootMoveAnalysis>,
+    pub local_tt_cache: LocalTTCache<SearchData>,
+    pub tt_batch: TTBatch,
 }
 
 impl SearchInfo {
@@ -159,6 +206,8 @@ impl SearchInfo {
             allocated_time: 0,
             terminate: SearchTerminate::Nothing,
             root_analysis: Vec::new(),
+            local_tt_cache: LocalTTCache::new(),
+            tt_batch: TTBatch::new(),
         }
     }
 

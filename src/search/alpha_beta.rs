@@ -82,16 +82,30 @@ impl Search {
         let mut tt_value: Option<i16> = None;
         let mut tt_move: ShortMove = ShortMove::new(0);
 
+        // First check local TT cache to reduce global TT access
         if refs.tt_enabled {
-            if let Some(data) = refs
-                .tt
-                .read()
-                .expect(ErrFatal::LOCK)
-                .probe(refs.board.game_state.zobrist_key)
-            {
+            if let Some(data) = refs.search_info.local_tt_cache.probe(refs.board.game_state.zobrist_key) {
                 let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
                 tt_value = tt_result.0;
                 tt_move = tt_result.1;
+            } else {
+                // Fall back to global TT only if not found in local cache
+                if let Some(data) = refs
+                    .tt
+                    .read()
+                    .expect(ErrFatal::LOCK)
+                    .probe(refs.board.game_state.zobrist_key)
+                {
+                    let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
+                    tt_value = tt_result.0;
+                    tt_move = tt_result.1;
+                    
+                    // Cache the result locally for future access
+                    refs.search_info.local_tt_cache.insert(
+                        refs.board.game_state.zobrist_key,
+                        *data,
+                    );
+                }
             }
         }
 
@@ -286,10 +300,16 @@ impl Search {
             }
 
             if eval_score >= beta {
-                refs.tt.write().expect(ErrFatal::LOCK).insert(
+                // Add to batch instead of immediate write
+                refs.search_info.tt_batch.add(
                     refs.board.game_state.zobrist_key,
                     SearchData::create(depth, refs.search_info.ply, HashFlag::Beta, beta, best_move),
                 );
+
+                // Apply batch if full
+                if refs.search_info.tt_batch.is_full() {
+                    Search::apply_tt_batch(refs);
+                }
 
                 if current_move.captured() == Pieces::NONE {
                     Search::store_killer_move(current_move, refs);
@@ -380,7 +400,11 @@ impl Search {
             }
         }
 
-        refs.tt.write().expect(ErrFatal::LOCK).insert(
+        // Apply any remaining batch updates
+        Search::apply_tt_batch(refs);
+
+        // Add final result to batch instead of immediate write
+        refs.search_info.tt_batch.add(
             refs.board.game_state.zobrist_key,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
         );

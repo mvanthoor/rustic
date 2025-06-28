@@ -158,6 +158,24 @@ impl Search {
         }
         count
     }
+
+    /// Apply all pending TT updates in batch to reduce lock contention
+    pub fn apply_tt_batch(refs: &mut SearchRefs) {
+        if refs.search_info.tt_batch.len() > 0 {
+            if let Ok(mut tt_write) = refs.tt.write() {
+                for update in &refs.search_info.tt_batch.updates {
+                    tt_write.insert(update.zobrist_key, update.data);
+                }
+            }
+            refs.search_info.tt_batch.clear();
+        }
+    }
+
+    /// Clear local TT cache and batch when starting a new search
+    pub fn clear_tt_caches(refs: &mut SearchRefs) {
+        refs.search_info.local_tt_cache.clear();
+        refs.search_info.tt_batch.clear();
+    }
 }
 
 // This is in its own block so rustfmt::skip can be applied. Otherwhise

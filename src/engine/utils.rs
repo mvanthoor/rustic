@@ -80,9 +80,8 @@ impl Engine {
 
         // Get the pseudo-legal move list for this position.
         let mut ml = MoveList::new();
-        let mtx_board = board.lock().expect(ErrFatal::LOCK);
-        mg.generate_moves(&mtx_board, &mut ml, MoveType::All);
-        std::mem::drop(mtx_board);
+        let mut mtx_board = board.lock().expect(ErrFatal::LOCK);
+        mg.generate_moves(&mut mtx_board, &mut ml, MoveType::All);
 
         // Determine if the potential move is pseudo-legal. make() wil
         // determine final legality when executing the move.

@@ -127,7 +127,7 @@ mod tests {
 
         board.fen_read(None).unwrap();
         let mut ml = MoveList::new();
-        mg.generate_moves(&board, &mut ml, MoveType::All);
+        mg.generate_moves(&mut board, &mut ml, MoveType::All);
 
         assert!(ml.len() > 1);
         let mv0 = ml.get_move(0);

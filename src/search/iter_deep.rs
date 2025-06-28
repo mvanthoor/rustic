@@ -53,6 +53,10 @@ impl Search {
         // let beta: i16 = INF;
 
         refs.search_info.timer_start();
+        
+        // Clear TT caches at the start of a new search
+        Search::clear_tt_caches(refs);
+        
         while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
             refs.search_info.depth = depth;
             refs.search_info.root_analysis.clear();
