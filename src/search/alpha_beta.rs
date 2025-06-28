@@ -362,6 +362,24 @@ impl Search {
             }
         }
 
+        // At the root, ensure we always have a PV if we have legal moves
+        if is_root && pv.is_empty() && legal_moves_found > 0 {
+            // Find the best move from the moves we've evaluated
+            if !root_moves.is_empty() {
+                pv.push(root_moves[best_index].0);
+            } else {
+                // If no moves were evaluated (interrupted early), use the first legal move
+                for i in 0..move_list.len() {
+                    let mv = move_list.get_move(i);
+                    if refs.board.make(mv, refs.mg) {
+                        refs.board.unmake();
+                        pv.push(mv);
+                        break;
+                    }
+                }
+            }
+        }
+
         refs.tt.write().expect(ErrFatal::LOCK).insert(
             refs.board.game_state.zobrist_key,
             SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
