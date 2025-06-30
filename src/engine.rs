@@ -123,6 +123,13 @@ impl Engine {
                 Some(EngineOptionDefaults::SHARP_MARGIN_MIN.to_string()),
                 Some(EngineOptionDefaults::SHARP_MARGIN_MAX.to_string()),
             ),
+            EngineOption::new(
+                EngineOptionName::THREADS,
+                UiElement::Spin,
+                Some(threads.to_string()),
+                Some("1".to_string()),
+                Some("64".to_string()),
+            ),
         ];
 
         // Initialize correct TT.

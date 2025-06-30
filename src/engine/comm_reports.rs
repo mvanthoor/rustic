@@ -30,8 +30,10 @@ use crate::{
     defs::FEN_START_POSITION,
     engine::defs::EngineOptionName,
     evaluation::evaluate_position,
-    search::defs::{SearchControl, SearchMode, SearchParams, OVERHEAD},
+    search::{defs::{SearchControl, SearchMode, SearchParams, OVERHEAD}, SearchManager},
 };
+use std::sync::Arc;
+use crossbeam_channel;
 
 // This block implements handling of incoming information, which will be in
 // the form of either Comm or Search reports.
@@ -82,6 +84,32 @@ impl Engine {
                     EngineOptionName::SharpMargin(value) => {
                         if let Ok(v) = value.parse::<i16>() {
                             self.settings.sharp_margin = v;
+                        } else {
+                            let msg = String::from(ErrNormal::NOT_INT);
+                            self.comm.send(CommControl::InfoString(msg));
+                        }
+                    }
+
+                    EngineOptionName::Threads(value) => {
+                        if let Ok(v) = value.parse::<usize>() {
+                            if v >= 1 && v <= 64 {
+                                self.settings.threads = v;
+                                // Recreate search manager with new thread count
+                                self.search = SearchManager::new(v);
+                                // Reinitialize the search manager with a new channel
+                                let (info_tx, info_rx) = crossbeam_channel::unbounded::<crate::engine::defs::Information>();
+                                self.info_rx = Some(info_rx);
+                                self.search.init(
+                                    info_tx,
+                                    Arc::clone(&self.board),
+                                    Arc::clone(&self.mg),
+                                    Arc::clone(&self.tt_search),
+                                    self.settings.tt_size > 0,
+                                );
+                            } else {
+                                let msg = format!("Thread count must be between 1 and 64, got {}", v);
+                                self.comm.send(CommControl::InfoString(msg));
+                            }
                         } else {
                             let msg = String::from(ErrNormal::NOT_INT);
                             self.comm.send(CommControl::InfoString(msg));

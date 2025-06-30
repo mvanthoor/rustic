@@ -98,12 +98,14 @@ pub enum EngineOptionName {
     Hash(String),
     ClearHash,
     SharpMargin(String),
+    Threads(String),
     Nothing,
 }
 impl EngineOptionName {
     pub const HASH: &'static str = "Hash";
     pub const CLEAR_HASH: &'static str = "Clear Hash";
     pub const SHARP_MARGIN: &'static str = "Sharp Margin";
+    pub const THREADS: &'static str = "Threads";
 }
 
 pub struct EngineOptionDefaults;
