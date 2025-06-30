@@ -29,12 +29,16 @@ const HIGH_FOUR_BYTES: u64 = 0xFF_FF_FF_FF_00_00_00_00;
 const LOW_FOUR_BYTES: u64 = 0x00_00_00_00_FF_FF_FF_FF;
 const SHIFT_TO_LOWER: u64 = 32;
 
+// Local TT cache size (entries per thread)
+const LOCAL_TT_CACHE_SIZE: usize = 1024;
+
 /* ===== Data ========================================================= */
 
 pub trait IHashData {
     fn new() -> Self;
     fn depth(&self) -> i8;
 }
+
 #[derive(Copy, Clone)]
 pub struct PerftData {
     depth: i8,
@@ -164,6 +168,51 @@ impl SearchData {
             };
         }
         (value, self.best_move)
+    }
+}
+
+/* ===== Local TT Cache =============================================== */
+
+pub struct LocalTTCache<D> {
+    cache: Vec<(ZobristKey, D)>,
+    size: usize,
+}
+
+impl<D: IHashData + Copy + Clone> LocalTTCache<D> {
+    pub fn new() -> Self {
+        Self {
+            cache: Vec::with_capacity(LOCAL_TT_CACHE_SIZE),
+            size: LOCAL_TT_CACHE_SIZE,
+        }
+    }
+
+    pub fn probe(&self, key: ZobristKey) -> Option<&D> {
+        for (cache_key, data) in &self.cache {
+            if *cache_key == key {
+                return Some(data);
+            }
+        }
+        None
+    }
+
+    pub fn insert(&mut self, key: ZobristKey, data: D) {
+        // Simple LRU replacement: remove oldest entry if cache is full
+        if self.cache.len() >= self.size {
+            self.cache.remove(0);
+        }
+        self.cache.push((key, data));
+    }
+
+    pub fn clear(&mut self) {
+        self.cache.clear();
+    }
+}
+
+impl<D: IHashData + Copy + Clone> PartialEq for LocalTTCache<D> {
+    fn eq(&self, _other: &Self) -> bool {
+        // Local TT caches are considered equal if they have the same size
+        // This is a simplified implementation for PartialEq
+        self.size == _other.size
     }
 }
 

@@ -150,6 +150,7 @@ impl CmdLine {
             .version(About::VERSION)
             .author(About::AUTHOR)
             .about(About::WEBSITE)
+            .disable_help_flag(true)
             .arg(
                 Arg::new(CmdLineArgs::COMM_LONG)
                     .short(CmdLineArgs::COMM_SHORT)

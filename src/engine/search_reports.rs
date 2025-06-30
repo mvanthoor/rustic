@@ -37,7 +37,7 @@ impl Engine {
             }
 
             SearchReport::SearchCurrentMove(curr_move) => {
-                self.comm.send(CommControl::SearchCurrMove(*curr_move));
+                self.comm.send(CommControl::SearchCurrMove(curr_move.clone()));
             }
 
             SearchReport::SearchSummary(summary) => {
@@ -45,7 +45,7 @@ impl Engine {
             }
 
             SearchReport::SearchStats(stats) => {
-                self.comm.send(CommControl::SearchStats(*stats));
+                self.comm.send(CommControl::SearchStats(stats.clone()));
             }
 
             SearchReport::InfoString(msg) => {

@@ -37,6 +37,9 @@ impl Search {
         let mut prev_eval: i16 = 0;
         let is_game_time = refs.search_params.is_game_time();
 
+        // Initialize thread-local data for this search
+        refs.thread_local_data.start_search();
+
         if is_game_time {
             let time_slice = Search::calculate_time_slice(refs);
             let factor = Search::dynamic_time_factor(refs);
@@ -49,15 +52,15 @@ impl Search {
             }
         }
 
-        // let alpha: i16 = -INF;
-        // let beta: i16 = INF;
-
         refs.search_info.timer_start();
+        
+        // Clear TT caches at the start of a new search
+        Search::clear_tt_caches(refs);
+        
         while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
             refs.search_info.depth = depth;
+            refs.thread_local_data.search_depth = depth;
             refs.search_info.root_analysis.clear();
-
-            //let eval = Search::alpha_beta(depth, alpha, beta, &mut root_pv, refs);
 
             let mut alpha = if depth > 1 {
                 prev_eval - ASPIRATION_WINDOW
@@ -84,14 +87,17 @@ impl Search {
             // Always update best_move if we have a valid PV, even if interrupted
             if !root_pv.is_empty() {
                 best_move = root_pv[0];
+                refs.thread_local_data.update_best_move(best_move);
             } else if !refs.search_info.root_analysis.is_empty() {
                 // Fallback: if we have evaluated moves but no PV (interrupted early), 
                 // use the first evaluated move as best move
                 best_move = refs.search_info.root_analysis[0].mv;
+                refs.thread_local_data.update_best_move(best_move);
             } else if best_move.get_move() == 0 && !refs.search_info.root_analysis.is_empty() {
                 // Additional fallback: if best_move is still null but we have root analysis,
                 // use the first move from root analysis
                 best_move = refs.search_info.root_analysis[0].mv;
+                refs.thread_local_data.update_best_move(best_move);
             }
 
             if !refs.search_info.interrupted() {
@@ -106,8 +112,6 @@ impl Search {
                     .filter(|a| a.good_replies == 1)
                     .map(|a| (a.mv, a.reply_sequence.clone()))
                     .collect();
-
-                let forced_moves: Vec<Move> = forced_lines.iter().map(|(m, _)| *m).collect();
 
                 let pv_to_send = root_pv.clone();
 
@@ -155,6 +159,9 @@ impl Search {
             stop = refs.search_info.interrupted() || time_up;
         }
 
+        // Flush any remaining TT updates before finishing
+        Search::flush_tt_batch(refs);
+
         // Final fallback: if we still don't have a valid move, generate moves and use the first legal one
         if best_move.get_move() == 0 {
             let mut move_list = crate::movegen::defs::MoveList::new();
@@ -165,6 +172,7 @@ impl Search {
                 if refs.board.make(mv, refs.mg) {
                     refs.board.unmake();
                     best_move = mv;
+                    refs.thread_local_data.update_best_move(best_move);
                     break;
                 }
             }

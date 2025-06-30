@@ -23,16 +23,13 @@ with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{
     defs::{
-        RootMoveAnalysis, SearchTerminate, CHECKMATE, CHECK_TERMINATION, DRAW,
-        INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION, LMR_REDUCTION, LMR_MOVE_THRESHOLD,
-        LMR_LATE_THRESHOLD, LMR_LATE_REDUCTION, RECAPTURE_EXTENSION,
+        RootMoveAnalysis, SearchTerminate, CHECKMATE, CHECK_TERMINATION,
+        INF, SEND_STATS, STALEMATE, NULL_MOVE_REDUCTION,
         MULTICUT_DEPTH, MULTICUT_REDUCTION, MULTICUT_CUTOFFS, MULTICUT_MOVES,
-        SHARP_SEQUENCE_DEPTH_CAP,
     },
     Search, SearchRefs,
 };
 use crate::{
-    board::defs::Pieces,
     defs::MAX_PLY,
     engine::defs::{ErrFatal, HashFlag, SearchData},
     evaluation,
@@ -49,7 +46,9 @@ impl Search {
     ) -> i16 {
         let quiet = refs.search_params.quiet;
         let is_root = refs.search_info.ply == 0;
-        let mut do_pvs = false;
+
+        // Update thread-local node count
+        refs.thread_local_data.increment_nodes();
 
         if refs.search_info.nodes & CHECK_TERMINATION == 0 {
             Search::check_termination(refs);
@@ -82,16 +81,30 @@ impl Search {
         let mut tt_value: Option<i16> = None;
         let mut tt_move: ShortMove = ShortMove::new(0);
 
+        // First check thread-local TT cache to reduce global TT access
         if refs.tt_enabled {
-            if let Some(data) = refs
-                .tt
-                .read()
-                .expect(ErrFatal::LOCK)
-                .probe(refs.board.game_state.zobrist_key)
-            {
+            if let Some(data) = refs.thread_local_data.local_tt_cache.probe(refs.board.game_state.zobrist_key) {
                 let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
                 tt_value = tt_result.0;
                 tt_move = tt_result.1;
+            } else {
+                // Fall back to global TT only if not found in local cache
+                if let Some(data) = refs
+                    .tt
+                    .read()
+                    .expect(ErrFatal::LOCK)
+                    .probe(refs.board.game_state.zobrist_key)
+                {
+                    let tt_result = data.get(depth, refs.search_info.ply, alpha, beta);
+                    tt_value = tt_result.0;
+                    tt_move = tt_result.1;
+                    
+                    // Cache the result locally for future access
+                    refs.thread_local_data.local_tt_cache.insert(
+                        refs.board.game_state.zobrist_key,
+                        *data,
+                    );
+                }
             }
         }
 
@@ -167,225 +180,137 @@ impl Search {
         let mut best_eval_score = -INF;
         let mut hash_flag = HashFlag::Alpha;
         let mut best_move: ShortMove = ShortMove::new(0);
-        let mut best_index: usize = 0;
 
         // Store evaluated root moves so sharp sequences can be collected later.
-        let mut root_moves: Vec<(Move, i16, i16)> = Vec::new();
         let mut root_analysis: Vec<RootMoveAnalysis> = Vec::new();
 
-        for i in 0..move_list.len() {
+        for i in 0..move_list.len() as usize {
             if Search::time_up(refs) {
                 break;
             }
 
-            Search::pick_move(&mut move_list, i);
-            let current_move = move_list.get_move(i);
+            Search::pick_move(&mut move_list, i as u8);
+            let current_move = move_list.get_move(i as u8);
 
             if !refs.board.make(current_move, refs.mg) {
                 continue;
             }
 
-            legal_moves_found += 1;
             refs.search_info.ply += 1;
+            legal_moves_found += 1;
 
-            if refs.search_info.ply > refs.search_info.seldepth {
-                refs.search_info.seldepth = refs.search_info.ply;
-            }
+            let mut tmp_pv: Vec<Move> = Vec::new();
+            let mut score: i16;
 
-            if !quiet && is_root {
-                Search::send_move_to_gui(refs, current_move, legal_moves_found);
-            }
-
-            let mut node_pv: Vec<Move> = Vec::new();
-            let mut eval_score = DRAW;
-
-            if !Search::is_draw(refs) {
-
-                let is_quiet = current_move.captured() == Pieces::NONE;
-                let apply_lmr = !is_root
-                    && depth > 2
-                    && !is_check
-                    && is_quiet
-                    && i >= LMR_MOVE_THRESHOLD;
-                
-                let mut r = if apply_lmr { LMR_REDUCTION } else { 0 };
-                if apply_lmr && i >= LMR_LATE_THRESHOLD {
-                    r = LMR_LATE_REDUCTION;
+            if legal_moves_found > 1 {
+                score = -Search::alpha_beta(depth - 1, -alpha - 1, -alpha, &mut tmp_pv, refs);
+                if score > alpha && score < beta {
+                    score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut tmp_pv, refs);
                 }
-
-                let mut ext = 0;
-                if refs.board.history.len() > 0 {
-                    let prev = refs.board.history.get_ref(refs.board.history.len() - 1).next_move;
-                    if prev.captured() != Pieces::NONE
-                        && current_move.captured() != Pieces::NONE
-                        && prev.to() == current_move.to()
-                    {
-                        ext = RECAPTURE_EXTENSION;
-                    }
-                }
-
-                if do_pvs {
-                    eval_score = -Search::alpha_beta(depth - 1 - r + ext, -alpha - 1, -alpha, &mut node_pv, refs);
-                    if Search::time_up(refs) {
-                        refs.board.unmake();
-                        refs.search_info.ply -= 1;
-                        return eval_score;
-                    }
-
-                    if (eval_score > alpha) && (eval_score < beta) {
-                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
-                        if Search::time_up(refs) {
-                            refs.board.unmake();
-                            refs.search_info.ply -= 1;
-                            return eval_score;
-                        }
-                    } else if apply_lmr && eval_score > alpha {
-                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
-                        if Search::time_up(refs) {
-                            refs.board.unmake();
-                            refs.search_info.ply -= 1;
-                            return eval_score;
-                        }
-                    }
-                } else {
-                    eval_score = -Search::alpha_beta(depth - 1 - r + ext, -beta, -alpha, &mut node_pv, refs);
-                    if Search::time_up(refs) {
-                        refs.board.unmake();
-                        refs.search_info.ply -= 1;
-                        return eval_score;
-                    }
-                    if apply_lmr && eval_score > alpha {
-                        eval_score = -Search::alpha_beta(depth - 1 + ext, -beta, -alpha, &mut node_pv, refs);
-                        if Search::time_up(refs) {
-                            refs.board.unmake();
-                            refs.search_info.ply -= 1;
-                            return eval_score;
-                        }
-                    }
-                }
-            }
-
-            if is_root {
-                root_moves.push((current_move, eval_score, alpha));
-                root_analysis.push(RootMoveAnalysis {
-                    mv: current_move,
-                    eval: eval_score,
-                    good_replies: 0,
-                    reply: None,
-                    reply_sequence: Vec::new(),
-                });
+            } else {
+                score = -Search::alpha_beta(depth - 1, -beta, -alpha, &mut tmp_pv, refs);
             }
 
             refs.board.unmake();
             refs.search_info.ply -= 1;
 
-            if eval_score > best_eval_score {
-                best_eval_score = eval_score;
+            if refs.search_info.terminate != SearchTerminate::Nothing {
+                break;
+            }
+
+            if score > best_eval_score {
+                best_eval_score = score;
                 best_move = current_move.to_short_move();
-                best_index = root_moves.len() - 1;
-            }
 
-            if eval_score >= beta {
-                refs.tt.write().expect(ErrFatal::LOCK).insert(
-                    refs.board.game_state.zobrist_key,
-                    SearchData::create(depth, refs.search_info.ply, HashFlag::Beta, beta, best_move),
-                );
+                if score > alpha {
+                    hash_flag = HashFlag::Exact;
+                    alpha = score;
+                    pv.clear();
+                    pv.push(current_move);
+                    pv.extend(tmp_pv);
 
-                if current_move.captured() == Pieces::NONE {
-                    Search::store_killer_move(current_move, refs);
-                    Search::update_history_heuristic(current_move, depth, refs);
-                }
+                    if is_root {
+                        refs.thread_local_data.update_best_move(current_move);
+                    }
 
-                if refs.board.history.len() > 0 {
-                    let prev = refs.board.history.get_ref(refs.board.history.len() - 1).next_move;
-                    Search::store_counter_move(prev, current_move, refs);
-                }
-
-                return beta;
-            }
-
-            if eval_score > alpha {
-                alpha = eval_score;
-                hash_flag = HashFlag::Exact;
-                do_pvs = true;
-                pv.clear();
-                pv.push(current_move);
-                pv.append(&mut node_pv);
-            }
-        }
-
-        if is_root && depth > 1 {
-            let seq_depth = std::cmp::min(depth - 1, SHARP_SEQUENCE_DEPTH_CAP);
-            if depth <= SHARP_SEQUENCE_DEPTH_CAP {
-                for (idx, (mv, _, a)) in root_moves.iter().enumerate() {
-                    if refs.board.make(*mv, refs.mg) {
-                        refs.search_info.ply += 1;
-                        let (gr, reply, seq) =
-                            Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
-                        if Search::time_up(refs) {
-                            refs.board.unmake();
-                            refs.search_info.ply -= 1;
-                            return alpha;
-                        }
-                        refs.board.unmake();
-                        refs.search_info.ply -= 1;
-                        root_analysis[idx].good_replies = gr;
-                        root_analysis[idx].reply = reply;
-                        root_analysis[idx].reply_sequence = seq;
+                    if score >= beta {
+                        hash_flag = HashFlag::Beta;
+                        break;
                     }
                 }
-            } else if let Some((mv, _, a)) = root_moves.get(best_index) {
-                if refs.board.make(*mv, refs.mg) {
-                    refs.search_info.ply += 1;
-                    let (gr, reply, seq) =
-                        Search::collect_sharp_sequence(seq_depth, *a, beta, refs);
-                    if Search::time_up(refs) {
-                        refs.board.unmake();
-                        refs.search_info.ply -= 1;
-                        return alpha;
-                    }
-                    refs.board.unmake();
-                    refs.search_info.ply -= 1;
-                    root_analysis[best_index].good_replies = gr;
-                    root_analysis[best_index].reply = reply;
-                    root_analysis[best_index].reply_sequence = seq;
-                }
             }
-            refs.search_info.root_analysis.append(&mut root_analysis);
+
+            if is_root {
+                let mut good_replies = 0;
+                let mut reply: Option<Move> = None;
+                let mut reply_sequence: Vec<Move> = Vec::new();
+
+                if score > alpha - refs.search_params.sharp_margin {
+                    (good_replies, reply, reply_sequence) = Search::collect_sharp_sequence(
+                        depth - 1,
+                        -beta,
+                        -alpha + refs.search_params.sharp_margin,
+                        refs,
+                    );
+                }
+
+                root_analysis.push(RootMoveAnalysis {
+                    mv: current_move,
+                    eval: score,
+                    good_replies,
+                    reply,
+                    reply_sequence,
+                });
+            }
         }
 
         if legal_moves_found == 0 {
             if is_check {
-                return -CHECKMATE + (refs.search_info.ply as i16);
+                return -CHECKMATE + refs.search_info.ply as i16;
             } else {
                 return STALEMATE;
             }
         }
 
-        // At the root, ensure we always have a PV if we have legal moves
-        if is_root && pv.is_empty() && legal_moves_found > 0 {
-            // Find the best move from the moves we've evaluated
-            if !root_moves.is_empty() {
-                pv.push(root_moves[best_index].0);
-            } else {
-                // If no moves were evaluated (interrupted early), use the first legal move
-                for i in 0..move_list.len() {
-                    let mv = move_list.get_move(i);
-                    if refs.board.make(mv, refs.mg) {
-                        refs.board.unmake();
-                        pv.push(mv);
-                        break;
-                    }
-                }
+        // Store position in TT using thread-local batching
+        if refs.tt_enabled {
+            let tt_data = SearchData::create(
+                depth,
+                refs.search_info.ply,
+                hash_flag,
+                best_eval_score,
+                best_move,
+            );
+
+            // Add to thread-local batch instead of immediate global TT write
+            refs.thread_local_data.tt_batch.add(
+                refs.board.game_state.zobrist_key,
+                tt_data,
+            );
+
+            // Flush batch if it's full
+            if refs.thread_local_data.tt_batch.is_full() {
+                Search::flush_tt_batch(refs);
             }
         }
 
-        refs.tt.write().expect(ErrFatal::LOCK).insert(
-            refs.board.game_state.zobrist_key,
-            SearchData::create(depth, refs.search_info.ply, hash_flag, alpha, best_move),
-        );
+        if is_root {
+            refs.search_info.root_analysis = root_analysis;
+        }
 
-        alpha
+        best_eval_score
+    }
+
+    /// Flush thread-local TT batch to global TT
+    pub fn flush_tt_batch(refs: &mut SearchRefs) {
+        if refs.thread_local_data.tt_batch.len() > 0 {
+            if let Ok(mut tt_write) = refs.tt.write() {
+                for update in &refs.thread_local_data.tt_batch.updates {
+                    tt_write.insert(update.zobrist_key, update.data);
+                }
+            }
+            refs.thread_local_data.tt_batch.clear();
+        }
     }
 
     fn collect_sharp_sequence(
