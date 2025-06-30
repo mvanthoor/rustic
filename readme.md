@@ -1,5 +1,3 @@
-![Rustic Banner](https://rustic-chess.org/img/rustic-logo-web.jpg)
-
 [https://rustic-chess.org/](https://rustic-chess.org/)
 
 # Rustic Chess Engine
