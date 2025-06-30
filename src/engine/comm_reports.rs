@@ -114,40 +114,49 @@ impl Engine {
 
             UciReport::GoInfinite => {
                 sp.search_mode = SearchMode::Infinite;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoDepth(depth) => {
                 sp.depth = *depth;
                 sp.search_mode = SearchMode::Depth;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoMoveTime(msecs) => {
                 sp.move_time = *msecs - (OVERHEAD as u128);
                 sp.search_mode = SearchMode::MoveTime;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoNodes(nodes) => {
                 sp.nodes = *nodes;
                 sp.search_mode = SearchMode::Nodes;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 
             UciReport::GoGameTime(gt) => {
                 sp.game_time = *gt;
                 sp.search_mode = SearchMode::GameTime;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 
-            UciReport::Stop => self.search.send(SearchControl::Stop),
+            UciReport::Stop => {
+                self.search.stop_search();
+                self.search.send(SearchControl::Stop);
+            }
             UciReport::Quit => self.quit(),
 
             UciReport::GoPonder(gt) => {
                 sp.game_time = *gt;
                 sp.search_mode = SearchMode::Ponder;
                 self.pondering = true;
+                self.search.start_search();
                 self.search.send(SearchControl::Start(sp));
             }
 

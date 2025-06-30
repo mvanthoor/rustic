@@ -110,7 +110,7 @@ mod tests {
         board::Board,
         engine::defs::{Information, SearchData, TT},
         movegen::{MoveGenerator, defs::{MoveList, MoveType}},
-        search::defs::{SearchControl, SearchInfo, SearchParams, SearchRefs},
+        search::defs::{SearchControl, SearchInfo, SearchParams, SearchRefs, ThreadLocalData},
     };
     use crossbeam_channel::unbounded;
     use std::sync::{Arc, RwLock};
@@ -142,6 +142,7 @@ mod tests {
             search_info: &mut si,
             control_rx: &crx,
             report_tx: &rtx,
+            thread_local_data: &mut ThreadLocalData::new(0),
         };
 
         refs.search_info.history_heuristic[side][mv0.piece()][mv0.to()] = 500;

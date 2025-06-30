@@ -161,20 +161,20 @@ impl Search {
 
     /// Apply all pending TT updates in batch to reduce lock contention
     pub fn apply_tt_batch(refs: &mut SearchRefs) {
-        if refs.search_info.tt_batch.len() > 0 {
+        if refs.thread_local_data.tt_batch.len() > 0 {
             if let Ok(mut tt_write) = refs.tt.write() {
-                for update in &refs.search_info.tt_batch.updates {
+                for update in &refs.thread_local_data.tt_batch.updates {
                     tt_write.insert(update.zobrist_key, update.data);
                 }
             }
-            refs.search_info.tt_batch.clear();
+            refs.thread_local_data.tt_batch.clear();
         }
     }
 
     /// Clear local TT cache and batch when starting a new search
     pub fn clear_tt_caches(refs: &mut SearchRefs) {
-        refs.search_info.local_tt_cache.clear();
-        refs.search_info.tt_batch.clear();
+        refs.thread_local_data.local_tt_cache.clear();
+        refs.thread_local_data.tt_batch.clear();
     }
 }
 

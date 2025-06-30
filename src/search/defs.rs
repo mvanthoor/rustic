@@ -42,6 +42,7 @@ pub const MULTICUT_MOVES: u8 = 4;
 pub const RECAPTURE_EXTENSION: i8 = 1;
 
 pub type SearchResult = (Move, SearchTerminate);
+pub type ThreadId = u32;
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
 
 // Batch TT updates to reduce write lock frequency
@@ -86,6 +87,56 @@ impl TTBatch {
 impl PartialEq for TTBatch {
     fn eq(&self, other: &Self) -> bool {
         self.size == other.size && self.updates.len() == other.updates.len()
+    }
+}
+
+// Thread-local data structures for better performance
+pub struct ThreadLocalData {
+    pub thread_id: ThreadId,
+    pub local_tt_cache: LocalTTCache<SearchData>,
+    pub tt_batch: TTBatch,
+    pub search_start_time: Option<Instant>,
+    pub nodes_searched: usize,
+    pub best_move_found: Option<Move>,
+    pub search_depth: i8,
+}
+
+impl ThreadLocalData {
+    pub fn new(thread_id: ThreadId) -> Self {
+        Self {
+            thread_id,
+            local_tt_cache: LocalTTCache::new(),
+            tt_batch: TTBatch::new(),
+            search_start_time: None,
+            nodes_searched: 0,
+            best_move_found: None,
+            search_depth: 0,
+        }
+    }
+
+    pub fn start_search(&mut self) {
+        self.search_start_time = Some(Instant::now());
+        self.nodes_searched = 0;
+        self.best_move_found = None;
+        self.search_depth = 0;
+        self.local_tt_cache.clear();
+        self.tt_batch.clear();
+    }
+
+    pub fn elapsed_time(&self) -> u128 {
+        if let Some(start_time) = self.search_start_time {
+            start_time.elapsed().as_millis()
+        } else {
+            0
+        }
+    }
+
+    pub fn update_best_move(&mut self, mv: Move) {
+        self.best_move_found = Some(mv);
+    }
+
+    pub fn increment_nodes(&mut self) {
+        self.nodes_searched += 1;
     }
 }
 
@@ -248,11 +299,11 @@ impl SearchSummary {
             let m = format!(" {}", next_move.as_string());
             pv.push_str(&m[..]);
         }
-        pv.trim().to_string()
+        pv
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct SearchCurrentMove {
     pub curr_move: Move,
     pub curr_move_number: u8,
@@ -267,7 +318,7 @@ impl SearchCurrentMove {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct SearchStats {
     pub time: u128,
     pub nodes: usize,
@@ -304,9 +355,10 @@ pub struct SearchRefs<'a> {
     pub search_info: &'a mut SearchInfo,
     pub control_rx: &'a Receiver<SearchControl>,
     pub report_tx: &'a Sender<Information>,
+    pub thread_local_data: &'a mut ThreadLocalData,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum SearchReport {
     Finished(Move),
     SearchSummary(SearchSummary),
