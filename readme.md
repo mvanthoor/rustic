@@ -5,14 +5,13 @@
 # Rustic Chess Engine
 
 Rustic is a chess engine written from scratch in the Rust programming
-language. It is not derived from any other engine, but it uses many
-concepts that have been well-known in chess programming for many decades;
-therefore, the engine still stands on the shoulders of the giants of the
-past.
+language.
 
 This repo has been extended to change the engine focus to moves which
 the opponent has limited replies to in order to gain or maintain an
-advantage. README will be updated.
+advantage.
+
+I do not take credit for any code other than in this fork.
 
 # User interface
 
@@ -196,19 +195,10 @@ available if the "extra" module is compiled into the engine.
 
 # Credits
 
-More extensive credits can be found in "credits.md", or in [Rustic's
+Firstly, the creator of Rustic. This fork has allowed me to enjoy
+problem solving again. 
+
+The OG Creator's credits can be found in "credits.md", or in [Rustic's
 documentation](https://rustic-chess.org/back_matter/credits.html).
 
-Many people have assisted in one way or another, in the development of
-Rustic. They are listed below, in no particular order.
-
-> My girlfriend (for providing lots of support in more ways than she'd ever
-> be able to realize), Richard Allbert, Terje Kirstihagen, Fabian von der
-> Warth, H.G. Müller, Maksim Korzh, Rasmus Althoff, Martin Sedlák, Ronald
-> de Man, Taimo, Sven Schüle, Thomas Jahn, Ed Schröder and Robert
-> Hyatt (for still hanging around the chess programming community after 40
-> or 50 years).
-
-All of these people (except my girlfiriend) can be found on the
-[Talkchess.com](http://talkchess.com/forum3/index.php) forum.
 
