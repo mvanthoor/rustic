@@ -41,6 +41,94 @@ pub const MULTICUT_MOVES: u8 = 4;
 
 pub const RECAPTURE_EXTENSION: i8 = 1;
 
+// Time management constants
+pub const EMERGENCY_TIME_THRESHOLD: u128 = 2_000; // 2 seconds per move threshold
+pub const EMERGENCY_MAX_DEPTH: i8 = 8; // Maximum depth in emergency mode
+pub const EMERGENCY_TIME_FACTOR: f64 = 0.5; // Use 50% of normal time in emergency mode
+
+// Game phase constants for adaptive moves-to-go
+pub const OPENING_PLY_THRESHOLD: usize = 20;
+pub const EARLY_MIDDLEGAME_PLY_THRESHOLD: usize = 30;
+pub const LATE_MIDDLEGAME_PLY_THRESHOLD: usize = 40;
+pub const ENDGAME_PIECE_THRESHOLD: usize = 12;
+
+// Time management enums
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+pub enum GamePhase {
+    Opening,
+    EarlyMiddlegame,
+    LateMiddlegame,
+    Endgame,
+}
+
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub enum TimeControl {
+    Bullet,    // < 3 minutes
+    Blitz,     // 3-15 minutes
+    Rapid,     // 15-60 minutes
+    Classical, // > 60 minutes
+}
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum MoveQuality {
+    Excellent,  // Clear best move
+    Good,       // Good move, some alternatives
+    Acceptable, // Multiple reasonable moves
+    Poor,       // Difficult position
+    Critical,   // Critical position, needs extra time
+}
+
+// Time management statistics
+#[derive(Clone, PartialEq)]
+pub struct TimeStats {
+    pub total_moves: usize,
+    pub successful_allocations: usize,
+    pub time_losses: usize,
+    pub average_time_per_move: u128,
+    pub time_usage_by_phase: std::collections::HashMap<GamePhase, u128>,
+    pub last_update: std::time::Instant,
+}
+
+impl TimeStats {
+    pub fn new() -> Self {
+        Self {
+            total_moves: 0,
+            successful_allocations: 0,
+            time_losses: 0,
+            average_time_per_move: 0,
+            time_usage_by_phase: std::collections::HashMap::new(),
+            last_update: std::time::Instant::now(),
+        }
+    }
+
+    pub fn update(&mut self, time_used: u128, success: bool, phase: GamePhase) {
+        self.total_moves += 1;
+        if success {
+            self.successful_allocations += 1;
+        } else {
+            self.time_losses += 1;
+        }
+
+        // Update average time per move
+        let total_time = self.average_time_per_move * (self.total_moves - 1) as u128 + time_used;
+        self.average_time_per_move = total_time / self.total_moves as u128;
+
+        // Update phase-specific statistics
+        let phase_time = self.time_usage_by_phase.entry(phase).or_insert(0);
+        *phase_time = (*phase_time + time_used) / 2; // Simple moving average
+
+        self.last_update = std::time::Instant::now();
+    }
+
+    pub fn success_rate(&self) -> f64 {
+        if self.total_moves == 0 {
+            0.0
+        } else {
+            self.successful_allocations as f64 / self.total_moves as f64
+        }
+    }
+}
+
 pub type SearchResult = (Move, SearchTerminate);
 pub type ThreadId = u32;
 type KillerMoves = [[ShortMove; MAX_KILLER_MOVES]; MAX_PLY as usize];
@@ -239,6 +327,10 @@ pub struct SearchInfo {
     pub root_analysis: Vec<RootMoveAnalysis>,
     pub local_tt_cache: LocalTTCache<SearchData>,
     pub tt_batch: TTBatch,
+    // Time management fields
+    pub emergency_mode: bool,
+    pub max_depth: i8,
+    pub time_stats: TimeStats,
 }
 
 impl SearchInfo {
@@ -259,6 +351,9 @@ impl SearchInfo {
             root_analysis: Vec::new(),
             local_tt_cache: LocalTTCache::new(),
             tt_batch: TTBatch::new(),
+            emergency_mode: false,
+            max_depth: 0,
+            time_stats: TimeStats::new(),
         }
     }
 
@@ -276,6 +371,14 @@ impl SearchInfo {
 
     pub fn interrupted(&self) -> bool {
         self.terminate != SearchTerminate::Nothing
+    }
+
+    // Preserve time statistics when reinitializing
+    pub fn preserve_time_stats(&mut self) {
+        // Keep the existing time statistics
+        let preserved_stats = self.time_stats.clone();
+        *self = Self::new();
+        self.time_stats = preserved_stats;
     }
 }
 

@@ -168,7 +168,7 @@ dependencies = [
 
 [[package]]
 name = "rustic-sharp"
-version = "3.0.5"
+version = "1.0.2"
 dependencies = [
  "clap",
  "crossbeam-channel",

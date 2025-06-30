@@ -41,7 +41,11 @@ impl Search {
         refs.thread_local_data.start_search();
 
         if is_game_time {
-            let time_slice = Search::calculate_time_slice(refs);
+            // Apply emergency time management first
+            Search::emergency_time_management(refs);
+            
+            // Use enhanced time slice calculation
+            let time_slice = Search::calculate_enhanced_time_slice(refs);
             let factor = Search::dynamic_time_factor(refs);
 
             if time_slice > 0 {
@@ -57,7 +61,7 @@ impl Search {
         // Clear TT caches at the start of a new search
         Search::clear_tt_caches(refs);
         
-        while (depth <= MAX_PLY) && (depth <= refs.search_params.depth) && !stop {
+        while (depth <= refs.search_info.max_depth) && (depth <= refs.search_params.depth) && !stop {
             refs.search_info.depth = depth;
             refs.thread_local_data.search_depth = depth;
             refs.search_info.root_analysis.clear();
@@ -161,6 +165,20 @@ impl Search {
 
         // Flush any remaining TT updates before finishing
         Search::flush_tt_batch(refs);
+
+        // Update time statistics
+        if is_game_time {
+            let time_used = refs.search_info.timer_elapsed();
+            // Success is determined by whether we found a valid move, not by time usage
+            let success = best_move.get_move() != 0 && !refs.search_info.interrupted();
+            Search::update_time_statistics(refs, time_used, success);
+            
+            // Send time management statistics to GUI for monitoring
+            let stats_msg = Search::display_time_statistics(refs);
+            let report = SearchReport::InfoString(stats_msg);
+            let information = Information::Search(report);
+            refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+        }
 
         // Final fallback: if we still don't have a valid move, generate moves and use the first legal one
         if best_move.get_move() == 0 {

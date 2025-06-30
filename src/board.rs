@@ -154,6 +154,116 @@ impl Board {
         self.game_state.castling = new_permissions;
         self.game_state.zobrist_key ^= self.zr.castling(self.game_state.castling);
     }
+
+    // Count total pieces on the board (excluding pawns)
+    pub fn piece_count(&self) -> usize {
+        let mut count = 0;
+        for side in 0..Sides::BOTH {
+            for piece in 0..Pieces::PAWN {
+                count += self.bb_pieces[side][piece].count_ones() as usize;
+            }
+        }
+        count
+    }
+
+    // Count total pieces including pawns
+    pub fn total_piece_count(&self) -> usize {
+        let mut count = 0;
+        for side in 0..Sides::BOTH {
+            for piece in 0..NrOf::PIECE_TYPES {
+                count += self.bb_pieces[side][piece].count_ones() as usize;
+            }
+        }
+        count
+    }
+
+    // Check if the current side is in check
+    pub fn in_check(&self) -> bool {
+        let king_square = self.king_square(self.us());
+        let opponent = self.opponent();
+        
+        // Check if opponent's pieces attack our king
+        for piece in 0..NrOf::PIECE_TYPES {
+            let piece_bitboard = self.bb_pieces[opponent][piece];
+            if piece_bitboard == 0 {
+                continue;
+            }
+            
+            let mut pieces = piece_bitboard;
+            while pieces > 0 {
+                let from = bits::next(&mut pieces);
+                let attacks = self.get_attacks_from(piece, from);
+                if (attacks & (1u64 << king_square)) > 0 {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    // Get attacks from a piece on a given square
+    fn get_attacks_from(&self, piece: Piece, square: Square) -> Bitboard {
+        match piece {
+            Pieces::KING => {
+                let king_attacks = [
+                    (1, 0), (1, 1), (0, 1), (-1, 1),
+                    (-1, 0), (-1, -1), (0, -1), (1, -1)
+                ];
+                let mut attacks = 0u64;
+                let file = square % 8;
+                let rank = square / 8;
+                
+                for (df, dr) in king_attacks.iter() {
+                    let new_file = file as i8 + df;
+                    let new_rank = rank as i8 + dr;
+                    if new_file >= 0 && new_file < 8 && new_rank >= 0 && new_rank < 8 {
+                        attacks |= 1u64 << (new_rank * 8 + new_file);
+                    }
+                }
+                attacks
+            }
+            Pieces::KNIGHT => {
+                let knight_attacks = [
+                    (-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                    (1, -2), (1, 2), (2, -1), (2, 1)
+                ];
+                let mut attacks = 0u64;
+                let file = square % 8;
+                let rank = square / 8;
+                
+                for (df, dr) in knight_attacks.iter() {
+                    let new_file = file as i8 + df;
+                    let new_rank = rank as i8 + dr;
+                    if new_file >= 0 && new_file < 8 && new_rank >= 0 && new_rank < 8 {
+                        attacks |= 1u64 << (new_rank * 8 + new_file);
+                    }
+                }
+                attacks
+            }
+            Pieces::PAWN => {
+                let side = if self.us() == Sides::WHITE { Sides::WHITE } else { Sides::BLACK };
+                let direction = if side == Sides::WHITE { -1 } else { 1 };
+                let mut attacks = 0u64;
+                let file = square % 8;
+                let rank = square / 8;
+                
+                // Pawn captures
+                for df in [-1, 1].iter() {
+                    let new_file = file as i8 + df;
+                    let new_rank = rank as i8 + direction;
+                    if new_file >= 0 && new_file < 8 && new_rank >= 0 && new_rank < 8 {
+                        attacks |= 1u64 << (new_rank * 8 + new_file);
+                    }
+                }
+                attacks
+            }
+            _ => {
+                // For sliding pieces, we'll use a simplified approach
+                // In a real implementation, you'd use the magic bitboard tables
+                0u64
+            }
+        }
+    }
 }
 
 // Private board functions (for initializating on startup)

@@ -24,7 +24,14 @@
 
 # Changelog
 
-## March 22, 2024 - Sharp Rustic 0.0.1
+## March 30, 2025 - Sharp Rustic 0.0.2
+
+- Engine considers the evaluation of opponent move sequences when chosing the move.
+  Root analysis now records the entire forced reply sequence.
+- Iterative deepening output lists full sharp lines.
+- Added UCI support for pondering
+
+## March 22, 2025 - Sharp Rustic 0.0.1
 
 - Engine considers the evaluation of opponent move sequences when chosing the move.
   Root analysis now records the entire forced reply sequence.

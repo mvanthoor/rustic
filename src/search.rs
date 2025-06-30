@@ -40,7 +40,7 @@ use crate::{
 use crossbeam_channel::Sender;
 use defs::{
     SearchControl, SearchInfo, SearchParams, SearchRefs, SearchReport, SearchSummary,
-    SearchTerminate, ThreadId, ThreadLocalData,
+    SearchTerminate, ThreadId, ThreadLocalData, TimeStats,
 };
 use std::{
     sync::{Arc, Mutex, RwLock, atomic::{AtomicBool, Ordering}},
@@ -73,6 +73,7 @@ impl Search {
         mg: Arc<MoveGenerator>,
         tt: Arc<RwLock<TT<SearchData>>>,
         tt_enabled: bool,
+        time_stats: Arc<Mutex<TimeStats>>,
     ) {
         // Set up a channel for incoming commands
         let (control_tx, control_rx) = crossbeam_channel::unbounded::<SearchControl>();
@@ -87,6 +88,7 @@ impl Search {
             let arc_board = Arc::clone(&board);
             let arc_mg = Arc::clone(&mg);
             let arc_tt = Arc::clone(&tt);
+            let arc_time_stats = Arc::clone(&time_stats);
             let mut search_params = SearchParams::new();
 
             // Create thread-local data structures
@@ -126,6 +128,11 @@ impl Search {
 
                     // Create a place to put search information
                     let mut search_info = SearchInfo::new();
+                    
+                    // Get the persistent time statistics
+                    let mut time_stats_guard = arc_time_stats.lock().expect(ErrFatal::LOCK);
+                    search_info.time_stats = time_stats_guard.clone();
+                    std::mem::drop(time_stats_guard);
 
                     // Create references to all needed information and structures
                     let mut search_refs = SearchRefs {
@@ -142,6 +149,11 @@ impl Search {
 
                     // Start the search using Iterative Deepening
                     let (best_move, terminate) = Search::iterative_deepening(&mut search_refs);
+
+                    // Update the persistent time statistics
+                    let mut time_stats_guard = arc_time_stats.lock().expect(ErrFatal::LOCK);
+                    *time_stats_guard = search_info.time_stats.clone();
+                    std::mem::drop(time_stats_guard);
 
                     // Inform the engine that the search has finished
                     let information = Information::Search(SearchReport::Finished(best_move));
@@ -188,6 +200,7 @@ pub struct SearchManager {
     workers: Vec<Search>,
     thread_count: usize,
     search_start_time: Option<Instant>,
+    time_stats: TimeStats,
 }
 
 impl SearchManager {
@@ -201,6 +214,7 @@ impl SearchManager {
             workers,
             thread_count: threads,
             search_start_time: None,
+            time_stats: TimeStats::new(),
         }
     }
 
@@ -212,6 +226,7 @@ impl SearchManager {
         tt: Arc<RwLock<TT<SearchData>>>,
         tt_enabled: bool,
     ) {
+        let time_stats = Arc::new(Mutex::new(self.time_stats.clone()));
         for w in self.workers.iter_mut() {
             w.init(
                 report_tx.clone(),
@@ -219,6 +234,7 @@ impl SearchManager {
                 Arc::clone(&mg),
                 Arc::clone(&tt),
                 tt_enabled,
+                Arc::clone(&time_stats),
             );
         }
     }
@@ -251,6 +267,14 @@ impl SearchManager {
 
     pub fn thread_count(&self) -> usize {
         self.thread_count
+    }
+
+    pub fn get_time_stats(&self) -> TimeStats {
+        self.time_stats.clone()
+    }
+
+    pub fn update_time_stats(&mut self, new_stats: TimeStats) {
+        self.time_stats = new_stats;
     }
 }
 
