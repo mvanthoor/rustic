@@ -135,20 +135,75 @@ impl Search {
                 let information = Information::Search(report);
                 refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
 
-                if !forced_lines.is_empty() {
-                    let mut parts: Vec<String> = Vec::new();
-                    for (mv, seq) in forced_lines.iter() {
-                        let seq_str = seq
-                            .iter()
-                            .map(|m| m.as_string())
-                            .collect::<Vec<String>>()
-                            .join(" ");
-                        parts.push(format!("{} -> {}", mv.as_string(), seq_str));
+                // Enhanced sharp move logging
+                if !refs.search_info.root_analysis.is_empty() {
+                    // Check if the best move is a sharp line
+                    let best_move_analysis = refs.search_info.root_analysis
+                        .iter()
+                        .find(|a| a.mv == best_move);
+                    
+                    if let Some(best_analysis) = best_move_analysis {
+                        if best_analysis.good_replies == 1 && !best_analysis.reply_sequence.is_empty() {
+                            // The best move is a sharp line - log it with top alternatives
+                            let mut sorted_analysis = refs.search_info.root_analysis.clone();
+                            sorted_analysis.sort_by(|a, b| b.eval.cmp(&a.eval));
+                            
+                            let sequence_str = best_analysis.reply_sequence
+                                .iter()
+                                .map(|m| m.as_string())
+                                .collect::<Vec<String>>()
+                                .join(" ");
+                            
+                            let mut msg = format!(
+                                "Sharp line chosen: {} (eval: {}) -> {}", 
+                                best_move.as_string(), 
+                                best_analysis.eval, 
+                                sequence_str
+                            );
+                            
+                            // Add top 3 alternatives (excluding the best move)
+                            let alternatives: Vec<_> = sorted_analysis
+                                .iter()
+                                .filter(|a| a.mv != best_move)
+                                .take(3)
+                                .collect();
+                            
+                            if !alternatives.is_empty() {
+                                msg.push_str(" | Alternatives: ");
+                                let alt_strs: Vec<String> = alternatives
+                                    .iter()
+                                    .map(|a| format!("{} ({})", a.mv.as_string(), a.eval))
+                                    .collect();
+                                msg.push_str(&alt_strs.join(", "));
+                            }
+                            
+                            let report = SearchReport::InfoString(msg);
+                            let information = Information::Search(report);
+                            refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                        }
                     }
-                    let msg = format!("sharp lines: {}", parts.join(" | "));
-                    let report = SearchReport::InfoString(msg);
-                    let information = Information::Search(report);
-                    refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    
+                    // Also log any other sharp lines that weren't chosen (legacy behaviour)
+                    let other_sharp_lines: Vec<_> = forced_lines
+                        .iter()
+                        .filter(|(mv, _)| *mv != best_move)
+                        .collect();
+                    
+                    if !other_sharp_lines.is_empty() {
+                        let mut parts: Vec<String> = Vec::new();
+                        for (mv, seq) in other_sharp_lines.iter() {
+                            let seq_str = seq
+                                .iter()
+                                .map(|m| m.as_string())
+                                .collect::<Vec<String>>()
+                                .join(" ");
+                            parts.push(format!("{} -> {}", mv.as_string(), seq_str));
+                        }
+                        let msg = format!("Other sharp lines available: {}", parts.join(" | "));
+                        let report = SearchReport::InfoString(msg);
+                        let information = Information::Search(report);
+                        refs.report_tx.send(information).expect(ErrFatal::CHANNEL);
+                    }
                 }
 
                 depth += 1;

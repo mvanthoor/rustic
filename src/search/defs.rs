@@ -306,7 +306,7 @@ impl SearchParams {
     }
 
     pub fn is_game_time(&self) -> bool {
-        matches!(self.search_mode, SearchMode::GameTime | SearchMode::Ponder)
+        matches!(self.search_mode, SearchMode::GameTime)
     }
 }
 
