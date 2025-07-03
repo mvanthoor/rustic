@@ -9,6 +9,19 @@ language. It is not derived from any other engine but it uses many concepts
 that have been well-known in chess programming for many decades; therefore,
 the engine still stands on the shoulders of giants.
 
+>__NOTICE__: This is Rustic's master branch. It contains the latest
+development on the engine, which is currently _4.0-beta_. It can sometimes
+have big changes merged into it. If you are looking for a version that will
+never change except for maintenance updates such as crate and edition
+bumps, you can take a look at the older Alpha 3.x, 2.x and 1.x series. I'll
+gladly accept pull requests with targeted fixes, tweaks, or small
+improvements. However, there have been PR's which add completely new
+features or do large refactorings. If you intend to develop your own chess
+engine with any version of Rustic as a base, then fork it and go for it!
+That's what the engine is intended for. However, I'm not going to accept
+very large PR's that will add large features or do significant
+refactorings.
+
 # User interface
 
 The engine does not provide its own user interface. It uses the UCI and
