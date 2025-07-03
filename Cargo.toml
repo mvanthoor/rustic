@@ -1,22 +1,12 @@
-[package]
-name = "rustic-alpha"
-version = "3.0.5"
-authors = ["Marcel Vanthoor"]
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+members = ["librustic", "rustic", "texel", "wizardry", "epdtest"]
+resolver = "2"
 
-[dependencies]
-rand = { version = "0.8.5", features = ["small_rng"] }
-rand_core = "0.6.4"
-rand_chacha = "0.3.1"
-if_chain = "1.0.2"
-clap = "4.4.18"
-crossbeam-channel = "0.5.11"
-
-
-[features]
-extra = []
+[workspace.package]
+version = "3.99.0"
+authors = ["Marcel Vanthoor <mail@marcelvanthoor.nl>"]
+edition = "2024"
 
 [profile.dev]
 opt-level = 1
@@ -30,6 +20,7 @@ codegen-units = 256
 rpath = false
 
 [profile.release]
+strip = "symbols"
 opt-level = 3
 lto = true
 codegen-units = 1

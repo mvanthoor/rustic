@@ -3,41 +3,99 @@
 <!-- code_chunk_output -->
 
 - [Changelog](#changelog)
-  - [January 21, 2024 - Rustic Alpha 3.0.5](#january-21-2024---rustic-alpha-305)
-  - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
-  - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
-  - [June 11, 2022 - Rustic Alpha 3.0.2](#june-11-2022---rustic-alpha-302)
-  - [November 6, 2021 - Rustic Alpha 3.0.1](#november-6-2021---rustic-alpha-301)
-  - [June 18, 2021 - Rustic Alpha 3.0.0](#june-18-2021---rustic-alpha-300)
-  - [December 28, 2023 - Rustic Alpha 2.3](#december-28-2023---rustic-alpha-23)
-  - [March 28, 2023 - Rustic Alpha 2.2](#march-28-2023---rustic-alpha-22)
-  - [June 11, 2022 - Rustic Alpha 2.1](#june-11-2022---rustic-alpha-21)
-  - [March 17, 2021 - Rustic Alpha 2](#march-17-2021---rustic-alpha-2)
-  - [December 28, 2023 - Rustic Alpha 1.4](#december-28-2023---rustic-alpha-14)
-  - [March 28, 2023 - Rustic Alpha 1.3](#march-28-2023---rustic-alpha-13)
-  - [June 11, 2021 - Rustic Alpha 1.2](#june-11-2021---rustic-alpha-12)
-  - [March 15, 2021 - Rustic Alpha 1.1](#march-15-2021---rustic-alpha-11)
-  - [January 24, 2021 - Rustic Alpha 1](#january-24-2021---rustic-alpha-1)
+  - [Series 4](#series-4)
+    - [Rustic 4.0.0 (TBA)](#rustic-400-tba)
+  - [Series Alpha 3](#series-alpha-3)
+    - [December 28, 2023 - Rustic Alpha 3.0.4](#december-28-2023---rustic-alpha-304)
+    - [March 28, 2023 - Rustic Alpha 3.0.3](#march-28-2023---rustic-alpha-303)
+    - [June 11, 2022 - Rustic Alpha 3.0.2](#june-11-2022---rustic-alpha-302)
+    - [November 6, 2021 - Rustic Alpha 3.0.1](#november-6-2021---rustic-alpha-301)
+    - [June 18, 2021 - Rustic Alpha 3.0.0](#june-18-2021---rustic-alpha-300)
+  - [Series Alpha 2](#series-alpha-2)
+    - [December 28, 2023 - Rustic Alpha 2.3](#december-28-2023---rustic-alpha-23)
+    - [March 28, 2023 - Rustic Alpha 2.2](#march-28-2023---rustic-alpha-22)
+    - [June 11, 2022 - Rustic Alpha 2.1](#june-11-2022---rustic-alpha-21)
+    - [March 17, 2021 - Rustic Alpha 2](#march-17-2021---rustic-alpha-2)
+  - [Series Alpha 1](#series-alpha-1)
+    - [December 28, 2023 - Rustic Alpha 1.4](#december-28-2023---rustic-alpha-14)
+    - [March 28, 2023 - Rustic Alpha 1.3](#march-28-2023---rustic-alpha-13)
+    - [June 11, 2021 - Rustic Alpha 1.2](#june-11-2021---rustic-alpha-12)
+    - [March 15, 2021 - Rustic Alpha 1.1](#march-15-2021---rustic-alpha-11)
+    - [January 24, 2021 - Rustic Alpha 1](#january-24-2021---rustic-alpha-1)
 
 <!-- /code_chunk_output -->
 
+
 # Changelog
 
-## January 21, 2024 - Rustic Alpha 3.0.5
+## Series 4
 
-Version 3.0.5 is a maintenance release. Its main 'feature' is having
-dropped separate material counting, by moving the material values directly
-into the PSQT's. This is done so that these PSQT's can be used as a basis
-for the upcoming Rustic 4. That way, it can be determined how much playing
-playing strength is added in Rustic 4 by tapering and tuning these tables.
+### Rustic 4.0.0 (TBA)
 
-- Unified the material values with the PSQT values the same way Rustic
-  4-beta does. This does not impact playing strength of Alpha 3.
-- Update 'clap' to 4.4.18
-- Update 'crossbeam-channel' to 0.5.11
-- Remove 'crossbeam-utils' (automatically pulled in)
+This version has several new features:
 
-## December 28, 2023 - Rustic Alpha 3.0.4
+- Tapered and tuned evaluation
+- Refactored and cleaned-up code (+75 Elo!)
+- Support for the XBoard protocol <sup>(1)</sup>
+- Separate Texel tuner
+- Split off into executable(s) and library
+
+The engine dropped the "Alpha" part from its name because now everything I
+consider to be the basics have been implemented.
+
+- Improvements:
+  - TT Clear function: properly clear TT, instead of recreating it.
+  - Fix inaccuracy in TT replacement scheme. (+5 Elo for tiny TT's).
+  - Fix inaccuracy in TT mate handling (+20 Elo).
+  - Drop from 4 to 3 buckets for a bit more speed (+8 Elo).
+  - Simplify time management (+25 Elo).
+  - pick_move() speed improvement (+3 Elo).
+  - Remove unsafe code in move list swap function (0 Elo, +/- 3).
+- Refactor:
+  - Minimum Rust version required: 1.88 (because of if-let chains)
+  - _FINALLY_ fixed the (potential) undefined behavior in MoveList.
+  - Restructured Comm to be in line with the rest of the modules.
+  - Switch alpha/beta from a strange mix of fail-hard and fail-soft to
+    fully fail-soft. No Elo improvement, but the code is cleaner and more
+    readable.
+  - Better privacy and name spacing for all modules.
+  - Made "Entry" the TT index, containing "Buckets" instead of the other
+    way around, to be more in line with other engines.
+  - Renamed lots of stuff for more consistency.
+  - Moved lots of functions between modules for more consistency.
+  - Redid nesting for all use-clauses for better readability.
+  - Implemented Display for many structs, removing custom functions.
+  - Dropped the "misc::print" module (no code left after refactoring).
+  - Huge cleanup of FEN-reader error handling code.
+- Updated all the libraries
+- Dropped crossbeam_channel and crossbeam_utils
+- Dropped the extra module: those functions are now separate executables.
+- Dropped if_chain: Rust >= 1.88 now includes if-let chains
+- Rustic has been converted into an engine executable + librustic library.
+- Fixes
+  - Change "-h" / "--hash" command-line options to "-m" / "--memory", to
+    avoid conflicts with CLAP's automatic "-h" / "--help" option
+
+> <sup>(1)</sup> Even though the XBoard-protocol was extensively tested,
+> the UCI-protocol will remain the default. It is recommended to use UCI
+> when testing the engine for rating lists. The XBoard-protocol was
+> implemented for completeness, didactic purposes and as an example for
+> others who may wish to build a multi-protocol engine.
+> 
+> If you wish to run Rustic using the XBoard-protocol, you can do so by
+> indicating this by appending "**-c xboard**" (without quotes) to the
+> engine's startup command. (How this is done depends on the user interface
+> you are using.) For example:
+> 
+> ```
+> ./rustic -c xboard
+> ```
+
+<hr />
+
+## Series Alpha 3
+
+### December 28, 2023 - Rustic Alpha 3.0.4
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -47,7 +105,7 @@ used.
 - Upgrade 'crossbeam-channel' to 0.5.10
 - Upgrade 'crossbeam-utils' to 0.8.18
 
-## March 28, 2023 - Rustic Alpha 3.0.3
+### March 28, 2023 - Rustic Alpha 3.0.3
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -59,7 +117,7 @@ used.
 - Upgrade 'crossbeam-channel' to 0.5.7
 - Upgrade 'crossbeam-utils' to 0.8.15
 
-## June 11, 2022 - Rustic Alpha 3.0.2
+### June 11, 2022 - Rustic Alpha 3.0.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -74,7 +132,7 @@ used.
 - Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
 - Upgrade 'rand_core' to 0.6.3 (security fix)
 
-## November 6, 2021 - Rustic Alpha 3.0.1
+### November 6, 2021 - Rustic Alpha 3.0.1
 
 Bugfix upgrade. There is no functional difference to the previous version.
 For normal playing and testing, the binary of version 3.0.0 can be used.
@@ -82,7 +140,7 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
 - Fixed a variable having the wrong type. This caused the "extra" module
   failing to compile.
 
-## June 18, 2021 - Rustic Alpha 3.0.0
+### June 18, 2021 - Rustic Alpha 3.0.0
 
 - New features:
   - Killer Moves
@@ -103,7 +161,11 @@ For normal playing and testing, the binary of version 3.0.0 can be used.
   - Re-add showing the size of the TT and number of threads in About.
   - Fairly large update of the book on https://rustic-chess.org/.
 
-## December 28, 2023 - Rustic Alpha 2.3
+<hr />
+
+## Series Alpha 2
+
+### December 28, 2023 - Rustic Alpha 2.3
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -113,7 +175,7 @@ used.
 - Upgrade 'crossbeam-channel' to 0.5.10
 - Upgrade 'crossbeam-utils' to 0.8.18
 
-## March 28, 2023 - Rustic Alpha 2.2
+### March 28, 2023 - Rustic Alpha 2.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -127,7 +189,7 @@ version.)
 - Upgrade 'crossbeam-channel' to 0.5.7
 - Upgrade 'crossbeam-utils' to 0.8.15
 
-## June 11, 2022 - Rustic Alpha 2.1
+### June 11, 2022 - Rustic Alpha 2.1
 
 Maintenance upgrade. There is no functional difference to the previous
 version. For normal playing and testing, the existing binaries can be used.
@@ -141,9 +203,7 @@ version. For normal playing and testing, the existing binaries can be used.
 - Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
 - Upgrade 'rand_core' to 0.6.3 (security fix)
 
-## March 17, 2021 - Rustic Alpha 2
-
-[CCRL Blitz rating: +/- 1815 Elo](https://ccrl.chessdom.com/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Rustic%20Alpha%202%2064-bit#Rustic_Alpha_2_64-bit)
+### March 17, 2021 - Rustic Alpha 2
 
 - New Features:
   - Transposition table for search and perft.
@@ -163,8 +223,12 @@ version. For normal playing and testing, the existing binaries can be used.
   - Miscellaneous small renames, refactors, and cleanups.
   - Add rand_chacha and remove SmallRng number generators.
   - Update Rand library to 0.8.3.
+  
+<hr />
 
-## December 28, 2023 - Rustic Alpha 1.4
+## Series Alpha 1
+
+### December 28, 2023 - Rustic Alpha 1.4
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -174,8 +238,7 @@ used.
 - Upgrade 'crossbeam-channel' to 0.5.10
 - Upgrade 'crossbeam-utils' to 0.8.18
 
-
-## March 28, 2023 - Rustic Alpha 1.3
+### March 28, 2023 - Rustic Alpha 1.3
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -186,7 +249,7 @@ used.
 - Upgrade 'crossbeam-channel' to 0.5.7
 - Upgrade 'crossbeam-utils' to 0.8.15
 
-## June 11, 2021 - Rustic Alpha 1.2
+### June 11, 2021 - Rustic Alpha 1.2
 
 Maintenance upgrades. There is no functional difference to the previous
 versions. For normal playing and testing, the existing binaries can be
@@ -201,20 +264,16 @@ used.
 - Upgrade 'crossbeam-utils' to 0.8.10 (security fix)
 - Upgrade 'rand_core' to 0.6.3 (security fix)
 
-## March 15, 2021 - Rustic Alpha 1.1
+### March 15, 2021 - Rustic Alpha 1.1
 
 This is a bugfix release. Alpha 1 lost all of its games on time forfeit
 when playing in MoveTime mode (for example, when playing seconds/move).
 
 Bugfixes:
 - Do not exceed alotted time in MoveTime mode.
-
-## January 24, 2021 - Rustic Alpha 1
+### January 24, 2021 - Rustic Alpha 1
 
 This is the initial release.
-
-[CCRL Blitz rating: +/- 1677 Elo](https://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Rustic%20Alpha%201%2064-bit#Rustic_Alpha_1_64-bit)
-
 Below are the features included in this version.
 
 - Engine:

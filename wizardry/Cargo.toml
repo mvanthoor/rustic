@@ -1,0 +1,12 @@
+[package]
+version = "1.0.0"
+name = "wizardry"
+authors.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.9.0"
+rand_chacha = "0.9.0"
+librustic = { path = "../librustic" }
