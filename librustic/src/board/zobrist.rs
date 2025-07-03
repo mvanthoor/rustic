@@ -1,4 +1,4 @@
-use crate::defs::{NrOf, Piece, Side, Sides, Square, EMPTY};
+use crate::defs::{EMPTY, NrOf, Piece, Side, Sides, Square};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 

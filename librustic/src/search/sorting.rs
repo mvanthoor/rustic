@@ -4,8 +4,8 @@ use crate::{
     defs::NrOf,
     movegen::defs::MoveList,
     movegen::defs::ShortMove,
-    search::defs::{SearchRefs, MAX_KILLER_MOVES},
     search::Search,
+    search::defs::{MAX_KILLER_MOVES, SearchRefs},
 };
 
 const MVV_LVA_OFFSET: u32 = u32::MAX - 256;

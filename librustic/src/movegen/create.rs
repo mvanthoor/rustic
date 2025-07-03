@@ -1,6 +1,6 @@
 use crate::{
-    board::defs::{Direction, Files, Location, Ranks, BB_FILES, BB_RANKS, BB_SQUARES},
     board::Board,
+    board::defs::{BB_FILES, BB_RANKS, BB_SQUARES, Direction, Files, Location, Ranks},
     defs::{Bitboard, Square},
     movegen::MoveGenerator,
 };

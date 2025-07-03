@@ -3,8 +3,8 @@ use crate::{
     evaluation::Evaluation,
     movegen::defs::{MoveList, MoveType, ShortMove},
     search::{
-        defs::{PrincipalVariation, SearchTerminated, Verbosity, CHECK_TERMINATION, SEND_STATS},
         Search, SearchRefs,
+        defs::{CHECK_TERMINATION, PrincipalVariation, SEND_STATS, SearchTerminated, Verbosity},
     },
 };
 

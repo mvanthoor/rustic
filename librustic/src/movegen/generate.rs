@@ -1,11 +1,11 @@
-use crate::board::defs::{Pieces, Squares, BB_RANKS, BB_SQUARES};
 use crate::board::Board;
+use crate::board::defs::{BB_RANKS, BB_SQUARES, Pieces, Squares};
 use crate::defs::{Bitboard, Castling, NrOf, Piece, Side, Sides, Square};
 use crate::misc::bits;
 use crate::movegen::{
+    MoveGenerator,
     defs::{Move, MoveType, Shift},
     movelist::MoveList,
-    MoveGenerator,
 };
 
 // This is a list of all pieces a pawn can promote to.

@@ -1,8 +1,8 @@
 use crate::{
-    board::defs::{Files, Pieces, RangeOf, Ranks, BB_FILES, BB_RANKS, BB_SQUARES},
-    defs::{Piece, Sides, EMPTY},
-    movegen::magics::{Magic, BISHOP_MAGIC_NRS, ROOK_MAGIC_NRS},
-    movegen::{MoveGenerator, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
+    board::defs::{BB_FILES, BB_RANKS, BB_SQUARES, Files, Pieces, RangeOf, Ranks},
+    defs::{EMPTY, Piece, Sides},
+    movegen::magics::{BISHOP_MAGIC_NRS, Magic, ROOK_MAGIC_NRS},
+    movegen::{BISHOP_TABLE_SIZE, MoveGenerator, ROOK_TABLE_SIZE},
 };
 
 impl MoveGenerator {

@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use std::{
-    sync::{mpsc::channel, mpsc::Sender, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc::Sender, mpsc::channel},
     thread::{self},
 };
 

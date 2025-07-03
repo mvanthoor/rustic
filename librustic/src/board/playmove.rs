@@ -1,12 +1,12 @@
 // playmove.rs contains make() and unmake() for move execution and reversal.
 
 use crate::{
-    board::defs::{Pieces, Squares, BB_SQUARES},
     board::Board,
+    board::defs::{BB_SQUARES, Pieces, Squares},
     defs::{Castling, NrOf, Piece, Side, Sides, Square},
-    evaluation::defs::EvalParams,
     evaluation::Evaluation,
-    movegen::{defs::Move, MoveGenerator},
+    evaluation::defs::EvalParams,
+    movegen::{MoveGenerator, defs::Move},
 };
 
 // Castling Permissions Per Square

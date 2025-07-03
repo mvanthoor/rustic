@@ -1,9 +1,9 @@
 use crate::{
-    board::defs::{Pieces, RangeOf, PIECE_NAME, SQUARE_NAME},
-    defs::{Bitboard, Piece, Square, EMPTY},
+    board::defs::{PIECE_NAME, Pieces, RangeOf, SQUARE_NAME},
+    defs::{Bitboard, EMPTY, Piece, Square},
     movegen::{
-        defs::{Magic, BISHOP_TABLE_SIZE, ROOK_TABLE_SIZE},
         MoveGenerator,
+        defs::{BISHOP_TABLE_SIZE, Magic, ROOK_TABLE_SIZE},
     },
 };
 use rand::{Rng, SeedableRng};
