@@ -47,9 +47,6 @@ use crate::{
 };
 use std::fmt::{self, Display};
 
-#[cfg(feature = "extra")]
-pub use super::magics::Magic;
-
 const MOVE_ONLY: usize = 0x00_00_00_00_00_FF_FF_FF;
 
 /* "Shift" is an enum which contains the number of bits that needed to be shifted to store
