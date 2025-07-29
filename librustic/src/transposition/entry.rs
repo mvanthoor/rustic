@@ -29,23 +29,23 @@ where
     // Store a position in the bucket. Replace the position with the stored
     // lowest depth, as positions with higher depth are more valuable.
     pub fn store(&mut self, verification: u32, data: T, used_buckets: &mut usize) {
-        let mut idx_low = 0;
+        let mut idx_with_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
         for i in 1..NR_OF_BUCKETS {
-            if self.entry[i].data.depth() < self.entry[idx_low].data.depth() {
-                idx_low = i
+            if self.entry[i].data.depth() < self.entry[idx_with_lowest_depth].data.depth() {
+                idx_with_lowest_depth = i
             }
         }
 
         // If the verification was 0, this entry in the bucket was never
         // used before. Count the use of this entry.
-        if self.entry[idx_low].verification == 0 {
+        if self.entry[idx_with_lowest_depth].verification == 0 {
             *used_buckets += 1;
         }
 
         // Store. (Always replace.)
-        self.entry[idx_low] = Bucket { verification, data }
+        self.entry[idx_with_lowest_depth] = Bucket { verification, data }
     }
 
     // Find a position in the bucket, where both the stored verification and
