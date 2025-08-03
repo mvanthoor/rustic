@@ -32,7 +32,7 @@ where
         let mut idx_with_lowest_depth = 0;
 
         // Find the index of the entry with the lowest depth.
-        for i in 1..NR_OF_BUCKETS {
+        for i in 0..NR_OF_BUCKETS {
             if self.entry[i].data.depth() < self.entry[idx_with_lowest_depth].data.depth() {
                 idx_with_lowest_depth = i
             }
