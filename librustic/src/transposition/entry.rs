@@ -48,8 +48,8 @@ where
         self.entry[idx_with_lowest_depth] = Bucket { verification, data }
     }
 
-    // Find a position in the bucket, where both the stored verification and
-    // depth match the requested verification and depth.
+    // Search for an entry with the correct verification and return the first
+    // one that is found.
     pub fn find_data(&self, verification: u32) -> Option<&T> {
         for bucket in self.entry.iter() {
             if bucket.verification == verification {
