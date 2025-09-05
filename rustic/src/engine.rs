@@ -22,7 +22,7 @@ use librustic::{
         uci::{Uci, cmd_out::UciOut},
         xboard::{XBoard, cmd_out::XBoardOut},
     },
-    defs::{About, EngineRunResult},
+    defs::EngineRunResult,
     misc::perft,
     movegen::MoveGenerator,
     search::{
