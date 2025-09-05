@@ -6,7 +6,7 @@ use std::{io, sync::mpsc::Sender, thread};
 use super::parse;
 
 impl XBoard {
-    pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
+    pub fn tread_in(&mut self, transmit_to_engine: Sender<EngineInput>) {
         let thread = thread::spawn(move || {
             loop {
                 let mut buffer = String::from("");

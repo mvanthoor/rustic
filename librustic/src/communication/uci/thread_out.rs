@@ -2,21 +2,18 @@ use crate::{
     basetypes::error::ErrFatal,
     communication::{
         defs::EngineOutput,
-        feature::Feature,
         uci::{Uci, cmd_out::UciOut, print},
     },
 };
-use std::{
-    sync::{Arc, mpsc::channel},
-    thread,
-};
+use std::{sync::mpsc::channel, thread};
 
 impl Uci {
     // The UCI output thread receives information from the engine thread.
-    pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
+    pub fn thread_out(&mut self) {
         // Create an incoming channel where the information is received.
         let (tx_by_engine, rx_from_engine) = channel::<EngineOutput>();
         let engine_info = self.engine_info.clone();
+        let features = self.features.clone();
 
         // Create the output thread. This will print information sent by
         // the engine thread to stdio. The information will either end up

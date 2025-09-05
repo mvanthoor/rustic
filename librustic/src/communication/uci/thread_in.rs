@@ -8,7 +8,7 @@ use crate::{
 use std::{io, sync::mpsc::Sender, thread};
 
 impl Uci {
-    pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
+    pub fn thread_in(&mut self, transmit_to_engine: Sender<EngineInput>) {
         let thread = thread::spawn(move || {
             loop {
                 let mut buffer = String::from("");

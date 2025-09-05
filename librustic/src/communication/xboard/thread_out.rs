@@ -1,13 +1,12 @@
 use crate::basetypes::error::ErrFatal;
-use crate::communication::{defs::EngineOutput, feature::Feature, xboard::XBoard, xboard::print};
-use std::sync::Arc;
+use crate::communication::{defs::EngineOutput, xboard::XBoard, xboard::print};
 use std::sync::mpsc::channel;
 use std::thread;
 
 use super::cmd_out::XBoardOut;
 
 impl XBoard {
-    pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
+    pub fn thread_out(&mut self) {
         // Create an incoming channel where the information is received.
         let (transmitter_for_engine, received_from_engine) = channel::<EngineOutput>();
 
