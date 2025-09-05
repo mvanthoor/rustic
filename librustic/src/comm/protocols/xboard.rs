@@ -10,7 +10,7 @@ use crate::{
         },
         shared::Shared,
     },
-    defs::{About, Sides},
+    defs::Sides,
     movegen::defs::Move,
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
@@ -233,25 +233,17 @@ pub enum XBoardOut {
 
 // This struct is used to instantiate the Comm XBoard module.
 pub struct XBoard {
-    about: About,
     input_handle: Option<JoinHandle<()>>,
     output_handle: Option<JoinHandle<()>>,
     output_tx: Option<Sender<CommOut>>,
     info: CommInfo,
 }
 
-impl Default for XBoard {
-    fn default() -> Self {
-        Self::new(About::default())
-    }
-}
-
 // Public functions
 impl XBoard {
     // Create a new console.
-    pub fn new(about: About) -> Self {
+    pub fn new() -> Self {
         Self {
-            about,
             input_handle: None,
             output_handle: None,
             output_tx: None,
@@ -622,7 +614,6 @@ impl XBoard {
     fn output_thread(&mut self, board: Arc<Mutex<Board>>, options: Arc<Vec<CommOption>>) {
         // Create an incoming channel for the control thread.
         let (output_tx, output_rx) = channel();
-        let about = self.about.clone();
 
         // Create the output thread.
         let output_handle = thread::spawn(move || {
@@ -645,9 +636,7 @@ impl XBoard {
                 match output {
                     // Specific XBoard outputs
                     CommOut::XBoard(XBoardOut::NewLine) => XBoard::new_line(),
-                    CommOut::XBoard(XBoardOut::Features) => {
-                        XBoard::features(about.get_engine(), about.get_version())
-                    }
+                    CommOut::XBoard(XBoardOut::Features) => XBoard::features("", ""),
                     CommOut::XBoard(XBoardOut::Stat01) => XBoard::stat01(&buf_stat01),
                     CommOut::XBoard(XBoardOut::Pong(v)) => XBoard::pong(v),
                     CommOut::XBoard(XBoardOut::IllegalMove(m)) => XBoard::illegal_move(&m),

@@ -17,7 +17,7 @@ use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{EngineInput, EngineOutput, EngineState, IComm},
+        defs::{EngineInfo, EngineInput, EngineOutput, EngineState, IComm},
         feature::Feature,
         uci::{Uci, cmd_out::UciOut},
         xboard::{XBoard, cmd_out::XBoardOut},
@@ -60,14 +60,14 @@ impl Engine {
     pub fn new() -> Self {
         // Create the command-line object.
         let cmdline = CmdLine::new();
-        let about = About::new(
+        let info = EngineInfo::new(
             String::from(ENGINE),
             String::from(VERSION),
             String::from(AUTHOR),
         );
 
         let comm: Box<dyn IComm> = match cmdline.comm() {
-            protocol if protocol == "uci" => Box::new(Uci::new(about)),
+            protocol if protocol == "uci" => Box::new(Uci::new(info)),
             protocol if protocol == "xboard" => Box::new(XBoard::new()),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };

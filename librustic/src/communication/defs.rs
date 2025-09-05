@@ -14,6 +14,23 @@ pub trait IComm {
     fn shutdown(&mut self);
 }
 
+#[derive(Clone)]
+pub struct EngineInfo {
+    pub name: String,
+    pub version: String,
+    pub author: String,
+}
+
+impl EngineInfo {
+    pub fn new(name: String, version: String, author: String) -> Self {
+        Self {
+            name,
+            version,
+            author,
+        }
+    }
+}
+
 pub enum EngineInput {
     Uci(UciIn),
     XBoard(XBoardIn),

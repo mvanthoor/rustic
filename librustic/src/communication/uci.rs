@@ -6,35 +6,25 @@ mod print;
 mod thread_in;
 mod thread_out;
 
-use crate::{
-    communication::defs::{EngineOutput, EngineState},
-    communication::protocol::{
-        Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
-    },
-    defs::About,
+use crate::communication::{
+    defs::{EngineInfo, EngineOutput, EngineState},
+    protocol::{Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout},
 };
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub struct Uci {
-    about: About,
+    engine_info: EngineInfo,
     properties: Properties,
     input_thread: Option<JoinHandle<()>>,
     output_thread: Option<JoinHandle<()>>,
     output_write: Option<Sender<EngineOutput>>,
 }
 
-impl Default for Uci {
-    fn default() -> Self {
-        Self::new(About::default())
-    }
-}
-
-// Public functions
 impl Uci {
     // Create a new console.
-    pub fn new(about: About) -> Self {
+    pub fn new(engine_info: EngineInfo) -> Self {
         Self {
-            about,
+            engine_info,
             properties: Properties::new(
                 Protocol::UCI,
                 SupportFancyAbout::Yes,

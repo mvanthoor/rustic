@@ -16,11 +16,7 @@ impl Uci {
     pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
         // Create an incoming channel where the information is received.
         let (tx_by_engine, rx_from_engine) = channel::<EngineOutput>();
-
-        // Clone this because we can't capture variables internal to the
-        // struct. We only need this only once as a reply to the "id"
-        // command when the engine has started.
-        let about = self.about.clone();
+        let engine_info = self.engine_info.clone();
 
         // Create the output thread. This will print information sent by
         // the engine thread to stdio. The information will either end up
@@ -37,7 +33,7 @@ impl Uci {
                 if let EngineOutput::Uci(cmd) = print_to_stdio {
                     match cmd {
                         UciOut::Id => {
-                            print::id(about.get_engine(), about.get_version(), about.get_author());
+                            print::id(&engine_info);
                             print::features(&features);
                             print::uciok();
                         }
