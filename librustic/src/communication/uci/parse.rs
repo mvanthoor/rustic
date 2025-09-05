@@ -1,4 +1,3 @@
-use crate::communication::uci::defs::{Name, Value};
 use crate::{communication::uci::cmd_in::UciIn, defs::FEN_START_POSITION, search::defs::GameTime};
 
 const SPACE: char = ' ';
@@ -124,8 +123,8 @@ pub fn setoption(cmd: &str) -> UciIn {
 
     let stream: Vec<&str> = cmd.split_whitespace().collect();
     let mut token = Tokens::Empty;
-    let mut name: Name = String::from("");
-    let mut value: Value = None;
+    let mut name: String = String::from("");
+    let mut value: Option<String> = None;
 
     for s in stream {
         match s {

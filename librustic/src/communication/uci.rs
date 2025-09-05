@@ -1,11 +1,10 @@
 pub mod cmd_in;
 pub mod cmd_out;
-pub mod defs;
-pub mod init;
-pub mod parse;
-pub mod print;
-pub mod thread_in;
-pub mod thread_out;
+mod init;
+mod parse;
+mod print;
+mod thread_in;
+mod thread_out;
 
 use crate::{
     communication::defs::{EngineOutput, EngineState},

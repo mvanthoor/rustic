@@ -3,11 +3,7 @@ use librustic::{
     basetypes::error::{ErrFatal, ErrNormal, ErrUci},
     communication::{
         defs::EngineOutput,
-        uci::{
-            cmd_in::UciIn,
-            cmd_out::UciOut,
-            defs::{Name, Value},
-        },
+        uci::{cmd_in::UciIn, cmd_out::UciOut},
     },
     defs::FEN_START_POSITION,
     search::defs::{SAFEGUARD, SearchControl, SearchMode, SearchParams},
@@ -96,7 +92,7 @@ impl Engine {
     // UCI calls an engine Feature an "Option". This function handles
     // setting the engine's features/options depending on the incoming
     // option names and values.
-    fn setoption(&mut self, option: Name, value: Value) {
+    fn setoption(&mut self, option: String, value: Option<String>) {
         match option {
             option if option == "hash" => self.setoption_hash(option, value),
             option if option == "clear hash" => {
@@ -114,7 +110,7 @@ impl Engine {
 
     // Setting the Hash feature requires error checking for the incoming
     // value so this has been extracted into its own function.
-    fn setoption_hash(&mut self, option: Name, value: Value) {
+    fn setoption_hash(&mut self, option: String, value: Option<String>) {
         if value.is_none() && self.debug {
             let message = UciOut::InfoString(format!("{}: {}", ErrUci::OPTION_NO_VALUE, option));
             self.comm.send(EngineOutput::Uci(message));

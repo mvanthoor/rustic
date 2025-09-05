@@ -5,7 +5,7 @@ use crate::communication::{
     xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
 };
 use crate::search::defs::SearchReport;
-use std::sync::{mpsc::Sender, Arc};
+use std::sync::{Arc, mpsc::Sender};
 
 pub trait IComm {
     fn init(&mut self, cmd_in_tx: Sender<EngineInput>, options: Arc<Vec<Feature>>);
