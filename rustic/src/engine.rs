@@ -19,18 +19,18 @@ use librustic::{
     communication::{
         defs::{EngineInput, EngineOutput, EngineState, IComm},
         feature::Feature,
-        uci::{cmd_out::UciOut, Uci},
-        xboard::{cmd_out::XBoardOut, XBoard},
+        uci::{Uci, cmd_out::UciOut},
+        xboard::{XBoard, cmd_out::XBoardOut},
     },
     defs::{About, EngineRunResult},
     misc::perft,
     movegen::MoveGenerator,
     search::{
-        defs::{SearchControl, Verbosity},
         Search,
+        defs::{SearchControl, Verbosity},
     },
 };
-use std::sync::{mpsc::Receiver, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc::Receiver};
 
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
@@ -107,16 +107,13 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // Required for Stateful protocols such as XBoard.
+        // Required for stateful protocols such as XBoard.
         self.state = self.comm.properties().startup_state();
-
-        // The UCI GUI's I tested don't seem to care about non-uci input
-        // over multiple lines. Some XBoard user interfaces do choke on
-        // this. Use a simpler, online-about instead.
-        if self.comm.properties().support_fancy_about() {
-            self.print_fancy_about(&self.settings, self.comm.properties().protocol_name());
-        } else {
-            self.print_simple_about(&self.settings, self.comm.properties().protocol_name());
+        // Print full engine logo or one-liner.
+        let protocol_name = self.comm.properties().protocol_name();
+        match self.comm.properties().support_fancy_about() {
+            true => self.print_fancy_about(&self.settings, protocol_name),
+            false => self.print_simple_about(&self.settings, protocol_name),
         }
 
         // Setup position and abort if this fails.
