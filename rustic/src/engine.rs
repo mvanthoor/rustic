@@ -83,7 +83,7 @@ impl Engine {
 
         // These are features the engine supports. It sends them to the
         // communication module so they will be announced to the GUI.
-        let features = vec![features::uci::hash(), features::uci::clear_hash()];
+        let features = vec![features::hash(), features::clear_hash()];
 
         // Create the engine itself.
         Self {
