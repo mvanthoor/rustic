@@ -13,10 +13,10 @@ use crate::communication::protocol::{
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub struct XBoard {
+    properties: Properties,
     input_thread: Option<JoinHandle<()>>,
     output_thread: Option<JoinHandle<()>>,
     output_write: Option<Sender<EngineOutput>>,
-    properties: Properties,
 }
 
 impl Default for XBoard {
@@ -30,9 +30,6 @@ impl XBoard {
     // Create a new console.
     pub fn new() -> Self {
         Self {
-            input_thread: None,
-            output_thread: None,
-            output_write: None,
             properties: Properties::new(
                 Protocol::XBOARD,
                 SupportFancyAbout::No,
@@ -40,6 +37,9 @@ impl XBoard {
                 RequireGameResult::Yes,
                 EngineState::Waiting,
             ),
+            input_thread: None,
+            output_thread: None,
+            output_write: None,
         }
     }
 }

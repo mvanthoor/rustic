@@ -17,10 +17,10 @@ use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub struct Uci {
     about: About,
+    properties: Properties,
     input_thread: Option<JoinHandle<()>>,
     output_thread: Option<JoinHandle<()>>,
     output_write: Option<Sender<EngineOutput>>,
-    properties: Properties,
 }
 
 impl Default for Uci {
@@ -35,9 +35,6 @@ impl Uci {
     pub fn new(about: About) -> Self {
         Self {
             about,
-            input_thread: None,
-            output_thread: None,
-            output_write: None,
             properties: Properties::new(
                 Protocol::UCI,
                 SupportFancyAbout::Yes,
@@ -45,6 +42,9 @@ impl Uci {
                 RequireGameResult::No,
                 EngineState::UciNotUsed,
             ),
+            input_thread: None,
+            output_thread: None,
+            output_write: None,
         }
     }
 }
