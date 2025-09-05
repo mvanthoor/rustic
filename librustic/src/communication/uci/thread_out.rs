@@ -3,11 +3,11 @@ use crate::{
     communication::{
         defs::EngineOutput,
         feature::Feature,
-        uci::{cmd_out::UciOut, print, Uci},
+        uci::{Uci, cmd_out::UciOut, print},
     },
 };
 use std::{
-    sync::{mpsc::channel, Arc},
+    sync::{Arc, mpsc::channel},
     thread,
 };
 
@@ -15,7 +15,7 @@ impl Uci {
     // The UCI output thread receives information from the engine thread.
     pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
         // Create an incoming channel where the information is received.
-        let (transmitter_for_engine, received_from_engine) = channel::<EngineOutput>();
+        let (tx_by_engine, rx_from_engine) = channel::<EngineOutput>();
 
         // Clone this because we can't capture variables internal to the
         // struct. We only need this only once as a reply to the "id"
@@ -29,7 +29,7 @@ impl Uci {
         let thread = thread::spawn(move || {
             loop {
                 // The receiver will block the thread until information is received.
-                let print_to_stdio = received_from_engine.recv().expect(ErrFatal::CHANNEL);
+                let print_to_stdio = rx_from_engine.recv().expect(ErrFatal::CHANNEL);
 
                 // EngineOutput could also contain output destined for
                 // other protocols than UCI. We are only interested in the
@@ -57,6 +57,6 @@ impl Uci {
         // Store the thread's handle and output transmitter for use by the
         // engine thread.
         self.output_thread = Some(thread);
-        self.output_write = Some(transmitter_for_engine);
+        self.output_write = Some(tx_by_engine);
     }
 }

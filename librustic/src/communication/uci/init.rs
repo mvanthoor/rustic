@@ -7,7 +7,7 @@ use crate::{
         uci::Uci,
     },
 };
-use std::sync::{mpsc::Sender, Arc};
+use std::sync::{Arc, mpsc::Sender};
 
 impl IComm for Uci {
     fn init(&mut self, cmd_incoming_transmitter: Sender<EngineInput>, options: Arc<Vec<Feature>>) {
@@ -19,9 +19,8 @@ impl IComm for Uci {
         &self.properties
     }
 
-    // The engine thread can use this function to send information out of
-    // the engine towards a GUI. Effectively the output thread will print
-    // the information to stdout.
+    // The engine thread can use this function to put information into the
+    // output thread, which will then print it to stdout.
     fn send(&self, info: EngineOutput) {
         if let Some(out) = &self.output_write {
             out.send(info).expect(ErrFatal::CHANNEL);

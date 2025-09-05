@@ -17,11 +17,11 @@ use crate::{
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub struct Uci {
-    pub about: About,
-    pub input_thread: Option<JoinHandle<()>>,
-    pub output_thread: Option<JoinHandle<()>>,
-    pub output_write: Option<Sender<EngineOutput>>,
-    pub properties: Properties,
+    about: About,
+    input_thread: Option<JoinHandle<()>>,
+    output_thread: Option<JoinHandle<()>>,
+    output_write: Option<Sender<EngineOutput>>,
+    properties: Properties,
 }
 
 impl Default for Uci {

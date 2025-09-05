@@ -2,27 +2,27 @@ use crate::{
     basetypes::error::ErrFatal,
     communication::{
         defs::EngineInput,
-        uci::{cmd_in::UciIn, parse, Uci},
+        uci::{Uci, cmd_in::UciIn, parse},
     },
 };
 use std::{io, sync::mpsc::Sender, thread};
 
 impl Uci {
     pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
-        let thread = thread::spawn(move || loop {
-            let mut buffer = String::from("");
-            io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
-            let cmd = Uci::get_incoming_command(&buffer);
-            let quit = cmd == UciIn::Quit;
-            transmit_to_engine
-                .send(EngineInput::Uci(cmd))
-                .expect(ErrFatal::HANDLE);
+        let thread = thread::spawn(move || {
+            loop {
+                let mut buffer = String::from("");
+                io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
+                let cmd = Uci::get_incoming_command(&buffer);
+                let quit = cmd == UciIn::Quit;
+                transmit_to_engine
+                    .send(EngineInput::Uci(cmd))
+                    .expect(ErrFatal::HANDLE);
 
-            // To prevent having to set up another channel (sending from
-            // the engine to this thread) we'll have the input thread
-            // terminate itself.
-            if quit {
-                break;
+                // The input thread terminates itself so we don't need another channel.
+                if quit {
+                    break;
+                }
             }
         });
 

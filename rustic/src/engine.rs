@@ -68,7 +68,7 @@ impl Engine {
 
         let comm: Box<dyn IComm> = match cmdline.comm() {
             protocol if protocol == "uci" => Box::new(Uci::new(about)),
-            protocol if protocol == "xboard" => Box::new(XBoard::new(about)),
+            protocol if protocol == "xboard" => Box::new(XBoard::new()),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
 

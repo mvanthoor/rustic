@@ -1,6 +1,6 @@
 use crate::engine::Engine;
 use librustic::{basetypes::error::ErrFatal, communication::defs::EngineInput};
-use std::sync::{mpsc::channel, Arc};
+use std::sync::{Arc, mpsc::channel};
 
 impl Engine {
     pub fn main_loop(&mut self) {
