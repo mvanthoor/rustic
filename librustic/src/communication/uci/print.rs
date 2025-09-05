@@ -64,10 +64,6 @@ pub fn uciok() {
     println!("uciok");
 }
 
-pub fn custom(message: &str) {
-    println!("{message}");
-}
-
 pub fn search_summary(s: &SearchSummary) {
     // Report depth and seldepth (if available).
     let depth = if s.seldepth > 0 {

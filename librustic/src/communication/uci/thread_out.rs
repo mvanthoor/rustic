@@ -43,7 +43,6 @@ impl Uci {
                         }
                         UciOut::ReadyOk => print::readyok(),
                         UciOut::InfoString(message) => print::info_string(&message),
-                        UciOut::Custom(message) => print::custom(&message),
                         UciOut::SearchSummary(summary) => print::search_summary(&summary),
                         UciOut::SearchCurrMove(current) => print::search_currmove(&current),
                         UciOut::SearchStats(stats) => print::search_stats(&stats),

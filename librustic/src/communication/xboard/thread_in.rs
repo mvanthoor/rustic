@@ -1,5 +1,5 @@
 use crate::basetypes::error::ErrFatal;
-use crate::communication::{defs::EngineInput, xboard::cmd_in::XBoardIn, xboard::XBoard};
+use crate::communication::{defs::EngineInput, xboard::XBoard, xboard::cmd_in::XBoardIn};
 
 use std::{io, sync::mpsc::Sender, thread};
 
@@ -7,20 +7,22 @@ use super::parse;
 
 impl XBoard {
     pub fn input_thread(&mut self, transmit_to_engine: Sender<EngineInput>) {
-        let thread = thread::spawn(move || loop {
-            let mut buffer = String::from("");
-            io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
-            let cmd = XBoard::get_incoming_command(&buffer);
-            let quit = cmd == XBoardIn::Quit;
-            transmit_to_engine
-                .send(EngineInput::XBoard(cmd))
-                .expect(ErrFatal::HANDLE);
+        let thread = thread::spawn(move || {
+            loop {
+                let mut buffer = String::from("");
+                io::stdin().read_line(&mut buffer).expect(ErrFatal::READ_IO);
+                let cmd = XBoard::get_incoming_command(&buffer);
+                let quit = cmd == XBoardIn::Quit;
+                transmit_to_engine
+                    .send(EngineInput::XBoard(cmd))
+                    .expect(ErrFatal::HANDLE);
 
-            // To prevent having to set up another channel (sending from
-            // the engine to this thread) we'll have the input thread
-            // terminate itself.
-            if quit {
-                break;
+                // To prevent having to set up another channel (sending from
+                // the engine to this thread) we'll have the input thread
+                // terminate itself.
+                if quit {
+                    break;
+                }
             }
         });
 

@@ -2,8 +2,8 @@ use crate::basetypes::error::ErrFatal;
 use crate::communication::defs::EngineOutput;
 use crate::communication::feature::Feature;
 use crate::communication::xboard::XBoard;
-use std::sync::mpsc::channel;
 use std::sync::Arc;
+use std::sync::mpsc::channel;
 use std::thread;
 
 use super::cmd_out::XBoardOut;
@@ -12,11 +12,6 @@ impl XBoard {
     pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
         // Create an incoming channel where the information is received.
         let (transmitter_for_engine, received_from_engine) = channel::<EngineOutput>();
-
-        // Clone this because we can't capture variables internal to the
-        // struct. We only need this only once as a reply to the "id"
-        // command when the engine has started.
-        // let about = self.about.clone();
 
         // Create the output thread. This will print information sent by
         // the engine thread to stdio. The information will either end up
@@ -33,7 +28,6 @@ impl XBoard {
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
                         XBoardOut::Quit => break, // This will shut down the input thread.
-                        XBoardOut::Custom(msg) => println!("{msg}"),
                     }
                 }
             }
