@@ -44,18 +44,9 @@ impl Engine {
     // custom command that is not part of the UCI-specification. It may
     // handle other incoming commands as custom in the future as well.
     fn xboard_unknown(&self, cmd: String) {
-        match cmd {
-            c if c == "board" => {
-                let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
-                self.comm
-                    .send(EngineOutput::XBoard(XBoardOut::Custom(board)));
-            }
-            _ => {
-                if self.debug {
-                    let message = XBoardOut::Custom(format!("{}: {}", ErrXboard::UNKNOWN_CMD, cmd));
-                    self.comm.send(EngineOutput::XBoard(message));
-                }
-            }
+        if self.debug {
+            let message = XBoardOut::Custom(format!("{}: {}", ErrXboard::UNKNOWN_CMD, cmd));
+            self.comm.send(EngineOutput::XBoard(message));
         }
     }
 }

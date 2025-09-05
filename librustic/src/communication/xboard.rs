@@ -3,6 +3,7 @@ pub mod cmd_out;
 pub mod defs;
 pub mod init;
 pub mod parse;
+pub mod print;
 pub mod thread_in;
 pub mod thread_out;
 

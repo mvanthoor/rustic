@@ -10,7 +10,7 @@ use librustic::{
         },
     },
     defs::FEN_START_POSITION,
-    search::defs::{SearchControl, SearchMode, SearchParams, SAFEGUARD},
+    search::defs::{SAFEGUARD, SearchControl, SearchMode, SearchParams},
 };
 
 // This is the UCI handler. It handles the incoming UCI commands and when
@@ -141,17 +141,9 @@ impl Engine {
     // custom command that is not part of the UCI-specification. It may
     // handle other incoming commands as custom in the future as well.
     fn uci_unknown(&self, cmd: String) {
-        match cmd {
-            c if c == "board" => {
-                let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
-                self.comm.send(EngineOutput::Uci(UciOut::Custom(board)));
-            }
-            _ => {
-                if self.debug {
-                    let message = UciOut::InfoString(format!("{}: {}", ErrUci::UNKNOWN_CMD, cmd));
-                    self.comm.send(EngineOutput::Uci(message));
-                }
-            }
+        if self.debug {
+            let message = UciOut::InfoString(format!("{}: {}", ErrUci::UNKNOWN_CMD, cmd));
+            self.comm.send(EngineOutput::Uci(message));
         }
     }
 }

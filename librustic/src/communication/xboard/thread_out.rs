@@ -1,7 +1,5 @@
 use crate::basetypes::error::ErrFatal;
-use crate::communication::defs::EngineOutput;
-use crate::communication::feature::Feature;
-use crate::communication::xboard::XBoard;
+use crate::communication::{defs::EngineOutput, feature::Feature, xboard::XBoard, xboard::print};
 use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::thread;
@@ -27,6 +25,7 @@ impl XBoard {
                 // UCI-part in this thread.
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
+                        XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
                     }
                 }

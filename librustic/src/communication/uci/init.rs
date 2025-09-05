@@ -10,8 +10,8 @@ use crate::{
 use std::sync::{Arc, mpsc::Sender};
 
 impl IComm for Uci {
-    fn init(&mut self, cmd_incoming_transmitter: Sender<EngineInput>, options: Arc<Vec<Feature>>) {
-        self.input_thread(cmd_incoming_transmitter);
+    fn init(&mut self, cmd_incoming_tx: Sender<EngineInput>, options: Arc<Vec<Feature>>) {
+        self.input_thread(cmd_incoming_tx);
         self.output_thread(options);
     }
 
