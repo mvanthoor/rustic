@@ -45,8 +45,7 @@ pub struct Engine {
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<EngineInput>>, // Receiver for incoming information.
-
-    search: Search, // Search object (active).
+    search: Search,                         // Search object (active, threaded).
 }
 
 impl Default for Engine {
@@ -58,21 +57,19 @@ impl Default for Engine {
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
-        // Create the command-line object.
+        // Set up everything needed to create a new engine.
         let cmdline = CmdLine::new();
         let info = EngineInfo::new(
             String::from(ENGINE),
             String::from(VERSION),
             String::from(AUTHOR),
         );
-
+        let features = Arc::new(vec![features::hash(), features::clear_hash()]);
         let comm: Box<dyn IComm> = match cmdline.comm() {
-            protocol if protocol == "uci" => Box::new(Uci::new(info)),
+            protocol if protocol == "uci" => Box::new(Uci::new(info, features.clone())),
             protocol if protocol == "xboard" => Box::new(XBoard::new()),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
-
-        // Get engine settings from the command-line.
         let threads = cmdline.threads();
         let verbosity = if cmdline.has_quiet() {
             Verbosity::Quiet
@@ -80,10 +77,6 @@ impl Engine {
             Verbosity::Full
         };
         let tt_size = cmdline.hash();
-
-        // These are features the engine supports. It sends them to the
-        // communication module so they will be announced to the GUI.
-        let features = vec![features::hash(), features::clear_hash()];
 
         // Create the engine itself.
         Self {
@@ -95,7 +88,7 @@ impl Engine {
                 verbosity,
                 tt_size,
             },
-            features: Arc::new(features),
+            features,
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
@@ -134,7 +127,7 @@ impl Engine {
             return Ok(());
         }
 
-        // Finally start the actual engine.
+        // Finally start the engine's main thread.
         self.main_loop();
 
         // We're done and the engine exited without issues.
