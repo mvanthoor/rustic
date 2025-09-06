@@ -50,7 +50,7 @@ pub fn pong(n: isize) {
 }
 
 pub fn error(error: String, cmd: String) {
-    println!("error ({error}): {cmd}");
+    println!("Error ({error}): {cmd}");
 }
 
 pub fn custom(info: String) {
