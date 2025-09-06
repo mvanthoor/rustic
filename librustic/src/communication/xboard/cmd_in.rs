@@ -4,6 +4,7 @@ pub enum XBoardIn {
     Protover(u8),
     Ping(isize),
     New,
+    SetBoard(String),
     Quit,
     Unknown(String),
 

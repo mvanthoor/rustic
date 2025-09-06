@@ -45,6 +45,7 @@ impl XBoard {
             // commands which are key-value pairs.
             cmd if cmd.starts_with("protover") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("ping") => parse::key_value_pair(&cmd),
+            cmd if cmd.starts_with("setboard") => parse::setboard(&cmd),
 
             // Custom commands
             cmd if cmd == "debug on" => XBoardIn::DebugOn,

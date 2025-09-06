@@ -34,6 +34,18 @@ impl Engine {
                     .expect(ErrFatal::NEW_GAME);
                 self.search.transposition_clear();
             }
+            XBoardIn::SetBoard(fen) => {
+                let fen_result = self
+                    .board
+                    .lock()
+                    .expect(ErrFatal::LOCK)
+                    .fen_setup(Some(fen.as_str()));
+                if fen_result.is_err() && self.debug {
+                    let error = ErrXboard::FEN_ERROR.to_string();
+                    let message = XBoardOut::Error(error, fen);
+                    self.comm.send(EngineOutput::XBoard(message));
+                }
+            }
             XBoardIn::Quit => self.quit(),
 
             // Custom commands
@@ -48,13 +60,6 @@ impl Engine {
         }
     }
 
-    // This function handles commands that cannot be captured in one of the
-    // UciIn enum variants; these are therefore unknown. These could be any
-    // string of text. The engine can do whatever it wants with these; most
-    //of the time they are ignored (except in debug mode, where an
-    //InfoString is printed.) In Rustic, the function handles "board" as a
-    // custom command that is not part of the UCI-specification. It may
-    // handle other incoming commands as custom in the future as well.
     fn xboard_unknown(&self, cmd: String) {
         if self.debug {
             let error = String::from(ErrXboard::UNKNOWN_CMD);

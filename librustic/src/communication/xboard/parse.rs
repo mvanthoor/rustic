@@ -1,4 +1,4 @@
-use super::cmd_in::XBoardIn;
+use crate::communication::xboard::cmd_in::XBoardIn;
 
 pub fn key_value_pair(cmd: &str) -> XBoardIn {
     const KEY: usize = 0;
@@ -14,4 +14,9 @@ pub fn key_value_pair(cmd: &str) -> XBoardIn {
         "ping" => XBoardIn::Ping(parts[VALUE].parse::<isize>().unwrap_or(0)),
         _ => XBoardIn::Unknown(String::from(cmd)),
     }
+}
+
+pub fn setboard(cmd: &str) -> XBoardIn {
+    let value = cmd.replace("setboard", "").trim().to_string();
+    XBoardIn::SetBoard(value)
 }
