@@ -46,6 +46,8 @@ impl XBoard {
             cmd if cmd.starts_with("protover") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("ping") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => parse::setboard(&cmd),
+            cmd if cmd.starts_with("accepted") => XBoardIn::Ignore(cmd),
+            cmd if cmd.starts_with("rejected") => XBoardIn::Ignore(cmd),
 
             // Custom commands
             cmd if cmd == "debug on" => XBoardIn::DebugOn,

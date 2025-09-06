@@ -19,8 +19,8 @@ impl Engine {
             XBoardIn::Protover(version) => {
                 if version != 2 {
                     let error = ErrXboard::NOT_PROTOVER_2.to_string();
-                    let msg = XBoardOut::Error(error, format!("{version}"));
-                    self.comm.send(EngineOutput::XBoard(msg));
+                    let message = XBoardOut::Error(error, format!("{version}"));
+                    self.comm.send(EngineOutput::XBoard(message));
                 } else {
                     self.comm.send(EngineOutput::XBoard(XBoardOut::Features));
                 }
@@ -56,15 +56,20 @@ impl Engine {
                 let message = XBoardOut::Custom(print_board);
                 self.comm.send(EngineOutput::XBoard(message));
             }
-            XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
-        }
-    }
-
-    fn xboard_unknown(&self, cmd: String) {
-        if self.debug {
-            let error = String::from(ErrXboard::UNKNOWN_CMD);
-            let out = XBoardOut::Error(error, cmd);
-            self.comm.send(EngineOutput::XBoard(out));
+            XBoardIn::Ignore(cmd) => {
+                if self.debug {
+                    let ignored = format!("Notification \"{cmd}\" is ignored.");
+                    let message = XBoardOut::Custom(ignored);
+                    self.comm.send(EngineOutput::XBoard(message));
+                }
+            }
+            XBoardIn::Unknown(cmd) => {
+                if self.debug {
+                    let error = String::from(ErrXboard::UNKNOWN_CMD);
+                    let message = XBoardOut::Error(error, cmd);
+                    self.comm.send(EngineOutput::XBoard(message));
+                }
+            }
         }
     }
 }
