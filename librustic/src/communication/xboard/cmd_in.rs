@@ -6,4 +6,8 @@ pub enum XBoardIn {
     New,
     Quit,
     Unknown(String),
+
+    // Custom commands
+    DebugOn,
+    DebugOff,
 }

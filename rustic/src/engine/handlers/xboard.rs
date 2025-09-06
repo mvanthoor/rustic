@@ -19,8 +19,8 @@ impl Engine {
             XBoardIn::Protover(version) => {
                 if version != 2 {
                     let error = ErrXboard::NOT_PROTOVER_2.to_string();
-                    let message = XBoardOut::Error(error, format!("{version}"));
-                    self.comm.send(EngineOutput::XBoard(message));
+                    let msg = XBoardOut::Error(error, format!("{version}"));
+                    self.comm.send(EngineOutput::XBoard(msg));
                 } else {
                     self.comm.send(EngineOutput::XBoard(XBoardOut::Features));
                 }
@@ -35,6 +35,8 @@ impl Engine {
                 self.search.transposition_clear();
             }
             XBoardIn::Quit => self.quit(),
+            XBoardIn::DebugOn => self.debug = true,
+            XBoardIn::DebugOff => self.debug = false,
             XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
         }
     }
@@ -48,8 +50,9 @@ impl Engine {
     // handle other incoming commands as custom in the future as well.
     fn xboard_unknown(&self, cmd: String) {
         if self.debug {
-            let message = XBoardOut::Custom(format!("{}: {}", ErrXboard::UNKNOWN_CMD, cmd));
-            self.comm.send(EngineOutput::XBoard(message));
+            let error = String::from(ErrXboard::UNKNOWN_CMD);
+            let out = XBoardOut::Error(error, cmd);
+            self.comm.send(EngineOutput::XBoard(out));
         }
     }
 }
