@@ -18,7 +18,6 @@ use librustic::{
     board::Board,
     communication::{
         defs::{EngineInfo, EngineInput, EngineOutput, EngineState, IComm},
-        feature::Feature,
         uci::{Uci, cmd_out::UciOut},
         xboard::{XBoard, cmd_out::XBoardOut},
     },
@@ -63,10 +62,11 @@ impl Engine {
             String::from(VERSION),
             String::from(AUTHOR),
         );
-        let features = Arc::new(vec![features::hash(), features::clear_hash()]);
+        let uci_features = Arc::new(vec![features::hash(), features::clear_hash()]);
+        let xb_features = Arc::new(vec![features::clear_hash()]);
         let comm: Box<dyn IComm> = match cmdline.comm() {
-            protocol if protocol == "uci" => Box::new(Uci::new(info, features.clone())),
-            protocol if protocol == "xboard" => Box::new(XBoard::new(info, features.clone())),
+            protocol if protocol == "uci" => Box::new(Uci::new(info, uci_features)),
+            protocol if protocol == "xboard" => Box::new(XBoard::new(info, xb_features)),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
         let threads = cmdline.threads();

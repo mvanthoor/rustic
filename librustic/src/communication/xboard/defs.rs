@@ -1,4 +1,4 @@
-pub const FEATURES: [&str; 10] = [
+pub const XBOARD_FEATURES: [&str; 10] = [
     "myname=x",
     "ping=1",
     "memory=1",
