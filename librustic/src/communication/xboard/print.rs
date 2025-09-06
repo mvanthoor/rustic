@@ -45,6 +45,10 @@ pub fn features(engine: &str, version: &str, features: &Arc<Vec<Feature>>) {
     println!("feature done=1");
 }
 
+pub fn pong(n: isize) {
+    println!("pong {n}");
+}
+
 pub fn error(error: String, cmd: String) {
     println!("error ({error}): {cmd}");
 }

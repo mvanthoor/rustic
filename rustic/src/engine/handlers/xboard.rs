@@ -25,6 +25,7 @@ impl Engine {
                     self.comm.send(EngineOutput::XBoard(XBoardOut::Features));
                 }
             }
+            XBoardIn::Ping(n) => self.comm.send(EngineOutput::XBoard(XBoardOut::Pong(n))),
             XBoardIn::New => {
                 self.board
                     .lock()

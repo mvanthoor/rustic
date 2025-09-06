@@ -2,6 +2,7 @@
 pub enum XBoardOut {
     NewLine,
     Features,
+    Pong(isize),
     Quit,
     Error(String, String),
     Custom(String),

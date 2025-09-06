@@ -43,6 +43,7 @@ impl XBoard {
             // See the KEYS constant in xboard-defs for an array of
             // commands which are key-value pairs.
             cmd if cmd.starts_with("protover") => parse::key_value_pair(&cmd),
+            cmd if cmd.starts_with("ping") => parse::key_value_pair(&cmd),
             _ => XBoardIn::Unknown(input),
         }
     }
