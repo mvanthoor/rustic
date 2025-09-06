@@ -15,7 +15,7 @@ use librustic::{
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
-            XBoardIn::XBoard => (),
+            XBoardIn::XBoard => self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine)),
             XBoardIn::Protover(version) => {
                 if version != 2 {
                     println!("WHAT! Not XBoard v2 ?!");

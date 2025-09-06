@@ -24,6 +24,7 @@ impl XBoard {
                 // UCI-part in this thread.
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
+                        XBoardOut::NewLine => print::new_line(),
                         XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
                     }

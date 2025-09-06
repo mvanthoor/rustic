@@ -77,7 +77,7 @@ impl Stat01 {
 // move by sending a position and time controls. It sends the time controls
 // at the beginning of the game and expects the engine to know when it is
 // its move, and how much time is left. This struct stores the time control
-// informatin as sent by the GUI at the beginning of the game.
+// information as sent by the GUI at the beginning of the game.
 #[derive(PartialEq, Eq, Clone)]
 pub struct TimeControl {
     move_depth: i8,
