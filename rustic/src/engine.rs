@@ -39,7 +39,6 @@ pub struct Engine {
     debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
@@ -67,7 +66,7 @@ impl Engine {
         let features = Arc::new(vec![features::hash(), features::clear_hash()]);
         let comm: Box<dyn IComm> = match cmdline.comm() {
             protocol if protocol == "uci" => Box::new(Uci::new(info, features.clone())),
-            protocol if protocol == "xboard" => Box::new(XBoard::new()),
+            protocol if protocol == "xboard" => Box::new(XBoard::new(info, features.clone())),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
         let threads = cmdline.threads();
@@ -88,7 +87,6 @@ impl Engine {
                 verbosity,
                 tt_size,
             },
-            features,
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
