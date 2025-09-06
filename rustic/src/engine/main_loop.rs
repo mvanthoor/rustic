@@ -9,7 +9,8 @@ impl Engine {
         // transmitter, and keep the receiver.
         let (info_tx, info_rx) = channel::<EngineInput>();
 
-        // Store the information receiver in the engine for use in other functions.
+        // Store the information receiver in the engine for use by
+        // transmitters in other threads.
         self.info_rx = Some(info_rx);
 
         // Initialize Communications and Search modules.
