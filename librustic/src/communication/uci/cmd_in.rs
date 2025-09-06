@@ -1,4 +1,3 @@
-use crate::communication::uci::defs::{FenString, Moves, Name, Value};
 use crate::search::defs::GameTime;
 
 #[derive(Clone, Eq, PartialEq)]
@@ -7,8 +6,8 @@ pub enum UciIn {
     Uci,
     IsReady,
     UciNewGame,
-    Position(FenString, Moves),
-    SetOption(Name, Value),
+    Position(String, Vec<String>),
+    SetOption(String, Option<String>),
     GoInfinite,
     GoDepth(i8),
     GoMoveTime(u128),
@@ -19,4 +18,7 @@ pub enum UciIn {
     Stop,
     Quit,
     Unknown(String),
+
+    // Custom commands
+    Board,
 }

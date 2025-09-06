@@ -2,17 +2,16 @@ use crate::{
     basetypes::error::ErrFatal,
     communication::{
         defs::{EngineInput, EngineOutput, IComm},
-        feature::Feature,
         protocol::Properties,
         xboard::XBoard,
     },
 };
-use std::sync::{mpsc::Sender, Arc};
+use std::sync::mpsc::Sender;
 
 impl IComm for XBoard {
-    fn init(&mut self, cmd_incoming_transmitter: Sender<EngineInput>, options: Arc<Vec<Feature>>) {
-        self.input_thread(cmd_incoming_transmitter);
-        self.output_thread(options);
+    fn init(&mut self, cmd_incoming_transmitter: Sender<EngineInput>) {
+        self.tread_in(cmd_incoming_transmitter);
+        self.thread_out();
     }
 
     fn properties(&self) -> &Properties {

@@ -15,14 +15,17 @@ use librustic::{
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
         match command {
-            XBoardIn::XBoard => (),
+            XBoardIn::XBoard => self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine)),
             XBoardIn::Protover(version) => {
                 if version != 2 {
-                    println!("WHAT! Not XBoard v2 ?!");
+                    let error = ErrXboard::NOT_PROTOVER_2.to_string();
+                    let msg = XBoardOut::Error(error, format!("{version}"));
+                    self.comm.send(EngineOutput::XBoard(msg));
                 } else {
-                    println!("Printing features....");
+                    self.comm.send(EngineOutput::XBoard(XBoardOut::Features));
                 }
             }
+            XBoardIn::Ping(n) => self.comm.send(EngineOutput::XBoard(XBoardOut::Pong(n))),
             XBoardIn::New => {
                 self.board
                     .lock()
@@ -32,6 +35,15 @@ impl Engine {
                 self.search.transposition_clear();
             }
             XBoardIn::Quit => self.quit(),
+
+            // Custom commands
+            XBoardIn::DebugOn => self.debug = true,
+            XBoardIn::DebugOff => self.debug = false,
+            XBoardIn::Board => {
+                let print_board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
+                let message = XBoardOut::Custom(print_board);
+                self.comm.send(EngineOutput::XBoard(message));
+            }
             XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
         }
     }
@@ -44,18 +56,10 @@ impl Engine {
     // custom command that is not part of the UCI-specification. It may
     // handle other incoming commands as custom in the future as well.
     fn xboard_unknown(&self, cmd: String) {
-        match cmd {
-            c if c == "board" => {
-                let board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
-                self.comm
-                    .send(EngineOutput::XBoard(XBoardOut::Custom(board)));
-            }
-            _ => {
-                if self.debug {
-                    let message = XBoardOut::Custom(format!("{}: {}", ErrXboard::UNKNOWN_CMD, cmd));
-                    self.comm.send(EngineOutput::XBoard(message));
-                }
-            }
+        if self.debug {
+            let error = String::from(ErrXboard::UNKNOWN_CMD);
+            let out = XBoardOut::Error(error, cmd);
+            self.comm.send(EngineOutput::XBoard(out));
         }
     }
 }

@@ -1,36 +1,4 @@
-// defs.rs in the root holds basic definitions. Any definitions needed
-// within specific modules, are defined in defs.rs in the directory for
-// that module.
-
 use crate::board::defs::FenError;
-
-#[derive(Default, Clone)]
-pub struct About {
-    engine: String,
-    version: String,
-    author: String,
-}
-impl About {
-    pub fn new(engine: String, version: String, author: String) -> Self {
-        Self {
-            engine,
-            version,
-            author,
-        }
-    }
-
-    pub fn get_engine(&self) -> &str {
-        &self.engine
-    }
-
-    pub fn get_version(&self) -> &str {
-        &self.version
-    }
-
-    pub fn get_author(&self) -> &str {
-        &self.author
-    }
-}
 
 pub type Bitboard = u64;
 pub type Piece = usize;

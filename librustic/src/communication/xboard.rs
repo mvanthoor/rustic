@@ -1,41 +1,36 @@
 pub mod cmd_in;
 pub mod cmd_out;
-pub mod defs;
-pub mod init;
-pub mod parse;
-pub mod thread_in;
-pub mod thread_out;
+mod defs;
+mod init;
+mod parse;
+mod print;
+mod thread_in;
+mod thread_out;
 
-use crate::communication::defs::{EngineOutput, EngineState};
+use crate::communication::defs::{EngineInfo, EngineOutput, EngineState};
+use crate::communication::feature::Feature;
 use crate::communication::protocol::{
     Properties, Protocol, RequireGameResult, RequireStatefulMode, SupportFancyAbout,
 };
-use crate::defs::About;
+use std::sync::Arc;
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 pub struct XBoard {
-    pub about: About,
-    pub input_thread: Option<JoinHandle<()>>,
-    pub output_thread: Option<JoinHandle<()>>,
-    pub output_write: Option<Sender<EngineOutput>>,
-    pub properties: Properties,
-}
-
-impl Default for XBoard {
-    fn default() -> Self {
-        Self::new(About::default())
-    }
+    engine_info: EngineInfo,
+    features: Arc<Vec<Feature>>,
+    properties: Properties,
+    input_thread: Option<JoinHandle<()>>,
+    output_thread: Option<JoinHandle<()>>,
+    output_write: Option<Sender<EngineOutput>>,
 }
 
 // Public functions
 impl XBoard {
     // Create a new console.
-    pub fn new(about: About) -> Self {
+    pub fn new(engine_info: EngineInfo, features: Arc<Vec<Feature>>) -> Self {
         Self {
-            about,
-            input_thread: None,
-            output_thread: None,
-            output_write: None,
+            engine_info,
+            features,
             properties: Properties::new(
                 Protocol::XBOARD,
                 SupportFancyAbout::No,
@@ -43,6 +38,9 @@ impl XBoard {
                 RequireGameResult::Yes,
                 EngineState::Waiting,
             ),
+            input_thread: None,
+            output_thread: None,
+            output_write: None,
         }
     }
 }

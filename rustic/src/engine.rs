@@ -17,20 +17,19 @@ use librustic::{
     basetypes::error::ErrFatal,
     board::Board,
     communication::{
-        defs::{EngineInput, EngineOutput, EngineState, IComm},
-        feature::Feature,
-        uci::{cmd_out::UciOut, Uci},
-        xboard::{cmd_out::XBoardOut, XBoard},
+        defs::{EngineInfo, EngineInput, EngineOutput, EngineState, IComm},
+        uci::{Uci, cmd_out::UciOut},
+        xboard::{XBoard, cmd_out::XBoardOut},
     },
-    defs::{About, EngineRunResult},
+    defs::EngineRunResult,
     misc::perft,
     movegen::MoveGenerator,
     search::{
-        defs::{SearchControl, Verbosity},
         Search,
+        defs::{SearchControl, Verbosity},
     },
 };
-use std::sync::{mpsc::Receiver, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc::Receiver};
 
 // This struct holds the chess engine and its functions, so they are not
 // all separate entities in the global space.
@@ -39,14 +38,12 @@ pub struct Engine {
     debug: bool,                            // Send errors/debug info to GUI
     state: EngineState,                     // Keeps the current engine activity.
     settings: Settings,                     // Struct holding all the settings.
-    features: Arc<Vec<Feature>>,            // Engine options exported to the GUI.
     cmdline: CmdLine,                       // Command line interpreter.
     comm: Box<dyn IComm>,                   // UCI/XBoard communication (active).
     board: Arc<Mutex<Board>>,               // This is the main engine board.
     mg: Arc<MoveGenerator>,                 // Move Generator.
     info_rx: Option<Receiver<EngineInput>>, // Receiver for incoming information.
-
-    search: Search, // Search object (active).
+    search: Search,                         // Search object (active, threaded).
 }
 
 impl Default for Engine {
@@ -58,21 +55,20 @@ impl Default for Engine {
 impl Engine {
     // Create e new engine.
     pub fn new() -> Self {
-        // Create the command-line object.
+        // Set up everything needed to create a new engine.
         let cmdline = CmdLine::new();
-        let about = About::new(
+        let info = EngineInfo::new(
             String::from(ENGINE),
             String::from(VERSION),
             String::from(AUTHOR),
         );
-
+        let uci_features = Arc::new(vec![features::hash(), features::clear_hash()]);
+        let xb_features = Arc::new(vec![features::clear_hash()]);
         let comm: Box<dyn IComm> = match cmdline.comm() {
-            protocol if protocol == "uci" => Box::new(Uci::new(about)),
-            protocol if protocol == "xboard" => Box::new(XBoard::new(about)),
+            protocol if protocol == "uci" => Box::new(Uci::new(info, uci_features)),
+            protocol if protocol == "xboard" => Box::new(XBoard::new(info, xb_features)),
             _ => panic!("{}", ErrFatal::CREATE_COMM),
         };
-
-        // Get engine settings from the command-line.
         let threads = cmdline.threads();
         let verbosity = if cmdline.has_quiet() {
             Verbosity::Quiet
@@ -80,10 +76,6 @@ impl Engine {
             Verbosity::Full
         };
         let tt_size = cmdline.hash();
-
-        // These are features the engine supports. It sends them to the
-        // communication module so they will be announced to the GUI.
-        let features = vec![features::uci::hash(), features::uci::clear_hash()];
 
         // Create the engine itself.
         Self {
@@ -95,7 +87,6 @@ impl Engine {
                 verbosity,
                 tt_size,
             },
-            features: Arc::new(features),
             cmdline,
             comm,
             board: Arc::new(Mutex::new(Board::new())),
@@ -107,16 +98,13 @@ impl Engine {
 
     // Run the engine.
     pub fn run(&mut self) -> EngineRunResult {
-        // Required for Stateful protocols such as XBoard.
+        // Required for stateful protocols such as XBoard.
         self.state = self.comm.properties().startup_state();
-
-        // The UCI GUI's I tested don't seem to care about non-uci input
-        // over multiple lines. Some XBoard user interfaces do choke on
-        // this. Use a simpler, online-about instead.
-        if self.comm.properties().support_fancy_about() {
-            self.print_fancy_about(&self.settings, self.comm.properties().protocol_name());
-        } else {
-            self.print_simple_about(&self.settings, self.comm.properties().protocol_name());
+        // Print full engine logo or one-liner.
+        let protocol_name = self.comm.properties().protocol_name();
+        match self.comm.properties().support_fancy_about() {
+            true => self.print_fancy_about(&self.settings, protocol_name),
+            false => self.print_simple_about(&self.settings, protocol_name),
         }
 
         // Setup position and abort if this fails.
@@ -137,7 +125,7 @@ impl Engine {
             return Ok(());
         }
 
-        // Finally start the actual engine.
+        // Finally start the engine's main thread.
         self.main_loop();
 
         // We're done and the engine exited without issues.

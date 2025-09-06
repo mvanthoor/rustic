@@ -5,12 +5,12 @@ use crate::{
     evaluation::Evaluation,
     movegen::defs::{Move, MoveList, MoveType, ShortMove},
     search::{
+        Search, SearchRefs,
         defs::{
-            PrincipalVariation, SearchTerminated, Verbosity, CHECKMATE, CHECK_TERMINATION, DRAW,
-            INF, SEND_STATS, STALEMATE,
+            CHECK_TERMINATION, CHECKMATE, DRAW, INF, PrincipalVariation, SEND_STATS, STALEMATE,
+            SearchTerminated, Verbosity,
         },
         search_data::{HashFlag, SearchData},
-        Search, SearchRefs,
     },
 };
 
@@ -83,10 +83,8 @@ impl Search {
         // If we have a value from the TT then return immediately. Don't do
         // a hash cut when in the root position, because we may end up
         // without actually having a move to play.
-        if !is_root {
-            if let Some(v) = tt_value {
-                return v;
-            }
+        if !is_root && let Some(v) = tt_value {
+            return v;
         }
 
         /*=== Actual searching starts here ===*/

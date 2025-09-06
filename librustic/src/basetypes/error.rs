@@ -37,4 +37,5 @@ impl ErrUci {
 pub struct ErrXboard;
 impl ErrXboard {
     pub const UNKNOWN_CMD: &str = "Unknown command";
+    pub const NOT_PROTOVER_2: &str = "Protocol version must be 2";
 }

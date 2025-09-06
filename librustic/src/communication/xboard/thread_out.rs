@@ -1,22 +1,17 @@
 use crate::basetypes::error::ErrFatal;
-use crate::communication::defs::EngineOutput;
-use crate::communication::feature::Feature;
-use crate::communication::xboard::XBoard;
+use crate::communication::{defs::EngineOutput, xboard::XBoard, xboard::print};
 use std::sync::mpsc::channel;
-use std::sync::Arc;
 use std::thread;
 
 use super::cmd_out::XBoardOut;
 
 impl XBoard {
-    pub fn output_thread(&mut self, features: Arc<Vec<Feature>>) {
+    pub fn thread_out(&mut self) {
         // Create an incoming channel where the information is received.
         let (transmitter_for_engine, received_from_engine) = channel::<EngineOutput>();
-
-        // Clone this because we can't capture variables internal to the
-        // struct. We only need this only once as a reply to the "id"
-        // command when the engine has started.
-        // let about = self.about.clone();
+        let name = self.engine_info.name.clone();
+        let version = self.engine_info.version.clone();
+        let features = self.features.clone();
 
         // Create the output thread. This will print information sent by
         // the engine thread to stdio. The information will either end up
@@ -32,8 +27,12 @@ impl XBoard {
                 // UCI-part in this thread.
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
+                        XBoardOut::NewLine => print::new_line(),
+                        XBoardOut::Features => print::features(&name, &version, &features),
+                        XBoardOut::Pong(n) => print::pong(n),
+                        XBoardOut::Error(error, cmd) => print::error(error, cmd),
+                        XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
-                        XBoardOut::Custom(msg) => println!("{msg}"),
                     }
                 }
             }

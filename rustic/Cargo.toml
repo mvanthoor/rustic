@@ -8,7 +8,7 @@ edition.workspace = true
 
 [dependencies]
 librustic = { path = "../librustic" }
-clap = "4.5.40"
+clap = "4.5.47"
 
 [features]
 extra = []

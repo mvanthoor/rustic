@@ -1,5 +1,6 @@
 use crate::{
     communication::{
+        defs::EngineInfo,
         feature::{Feature, IFeature, UiElement},
         shared,
     },
@@ -8,9 +9,9 @@ use crate::{
 };
 use std::sync::Arc;
 
-pub fn id(engine: &str, version: &str, author: &str) {
-    println!("id name {} {}", engine, version);
-    println!("id author {}", author);
+pub fn id(engine_info: &EngineInfo) {
+    println!("id name {} {}", engine_info.name, engine_info.version);
+    println!("id author {}", engine_info.author);
 }
 
 pub fn readyok() {
@@ -62,10 +63,6 @@ pub fn features(features: &Arc<Vec<Feature>>) {
 
 pub fn uciok() {
     println!("uciok");
-}
-
-pub fn custom(message: &str) {
-    println!("{message}");
 }
 
 pub fn search_summary(s: &SearchSummary) {
@@ -128,4 +125,8 @@ pub fn search_stats(s: &SearchStats) {
 
 pub fn best_move(m: &Move) {
     println!("bestmove {m}");
+}
+
+pub fn custom(msg: String) {
+    println!("{msg}");
 }

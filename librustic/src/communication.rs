@@ -1,6 +1,6 @@
 pub mod defs;
 pub mod feature;
-pub mod protocol;
-pub mod shared;
+mod protocol;
+mod shared;
 pub mod uci;
 pub mod xboard;
