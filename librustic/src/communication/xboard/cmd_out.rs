@@ -1,7 +1,7 @@
 #[derive(Clone, Eq, PartialEq)]
 pub enum XBoardOut {
     NewLine,
-    XboardFeatures,
+    Features,
     Quit,
     Error(String, String),
     Custom(String),

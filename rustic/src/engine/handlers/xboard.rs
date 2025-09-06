@@ -22,8 +22,7 @@ impl Engine {
                     let message = XBoardOut::Error(error, format!("{version}"));
                     self.comm.send(EngineOutput::XBoard(message));
                 } else {
-                    self.comm
-                        .send(EngineOutput::XBoard(XBoardOut::XboardFeatures));
+                    self.comm.send(EngineOutput::XBoard(XBoardOut::Features));
                 }
             }
             XBoardIn::New => {

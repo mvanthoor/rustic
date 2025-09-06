@@ -1,5 +1,4 @@
-pub const FEATURES: [&str; 12] = [
-    "done=0",
+pub const FEATURES: [&str; 10] = [
     "myname=x",
     "ping=1",
     "memory=1",
@@ -10,5 +9,4 @@ pub const FEATURES: [&str; 12] = [
     "ics=0",
     "sigint=0",
     "sigterm=0",
-    "done=1",
 ];

@@ -11,6 +11,7 @@ impl XBoard {
         let (transmitter_for_engine, received_from_engine) = channel::<EngineOutput>();
         let name = self.engine_info.name.clone();
         let version = self.engine_info.version.clone();
+        let features = self.features.clone();
 
         // Create the output thread. This will print information sent by
         // the engine thread to stdio. The information will either end up
@@ -27,7 +28,7 @@ impl XBoard {
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
                         XBoardOut::NewLine => print::new_line(),
-                        XBoardOut::XboardFeatures => print::xboard_features(&name, &version),
+                        XBoardOut::Features => print::features(&name, &version, &features),
                         XBoardOut::Error(error, cmd) => print::error(error, cmd),
                         XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
