@@ -39,6 +39,7 @@ impl XBoard {
             cmd if cmd == "xboard" => XBoardIn::XBoard,
             cmd if cmd == "new" => XBoardIn::New,
             cmd if cmd == "quit" => XBoardIn::Quit,
+            cmd if cmd == "board" => XBoardIn::Board,
 
             // See the KEYS constant in xboard-defs for an array of
             // commands which are key-value pairs.

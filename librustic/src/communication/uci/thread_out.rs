@@ -40,7 +40,8 @@ impl Uci {
                         UciOut::SearchCurrMove(current) => print::search_currmove(&current),
                         UciOut::SearchStats(stats) => print::search_stats(&stats),
                         UciOut::BestMove(bestmove) => print::best_move(&bestmove),
-                        UciOut::Quit => break, // This will shut down the input thread.
+                        UciOut::Quit => break,
+                        UciOut::Custom(msg) => print::custom(msg),
                     }
                 }
             }

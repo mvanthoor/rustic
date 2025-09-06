@@ -13,4 +13,7 @@ pub enum UciOut {
     BestMove(Move),
     InfoString(String),
     Quit,
+
+    // Custom output
+    Custom(String),
 }

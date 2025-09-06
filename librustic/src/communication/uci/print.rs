@@ -126,3 +126,7 @@ pub fn search_stats(s: &SearchStats) {
 pub fn best_move(m: &Move) {
     println!("bestmove {m}");
 }
+
+pub fn custom(msg: String) {
+    println!("{msg}");
+}

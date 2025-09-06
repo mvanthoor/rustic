@@ -35,8 +35,15 @@ impl Engine {
                 self.search.transposition_clear();
             }
             XBoardIn::Quit => self.quit(),
+
+            // Custom commands
             XBoardIn::DebugOn => self.debug = true,
             XBoardIn::DebugOff => self.debug = false,
+            XBoardIn::Board => {
+                let print_board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
+                let message = XBoardOut::Custom(print_board);
+                self.comm.send(EngineOutput::XBoard(message));
+            }
             XBoardIn::Unknown(cmd) => self.xboard_unknown(cmd),
         }
     }

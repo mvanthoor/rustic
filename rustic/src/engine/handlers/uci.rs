@@ -85,6 +85,11 @@ impl Engine {
                     self.comm.send(EngineOutput::Uci(message));
                 }
             }
+            UciIn::Board => {
+                let print_board = format!("{}", self.board.lock().expect(ErrFatal::LOCK));
+                let message = UciOut::Custom(print_board);
+                self.comm.send(EngineOutput::Uci(message));
+            }
             UciIn::Unknown(cmd) => self.uci_unknown(cmd),
         }
     }
@@ -95,13 +100,11 @@ impl Engine {
     fn setoption(&mut self, option: String, value: Option<String>) {
         match option {
             option if option == "hash" => self.setoption_hash(option, value),
-            option if option == "clear hash" => {
-                self.search.transposition_clear();
-            }
+            option if option == "clear hash" => self.search.transposition_clear(),
             _ => {
                 if self.debug {
-                    let message =
-                        UciOut::InfoString(format!("{}: {}", ErrUci::OPTION_UNKNOWN_NAME, option));
+                    let unknown = format!("{}: {}", ErrUci::OPTION_UNKNOWN_NAME, option);
+                    let message = UciOut::InfoString(unknown);
                     self.comm.send(EngineOutput::Uci(message));
                 }
             }
@@ -129,13 +132,6 @@ impl Engine {
         }
     }
 
-    // This function handles commands that cannot be captured in one of the
-    // UciIn enum variants; these are therefore unknown. These could be any
-    // string of text. The engine can do whatever it wants with these; most
-    //of the time they are ignored (except in debug mode, where an
-    //InfoString is printed.) In Rustic, the function handles "board" as a
-    // custom command that is not part of the UCI-specification. It may
-    // handle other incoming commands as custom in the future as well.
     fn uci_unknown(&self, cmd: String) {
         if self.debug {
             let message = UciOut::InfoString(format!("{}: {}", ErrUci::UNKNOWN_CMD, cmd));

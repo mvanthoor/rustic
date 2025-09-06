@@ -43,6 +43,7 @@ impl Uci {
             cmd if cmd == "debug off" => UciIn::DebugOff,
             cmd if cmd == "stop" => UciIn::Stop,
             cmd if cmd == "quit" => UciIn::Quit,
+            cmd if cmd == "board" => UciIn::Board,
             cmd if cmd.starts_with("position") => parse::position(&cmd),
             cmd if cmd.starts_with("go") => parse::go(&cmd),
             cmd if cmd.starts_with("setoption") => parse::setoption(&cmd),

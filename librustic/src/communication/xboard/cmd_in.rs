@@ -10,4 +10,5 @@ pub enum XBoardIn {
     // Custom commands
     DebugOn,
     DebugOff,
+    Board,
 }
