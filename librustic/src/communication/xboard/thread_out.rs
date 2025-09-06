@@ -25,6 +25,8 @@ impl XBoard {
                 if let EngineOutput::XBoard(cmd) = print_to_stdio {
                     match cmd {
                         XBoardOut::NewLine => print::new_line(),
+                        XBoardOut::XboardFeatures => print::xboard_features("", ""),
+                        XBoardOut::Error(error, cmd) => print::error(error, cmd),
                         XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
                     }

@@ -1,5 +1,6 @@
 pub mod cmd_in;
 pub mod cmd_out;
+mod defs;
 mod init;
 mod parse;
 mod print;

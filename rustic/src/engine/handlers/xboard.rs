@@ -18,9 +18,12 @@ impl Engine {
             XBoardIn::XBoard => self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine)),
             XBoardIn::Protover(version) => {
                 if version != 2 {
-                    println!("WHAT! Not XBoard v2 ?!");
+                    let error = ErrXboard::NOT_PROTOVER_2.to_string();
+                    let message = XBoardOut::Error(error, format!("{version}"));
+                    self.comm.send(EngineOutput::XBoard(message));
                 } else {
-                    println!("Printing features....");
+                    self.comm
+                        .send(EngineOutput::XBoard(XBoardOut::XboardFeatures));
                 }
             }
             XBoardIn::New => {
