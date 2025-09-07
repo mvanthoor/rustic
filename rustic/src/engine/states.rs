@@ -10,10 +10,6 @@ impl Engine {
         self.state == EngineState::Observing
     }
 
-    pub fn is_waiting(&self) -> bool {
-        self.state == EngineState::Waiting
-    }
-
     pub fn is_thinking(&self) -> bool {
         self.state == EngineState::Thinking
     }
@@ -24,10 +20,6 @@ impl Engine {
 
     pub fn set_observing(&mut self) {
         self.state = EngineState::Observing;
-    }
-
-    pub fn set_waiting(&mut self) {
-        self.state = EngineState::Waiting;
     }
 
     pub fn set_thinking(&mut self) {

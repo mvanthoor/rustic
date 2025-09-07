@@ -46,7 +46,7 @@ pub enum EngineOutput {
 pub enum EngineState {
     UciNotUsed,
     Observing,
-    Waiting,
+
     Thinking,
     Analyzing,
 }

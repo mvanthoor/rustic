@@ -36,7 +36,7 @@ impl XBoard {
                 SupportFancyAbout::No,
                 RequireStatefulMode::Yes,
                 RequireGameResult::Yes,
-                EngineState::Waiting,
+                EngineState::Observing,
             ),
             input_thread: None,
             output_thread: None,

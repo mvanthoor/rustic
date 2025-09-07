@@ -30,12 +30,17 @@ impl Engine {
             }
             XBoardIn::Ping(n) => self.comm.send(EngineOutput::XBoard(XBoardOut::Pong(n))),
             XBoardIn::New => {
-                self.board
-                    .lock()
-                    .expect(ErrFatal::LOCK)
-                    .fen_setup(Some(FEN_START_POSITION))
-                    .expect(ErrFatal::NEW_GAME);
-                self.search.transposition_clear();
+                if self.is_observing() {
+                    self.board
+                        .lock()
+                        .expect(ErrFatal::LOCK)
+                        .fen_setup(Some(FEN_START_POSITION))
+                        .expect(ErrFatal::NEW_GAME);
+                    self.search.transposition_clear();
+                } else if self.debug {
+                    let msg = Engine::inapplicable_command(XBoardIn::New);
+                    self.comm.send(EngineOutput::XBoard(msg));
+                }
             }
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self
@@ -50,7 +55,7 @@ impl Engine {
                 }
             }
             XBoardIn::Analyze => {
-                if self.is_waiting() || self.is_observing() {
+                if self.is_observing() {
                     self.set_analyzing();
                     search_params.search_mode = SearchMode::Infinite;
                     self.search.send(SearchControl::Start(search_params));
