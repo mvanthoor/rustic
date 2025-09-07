@@ -4,7 +4,10 @@ use crate::communication::{
     xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
 };
 use crate::search::defs::SearchReport;
-use std::sync::mpsc::Sender;
+use std::{
+    fmt::{self, Display, Formatter},
+    sync::mpsc::Sender,
+};
 
 pub trait IComm {
     fn init(&mut self, cmd_in_tx: Sender<EngineInput>);
@@ -48,4 +51,17 @@ pub enum EngineState {
     Waiting,
     Thinking,
     Analyzing,
+}
+
+impl Display for EngineState {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let printable = match *self {
+            EngineState::UciNotUsed => "UCI has no states",
+            EngineState::Observing => "Observing",
+            EngineState::Waiting => "Waiting",
+            EngineState::Thinking => "Thinking",
+            EngineState::Analyzing => "Analyzing",
+        };
+        write!(f, "{printable}")
+    }
 }

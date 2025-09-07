@@ -9,6 +9,7 @@ pub enum XBoardIn {
     Unknown(String),
 
     // Custom commands
+    State,
     Ignore(String),
     DebugOn,
     DebugOff,

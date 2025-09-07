@@ -49,6 +49,11 @@ impl Engine {
             XBoardIn::Quit => self.quit(),
 
             // Custom commands
+            XBoardIn::State => {
+                let state = format!("# {}", self.state);
+                let message = XBoardOut::Custom(state);
+                self.comm.send(EngineOutput::XBoard(message));
+            }
             XBoardIn::DebugOn => self.debug = true,
             XBoardIn::DebugOff => self.debug = false,
             XBoardIn::Board => {

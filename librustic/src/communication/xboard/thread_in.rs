@@ -50,6 +50,7 @@ impl XBoard {
             cmd if cmd.starts_with("rejected") => XBoardIn::Ignore(cmd),
 
             // Custom commands
+            cmd if cmd == "state" => XBoardIn::State,
             cmd if cmd == "debug on" => XBoardIn::DebugOn,
             cmd if cmd == "debug off" => XBoardIn::DebugOff,
             _ => XBoardIn::Unknown(input),
