@@ -9,10 +9,6 @@ use librustic::{
     search::defs::{SAFEGUARD, SearchControl, SearchMode, SearchParams},
 };
 
-// This is the UCI handler. It handles the incoming UCI commands and when
-// needed, it sends replies to the communication module to be sent out of
-// the engine to the GUI. Each enum variant of the UciIn type has a
-// match-arm in this function.
 impl Engine {
     pub fn uci_handler(&mut self, command: UciIn) {
         let mut search_params = SearchParams::new();
