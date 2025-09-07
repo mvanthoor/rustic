@@ -39,4 +39,5 @@ impl ErrXboard {
     pub const UNKNOWN_CMD: &str = "Unknown command";
     pub const NOT_PROTOVER_2: &str = "Protocol version must be 2";
     pub const FEN_ERROR: &str = "Error in FEN-string";
+    pub const INAPPLICABLE_CMD: &str = "Inapplicable command";
 }

@@ -6,6 +6,7 @@ use librustic::{
         xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
     },
     defs::FEN_START_POSITION,
+    search::defs::{SearchControl, SearchMode, SearchParams},
 };
 
 // This is the UCI handler. It handles the incoming UCI commands and when
@@ -14,6 +15,9 @@ use librustic::{
 // match-arm in this function.
 impl Engine {
     pub fn xboard_handler(&mut self, command: XBoardIn) {
+        let mut search_params = SearchParams::new();
+        search_params.verbosity = self.settings.verbosity;
+
         match command {
             XBoardIn::XBoard => self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine)),
             XBoardIn::Protover(version) => {
@@ -46,11 +50,30 @@ impl Engine {
                     self.comm.send(EngineOutput::XBoard(message));
                 }
             }
+            XBoardIn::Analyze => {
+                if self.is_waiting() || self.is_observing() {
+                    self.set_analyzing();
+                    search_params.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(search_params));
+                } else if self.debug {
+                    let msg = Engine::inapplicable_command(XBoardIn::Analyze);
+                    self.comm.send(EngineOutput::XBoard(msg));
+                }
+            }
+            XBoardIn::Exit => {
+                if self.is_analyzing() {
+                    self.search.send(SearchControl::Abandon);
+                    self.set_observing();
+                } else if self.debug {
+                    let msg = Engine::inapplicable_command(XBoardIn::Exit);
+                    self.comm.send(EngineOutput::XBoard(msg));
+                }
+            }
             XBoardIn::Quit => self.quit(),
 
             // Custom commands
             XBoardIn::State => {
-                let state = format!("# {}", self.state);
+                let state = format!("# {}", self.get_state());
                 let message = XBoardOut::Custom(state);
                 self.comm.send(EngineOutput::XBoard(message));
             }
@@ -76,5 +99,12 @@ impl Engine {
                 }
             }
         }
+    }
+
+    fn inapplicable_command(cmd: XBoardIn) -> XBoardOut {
+        let error = ErrXboard::INAPPLICABLE_CMD.to_string();
+        let cmd = cmd.to_string().to_lowercase();
+
+        XBoardOut::Error(error, cmd)
     }
 }

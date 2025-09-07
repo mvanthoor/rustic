@@ -5,7 +5,7 @@ use crate::{
 };
 use std::{
     fmt::{Display, Formatter, Result},
-    sync::{mpsc::Sender, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc::Sender},
 };
 
 pub use crate::comm::protocols::xboard::{TimeControl, XBoard, XBoardIn, XBoardOut};
@@ -127,7 +127,7 @@ impl Display for GameResultReason {
             GameResultReason::Stalemate => write!(f, "Stalemate"),
             GameResultReason::ThreeFold => write!(f, "Draw by repetition"),
             GameResultReason::Insufficient => write!(f, "Insufficient material"),
-            GameResultReason::FiftyMoves => write!(f, "Ffifty move rule"),
+            GameResultReason::FiftyMoves => write!(f, "Fifty move rule"),
             GameResultReason::Other(reason) => write!(f, "{reason}"),
             GameResultReason::Nothing => write!(f, "-"),
         }
