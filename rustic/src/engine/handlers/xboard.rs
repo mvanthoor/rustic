@@ -15,7 +15,10 @@ impl Engine {
         search_params.verbosity = self.settings.verbosity;
 
         match command {
-            XBoardIn::XBoard => self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine)),
+            XBoardIn::XBoard => {
+                self.comm.send(EngineOutput::XBoard(XBoardOut::NewLine));
+                self.set_observing();
+            }
             XBoardIn::Protover(version) => {
                 if version != 2 {
                     let error = ErrXboard::NOT_PROTOVER_2.to_string();
