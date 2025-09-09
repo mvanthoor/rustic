@@ -1,3 +1,5 @@
+use std::{thread::sleep, time};
+
 use crate::engine::Engine;
 use librustic::{
     basetypes::error::{ErrFatal, ErrXboard},
@@ -45,10 +47,14 @@ impl Engine {
             XBoardIn::Usermove(m) => match self.get_state() {
                 EngineState::Analyzing => {
                     self.search.send(SearchControl::Abandon);
+                    let ten_millis = time::Duration::from_millis(5000);
+                    sleep(ten_millis);
+
                     if !self.execute_move(&m) {
                         self.comm
                             .send(EngineOutput::XBoard(XBoardOut::IllegalMove(m)));
                     }
+
                     search_params.search_mode = SearchMode::Infinite;
                     self.search.send(SearchControl::Start(search_params));
                 }
