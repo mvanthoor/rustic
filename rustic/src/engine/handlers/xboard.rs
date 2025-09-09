@@ -1,14 +1,12 @@
-use std::{thread::sleep, time};
-
 use crate::engine::Engine;
 use librustic::{
     basetypes::error::{ErrFatal, ErrXboard},
     communication::{
-        defs::{EngineOutput, EngineState},
+        defs::{EngineInput, EngineOutput, EngineState},
         xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
     },
     defs::FEN_START_POSITION,
-    search::defs::{SearchControl, SearchMode, SearchParams},
+    search::defs::{SearchControl, SearchMode, SearchParams, SearchReport},
 };
 
 impl Engine {
@@ -47,8 +45,7 @@ impl Engine {
             XBoardIn::Usermove(m) => match self.get_state() {
                 EngineState::Analyzing => {
                     self.search.send(SearchControl::Abandon);
-                    let ten_millis = time::Duration::from_millis(5000);
-                    sleep(ten_millis);
+                    while self.info_rx() != EngineInput::Search(SearchReport::Ready) {}
 
                     if !self.execute_move(&m) {
                         self.comm

@@ -3,6 +3,7 @@ use crate::{
     search::defs::{SearchCurrentMove, SearchStats, SearchSummary},
 };
 
+#[derive(PartialEq, Eq)]
 pub enum UciOut {
     // UCI specification
     Id,

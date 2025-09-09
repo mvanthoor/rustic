@@ -30,12 +30,14 @@ impl EngineInfo {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub enum EngineInput {
     Uci(UciIn),
     XBoard(XBoardIn),
     Search(SearchReport),
 }
 
+#[derive(PartialEq, Eq)]
 pub enum EngineOutput {
     Uci(UciOut),
     XBoard(XBoardOut),

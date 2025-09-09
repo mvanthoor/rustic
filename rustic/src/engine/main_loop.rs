@@ -38,4 +38,11 @@ impl Engine {
         self.comm.shutdown();
         self.search.shutdown();
     }
+
+    pub fn info_rx(&mut self) -> EngineInput {
+        match &self.info_rx {
+            Some(i) => i.recv().expect(ErrFatal::CHANNEL),
+            None => panic!("{}", ErrFatal::NO_INFO_RX),
+        }
+    }
 }
