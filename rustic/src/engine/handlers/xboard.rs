@@ -2,7 +2,7 @@ use crate::engine::Engine;
 use librustic::{
     basetypes::error::{ErrFatal, ErrXboard},
     communication::{
-        defs::EngineOutput,
+        defs::{EngineOutput, EngineState},
         xboard::{cmd_in::XBoardIn, cmd_out::XBoardOut},
     },
     defs::FEN_START_POSITION,
@@ -42,6 +42,27 @@ impl Engine {
                     self.comm.send(EngineOutput::XBoard(msg));
                 }
             }
+            XBoardIn::Usermove(m) => match self.get_state() {
+                EngineState::Analyzing => {
+                    self.search.send(SearchControl::Abandon);
+                    if !self.execute_move(&m) {
+                        self.comm
+                            .send(EngineOutput::XBoard(XBoardOut::IllegalMove(m)));
+                    }
+                    search_params.search_mode = SearchMode::Infinite;
+                    self.search.send(SearchControl::Start(search_params));
+                }
+                EngineState::Observing => {
+                    if !self.execute_move(&m) {
+                        self.comm
+                            .send(EngineOutput::XBoard(XBoardOut::IllegalMove(m)));
+                    }
+                }
+                _ => {
+                    let msg = Engine::inapplicable_command(XBoardIn::Usermove(m));
+                    self.comm.send(EngineOutput::XBoard(msg));
+                }
+            },
             XBoardIn::SetBoard(fen) => {
                 let fen_result = self
                     .board
@@ -70,6 +91,15 @@ impl Engine {
                     self.set_observing();
                 } else if self.debug {
                     let msg = Engine::inapplicable_command(XBoardIn::Exit);
+                    self.comm.send(EngineOutput::XBoard(msg));
+                }
+            }
+            XBoardIn::Force => {
+                if self.is_thinking() {
+                    self.search.send(SearchControl::Abandon);
+                    self.set_observing();
+                } else if self.debug {
+                    let msg = Engine::inapplicable_command(XBoardIn::Force);
                     self.comm.send(EngineOutput::XBoard(msg));
                 }
             }

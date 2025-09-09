@@ -49,8 +49,12 @@ pub fn pong(n: isize) {
     println!("pong {n}");
 }
 
-pub fn error(error: String, cmd: String) {
+pub fn error(error: &str, cmd: &str) {
     println!("Error ({error}): {cmd}");
+}
+
+pub fn illegal_move(m: &str) {
+    println!("Illegal move: {m}");
 }
 
 pub fn custom(info: String) {

@@ -42,12 +42,14 @@ impl XBoard {
             cmd if cmd == "board" => XBoardIn::Board,
             cmd if cmd == "analyze" => XBoardIn::Analyze,
             cmd if cmd == "exit" => XBoardIn::Exit,
+            cmd if cmd == "force" => XBoardIn::Force,
 
             // See the KEYS constant in xboard-defs for an array of
             // commands which are key-value pairs.
             cmd if cmd.starts_with("protover") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("ping") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("setboard") => parse::setboard(&cmd),
+            cmd if cmd.starts_with("usermove") => parse::key_value_pair(&cmd),
             cmd if cmd.starts_with("accepted") => XBoardIn::Ignore(cmd),
             cmd if cmd.starts_with("rejected") => XBoardIn::Ignore(cmd),
 

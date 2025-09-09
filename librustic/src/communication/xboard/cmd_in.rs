@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum XBoardIn {
     // XBoard protocol
@@ -8,6 +10,8 @@ pub enum XBoardIn {
     SetBoard(String),
     Analyze,
     Exit,
+    Force,
+    Usermove(String),
     Quit,
     Unknown(String),
 
@@ -19,20 +23,25 @@ pub enum XBoardIn {
     Board,
 }
 
-impl std::fmt::Display for XBoardIn {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for XBoardIn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            XBoardIn::XBoard => write!(f, "XBoard"),
-            XBoardIn::Protover(version) => write!(f, "protover {}", version),
-            XBoardIn::Ping(id) => write!(f, "ping {}", id),
+            // XBoard Protocol
+            XBoardIn::XBoard => write!(f, "xboard"),
+            XBoardIn::Protover(n) => write!(f, "protover {}", n),
+            XBoardIn::Ping(n) => write!(f, "ping {}", n),
             XBoardIn::New => write!(f, "new"),
-            XBoardIn::SetBoard(board) => write!(f, "setboard {}", board),
+            XBoardIn::SetBoard(s) => write!(f, "setboard {}", s),
             XBoardIn::Analyze => write!(f, "analyze"),
             XBoardIn::Exit => write!(f, "exit"),
+            XBoardIn::Force => write!(f, "force"),
+            XBoardIn::Usermove(m) => write!(f, "usermove {}", m),
             XBoardIn::Quit => write!(f, "quit"),
-            XBoardIn::Unknown(command) => write!(f, "unknown {}", command),
+            XBoardIn::Unknown(s) => write!(f, "unknown {}", s),
+
+            // Custom commands
             XBoardIn::State => write!(f, "state"),
-            XBoardIn::Ignore(ignore) => write!(f, "ignore {}", ignore),
+            XBoardIn::Ignore(s) => write!(f, "ignore {}", s),
             XBoardIn::DebugOn => write!(f, "debug on"),
             XBoardIn::DebugOff => write!(f, "debug off"),
             XBoardIn::Board => write!(f, "board"),

@@ -30,7 +30,8 @@ impl XBoard {
                         XBoardOut::NewLine => print::new_line(),
                         XBoardOut::Features => print::features(&name, &version, &features),
                         XBoardOut::Pong(n) => print::pong(n),
-                        XBoardOut::Error(error, cmd) => print::error(error, cmd),
+                        XBoardOut::Error(error, cmd) => print::error(&error, &cmd),
+                        XBoardOut::IllegalMove(m) => print::illegal_move(&m),
                         XBoardOut::Custom(info) => print::custom(info),
                         XBoardOut::Quit => break, // This will shut down the input thread.
                     }

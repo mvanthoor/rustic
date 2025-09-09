@@ -6,6 +6,7 @@ pub enum XBoardOut {
     Pong(isize),
     Quit,
     Error(String, String),
+    IllegalMove(String),
 
     // Custom output
     Custom(String),

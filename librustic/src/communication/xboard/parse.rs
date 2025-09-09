@@ -12,6 +12,9 @@ pub fn key_value_pair(cmd: &str) -> XBoardIn {
     match parts[KEY] {
         "protover" => XBoardIn::Protover(parts[VALUE].parse::<u8>().unwrap_or(0)),
         "ping" => XBoardIn::Ping(parts[VALUE].parse::<isize>().unwrap_or(0)),
+        "usermove" => {
+            XBoardIn::Usermove(parts[VALUE].parse::<String>().unwrap_or(String::from("")))
+        }
         _ => XBoardIn::Unknown(String::from(cmd)),
     }
 }
