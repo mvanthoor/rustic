@@ -5,7 +5,6 @@ use crate::communication::{
 };
 use crate::search::defs::SearchReport;
 use std::sync::mpsc::Sender;
-use strum_macros::Display as StrumDisplay;
 
 pub trait IComm {
     fn init(&mut self, cmd_in_tx: Sender<EngineInput>);
@@ -42,11 +41,22 @@ pub enum EngineOutput {
     XBoard(XBoardOut),
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, StrumDisplay)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum EngineState {
     UciNotUsed,
     Observing,
 
     Thinking,
     Analyzing,
+}
+
+impl std::fmt::Display for EngineState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EngineState::UciNotUsed => write!(f, "UciNotUsed"),
+            EngineState::Observing => write!(f, "Observing"),
+            EngineState::Thinking => write!(f, "Thinking"),
+            EngineState::Analyzing => write!(f, "Analyzing"),
+        }
+    }
 }
