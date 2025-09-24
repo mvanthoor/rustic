@@ -1,3 +1,5 @@
+__Rustic has moved to [Codeberg](https://codeberg.org/mvanthoor/rustic)__.
+
 ![Rustic Banner](https://rustic-chess.org/img/rustic-logo-web.jpg)
 
 [https://rustic-chess.org/](https://rustic-chess.org/)
