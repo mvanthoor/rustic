@@ -25,6 +25,11 @@ There are several reasons for moving Rustic off of Github:
    speech and democracy. Therefore I have been migrating off of USA-based
    services and software products for private use where possible.
 
+I'm thankful to everyone who has starred this repository or had any interest in this
+personal project for whatever reason at all. If you wish to keep following
+Rustic's (slow) progress, you're invited to visit its [new location on the
+internet](https://codeberg.org/mvanthoor/rustic).
+
 >__Note:__ I will not abandon projects I care about, even if they are still
 hosted on GitHub. I will contribute to these projects if there's some way
 for me to help and improve them. To facilitate this, I will not delete my
