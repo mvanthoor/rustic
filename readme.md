@@ -17,13 +17,13 @@ There are several reasons for moving Rustic off of Github:
 1. For the last few years I have not been happy with the direction in which
    Microsoft is taking its products, including GitHub. Therefore I have
    begun migrating off of Microsoft products and services for private use
-   in 2019, starting with switching all of my private computers to Debian
-   Linux, including my main workstation. GitHub is the last Microsoft
+   since 2019, starting with switching all of my private computers to Debian
+   Linux. This includes my main workstation. GitHub is the last Microsoft
    product or service that I still privately used.
 1. I am not confident that the current government in the USA will take
    (inter)national laws and regulations into account with regard to free
-   speech and democracy. Therefore I have been migrating off of USA-based
-   services and software products for private use where possible.
+   speech, democracy and even data safety. Therefore I have been migrating
+   off of USA-based services for private use where possible.
 
 I'm thankful to everyone who has starred this repository or had any interest in this
 personal project for whatever reason at all. If you wish to keep following
